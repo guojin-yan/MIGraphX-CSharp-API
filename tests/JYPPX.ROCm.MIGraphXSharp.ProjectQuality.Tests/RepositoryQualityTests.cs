@@ -37,6 +37,17 @@ public sealed class RepositoryQualityTests
         var props = XDocument.Load(Path.Combine(RepositoryRoot, "Directory.Build.props"));
         Assert.Equal("JYPPX.ROCm.MIGraphX.CSharp.API", props.Descendants("MIGraphXSharpPackageId").Single().Value);
         Assert.Equal("https://github.com/guojin-yan/MIGraphX-CSharp-API", props.Descendants("MIGraphXSharpRepositoryUrl").Single().Value);
+        Assert.Equal("Guojin Yan", props.Descendants("Authors").Single().Value);
+        Assert.Equal("Copyright 2026 Guojin Yan", props.Descendants("Copyright").Single().Value);
+        Assert.Equal("Apache-2.0", props.Descendants("PackageLicenseExpression").Single().Value);
+
+        var license = File.ReadAllText(Path.Combine(RepositoryRoot, "LICENSE"));
+        Assert.Contains("Apache License", license, StringComparison.Ordinal);
+        Assert.Contains("Version 2.0, January 2004", license, StringComparison.Ordinal);
+        Assert.Contains("END OF TERMS AND CONDITIONS", license, StringComparison.Ordinal);
+        Assert.Equal(
+            "MIGraphX-CSharp-API\nCopyright 2026 Guojin Yan\n\nThis product is licensed under the Apache License, Version 2.0.",
+            File.ReadAllText(Path.Combine(RepositoryRoot, "NOTICE")).Replace("\r\n", "\n").TrimEnd());
 
         var assembly = typeof(MIGraphXBuildInfo).Assembly;
         Assert.Equal("JYPPX.ROCm.MIGraphX.CSharp.API", assembly.GetName().Name);

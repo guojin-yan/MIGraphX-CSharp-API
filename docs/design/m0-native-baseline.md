@@ -44,4 +44,4 @@ The installed header contains ONNX declarations, the C library directly depends 
 
 ## Redistribution boundary
 
-The official package contains AMD license material, but file-by-file redistribution obligations, the complete transitive native closure, package size, and clean-runtime behavior have not been audited. No AMD binary is stored in this repository or candidate core package. Runtime packaging remains disabled and fail closed. The managed project license is separately pending an owner decision.
+The managed project is licensed under Apache-2.0. That decision does not license AMD components: the official package contains AMD license material, but file-by-file redistribution obligations, the complete transitive native closure, package size, and clean-runtime behavior have not been audited. No AMD binary is stored in this repository or candidate core package. Runtime packaging remains disabled and fail closed.

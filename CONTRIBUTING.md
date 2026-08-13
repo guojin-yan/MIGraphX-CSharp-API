@@ -15,4 +15,4 @@ MIGraphXSharp is evidence-driven. Keep changes scoped, preserve the repository b
 
 Run `eng/build.ps1`, `eng/test.ps1`, `eng/pack.ps1`, `eng/verify-package.ps1`, and `eng/docs.ps1` in Release configuration. A runtime package request must continue to fail until its complete manifest and validation evidence are reviewed.
 
-The license is pending an owner decision. Do not publish a NuGet package or create a release until licensing is resolved.
+The project is licensed under Apache-2.0. Unless explicitly stated otherwise, intentionally submitted contributions are provided under that license. Version `0.0.0` is still an M0 candidate; do not publish a NuGet package or create a release as part of M0.

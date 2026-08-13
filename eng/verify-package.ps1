@@ -55,8 +55,17 @@ try {
     if ($metadata.repository.commit -notmatch '^[a-f0-9]{40}$') {
         throw 'NuGet repository metadata must contain a 40-character commit SHA.'
     }
-    if ($metadata.SelectSingleNode("*[local-name()='license']")) {
-        throw 'A license expression/file must not be claimed while the project license is pending.'
+    $license = $metadata.SelectSingleNode("*[local-name()='license']")
+    if (-not $license -or $license.type -ne 'expression' -or $license.InnerText -ne 'Apache-2.0') {
+        throw 'NuGet license metadata must use the Apache-2.0 expression.'
+    }
+    if ($metadata.authors -ne 'Guojin Yan' -or $metadata.copyright -ne 'Copyright 2026 Guojin Yan') {
+        throw 'NuGet authors or copyright metadata is incorrect.'
+    }
+    foreach ($requiredEntry in @('LICENSE', 'NOTICE')) {
+        if ($requiredEntry -notin $entries) {
+            throw "Package is missing $requiredEntry."
+        }
     }
     foreach ($entry in $archive.Entries | Where-Object { $_.Length -gt 0 }) {
         $stream = $entry.Open()

@@ -11,7 +11,7 @@ MIGraphXSharp 计划为 .NET 提供 AMD 官方 MIGraphX C API 绑定。版本 `0
 - M0 没有 MIGraphX P/Invoke、ONNX parse/compile/run、native loader、异步执行或 GPU 执行。
 - 本地机器没有 AMD GPU。未来任何 GPU 声明都必须引用本项目 Radeon Cloud 记录和已推送的 40 位 Git SHA。
 - 核心包不携带 MIGraphX 或 ROCm 原生文件。Runtime 包已禁用并采用 fail-closed 策略。
-- 项目许可证仍待 Owner 决定，因此该包只是本地工程产物，不得发布。
+- 本托管项目采用 Apache-2.0 许可证。版本 `0.0.0` 仍只是本地工程产物，不得发布。
 
 ## 安装
 
@@ -54,6 +54,10 @@ $package = .\eng\pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
 ## 文档
 
 DocFX 源码位于 [`docs`](docs/index.md)。原生研究基线在 [`docs/design/m0-native-baseline.md`](docs/design/m0-native-baseline.md) 中记录官方包 URL、包/头文件/库 SHA-256、API 族计数、SONAME、依赖、导出及证据限制。
+
+## 许可证
+
+Copyright 2026 Guojin Yan。本托管项目采用 [Apache License 2.0](LICENSE)，归属信息见 [`NOTICE`](NOTICE)。包中不含 AMD/ROCm/MIGraphX 组件；这些组件继续受各自许可证约束。
 
 ## 参与贡献
 

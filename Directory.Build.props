@@ -5,8 +5,10 @@
     <MIGraphXSharpPackageId>JYPPX.ROCm.MIGraphX.CSharp.API</MIGraphXSharpPackageId>
     <MIGraphXSharpVersion Condition="'$(MIGraphXSharpVersion)' == ''">0.0.0</MIGraphXSharpVersion>
     <MIGraphXSharpRepositoryUrl>https://github.com/guojin-yan/MIGraphX-CSharp-API</MIGraphXSharpRepositoryUrl>
-    <Authors>JYPPX</Authors>
+    <Authors>Guojin Yan</Authors>
     <Company>JYPPX</Company>
+    <Copyright>Copyright 2026 Guojin Yan</Copyright>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Version>$(MIGraphXSharpVersion)</Version>
     <PackageVersion>$(MIGraphXSharpVersion)</PackageVersion>
     <AssemblyVersion>0.0.0.0</AssemblyVersion>

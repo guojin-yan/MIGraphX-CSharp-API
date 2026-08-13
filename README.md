@@ -11,7 +11,7 @@ MIGraphXSharp is a planned .NET binding for the official AMD MIGraphX C API. Ver
 - No MIGraphX P/Invoke, ONNX parse/compile/run, native loader, asynchronous execution, or GPU execution exists in M0.
 - The local machine has no AMD GPU. Future GPU claims must link evidence from this project's Radeon Cloud records and a pushed 40-character Git SHA.
 - The core package carries no MIGraphX or ROCm native files. Runtime packages are disabled and fail closed.
-- The project license is pending an owner decision, so this package is a local engineering artifact and must not be published.
+- The managed project is licensed under Apache-2.0. Version `0.0.0` remains a local engineering artifact and must not be published.
 
 ## Install
 
@@ -54,6 +54,10 @@ Build success, package assets, clean-consumer compilation, native loading, and A
 ## Documentation
 
 The DocFX source is under [`docs`](docs/index.md). The native research baseline records the official package URLs, package/header/library SHA-256 values, API-family counts, SONAME, dependencies, exports, and evidence limits in [`docs/design/m0-native-baseline.md`](docs/design/m0-native-baseline.md).
+
+## License
+
+Copyright 2026 Guojin Yan. This managed project is licensed under the [Apache License 2.0](LICENSE); see [`NOTICE`](NOTICE) for attribution. AMD/ROCm/MIGraphX components are not included and remain subject to their own licenses.
 
 ## Contributing
 
