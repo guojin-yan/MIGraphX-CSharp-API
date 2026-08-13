@@ -198,6 +198,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("actions/deploy-pages@v5", pagesWorkflow, StringComparison.Ordinal);
         Assert.Contains("pages: write", pagesWorkflow, StringComparison.Ordinal);
         Assert.Contains("id-token: write", pagesWorkflow, StringComparison.Ordinal);
+        Assert.Contains("- eng/docs.ps1", pagesWorkflow, StringComparison.Ordinal);
 
         var docsScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "docs.ps1"));
         Assert.Contains("Join-Path $root 'docfx.json'", docsScript, StringComparison.Ordinal);

@@ -9,6 +9,7 @@ on:
       - src/**
       - docfx.json
       - .config/dotnet-tools.json
+      - eng/docs.ps1
       - .github/workflows/docs-pages.yml
 
 permissions:
