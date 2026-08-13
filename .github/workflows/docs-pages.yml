@@ -1,21 +1,16 @@
-name: docs-pages
+name: docs-pages-manual
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - docs/**
-      - src/**
-      - docfx.json
-      - .config/dotnet-tools.json
-      - eng/docs.ps1
-      - .github/workflows/docs-pages.yml
+    inputs:
+      deploy:
+        description: Deploy the generated site to GitHub Pages
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: pages
@@ -39,7 +34,11 @@ jobs:
           path: artifacts/docs
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: inputs.deploy && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

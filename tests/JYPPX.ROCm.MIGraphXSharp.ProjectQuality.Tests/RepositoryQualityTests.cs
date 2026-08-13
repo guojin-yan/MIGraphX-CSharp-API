@@ -202,14 +202,20 @@ public sealed class RepositoryQualityTests
         Assert.Contains("actions/checkout@v7", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("actions/setup-dotnet@v6", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-package.ps1", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
+        Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);
+        Assert.DoesNotContain("push:", buildWorkflow, StringComparison.Ordinal);
 
         var pagesWorkflow = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", "docs-pages.yml"));
         Assert.Contains("actions/upload-pages-artifact@v5", pagesWorkflow, StringComparison.Ordinal);
         Assert.Contains("actions/deploy-pages@v5", pagesWorkflow, StringComparison.Ordinal);
+        Assert.Contains("workflow_dispatch:", pagesWorkflow, StringComparison.Ordinal);
+        Assert.Contains("default: false", pagesWorkflow, StringComparison.Ordinal);
+        Assert.Contains("if: inputs.deploy && github.ref == 'refs/heads/main'", pagesWorkflow, StringComparison.Ordinal);
         Assert.Contains("pages: write", pagesWorkflow, StringComparison.Ordinal);
         Assert.Contains("id-token: write", pagesWorkflow, StringComparison.Ordinal);
-        Assert.Contains("- eng/docs.ps1", pagesWorkflow, StringComparison.Ordinal);
+        Assert.DoesNotContain("push:", pagesWorkflow, StringComparison.Ordinal);
 
         var docsScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "docs.ps1"));
         Assert.Contains("Join-Path $root 'docfx.json'", docsScript, StringComparison.Ordinal);
