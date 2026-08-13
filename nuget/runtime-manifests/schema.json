@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/guojin-yan/MIGraphX-CSharp-API/runtime-manifest.schema.json",
+  "title": "MIGraphXSharp runtime native asset manifest",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "rid",
+    "nativeVersion",
+    "sourceUrl",
+    "sha256",
+    "license",
+    "files",
+    "transitiveDependencies",
+    "validation"
+  ],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "rid": { "type": "string" },
+    "nativeVersion": { "type": "string" },
+    "sourceUrl": { "type": "string", "format": "uri" },
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "license": { "type": "string", "minLength": 1 },
+    "files": { "type": "array", "minItems": 1 },
+    "transitiveDependencies": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["build", "package", "runtime"],
+      "properties": {
+        "build": { "enum": ["planned", "build-validated"] },
+        "package": { "enum": ["planned", "package-consumer-validated"] },
+        "runtime": { "enum": ["planned", "runtime-executed"] }
+      }
+    }
+  }
+}

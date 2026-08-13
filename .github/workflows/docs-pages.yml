@@ -1,0 +1,50 @@
+name: docs-pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - docs/**
+      - src/**
+      - docfx.json
+      - .config/dotnet-tools.json
+      - .github/workflows/docs-pages.yml
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+      - shell: pwsh
+        run: |
+          dotnet restore ./MIGraphXSharp.sln
+          ./eng/build.ps1 -Configuration Release -NoRestore
+          ./eng/docs.ps1 -Configuration Release -NoBuild
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: artifacts/docs
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-24.04
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

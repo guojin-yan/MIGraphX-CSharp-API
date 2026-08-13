@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-08-13T00:00:00Z",
+  "allowedStatuses": ["planned", "statically-verified", "runtime-executed", "not-applicable"],
+  "environment": {
+    "localOs": "Windows",
+    "amdGpuAvailable": false
+  },
+  "validations": [
+    {
+      "id": "official-package-integrity",
+      "status": "statically-verified",
+      "evidence": "AMD repository SHA-256 matched downloaded development and runtime packages."
+    },
+    {
+      "id": "installed-header-api-families",
+      "status": "statically-verified",
+      "evidence": "The installed package header was parsed and matched the fixed release commit header."
+    },
+    {
+      "id": "linux-library-elf-metadata",
+      "status": "statically-verified",
+      "evidence": "SONAME, DT_NEEDED entries, and key exports were read from the official package ELF."
+    },
+    {
+      "id": "native-loader",
+      "status": "planned",
+      "evidence": "No native loader is implemented in M0."
+    },
+    {
+      "id": "onnx-parse",
+      "status": "planned",
+      "evidence": "Header and export presence are not parse execution evidence."
+    },
+    {
+      "id": "amd-gpu-execution",
+      "status": "planned",
+      "evidence": "The local machine has no AMD GPU and no Radeon Cloud session was authorized."
+    },
+    {
+      "id": "runtime-package",
+      "status": "planned",
+      "evidence": "Runtime packaging is disabled until the native manifest is complete and verified."
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+name: managed-build
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build-test-pack-docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: Directory.Packages.props
+      - name: Restore tools and solution
+        shell: pwsh
+        run: |
+          dotnet tool restore
+          dotnet restore ./MIGraphXSharp.sln
+      - name: Build all 15 target frameworks
+        shell: pwsh
+        run: ./eng/build.ps1 -Configuration Release -NoRestore
+      - name: Test and smoke
+        shell: pwsh
+        run: ./eng/test.ps1 -Configuration Release -NoBuild
+      - name: Pack and audit clean consumers
+        shell: pwsh
+        run: |
+          $package = ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
+          ./eng/verify-package.ps1 -PackagePath $package -Version 0.0.0
+      - name: Verify runtime fail-closed behavior
+        shell: pwsh
+        run: |
+          try {
+            ./eng/pack.ps1 -Runtime
+            throw 'Runtime packaging unexpectedly succeeded.'
+          } catch {
+            if ($_.Exception.Message -notmatch 'disabled and fail-closed') { throw }
+          }
+      - name: Build DocFX site
+        shell: pwsh
+        run: ./eng/docs.ps1 -Configuration Release -NoBuild
+      - uses: actions/upload-artifact@v7
+        with:
+          name: m0-local-package-and-docs
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/docs/**
+          if-no-files-found: error

@@ -1,0 +1,20 @@
+- name: Home
+  href: index.md
+- name: Getting started
+  href: guides/getting-started.md
+- name: Compatibility
+  items:
+  - name: Frameworks
+    href: compatibility/frameworks.md
+  - name: Platforms and evidence
+    href: compatibility/platforms.md
+- name: Design
+  items:
+  - name: M0 native baseline
+    href: design/m0-native-baseline.md
+- name: Validation
+  href: validation/README.md
+- name: Release notes
+  href: releases/0.0.0.md
+- name: API reference
+  href: api/index.md

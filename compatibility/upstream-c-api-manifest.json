@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "m0-1",
+  "generatedAtUtc": "2026-08-13T00:00:00Z",
+  "validationLevel": "statically-verified",
+  "source": {
+    "vendor": "AMD",
+    "product": "MIGraphX",
+    "rocmVersion": "7.2.1",
+    "migraphxVersion": "2.15.0.70201-81~24.04",
+    "releaseTag": "rocm-7.2.1",
+    "tagObjectCommit": "18d5321428655c95b4d9bc94e1691fc0f3503e6c",
+    "peeledCommit": "de19b73ad280476e646512b847885eda100ec35e",
+    "releaseUrl": "https://github.com/ROCm/AMDMIGraphX/releases/tag/rocm-7.2.1",
+    "packageIndexUrl": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/main/binary-amd64/Packages.gz",
+    "developmentPackage": {
+      "name": "migraphx-dev",
+      "version": "2.15.0.70201-81~24.04",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/m/migraphx-dev/migraphx-dev_2.15.0.70201-81~24.04_amd64.deb",
+      "sha256": "ba930c986539015f4a7a651e1c89ade6c7e2d1cf695c3e1ff89903c0601d9019"
+    },
+    "header": {
+      "packagePath": "/opt/rocm-7.2.1/include/migraphx/migraphx.h",
+      "tagPath": "src/api/include/migraphx/migraphx.h",
+      "sha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+      "byteLength": 36635,
+      "packageAndTagContentIdentical": true,
+      "acquiredOn": "2026-08-13"
+    }
+  },
+  "api": {
+    "functionCount": 159,
+    "enumCount": 2,
+    "opaqueHandleCount": 25,
+    "families": {
+      "onnx": true,
+      "program": true,
+      "shape": true,
+      "argument": true,
+      "target": true,
+      "options": true,
+      "parameterMap": true,
+      "synchronousRun": true,
+      "asynchronousRun": true
+    }
+  },
+  "buildFeatures": {
+    "onnxHeaderDeclarations": "statically-verified",
+    "onnxLibraryDependency": "statically-verified",
+    "onnxParseExecution": "planned"
+  },
+  "nativeLibrary": {
+    "logicalName": "migraphx_c",
+    "linuxFile": "libmigraphx_c.so.3.0.70201",
+    "linuxSoname": "libmigraphx_c.so.3",
+    "packagePath": "/opt/rocm-7.2.1/lib/libmigraphx_c.so.3.0.70201",
+    "sha256": "3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff",
+    "byteLength": 366944,
+    "migraphxExportCount": 160,
+    "directDependencies": [
+      "libmigraphx_tf.so.2015000",
+      "libmigraphx_onnx.so.2015000",
+      "libmigraphx.so.2015000",
+      "libstdc++.so.6",
+      "libm.so.6",
+      "libgcc_s.so.1",
+      "libc.so.6",
+      "ld-linux-x86-64.so.2"
+    ],
+    "keyExports": [
+      "migraphx_parse_onnx",
+      "migraphx_parse_onnx_buffer",
+      "migraphx_program_create",
+      "migraphx_program_run",
+      "migraphx_program_run_async"
+    ],
+    "runtimePackage": {
+      "name": "migraphx",
+      "version": "2.15.0.70201-81~24.04",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/m/migraphx/migraphx_2.15.0.70201-81~24.04_amd64.deb",
+      "sha256": "cf0381824856c7181cfc45db415c1d25a98625090cf06de98de564693c02a01e"
+    }
+  },
+  "executionEnvironment": {
+    "os": "Windows",
+    "amdGpuAvailable": false,
+    "nativeLibraryLoaded": false,
+    "gpuRuntimeExecuted": false,
+    "notes": "Package, header, CMake import metadata, ELF dynamic dependencies, and exports were inspected locally. No native loader or GPU execution occurred."
+  },
+  "openIssues": [
+    "The complete redistributable runtime dependency closure and file-level license obligations remain unverified.",
+    "ONNX declarations and exports do not prove that a model parses successfully.",
+    "The private test export accounts for one more migraphx-prefixed ELF export than public header functions."
+  ]
+}

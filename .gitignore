@@ -1,0 +1,47 @@
+# Build, test, package, and documentation output
+artifacts/
+**/bin/
+**/obj/
+_site/
+/api/
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.nupkg
+*.snupkg
+
+# IDEs and editors
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.DotSettings.user
+
+# Native probes and downloaded inputs
+.cache/
+downloads/
+native/downloads/
+native/**/build/
+CMakeFiles/
+CMakeCache.txt
+cmake-build-*/
+
+# Models, native libraries, credentials, and local environment
+*.onnx
+*.so
+*.so.*
+*.dll
+*.dylib
+*.pfx
+*.pem
+*.key
+.env
+.env.*
+!.env.example
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini

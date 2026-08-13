@@ -1,0 +1,6 @@
+<Project>
+  <Target Name="ValidateRepositoryBoundary" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(RepositoryRoot)' != '' and !Exists('$(RepositoryRoot)MIGraphXSharp.sln')"
+           Text="The build must run from the MIGraphXSharp source repository." />
+  </Target>
+</Project>

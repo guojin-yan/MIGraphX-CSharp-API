@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(JYPPXManagedTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>JYPPX.ROCm.MIGraphX.CSharp.API</AssemblyName>
+    <RootNamespace>JYPPX.ROCm.MIGraphXSharp</RootNamespace>
+    <PackageId>$(MIGraphXSharpPackageId)</PackageId>
+    <Title>MIGraphXSharp</Title>
+    <Description>Managed .NET engineering baseline for the AMD MIGraphX C API. Native bindings are not implemented in version 0.0.0.</Description>
+    <PackageTags>AMD;ROCm;MIGraphX;interop;inference</PackageTags>
+    <PackageProjectUrl>$(MIGraphXSharpRepositoryUrl)</PackageProjectUrl>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <IsPackable>true</IsPackable>
+    <IncludeSymbols>false</IncludeSymbols>
+    <IncludeSource>false</IncludeSource>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
+    <DefineConstants>$(DefineConstants);MIGRAPHX_LIBRARYIMPORT_PATH</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="!$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">
+    <DefineConstants>$(DefineConstants);MIGRAPHX_DLLIMPORT_PATH</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\docs\package\README.md" Pack="true" PackagePath="/" Link="README.md" />
+  </ItemGroup>
+</Project>

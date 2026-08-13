@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-08-13T00:00:00Z",
+  "validationLevel": "planned",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "upstream": {
+    "functionCount": 159,
+    "enumCount": 2,
+    "opaqueHandleCount": 25
+  },
+  "managed": {
+    "generatedFunctionCount": 0,
+    "handwrittenFunctionCount": 0,
+    "enumCount": 0,
+    "handleCount": 0,
+    "coverageStatus": "not-started"
+  },
+  "interopCompilationPaths": {
+    "net7OrLater": "LibraryImport-planned",
+    "olderTargets": "DllImport-planned",
+    "singleManifestModel": "planned"
+  },
+  "reason": "M0 intentionally freezes inputs and compilation boundaries without introducing unverified native signatures."
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "runtimePackagingEnabled": false,
+  "failClosed": true,
+  "requiredStatuses": [
+    "build-validated",
+    "package-consumer-validated",
+    "runtime-executed"
+  ],
+  "requiredManifestFields": [
+    "rid",
+    "nativeVersion",
+    "sourceUrl",
+    "sha256",
+    "license",
+    "files",
+    "transitiveDependencies",
+    "validation"
+  ],
+  "reason": "No complete and runtime-verified native dependency manifest exists in M0."
+}

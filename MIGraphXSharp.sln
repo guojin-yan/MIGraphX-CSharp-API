@@ -1,0 +1,42 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.MIGraphX.CSharp.API", "src\JYPPX.ROCm.MIGraphX.CSharp.API\JYPPX.ROCm.MIGraphX.CSharp.API.csproj", "{716D5720-84F1-428E-A45A-D3375C974A8A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.MIGraphXSharp.UnitTests", "tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\JYPPX.ROCm.MIGraphXSharp.UnitTests.csproj", "{FA90252B-5C63-4435-9B65-8350D001A380}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.MIGraphXSharp.ProjectQuality.Tests", "tests\JYPPX.ROCm.MIGraphXSharp.ProjectQuality.Tests\JYPPX.ROCm.MIGraphXSharp.ProjectQuality.Tests.csproj", "{845A514A-5803-4234-8C3A-DA91EEB36F77}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.MIGraphXSharp.PackageTests", "tests\JYPPX.ROCm.MIGraphXSharp.PackageTests\JYPPX.ROCm.MIGraphXSharp.PackageTests.csproj", "{B2D2955C-D4E7-4E36-83C2-389753AFDE8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnvironmentSmokeRunner", "smoke\EnvironmentSmokeRunner\EnvironmentSmokeRunner.csproj", "{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{716D5720-84F1-428E-A45A-D3375C974A8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{716D5720-84F1-428E-A45A-D3375C974A8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{716D5720-84F1-428E-A45A-D3375C974A8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{716D5720-84F1-428E-A45A-D3375C974A8A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FA90252B-5C63-4435-9B65-8350D001A380}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FA90252B-5C63-4435-9B65-8350D001A380}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FA90252B-5C63-4435-9B65-8350D001A380}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FA90252B-5C63-4435-9B65-8350D001A380}.Release|Any CPU.Build.0 = Release|Any CPU
+		{845A514A-5803-4234-8C3A-DA91EEB36F77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{845A514A-5803-4234-8C3A-DA91EEB36F77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{845A514A-5803-4234-8C3A-DA91EEB36F77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{845A514A-5803-4234-8C3A-DA91EEB36F77}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2D2955C-D4E7-4E36-83C2-389753AFDE8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2D2955C-D4E7-4E36-83C2-389753AFDE8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2D2955C-D4E7-4E36-83C2-389753AFDE8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2D2955C-D4E7-4E36-83C2-389753AFDE8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,7 @@
+# schema-version: 1.0.0
+# package: JYPPX.ROCm.MIGraphX.CSharp.API
+# version: 0.0.0
+# generated-at-utc: 2026-08-13T00:00:00Z
+JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo
+  const bool NativeBindingsAvailable = false
+  const string PackageVersion = "0.0.0"
