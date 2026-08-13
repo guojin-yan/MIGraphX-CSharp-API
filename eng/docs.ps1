@@ -13,13 +13,14 @@ try {
         & (Join-Path $PSScriptRoot 'build.ps1') -Configuration $Configuration
     }
     Invoke-DotNet -Arguments @('tool', 'restore')
-    Invoke-DotNet -Arguments @('tool', 'run', 'docfx', '.\docfx.json', '--warningsAsErrors')
-    foreach ($path in @(
-        'artifacts\docs\index.html',
-        'artifacts\docs\api\index.html',
-        'artifacts\docs\api\JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo.html'
+    Invoke-DotNet -Arguments @('tool', 'run', 'docfx', (Join-Path $root 'docfx.json'), '--warningsAsErrors')
+    foreach ($relativePath in @(
+        'artifacts/docs/index.html',
+        'artifacts/docs/api/index.html',
+        'artifacts/docs/api/JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo.html'
     )) {
-        if (-not (Test-Path -LiteralPath $path)) { throw "DocFX output is missing $path." }
+        $path = Join-Path $root $relativePath
+        if (-not (Test-Path -LiteralPath $path)) { throw "DocFX output is missing $relativePath." }
     }
 }
 finally {
