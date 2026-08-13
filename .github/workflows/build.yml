@@ -24,11 +24,11 @@ jobs:
       - name: Build all 15 target frameworks
         shell: pwsh
         run: ./eng/build.ps1 -Configuration Release -NoRestore
-      - name: Verify frozen M1 interop and ABI exports
+      - name: Verify frozen M2 interop, ABI exports, and model
         shell: pwsh
         run: |
           ./eng/generate-interop.ps1 -AcquireHeader -Verify
-          ./eng/verify-m1-abi.ps1 -AcquireInputs
+          ./eng/verify-m2-abi.ps1 -AcquireInputs
       - name: Test and smoke
         shell: pwsh
         run: ./eng/test.ps1 -Configuration Release -NoBuild
@@ -51,7 +51,7 @@ jobs:
         run: ./eng/docs.ps1 -Configuration Release -NoBuild
       - uses: actions/upload-artifact@v7
         with:
-          name: m1-local-package-and-docs
+          name: m2-local-package-and-docs
           path: |
             artifacts/packages/*.nupkg
             artifacts/docs/**

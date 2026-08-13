@@ -1,7 +1,7 @@
 # schema-version: 1.0.0
 # package: JYPPX.ROCm.MIGraphX.CSharp.API
 # version: 0.0.0
-# generated-at-utc: 2026-08-13T00:00:00Z
+# generated-at-utc: 2026-08-14T00:00:00Z
 JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo
   const bool NativeBindingsAvailable = true
   const string PackageVersion = "0.0.0"
@@ -14,6 +14,16 @@ JYPPX.ROCm.MIGraphXSharp.MIGraphXException : System.Exception
   int StatusCode { get; }
   string Operation { get; }
   MIGraphXStatus? KnownStatus { get; }
+JYPPX.ROCm.MIGraphXSharp.MIGraphXNativeLoadException : System.Exception
+  IReadOnlyList<MIGraphXNativeDiagnostic> Diagnostics { get; }
+JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxExecutionResult
+  string InputName { get; }
+  IReadOnlyList<long> InputDimensions { get; }
+  IReadOnlyList<long> OutputDimensions { get; }
+  IReadOnlyList<float> Output { get; }
+JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxWorkflow
+  static MIGraphXOnnxExecutionResult RunFile(string nativeLibraryPath, string modelPath, float[] input, string targetName = "gpu")
+  static MIGraphXOnnxExecutionResult RunBuffer(string nativeLibraryPath, byte[] model, float[] input, string targetName = "gpu")
 JYPPX.ROCm.MIGraphXSharp.MIGraphXEnvironment
   static MIGraphXEnvironmentReport Probe(string nativeLibraryPath, bool exerciseObjects = true, string targetName = "gpu")
   static MIGraphXEnvironmentReport ProbeSystem(bool exerciseObjects = true, string targetName = "gpu")
@@ -26,6 +36,7 @@ JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind : System.Enum
   ExportMissing = 5
   Loaded = 6
   Executed = 7
+  OnnxFrontendMissing = 8
 JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnostic
   string Candidate { get; }
   string Source { get; }

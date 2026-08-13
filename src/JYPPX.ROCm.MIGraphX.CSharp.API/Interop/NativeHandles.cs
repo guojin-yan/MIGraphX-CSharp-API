@@ -69,6 +69,38 @@ internal sealed class NativeProgramHandle : SafeHandleZeroOrMinusOneIsInvalid
         }
     }
 
+    internal static NativeProgramHandle ParseFile(IntPtr path, NativeOnnxOptionsHandle options)
+    {
+        var status = NativeMethods.ParseOnnx(out var raw, path, options.DangerousGetHandle());
+        return CompleteParsed(status, raw, "migraphx_parse_onnx");
+    }
+
+    internal static NativeProgramHandle ParseBuffer(IntPtr data, UIntPtr size, NativeOnnxOptionsHandle options)
+    {
+        var status = NativeMethods.ParseOnnxBuffer(out var raw, data, size, options.DangerousGetHandle());
+        return CompleteParsed(status, raw, "migraphx_parse_onnx_buffer");
+    }
+
+    private static NativeProgramHandle CompleteParsed(NativeMIGraphXStatus status, IntPtr raw, string operation)
+    {
+        var owned = new NativeProgramHandle();
+        owned.SetHandle(raw);
+        try
+        {
+            NativeStatus.ThrowIfFailed(status, operation);
+            if (owned.IsInvalid)
+            {
+                throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with null handle)");
+            }
+            return owned;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
     protected override bool ReleaseHandle()
     {
         NativeMethods.ProgramDestroy(handle);

@@ -9,8 +9,7 @@ param(
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
-$manifestPath = Join-Path $root 'compatibility\m1-binding-subset.json'
-$manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
+$manifest = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m2-binding-subset.json') | ConvertFrom-Json
 $cache = Join-Path $root '.cache\m1'
 
 if ($AcquireInputs) {
@@ -53,21 +52,19 @@ if ((Get-FileHash -Algorithm SHA256 -LiteralPath $OfficialElfPath).Hash.ToLowerI
 
 & (Join-Path $root 'eng\generate-interop.ps1') -HeaderPath $HeaderPath -Verify
 $expected = @($manifest.functions.cName | Sort-Object -Unique)
-if ($expected.Count -ne $manifest.scope.subsetFunctionCount) { throw 'Subset function count is inconsistent.' }
+if ($expected.Count -ne $manifest.scope.subsetFunctionCount) { throw 'M2 subset function count is inconsistent.' }
 
 $generatedText = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Generated\NativeMethods.LibraryImport.g.cs')
 $generatedText += Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Generated\NativeMethods.DllImport.g.cs')
-$managed = @([regex]::Matches($generatedText, 'EntryPoint\s*=\s*"(?<name>migraphx_[a-z0-9_]+)"') | ForEach-Object { $_.Groups['name'].Value } | Where-Object { $_ -in $expected } | Sort-Object -Unique)
+$managed = @([regex]::Matches($generatedText, 'EntryPoint\s*=\s*"(?<name>migraphx_[a-z0-9_]+)"') | ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
 
-if (-not (Test-Path -LiteralPath (Join-Path $root "artifacts\fake-native\$Configuration\migraphx_c.dll")) -and $env:OS -eq 'Windows_NT') {
-    & (Join-Path $root 'eng\build-fake-native.ps1') -Configuration $Configuration
-}
-$fakePath = if ($env:OS -eq 'Windows_NT') {
+& (Join-Path $root 'eng\build-fake-native.ps1') -Configuration $Configuration | Out-Host
+$fakePath = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     Join-Path $root "artifacts\fake-native\$Configuration\migraphx_c.dll"
 } else {
     Join-Path $root "artifacts\fake-native\$Configuration\libmigraphx_c.so"
 }
-if ($env:OS -eq 'Windows_NT') {
+if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
     $installation = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1)
     $toolsVersion = Get-ChildItem -LiteralPath (Join-Path $installation 'VC\Tools\MSVC') -Directory | Sort-Object Name -Descending | Select-Object -First 1
@@ -75,15 +72,13 @@ if ($env:OS -eq 'Windows_NT') {
     $fakeDump = & $dumpbin /nologo /exports $fakePath
     $fake = @($fakeDump | ForEach-Object {
         if ($_ -match '^\s+\d+\s+[0-9A-Fa-f]+\s+[0-9A-Fa-f]+\s+(?<name>migraphx_[a-z0-9_]+)\s*$') { $Matches.name }
-    } | Where-Object { $_ -in $expected } | Sort-Object -Unique)
+    } | Sort-Object -Unique)
 } else {
-    $nm = Get-Command nm -ErrorAction Stop
-    $fakeDump = & $nm.Source -D --defined-only $fakePath
-    $fake = @([regex]::Matches(($fakeDump -join "`n"), '\bmigraphx_[a-z0-9_]+\b') | ForEach-Object { $_.Value } | Where-Object { $_ -in $expected } | Sort-Object -Unique)
+    $fakeDump = & (Get-Command nm -ErrorAction Stop).Source -D --defined-only $fakePath
+    $fake = @([regex]::Matches(($fakeDump -join "`n"), '\bmigraphx_[a-z0-9_]+\b') | ForEach-Object { $_.Value } | Sort-Object -Unique)
 }
 
-$reader = Join-Path $root 'tools\ElfExportReader\ElfExportReader.csproj'
-$officialAll = @(& dotnet run --project $reader -c Release -- $OfficialElfPath)
+$officialAll = @(& dotnet run --project (Join-Path $root 'tools\ElfExportReader\ElfExportReader.csproj') -c Release -- $OfficialElfPath)
 if ($LASTEXITCODE -ne 0) { throw 'Official ELF export reader failed.' }
 $official = @($officialAll | Where-Object { $_ -in $expected } | Sort-Object -Unique)
 
@@ -93,9 +88,13 @@ foreach ($projection in @(
     @{ Name = 'official ELF exports'; Values = $official }
 )) {
     $difference = Compare-Object $expected $projection.Values
-    if ($difference) {
-        throw "$($projection.Name) differ from the M1 subset: $($difference | Out-String)"
-    }
+    if ($difference) { throw "$($projection.Name) differ from the M2 subset: $($difference | Out-String)" }
+}
+
+$model = & (Join-Path $root 'eng\generate-m2-model.ps1')
+$modelPath = $model.ModelPath
+if ($model.Sha256 -ne $manifest.reproducibleModel.sha256 -or $model.Bytes -ne $manifest.reproducibleModel.byteLength) {
+    throw 'Generated M2 model hash or byte length differs from the frozen manifest.'
 }
 
 [PSCustomObject]@{
@@ -105,5 +104,7 @@ foreach ($projection in @(
     FakeExports = $fake.Count
     OfficialElfExports = $official.Count
     OfficialAllMIGraphXExports = $officialAll.Count
-    Evidence = 'header/managed/fake and official-ELF statically verified; fake runtime is a test substitute'
+    ModelSha256 = $model.Sha256
+    ModelBytes = $model.Bytes
+    Evidence = 'header/managed/fake/model and official-ELF statically verified; fake runtime is a test substitute'
 }

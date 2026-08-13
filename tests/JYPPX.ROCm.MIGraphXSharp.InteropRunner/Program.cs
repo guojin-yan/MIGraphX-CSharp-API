@@ -3,9 +3,9 @@ using System.Linq;
 using System.Runtime.Versioning;
 using JYPPX.ROCm.MIGraphXSharp;
 
-if (args.Length != 1 || !System.IO.Path.IsPathRooted(args[0]))
+if (args.Length != 2 || !System.IO.Path.IsPathRooted(args[0]) || !System.IO.Path.IsPathRooted(args[1]))
 {
-    Console.Error.WriteLine("Expected one absolute fake-native path.");
+    Console.Error.WriteLine("Expected absolute fake-native and ONNX model paths.");
     return 2;
 }
 
@@ -14,7 +14,6 @@ var framework = typeof(Program).Assembly.GetCustomAttributes(typeof(TargetFramew
     .Cast<TargetFrameworkAttribute>()
     .Single()
     .FrameworkName;
-Console.WriteLine($"framework={framework};state={report.State};exports={report.ExportsComplete};objects={report.ObjectsExecuted}");
 if (report.State != "executed" || !report.ExportsComplete || !report.ObjectsExecuted)
 {
     foreach (var diagnostic in report.Diagnostics)
@@ -24,4 +23,11 @@ if (report.State != "executed" || !report.ExportsComplete || !report.ObjectsExec
     return 1;
 }
 
-return report.Diagnostics.Any(item => item.Kind == JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind.Executed) ? 0 : 1;
+var input = new[] { 1f, -2f, 3.5f, 4f };
+var onnx = MIGraphXOnnxWorkflow.RunBuffer(args[0], System.IO.File.ReadAllBytes(args[1]), input);
+var passed = report.Diagnostics.Any(item => item.Kind == JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind.Executed)
+    && onnx.InputDimensions.SequenceEqual(new long[] { 1, 4 })
+    && onnx.OutputDimensions.SequenceEqual(new long[] { 1, 4 })
+    && onnx.Output.SequenceEqual(input);
+Console.WriteLine($"framework={framework};m1={report.State};m2={(passed ? "executed" : "failed")};exports={report.ExportsComplete};objects={report.ObjectsExecuted}");
+return passed ? 0 : 1;

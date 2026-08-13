@@ -40,6 +40,18 @@ internal sealed class StrictUtf8String : IDisposable
 
     internal IntPtr Pointer => pointer;
 
+    internal static string Decode(IntPtr value, string operation)
+    {
+        if (value == IntPtr.Zero) { throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with null UTF-8 pointer)"); }
+        const int maximumBytes = 1024 * 1024;
+        var length = 0;
+        while (length < maximumBytes && Marshal.ReadByte(value, length) != 0) { length++; }
+        if (length == maximumBytes) { throw new InvalidOperationException($"{operation} returned an unterminated UTF-8 string."); }
+        var bytes = new byte[length];
+        Marshal.Copy(value, bytes, 0, length);
+        return new UTF8Encoding(false, true).GetString(bytes);
+    }
+
     public void Dispose()
     {
         var value = pointer;

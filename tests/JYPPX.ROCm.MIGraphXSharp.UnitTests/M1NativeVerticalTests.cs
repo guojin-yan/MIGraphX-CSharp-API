@@ -122,6 +122,98 @@ public sealed class M1NativeVerticalTests
         Assert.Equal(programDestroyBeforeConcurrency + 64, controls.ProgramDestroyCount());
         Assert.Equal(0, controls.TargetLiveCount());
         Assert.Equal(0, controls.ProgramLiveCount());
+
+        ExerciseRestrictedOnnxWorkflow(completePath, fakeDirectory);
+    }
+
+    private static void ExerciseRestrictedOnnxWorkflow(string completePath, string fakeDirectory)
+    {
+        var model = new byte[] { 0x08, 0x08 };
+        var input = new[] { 0.25f, -1f, 2f, 9f };
+
+        Assert.Throws<ArgumentNullException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, null!, input));
+        Assert.Throws<ArgumentException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, Array.Empty<byte>(), input));
+        Assert.Throws<ArgumentNullException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, null!));
+        Assert.Throws<ArgumentException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, Array.Empty<float>()));
+        Assert.Throws<ArgumentNullException>(() => MIGraphXOnnxWorkflow.RunFile(completePath, null!, input));
+        Assert.Throws<ArgumentException>(() => MIGraphXOnnxWorkflow.RunFile(completePath, "relative-model.onnx", input));
+        Assert.Throws<ArgumentException>(() => MIGraphXOnnxWorkflow.RunFile(completePath, Path.Combine(fakeDirectory, "bad\0model.onnx"), input));
+        Assert.Throws<ArgumentException>(() => MIGraphXOnnxWorkflow.RunFile(completePath, Path.Combine(fakeDirectory, "bad\ud800model.onnx"), input));
+        Assert.Throws<FileNotFoundException>(() => MIGraphXOnnxWorkflow.RunFile(completePath, Path.Combine(fakeDirectory, "absent.onnx"), input));
+
+        using var controls = new FakeControls(completePath);
+        controls.Reset();
+        Assert.Equal(1, controls.SizeOfBool());
+        Assert.Equal(4, controls.SizeOfShapeType());
+
+        var fromBuffer = MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input);
+        Assert.Equal("input", fromBuffer.InputName);
+        Assert.Equal(new long[] { 1, 4 }, fromBuffer.InputDimensions);
+        Assert.Equal(new long[] { 1, 4 }, fromBuffer.OutputDimensions);
+        Assert.Equal(input, fromBuffer.Output);
+        Assert.True(((ICollection<float>)fromBuffer.Output).IsReadOnly);
+
+        var modelPath = Path.Combine(Path.GetTempPath(), $"migraphx-m2-中文-{Guid.NewGuid():N}.onnx");
+        try
+        {
+            File.WriteAllBytes(modelPath, model);
+            var fromFile = MIGraphXOnnxWorkflow.RunFile(completePath, modelPath, input);
+            Assert.Equal(input, fromFile.Output);
+            Assert.Equal(Path.GetFullPath(modelPath), controls.LastModelPath());
+        }
+        finally
+        {
+            File.Delete(modelPath);
+        }
+
+        Assert.Equal(1, controls.ParseBufferCount());
+        Assert.Equal(1, controls.ParseFileCount());
+        Assert.Equal(2, controls.CompileCount());
+        Assert.Equal(2, controls.RunCount());
+        Assert.True(controls.M2DestroyCount() > 0);
+        Assert.Equal(0, controls.M2LiveCount());
+        Assert.Equal(0, controls.ProgramLiveCount());
+        Assert.Equal(0, controls.TargetLiveCount());
+
+        Assert.Throws<ArgumentException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, new[] { 1f }));
+        AssertNoNativeLeaks(controls);
+
+        foreach (var testCase in new[]
+        {
+            (Mode: 1, Text: "dynamic tensor shapes"),
+            (Mode: 2, Text: "standard contiguous"),
+            (Mode: 3, Text: "float32 tensors"),
+            (Mode: 4, Text: "exactly one model input"),
+            (Mode: 5, Text: "exactly one model output"),
+            (Mode: 6, Text: "exactly one run output"),
+        })
+        {
+            controls.SetShapeMode(testCase.Mode);
+            var error = Assert.Throws<NotSupportedException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+            Assert.Contains(testCase.Text, error.Message, StringComparison.Ordinal);
+            AssertNoNativeLeaks(controls);
+        }
+        controls.SetShapeMode(0);
+
+        controls.SetNextStatus((int)MIGraphXStatus.UnknownError);
+        var nativeFailure = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Equal("migraphx_onnx_options_create", nativeFailure.Operation);
+        AssertNoNativeLeaks(controls);
+
+        Parallel.For(0, 32, index =>
+        {
+            var concurrentInput = new[] { (float)index, -2f, 3f, 4f };
+            var result = MIGraphXOnnxWorkflow.RunBuffer(completePath, model, concurrentInput);
+            Assert.Equal(concurrentInput, result.Output);
+        });
+        AssertNoNativeLeaks(controls);
+    }
+
+    private static void AssertNoNativeLeaks(FakeControls controls)
+    {
+        Assert.Equal(0, controls.M2LiveCount());
+        Assert.Equal(0, controls.ProgramLiveCount());
+        Assert.Equal(0, controls.TargetLiveCount());
     }
 
     private static string FindRepositoryRoot()
@@ -152,8 +244,18 @@ public sealed class M1NativeVerticalTests
         private readonly GetIntDelegate targetAssignCopied;
         private readonly GetIntDelegate programAssignCopied;
         private readonly GetIntDelegate sizeOfStatus;
+        private readonly GetIntDelegate sizeOfBool;
+        private readonly GetIntDelegate sizeOfShapeType;
         private readonly GetIntDelegate sizeOfTargetHandle;
         private readonly GetPointerDelegate lastTargetName;
+        private readonly GetPointerDelegate lastModelPath;
+        private readonly GetIntDelegate parseFileCount;
+        private readonly GetIntDelegate parseBufferCount;
+        private readonly GetIntDelegate compileCount;
+        private readonly GetIntDelegate runCount;
+        private readonly GetIntDelegate m2DestroyCount;
+        private readonly GetIntDelegate m2LiveCount;
+        private readonly SetIntDelegate setShapeMode;
 
         internal FakeControls(string path)
         {
@@ -170,8 +272,18 @@ public sealed class M1NativeVerticalTests
             targetAssignCopied = Get<GetIntDelegate>("fake_target_assign_copied");
             programAssignCopied = Get<GetIntDelegate>("fake_program_assign_copied");
             sizeOfStatus = Get<GetIntDelegate>("fake_sizeof_status");
+            sizeOfBool = Get<GetIntDelegate>("fake_sizeof_bool");
+            sizeOfShapeType = Get<GetIntDelegate>("fake_sizeof_shape_type");
             sizeOfTargetHandle = Get<GetIntDelegate>("fake_sizeof_target_handle");
             lastTargetName = Get<GetPointerDelegate>("fake_last_target_name");
+            lastModelPath = Get<GetPointerDelegate>("fake_last_model_path");
+            parseFileCount = Get<GetIntDelegate>("fake_parse_file_count");
+            parseBufferCount = Get<GetIntDelegate>("fake_parse_buffer_count");
+            compileCount = Get<GetIntDelegate>("fake_compile_count");
+            runCount = Get<GetIntDelegate>("fake_run_count");
+            m2DestroyCount = Get<GetIntDelegate>("fake_m2_destroy_count");
+            m2LiveCount = Get<GetIntDelegate>("fake_m2_live_count");
+            setShapeMode = Get<SetIntDelegate>("fake_set_shape_mode");
         }
 
         internal void Reset() => reset();
@@ -186,8 +298,18 @@ public sealed class M1NativeVerticalTests
         internal int TargetAssignCopied() => targetAssignCopied();
         internal int ProgramAssignCopied() => programAssignCopied();
         internal int SizeOfStatus() => sizeOfStatus();
+        internal int SizeOfBool() => sizeOfBool();
+        internal int SizeOfShapeType() => sizeOfShapeType();
         internal int SizeOfTargetHandle() => sizeOfTargetHandle();
         internal string LastTargetName() => Marshal.PtrToStringUTF8(lastTargetName())!;
+        internal string LastModelPath() => Marshal.PtrToStringUTF8(lastModelPath())!;
+        internal int ParseFileCount() => parseFileCount();
+        internal int ParseBufferCount() => parseBufferCount();
+        internal int CompileCount() => compileCount();
+        internal int RunCount() => runCount();
+        internal int M2DestroyCount() => m2DestroyCount();
+        internal int M2LiveCount() => m2LiveCount();
+        internal void SetShapeMode(int value) => setShapeMode(value);
 
         public void Dispose() => NativeLibrary.Free(library);
 

@@ -22,6 +22,8 @@ public enum MIGraphXNativeDiagnosticKind
     Loaded = 6,
     /// <summary>target/program 纵向路径已执行。 The target/program vertical path was executed.</summary>
     Executed = 7,
+    /// <summary>基础库可用，但 M2 ONNX 同步工作流导出不完整。 The base library is available, but M2 ONNX synchronous-workflow exports are incomplete.</summary>
+    OnnxFrontendMissing = 8,
 }
 
 /// <summary>

@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "m2-1",
+  "generatedAtUtc": "2026-08-14T00:00:00Z",
+  "validationLevel": "statically-verified",
+  "source": {
+    "vendor": "AMD",
+    "rocmVersion": "7.2.1",
+    "migraphxVersion": "2.15.0.70201-81~24.04",
+    "releaseTag": "rocm-7.2.1",
+    "peeledCommit": "de19b73ad280476e646512b847885eda100ec35e",
+    "headerUrl": "https://raw.githubusercontent.com/ROCm/AMDMIGraphX/de19b73ad280476e646512b847885eda100ec35e/src/api/include/migraphx/migraphx.h",
+    "headerSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+    "headerByteLength": 36635,
+    "implementationEvidence": {
+      "path": "src/api/api.cpp",
+      "gitBlob": "5c37462641dcc7776d9846054f9e0fccbf86eaf6"
+    }
+  },
+  "nativeLibrary": {
+    "logicalName": "migraphx_c",
+    "linuxSoname": "libmigraphx_c.so.3",
+    "callingConvention": "cdecl",
+    "cBoolAbi": "one-byte C _Bool",
+    "sizeTAbi": "UIntPtr",
+    "errorApi": null
+  },
+  "targetFrameworkStrategy": {
+    "net7OrLater": "LibraryImport",
+    "olderTargets": "DllImport",
+    "semanticSource": "this manifest"
+  },
+  "reproducibleModel": {
+    "generator": "eng/generate-m2-model.ps1",
+    "sha256": "0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9",
+    "byteLength": 128,
+    "graph": "Identity(float32[1,4] -> float32[1,4]); ONNX IR 8; opset 13",
+    "trackedBinary": false
+  },
+  "enums": [
+    {
+      "cName": "migraphx_status",
+      "managedName": "NativeMIGraphXStatus",
+      "underlyingAbi": "signed 32-bit C enum on verified x86-64 ABI",
+      "values": [
+        { "managedName": "Success", "value": 0 },
+        { "managedName": "BadParameter", "value": 1 },
+        { "managedName": "UnknownTarget", "value": 3 },
+        { "managedName": "UnknownError", "value": 4 }
+      ]
+    },
+    {
+      "cName": "migraphx_shape_datatype_t",
+      "managedName": "NativeMIGraphXShapeDataType",
+      "underlyingAbi": "signed 32-bit C enum on verified x86-64 ABI",
+      "values": [
+        { "managedName": "Tuple", "value": 0 },
+        { "managedName": "Float4X2", "value": 1 },
+        { "managedName": "Bool", "value": 2 },
+        { "managedName": "Half", "value": 3 },
+        { "managedName": "Float", "value": 4 },
+        { "managedName": "Double", "value": 5 },
+        { "managedName": "UInt8", "value": 6 },
+        { "managedName": "Int8", "value": 7 },
+        { "managedName": "UInt16", "value": 8 },
+        { "managedName": "Int16", "value": 9 },
+        { "managedName": "Int32", "value": 10 },
+        { "managedName": "Int64", "value": 11 },
+        { "managedName": "UInt32", "value": 12 },
+        { "managedName": "UInt64", "value": 13 },
+        { "managedName": "Float8E4M3Fnuz", "value": 14 },
+        { "managedName": "Float8E4M3Fn", "value": 15 },
+        { "managedName": "Float8E5M2", "value": 16 },
+        { "managedName": "BFloat16", "value": 17 },
+        { "managedName": "Float8E5M2Fnuz", "value": 18 }
+      ]
+    }
+  ],
+  "handles": [
+    { "cName": "migraphx_target_t", "cDeclaration": "typedef struct migraphx_target* migraphx_target_t;", "ownership": "owned from create; destroy releases" },
+    { "cName": "migraphx_program_t", "cDeclaration": "typedef struct migraphx_program* migraphx_program_t;", "ownership": "owned from create or parse; destroy releases" },
+    { "cName": "migraphx_onnx_options_t", "cDeclaration": "typedef struct migraphx_onnx_options* migraphx_onnx_options_t;", "ownership": "owned from create; destroy releases" },
+    { "cName": "migraphx_compile_options_t", "cDeclaration": "typedef struct migraphx_compile_options* migraphx_compile_options_t;", "ownership": "owned from create; destroy releases" },
+    { "cName": "migraphx_program_parameter_shapes_t", "cDeclaration": "typedef struct migraphx_program_parameter_shapes* migraphx_program_parameter_shapes_t;", "ownership": "owned collection; returned shapes are borrowed until collection destroy" },
+    { "cName": "migraphx_shape_t", "cDeclaration": "typedef struct migraphx_shape* migraphx_shape_t;", "ownership": "borrowed in M2; lens storage is borrowed until parent lifetime ends" },
+    { "cName": "migraphx_argument_t", "cDeclaration": "typedef struct migraphx_argument* migraphx_argument_t;", "ownership": "input argument is owned; arguments collection entries are borrowed" },
+    { "cName": "migraphx_program_parameters_t", "cDeclaration": "typedef struct migraphx_program_parameters* migraphx_program_parameters_t;", "ownership": "owned map; add copies the native argument value" },
+    { "cName": "migraphx_arguments_t", "cDeclaration": "typedef struct migraphx_arguments* migraphx_arguments_t;", "ownership": "owned run-result collection; returned arguments are borrowed until collection destroy" },
+    { "cName": "migraphx_shapes_t", "cDeclaration": "typedef struct migraphx_shapes* migraphx_shapes_t;", "ownership": "owned output-shape collection; returned shapes are borrowed until collection destroy" }
+  ],
+  "functions": [
+    { "cName": "migraphx_target_destroy", "managedName": "TargetDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_target_destroy(migraphx_target_t target);", "parameters": [{ "cName": "target", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_target_assign_to", "managedName": "TargetAssignTo", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_target_assign_to(migraphx_target_t output, const_migraphx_target_t input);", "parameters": [{ "cName": "output", "managedType": "IntPtr" }, { "cName": "input", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_target_create", "managedName": "TargetCreate", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_target_create(migraphx_target_t* target, const char* name);", "parameters": [{ "cName": "target", "managedType": "IntPtr", "managedModifier": "out" }, { "cName": "name", "managedType": "IntPtr", "encoding": "strict UTF-8" }] },
+    { "cName": "migraphx_program_destroy", "managedName": "ProgramDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_destroy(migraphx_program_t program);", "parameters": [{ "cName": "program", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_assign_to", "managedName": "ProgramAssignTo", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_assign_to(migraphx_program_t output, const_migraphx_program_t input);", "parameters": [{ "cName": "output", "managedType": "IntPtr" }, { "cName": "input", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_create", "managedName": "ProgramCreate", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_create(migraphx_program_t* program);", "parameters": [{ "cName": "program", "managedType": "IntPtr", "managedModifier": "out" }] },
+    { "cName": "migraphx_program_parameter_shapes_destroy", "managedName": "ProgramParameterShapesDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_parameter_shapes_destroy( migraphx_program_parameter_shapes_t program_parameter_shapes);", "parameters": [{ "cName": "program_parameter_shapes", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_parameter_shapes_size", "managedName": "ProgramParameterShapesSize", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_parameter_shapes_size( size_t* out, migraphx_program_parameter_shapes_t program_parameter_shapes);", "parameters": [{ "cName": "out", "managedType": "UIntPtr", "managedModifier": "out" }, { "cName": "program_parameter_shapes", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_parameter_shapes_get", "managedName": "ProgramParameterShapesGet", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_parameter_shapes_get(const_migraphx_shape_t* out, migraphx_program_parameter_shapes_t program_parameter_shapes, const char* name);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out", "ownership": "borrowed" }, { "cName": "program_parameter_shapes", "managedType": "IntPtr" }, { "cName": "name", "managedType": "IntPtr", "encoding": "strict UTF-8" }] },
+    { "cName": "migraphx_program_parameter_shapes_names", "managedName": "ProgramParameterShapesNames", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_parameter_shapes_names( const char** out, migraphx_program_parameter_shapes_t program_parameter_shapes);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "ownership": "caller-allocated pointer array" }, { "cName": "program_parameter_shapes", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_parameters_destroy", "managedName": "ProgramParametersDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_parameters_destroy(migraphx_program_parameters_t program_parameters);", "parameters": [{ "cName": "program_parameters", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_parameters_create", "managedName": "ProgramParametersCreate", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_parameters_create(migraphx_program_parameters_t* program_parameters);", "parameters": [{ "cName": "program_parameters", "managedType": "IntPtr", "managedModifier": "out" }] },
+    { "cName": "migraphx_program_parameters_add", "managedName": "ProgramParametersAdd", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_parameters_add(migraphx_program_parameters_t program_parameters, const char* name, const_migraphx_argument_t argument);", "parameters": [{ "cName": "program_parameters", "managedType": "IntPtr" }, { "cName": "name", "managedType": "IntPtr", "encoding": "strict UTF-8" }, { "cName": "argument", "managedType": "IntPtr", "ownership": "borrowed and copied into map" }] },
+    { "cName": "migraphx_arguments_destroy", "managedName": "ArgumentsDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_arguments_destroy(migraphx_arguments_t arguments);", "parameters": [{ "cName": "arguments", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_arguments_size", "managedName": "ArgumentsSize", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_arguments_size(size_t* out, migraphx_arguments_t arguments);", "parameters": [{ "cName": "out", "managedType": "UIntPtr", "managedModifier": "out" }, { "cName": "arguments", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_arguments_get", "managedName": "ArgumentsGet", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_arguments_get(const_migraphx_argument_t* out, migraphx_arguments_t arguments, size_t idx);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out", "ownership": "borrowed" }, { "cName": "arguments", "managedType": "IntPtr" }, { "cName": "idx", "managedType": "UIntPtr" }] },
+    { "cName": "migraphx_shapes_destroy", "managedName": "ShapesDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shapes_destroy(migraphx_shapes_t shapes);", "parameters": [{ "cName": "shapes", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shapes_size", "managedName": "ShapesSize", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shapes_size(size_t* out, migraphx_shapes_t shapes);", "parameters": [{ "cName": "out", "managedType": "UIntPtr", "managedModifier": "out" }, { "cName": "shapes", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shapes_get", "managedName": "ShapesGet", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shapes_get(const_migraphx_shape_t* out, migraphx_shapes_t shapes, size_t idx);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out", "ownership": "borrowed" }, { "cName": "shapes", "managedType": "IntPtr" }, { "cName": "idx", "managedType": "UIntPtr" }] },
+    { "cName": "migraphx_shape_lengths", "managedName": "ShapeLengths", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shape_lengths(const size_t** out, size_t* out_size, const_migraphx_shape_t shape);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out", "ownership": "borrowed" }, { "cName": "out_size", "managedType": "UIntPtr", "managedModifier": "out" }, { "cName": "shape", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shape_strides", "managedName": "ShapeStrides", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shape_strides(const size_t** out, size_t* out_size, const_migraphx_shape_t shape);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out", "ownership": "borrowed" }, { "cName": "out_size", "managedType": "UIntPtr", "managedModifier": "out" }, { "cName": "shape", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shape_type", "managedName": "ShapeType", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shape_type(migraphx_shape_datatype_t* out, const_migraphx_shape_t shape);", "parameters": [{ "cName": "out", "managedType": "NativeMIGraphXShapeDataType", "managedModifier": "out" }, { "cName": "shape", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shape_bytes", "managedName": "ShapeBytes", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shape_bytes(size_t* out, const_migraphx_shape_t shape);", "parameters": [{ "cName": "out", "managedType": "UIntPtr", "managedModifier": "out" }, { "cName": "shape", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shape_elements", "managedName": "ShapeElements", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shape_elements(size_t* out, const_migraphx_shape_t shape);", "parameters": [{ "cName": "out", "managedType": "UIntPtr", "managedModifier": "out" }, { "cName": "shape", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shape_standard", "managedName": "ShapeStandard", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shape_standard(bool* out, const_migraphx_shape_t shape);", "parameters": [{ "cName": "out", "managedType": "byte", "managedModifier": "out", "abi": "C _Bool" }, { "cName": "shape", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_shape_dynamic", "managedName": "ShapeDynamic", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_shape_dynamic(bool* out, const_migraphx_shape_t shape);", "parameters": [{ "cName": "out", "managedType": "byte", "managedModifier": "out", "abi": "C _Bool" }, { "cName": "shape", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_argument_destroy", "managedName": "ArgumentDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_argument_destroy(migraphx_argument_t argument);", "parameters": [{ "cName": "argument", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_argument_create", "managedName": "ArgumentCreate", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_argument_create(migraphx_argument_t* argument, const_migraphx_shape_t shape, void* buffer);", "parameters": [{ "cName": "argument", "managedType": "IntPtr", "managedModifier": "out" }, { "cName": "shape", "managedType": "IntPtr", "ownership": "borrowed" }, { "cName": "buffer", "managedType": "IntPtr", "ownership": "borrowed through synchronous run" }] },
+    { "cName": "migraphx_argument_shape", "managedName": "ArgumentShape", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_argument_shape(const_migraphx_shape_t* out, const_migraphx_argument_t argument);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out", "ownership": "borrowed" }, { "cName": "argument", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_argument_buffer", "managedName": "ArgumentBuffer", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_argument_buffer(char** out, const_migraphx_argument_t argument);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out", "ownership": "borrowed" }, { "cName": "argument", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_compile", "managedName": "ProgramCompile", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_compile(migraphx_program_t program, migraphx_target_t target, migraphx_compile_options_t options);", "parameters": [{ "cName": "program", "managedType": "IntPtr" }, { "cName": "target", "managedType": "IntPtr" }, { "cName": "options", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_get_parameter_shapes", "managedName": "ProgramGetParameterShapes", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_get_parameter_shapes( migraphx_program_parameter_shapes_t* out, migraphx_program_t program);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out" }, { "cName": "program", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_get_output_shapes", "managedName": "ProgramGetOutputShapes", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_get_output_shapes(migraphx_shapes_t* out, migraphx_program_t program);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out" }, { "cName": "program", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_program_run", "managedName": "ProgramRun", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_run(migraphx_arguments_t* out, migraphx_program_t program, migraphx_program_parameters_t params);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out" }, { "cName": "program", "managedType": "IntPtr" }, { "cName": "params", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_onnx_options_destroy", "managedName": "OnnxOptionsDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_onnx_options_destroy(migraphx_onnx_options_t onnx_options);", "parameters": [{ "cName": "onnx_options", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_onnx_options_create", "managedName": "OnnxOptionsCreate", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_onnx_options_create(migraphx_onnx_options_t* onnx_options);", "parameters": [{ "cName": "onnx_options", "managedType": "IntPtr", "managedModifier": "out" }] },
+    { "cName": "migraphx_compile_options_destroy", "managedName": "CompileOptionsDestroy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_compile_options_destroy(migraphx_compile_options_t compile_options);", "parameters": [{ "cName": "compile_options", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_compile_options_create", "managedName": "CompileOptionsCreate", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_compile_options_create(migraphx_compile_options_t* compile_options);", "parameters": [{ "cName": "compile_options", "managedType": "IntPtr", "managedModifier": "out" }] },
+    { "cName": "migraphx_compile_options_set_offload_copy", "managedName": "CompileOptionsSetOffloadCopy", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_compile_options_set_offload_copy(migraphx_compile_options_t compile_options, bool value);", "parameters": [{ "cName": "compile_options", "managedType": "IntPtr" }, { "cName": "value", "managedType": "byte", "abi": "C _Bool" }] },
+    { "cName": "migraphx_parse_onnx", "managedName": "ParseOnnx", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_parse_onnx(migraphx_program_t* out, const char* name, migraphx_onnx_options_t options);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out" }, { "cName": "name", "managedType": "IntPtr", "encoding": "strict UTF-8" }, { "cName": "options", "managedType": "IntPtr" }] },
+    { "cName": "migraphx_parse_onnx_buffer", "managedName": "ParseOnnxBuffer", "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_parse_onnx_buffer(migraphx_program_t* out, const void* data, size_t size, migraphx_onnx_options_t options);", "parameters": [{ "cName": "out", "managedType": "IntPtr", "managedModifier": "out" }, { "cName": "data", "managedType": "IntPtr", "ownership": "borrowed for parse call" }, { "cName": "size", "managedType": "UIntPtr" }, { "cName": "options", "managedType": "IntPtr" }] }
+  ],
+  "scope": {
+    "subsetFunctionCount": 41,
+    "upstreamFunctionCount": 159,
+    "m1FunctionCount": 6,
+    "workflow": "single-input single-output static float32 ONNX with synchronous offload-copy run",
+    "excludedFamilies": ["dynamic dimension", "async", "stream", "device buffer", "program save/load", "general high-level object model"]
+  }
+}

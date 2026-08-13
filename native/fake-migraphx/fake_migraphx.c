@@ -23,10 +23,25 @@ typedef enum
     migraphx_status_unknown_error  = 4
 } migraphx_status;
 
-typedef struct fake_object
+typedef struct fake_target { int value; } *migraphx_target_t;
+typedef struct fake_program { int value; int compiled; } *migraphx_program_t;
+typedef struct fake_options { int value; } *migraphx_onnx_options_t;
+typedef struct fake_compile_options { uint8_t offload_copy; } *migraphx_compile_options_t;
+typedef struct fake_shape
 {
-    int value;
-} *migraphx_target_t, *migraphx_program_t;
+    int type;
+    size_t lengths[2];
+    size_t strides[2];
+    size_t elements;
+    size_t bytes;
+    uint8_t standard;
+    uint8_t dynamic;
+} fake_shape;
+typedef struct fake_parameter_shapes { fake_shape shape; } *migraphx_program_parameter_shapes_t;
+typedef struct fake_shapes { fake_shape shape; } *migraphx_shapes_t;
+typedef struct fake_argument { fake_shape shape; char* buffer; int owns_buffer; } *migraphx_argument_t;
+typedef struct fake_program_parameters { struct fake_argument argument; int has_argument; char name[64]; } *migraphx_program_parameters_t;
+typedef struct fake_arguments { struct fake_argument argument; } *migraphx_arguments_t;
 
 static volatile int32_t next_status;
 static volatile int32_t create_null;
@@ -41,10 +56,28 @@ static volatile int32_t program_assign_copied;
 static volatile int32_t next_value = 100;
 static volatile int32_t target_name_lock;
 static char last_target_name[512];
+static char last_model_path[512];
+static volatile int32_t last_model_size;
+static volatile int32_t parse_file_count;
+static volatile int32_t parse_buffer_count;
+static volatile int32_t compile_count;
+static volatile int32_t run_count;
+static volatile int32_t m2_destroy_count;
+static volatile int32_t m2_live_count;
+static volatile int32_t shape_mode;
 
 static int take_status(void)
 {
     return ATOMIC_EXCHANGE(next_status, 0);
+}
+
+static void copy_string(char* destination, size_t capacity, const char* source)
+{
+    size_t length = strlen(source);
+    if(length >= capacity)
+        length = capacity - 1;
+    memcpy(destination, source, length);
+    destination[length] = '\0';
 }
 
 static void lock_target_name(void)
@@ -74,6 +107,15 @@ EXPORT void fake_reset(void)
     next_value = 100;
     target_name_lock = 0;
     last_target_name[0] = '\0';
+    last_model_path[0] = '\0';
+    last_model_size = 0;
+    parse_file_count = 0;
+    parse_buffer_count = 0;
+    compile_count = 0;
+    run_count = 0;
+    m2_destroy_count = 0;
+    m2_live_count = 0;
+    shape_mode = 0;
 }
 
 EXPORT void fake_set_next_status(int status) { ATOMIC_EXCHANGE(next_status, status); }
@@ -87,8 +129,19 @@ EXPORT int fake_program_live_count(void) { return program_live_count; }
 EXPORT int fake_target_assign_copied(void) { return target_assign_copied; }
 EXPORT int fake_program_assign_copied(void) { return program_assign_copied; }
 EXPORT int fake_sizeof_status(void) { return (int)sizeof(migraphx_status); }
+EXPORT int fake_sizeof_bool(void) { return (int)sizeof(uint8_t); }
+EXPORT int fake_sizeof_shape_type(void) { return (int)sizeof(int); }
 EXPORT int fake_sizeof_target_handle(void) { return (int)sizeof(migraphx_target_t); }
 EXPORT const char* fake_last_target_name(void) { return last_target_name; }
+EXPORT const char* fake_last_model_path(void) { return last_model_path; }
+EXPORT int fake_last_model_size(void) { return last_model_size; }
+EXPORT int fake_parse_file_count(void) { return parse_file_count; }
+EXPORT int fake_parse_buffer_count(void) { return parse_buffer_count; }
+EXPORT int fake_compile_count(void) { return compile_count; }
+EXPORT int fake_run_count(void) { return run_count; }
+EXPORT int fake_m2_destroy_count(void) { return m2_destroy_count; }
+EXPORT int fake_m2_live_count(void) { return m2_live_count; }
+EXPORT void fake_set_shape_mode(int value) { ATOMIC_EXCHANGE(shape_mode, value); }
 
 EXPORT migraphx_status migraphx_target_destroy(migraphx_target_t target)
 {
@@ -180,4 +233,199 @@ EXPORT migraphx_status migraphx_program_create(migraphx_program_t* program)
     }
     status = take_status();
     return (migraphx_status)status;
+}
+
+static void initialize_shape(fake_shape* shape)
+{
+    int mode = shape_mode;
+    shape->type = mode == 3 ? 10 : 4;
+    shape->lengths[0] = 1;
+    shape->lengths[1] = 4;
+    shape->strides[0] = 4;
+    shape->strides[1] = 1;
+    shape->elements = 4;
+    shape->bytes = 16;
+    shape->standard = mode == 2 ? 0 : 1;
+    shape->dynamic = mode == 1 ? 1 : 0;
+}
+
+static void destroy_m2(void* value)
+{
+    if(value != NULL)
+    {
+        free(value);
+        ATOMIC_INCREMENT(m2_destroy_count);
+        ATOMIC_DECREMENT(m2_live_count);
+    }
+}
+
+static void* create_m2(size_t size)
+{
+    void* value = calloc(1, size);
+    if(value != NULL)
+        ATOMIC_INCREMENT(m2_live_count);
+    return value;
+}
+
+EXPORT migraphx_status migraphx_program_parameter_shapes_destroy(migraphx_program_parameter_shapes_t value) { destroy_m2(value); return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_program_parameter_shapes_size(size_t* out, migraphx_program_parameter_shapes_t value)
+{
+    if(out == NULL || value == NULL) return migraphx_status_bad_param;
+    *out = shape_mode == 4 ? 2 : 1;
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_program_parameter_shapes_get(const fake_shape** out, migraphx_program_parameter_shapes_t value, const char* name)
+{
+    if(out == NULL || value == NULL || name == NULL || strcmp(name, "input") != 0) return migraphx_status_bad_param;
+    *out = &value->shape;
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_program_parameter_shapes_names(const char** out, migraphx_program_parameter_shapes_t value)
+{
+    static const char input_name[] = "input";
+    if(out == NULL || value == NULL) return migraphx_status_bad_param;
+    out[0] = input_name;
+    if(shape_mode == 4) out[1] = "second";
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_program_parameters_destroy(migraphx_program_parameters_t value) { destroy_m2(value); return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_program_parameters_create(migraphx_program_parameters_t* out)
+{
+    int status;
+    if(out == NULL) return migraphx_status_bad_param;
+    *out = (migraphx_program_parameters_t)create_m2(sizeof(**out));
+    if(*out == NULL) return migraphx_status_unknown_error;
+    status = take_status();
+    return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_program_parameters_add(migraphx_program_parameters_t value, const char* name, const migraphx_argument_t argument)
+{
+    if(value == NULL || name == NULL || argument == NULL) return migraphx_status_bad_param;
+    value->argument = *argument;
+    value->argument.owns_buffer = 0;
+    copy_string(value->name, sizeof(value->name), name);
+    value->has_argument = 1;
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_arguments_destroy(migraphx_arguments_t value)
+{
+    if(value != NULL && value->argument.owns_buffer) free(value->argument.buffer);
+    destroy_m2(value);
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_arguments_size(size_t* out, migraphx_arguments_t value)
+{
+    if(out == NULL || value == NULL) return migraphx_status_bad_param;
+    *out = shape_mode == 6 ? 2 : 1;
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_arguments_get(const struct fake_argument** out, migraphx_arguments_t value, size_t idx)
+{
+    if(out == NULL || value == NULL || idx != 0) return migraphx_status_bad_param;
+    *out = &value->argument;
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_shapes_destroy(migraphx_shapes_t value) { destroy_m2(value); return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_shapes_size(size_t* out, migraphx_shapes_t value)
+{
+    if(out == NULL || value == NULL) return migraphx_status_bad_param;
+    *out = shape_mode == 5 ? 2 : 1;
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_shapes_get(const fake_shape** out, migraphx_shapes_t value, size_t idx)
+{
+    if(out == NULL || value == NULL || idx != 0) return migraphx_status_bad_param;
+    *out = &value->shape;
+    return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_shape_lengths(const size_t** out, size_t* out_size, const fake_shape* shape)
+{
+    if(out == NULL || out_size == NULL || shape == NULL) return migraphx_status_bad_param;
+    *out = shape->lengths; *out_size = 2; return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_shape_strides(const size_t** out, size_t* out_size, const fake_shape* shape)
+{
+    if(out == NULL || out_size == NULL || shape == NULL) return migraphx_status_bad_param;
+    *out = shape->strides; *out_size = 2; return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_shape_type(int* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = shape->type; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_shape_bytes(size_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = shape->bytes; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_shape_elements(size_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = shape->elements; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_shape_standard(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = shape->standard; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_shape_dynamic(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = shape->dynamic; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_argument_destroy(migraphx_argument_t value) { destroy_m2(value); return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_argument_create(migraphx_argument_t* out, const fake_shape* shape, void* buffer)
+{
+    int status;
+    if(out == NULL || shape == NULL || buffer == NULL) return migraphx_status_bad_param;
+    *out = (migraphx_argument_t)create_m2(sizeof(**out));
+    if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->shape = *shape; (*out)->buffer = (char*)buffer; (*out)->owns_buffer = 0;
+    status = take_status();
+    return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_argument_shape(const fake_shape** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = &value->shape; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_argument_buffer(char** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = value->buffer; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_program_compile(migraphx_program_t program, migraphx_target_t target, migraphx_compile_options_t options)
+{
+    if(program == NULL || target == NULL || options == NULL || !options->offload_copy) return migraphx_status_bad_param;
+    program->compiled = 1; ATOMIC_INCREMENT(compile_count); return (migraphx_status)take_status();
+}
+EXPORT migraphx_status migraphx_program_get_parameter_shapes(migraphx_program_parameter_shapes_t* out, migraphx_program_t program)
+{
+    int status;
+    if(out == NULL || program == NULL) return migraphx_status_bad_param;
+    *out = (migraphx_program_parameter_shapes_t)create_m2(sizeof(**out));
+    if(*out == NULL) return migraphx_status_unknown_error;
+    initialize_shape(&(*out)->shape); status = take_status(); return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_program_get_output_shapes(migraphx_shapes_t* out, migraphx_program_t program)
+{
+    int status;
+    if(out == NULL || program == NULL) return migraphx_status_bad_param;
+    *out = (migraphx_shapes_t)create_m2(sizeof(**out));
+    if(*out == NULL) return migraphx_status_unknown_error;
+    initialize_shape(&(*out)->shape); status = take_status(); return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_program_run(migraphx_arguments_t* out, migraphx_program_t program, migraphx_program_parameters_t parameters)
+{
+    int status;
+    if(out == NULL || program == NULL || parameters == NULL || !program->compiled || !parameters->has_argument || strcmp(parameters->name, "input") != 0) return migraphx_status_bad_param;
+    *out = (migraphx_arguments_t)create_m2(sizeof(**out));
+    if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->argument.shape = parameters->argument.shape;
+    (*out)->argument.buffer = (char*)malloc((*out)->argument.shape.bytes);
+    if((*out)->argument.buffer == NULL) { destroy_m2(*out); *out = NULL; return migraphx_status_unknown_error; }
+    memcpy((*out)->argument.buffer, parameters->argument.buffer, (*out)->argument.shape.bytes);
+    (*out)->argument.owns_buffer = 1;
+    ATOMIC_INCREMENT(run_count); status = take_status(); return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_onnx_options_destroy(migraphx_onnx_options_t value) { destroy_m2(value); return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_onnx_options_create(migraphx_onnx_options_t* out)
+{
+    int status; if(out == NULL) return migraphx_status_bad_param; *out = (migraphx_onnx_options_t)create_m2(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; status = take_status(); return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_compile_options_destroy(migraphx_compile_options_t value) { destroy_m2(value); return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_compile_options_create(migraphx_compile_options_t* out)
+{
+    int status; if(out == NULL) return migraphx_status_bad_param; *out = (migraphx_compile_options_t)create_m2(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; status = take_status(); return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_compile_options_set_offload_copy(migraphx_compile_options_t value, uint8_t enabled) { if(value == NULL) return migraphx_status_bad_param; value->offload_copy = enabled; return (migraphx_status)take_status(); }
+EXPORT migraphx_status migraphx_parse_onnx(migraphx_program_t* out, const char* name, migraphx_onnx_options_t options)
+{
+    migraphx_status status;
+    if(out == NULL || name == NULL || options == NULL) return migraphx_status_bad_param;
+    status = migraphx_program_create(out);
+    copy_string(last_model_path, sizeof(last_model_path), name);
+    ATOMIC_INCREMENT(parse_file_count);
+    return status;
+}
+EXPORT migraphx_status migraphx_parse_onnx_buffer(migraphx_program_t* out, const void* data, size_t size, migraphx_onnx_options_t options)
+{
+    migraphx_status status;
+    if(out == NULL || data == NULL || size == 0 || options == NULL) return migraphx_status_bad_param;
+    status = migraphx_program_create(out);
+    ATOMIC_EXCHANGE(last_model_size, (int)size);
+    ATOMIC_INCREMENT(parse_buffer_count);
+    return status;
 }

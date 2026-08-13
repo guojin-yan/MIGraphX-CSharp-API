@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "runtimePackagingEnabled": false,
   "failClosed": true,
   "requiredStatuses": [
@@ -18,5 +18,5 @@
     "transitiveDependencies",
     "validation"
   ],
-  "reason": "M1 does not have a complete, licensed, and runtime-verified native dependency manifest."
+  "reason": "M1/M2 unified official runtime validation and the complete licensed native dependency closure are not complete."
 }

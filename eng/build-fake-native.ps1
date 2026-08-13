@@ -32,7 +32,8 @@ if ($IsWindows -or $env:OS -eq 'Windows_NT') {
         try {
             foreach ($item in @(
                 @{ Source = 'fake_migraphx.c'; Output = 'migraphx_c.dll' },
-                @{ Source = 'missing_export.c'; Output = 'migraphx_c_missing_export.dll' }
+                @{ Source = 'missing_export.c'; Output = 'migraphx_c_missing_export.dll' },
+                @{ Source = 'm1_only.c'; Output = 'migraphx_c_m1_only.dll' }
             )) {
                 $source = Join-Path $sourceDirectory $item.Source
                 $output = Join-Path $outputDirectory $item.Output
@@ -62,6 +63,8 @@ else {
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build fake native library.' }
     & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 (Join-Path $sourceDirectory 'missing_export.c') -o (Join-Path $outputDirectory 'libmigraphx_c_missing_export.so')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build missing-export fake native library.' }
+    & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 (Join-Path $sourceDirectory 'm1_only.c') -o (Join-Path $outputDirectory 'libmigraphx_c_m1_only.so')
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to build M1-only fake native library.' }
     $compiler = $compilerCommand.Source
 }
 

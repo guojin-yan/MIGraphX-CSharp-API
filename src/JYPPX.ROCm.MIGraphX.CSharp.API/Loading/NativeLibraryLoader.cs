@@ -46,7 +46,7 @@ internal static class NativeLibraryLoader
     private static extern bool FreeLibrary(IntPtr module);
 #endif
 
-    internal static NativeLoadResult LoadExplicit(string path)
+    internal static NativeLoadResult LoadExplicit(string path, bool requireOnnxWorkflow = false)
     {
         if (path is null)
         {
@@ -65,7 +65,7 @@ internal static class NativeLibraryLoader
             return new NativeLoadResult(false, null, diagnostics);
         }
 
-        return LoadCandidate(fullPath, "explicit-path", true, diagnostics);
+        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow);
     }
 
     internal static NativeLoadResult LoadSystemCandidates()
@@ -79,7 +79,7 @@ internal static class NativeLibraryLoader
                 continue;
             }
 
-            var result = LoadCandidate(candidate.Value, candidate.Source, candidate.IsPath, diagnostics);
+            var result = LoadCandidate(candidate.Value, candidate.Source, candidate.IsPath, diagnostics, false);
             if (result.Success)
             {
                 return result;
@@ -93,7 +93,7 @@ internal static class NativeLibraryLoader
         .Select(candidate => $"{candidate.Source}:{candidate.Value}")
         .ToArray();
 
-    private static NativeLoadResult LoadCandidate(string candidate, string source, bool isFilePath, List<MIGraphXNativeDiagnostic> diagnostics)
+    private static NativeLoadResult LoadCandidate(string candidate, string source, bool isFilePath, List<MIGraphXNativeDiagnostic> diagnostics, bool requireOnnxWorkflow)
     {
         lock (Sync)
         {
@@ -101,6 +101,13 @@ internal static class NativeLibraryLoader
             {
                 if (string.Equals(loadedPath, candidate, StringComparison.OrdinalIgnoreCase))
                 {
+                    var missingFromActive = MissingExports(loadedHandle, requireOnnxWorkflow ? NativeMethods.M2RequiredExports : NativeMethods.M1RequiredExports);
+                    if (missingFromActive.Length != 0)
+                    {
+                        diagnostics.Add(CreateMissingExportDiagnostic(candidate, source, isFilePath, missingFromActive, requireOnnxWorkflow));
+                        return new NativeLoadResult(false, null, diagnostics);
+                    }
+
                     diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.Loaded, "The same native library is already loaded and was reused."));
                     return new NativeLoadResult(true, loadedPath, diagnostics);
                 }
@@ -117,11 +124,12 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
-            var missing = RequiredExports.Where(exportName => !TryGetExport(handle, exportName)).ToArray();
+            var requiredExports = requireOnnxWorkflow ? NativeMethods.M2RequiredExports : NativeMethods.M1RequiredExports;
+            var missing = MissingExports(handle, requiredExports);
             if (missing.Length != 0)
             {
                 Free(handle);
-                diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.ExportMissing, $"The native library loaded but is missing required M1 exports: {string.Join(", ", missing)}."));
+                diagnostics.Add(CreateMissingExportDiagnostic(candidate, source, isFilePath, missing, requireOnnxWorkflow));
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
@@ -141,7 +149,9 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 #endif
-            diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.Loaded, "Loaded native library and verified all fixed M1 exports."));
+            diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.Loaded, requireOnnxWorkflow
+                ? "Loaded native library and verified the fixed M2 ONNX synchronous-workflow exports."
+                : "Loaded native library and verified all fixed M1 exports."));
             return new NativeLoadResult(true, loadedPath, diagnostics);
         }
     }
@@ -255,15 +265,18 @@ internal static class NativeLibraryLoader
         return MIGraphXNativeDiagnosticKind.LoadFailure;
     }
 
-    private static readonly string[] RequiredExports =
+    private static string[] MissingExports(IntPtr handle, IEnumerable<string> requiredExports) => requiredExports
+        .Where(exportName => !TryGetExport(handle, exportName))
+        .ToArray();
+
+    private static MIGraphXNativeDiagnostic CreateMissingExportDiagnostic(string candidate, string source, bool isFilePath, string[] missing, bool requireOnnxWorkflow)
     {
-        "migraphx_target_destroy",
-        "migraphx_target_assign_to",
-        "migraphx_target_create",
-        "migraphx_program_destroy",
-        "migraphx_program_assign_to",
-        "migraphx_program_create",
-    };
+        var kind = requireOnnxWorkflow
+            ? MIGraphXNativeDiagnosticKind.OnnxFrontendMissing
+            : MIGraphXNativeDiagnosticKind.ExportMissing;
+        var scope = requireOnnxWorkflow ? "M2 ONNX synchronous-workflow" : "M1";
+        return new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, kind, $"The native library loaded but is missing required {scope} exports: {string.Join(", ", missing)}.");
+    }
 
 #if MIGRAPHX_NATIVE_LIBRARY_PATH
     private static bool TryLoad(string candidate, out IntPtr handle, out string? failure)
