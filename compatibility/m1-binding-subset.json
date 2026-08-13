@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "m1-1",
+  "generatedAtUtc": "2026-08-13T00:00:00Z",
+  "validationLevel": "statically-verified",
+  "source": {
+    "vendor": "AMD",
+    "rocmVersion": "7.2.1",
+    "migraphxVersion": "2.15.0.70201-81~24.04",
+    "releaseTag": "rocm-7.2.1",
+    "peeledCommit": "de19b73ad280476e646512b847885eda100ec35e",
+    "headerUrl": "https://raw.githubusercontent.com/ROCm/AMDMIGraphX/de19b73ad280476e646512b847885eda100ec35e/src/api/include/migraphx/migraphx.h",
+    "headerSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+    "headerByteLength": 36635
+  },
+  "nativeLibrary": {
+    "logicalName": "migraphx_c",
+    "linuxSoname": "libmigraphx_c.so.3",
+    "callingConvention": "cdecl",
+    "errorApi": null,
+    "errorModel": "migraphx_status plus managed call context; the frozen header exposes no last-error function"
+  },
+  "targetFrameworkStrategy": {
+    "net7OrLater": "LibraryImport",
+    "olderTargets": "DllImport",
+    "semanticSource": "this manifest",
+    "modernResolverMinimum": "netcoreapp3.1",
+    "legacyLimitation": "Explicit-path activation uses platform loading before DllImport; .NET Framework is compile-validated and Windows loading is implemented, while Mono loading is unverified."
+  },
+  "enums": [
+    {
+      "cName": "migraphx_status",
+      "managedName": "NativeMIGraphXStatus",
+      "underlyingAbi": "C enum / signed 32-bit int on the verified x86-64 ABI",
+      "values": [
+        { "cName": "migraphx_status_success", "managedName": "Success", "value": 0 },
+        { "cName": "migraphx_status_bad_param", "managedName": "BadParameter", "value": 1 },
+        { "cName": "migraphx_status_unknown_target", "managedName": "UnknownTarget", "value": 3 },
+        { "cName": "migraphx_status_unknown_error", "managedName": "UnknownError", "value": 4 }
+      ]
+    }
+  ],
+  "handles": [
+    {
+      "cName": "migraphx_target_t",
+      "constCName": "const_migraphx_target_t",
+      "cDeclaration": "typedef struct migraphx_target* migraphx_target_t;",
+      "pointerDepth": 1,
+      "managedAbiType": "IntPtr",
+      "ownership": "create returns owned; destroy consumes the owned handle; assign_to copies into an existing destination"
+    },
+    {
+      "cName": "migraphx_program_t",
+      "constCName": "const_migraphx_program_t",
+      "cDeclaration": "typedef struct migraphx_program* migraphx_program_t;",
+      "pointerDepth": 1,
+      "managedAbiType": "IntPtr",
+      "ownership": "create returns owned; destroy consumes the owned handle; assign_to copies into an existing destination"
+    }
+  ],
+  "functions": [
+    {
+      "cName": "migraphx_target_destroy",
+      "managedName": "TargetDestroy",
+      "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_target_destroy(migraphx_target_t target);",
+      "parameters": [
+        { "cName": "target", "cType": "migraphx_target_t", "managedType": "IntPtr", "direction": "in", "nullable": false, "ownership": "owned handle is released by this call" }
+      ],
+      "reason": "Required owned-target release for the M1 lifecycle."
+    },
+    {
+      "cName": "migraphx_target_assign_to",
+      "managedName": "TargetAssignTo",
+      "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_target_assign_to(migraphx_target_t output, const_migraphx_target_t input);",
+      "parameters": [
+        { "cName": "output", "cType": "migraphx_target_t", "managedType": "IntPtr", "direction": "in", "nullable": false, "ownership": "borrowed existing destination" },
+        { "cName": "input", "cType": "const_migraphx_target_t", "managedType": "IntPtr", "direction": "in", "nullable": false, "ownership": "const borrowed source" }
+      ],
+      "reason": "Validates the fixed header's assign/copy contract without exposing an inferred clone API."
+    },
+    {
+      "cName": "migraphx_target_create",
+      "managedName": "TargetCreate",
+      "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_target_create(migraphx_target_t* target, const char* name);",
+      "parameters": [
+        { "cName": "target", "cType": "migraphx_target_t*", "managedType": "IntPtr", "managedModifier": "out", "direction": "out", "nullable": false, "ownership": "owned handle returned on success" },
+        { "cName": "name", "cType": "const char*", "managedType": "IntPtr", "direction": "in", "nullable": false, "encoding": "strict UTF-8, NUL-terminated", "ownership": "borrowed for call duration" }
+      ],
+      "reason": "Required M1 target construction and UTF-8 validation path."
+    },
+    {
+      "cName": "migraphx_program_destroy",
+      "managedName": "ProgramDestroy",
+      "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_destroy(migraphx_program_t program);",
+      "parameters": [
+        { "cName": "program", "cType": "migraphx_program_t", "managedType": "IntPtr", "direction": "in", "nullable": false, "ownership": "owned handle is released by this call" }
+      ],
+      "reason": "Required owned-program release for the M1 lifecycle."
+    },
+    {
+      "cName": "migraphx_program_assign_to",
+      "managedName": "ProgramAssignTo",
+      "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_assign_to(migraphx_program_t output, const_migraphx_program_t input);",
+      "parameters": [
+        { "cName": "output", "cType": "migraphx_program_t", "managedType": "IntPtr", "direction": "in", "nullable": false, "ownership": "borrowed existing destination" },
+        { "cName": "input", "cType": "const_migraphx_program_t", "managedType": "IntPtr", "direction": "in", "nullable": false, "ownership": "const borrowed source" }
+      ],
+      "reason": "Validates the fixed header's assign/copy contract without exposing an inferred clone API."
+    },
+    {
+      "cName": "migraphx_program_create",
+      "managedName": "ProgramCreate",
+      "cDeclaration": "MIGRAPHX_C_EXPORT migraphx_status migraphx_program_create(migraphx_program_t* program);",
+      "parameters": [
+        { "cName": "program", "cType": "migraphx_program_t*", "managedType": "IntPtr", "managedModifier": "out", "direction": "out", "nullable": false, "ownership": "owned handle returned on success" }
+      ],
+      "reason": "Required M1 program construction path."
+    }
+  ],
+  "scope": {
+    "subsetFunctionCount": 6,
+    "upstreamFunctionCount": 159,
+    "excludedFamilies": ["ONNX parse", "compile", "run", "argument buffer", "async", "shape"]
+  }
+}

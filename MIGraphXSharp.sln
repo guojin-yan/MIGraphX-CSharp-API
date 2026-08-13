@@ -12,6 +12,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.MIGraphXSharp.Pa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EnvironmentSmokeRunner", "smoke\EnvironmentSmokeRunner\EnvironmentSmokeRunner.csproj", "{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.MIGraphXSharp.InteropRunner", "tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\JYPPX.ROCm.MIGraphXSharp.InteropRunner.csproj", "{C71B8D89-F5C4-4E3E-B07A-5B8A6BC9DB8C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -38,5 +40,9 @@ Global
 		{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B9B7B05C-3888-4DF2-94AB-F1F730FC3F3B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C71B8D89-F5C4-4E3E-B07A-5B8A6BC9DB8C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C71B8D89-F5C4-4E3E-B07A-5B8A6BC9DB8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C71B8D89-F5C4-4E3E-B07A-5B8A6BC9DB8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C71B8D89-F5C4-4E3E-B07A-5B8A6BC9DB8C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

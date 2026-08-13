@@ -3,5 +3,38 @@
 # version: 0.0.0
 # generated-at-utc: 2026-08-13T00:00:00Z
 JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo
-  const bool NativeBindingsAvailable = false
+  const bool NativeBindingsAvailable = true
   const string PackageVersion = "0.0.0"
+JYPPX.ROCm.MIGraphXSharp.MIGraphXStatus : System.Enum
+  Success = 0
+  BadParameter = 1
+  UnknownTarget = 3
+  UnknownError = 4
+JYPPX.ROCm.MIGraphXSharp.MIGraphXException : System.Exception
+  int StatusCode { get; }
+  string Operation { get; }
+  MIGraphXStatus? KnownStatus { get; }
+JYPPX.ROCm.MIGraphXSharp.MIGraphXEnvironment
+  static MIGraphXEnvironmentReport Probe(string nativeLibraryPath, bool exerciseObjects = true, string targetName = "gpu")
+  static MIGraphXEnvironmentReport ProbeSystem(bool exerciseObjects = true, string targetName = "gpu")
+JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind : System.Enum
+  Candidate = 0
+  FileNotFound = 1
+  BadImage = 2
+  DependencyMissing = 3
+  LoadFailure = 4
+  ExportMissing = 5
+  Loaded = 6
+  Executed = 7
+JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnostic
+  string Candidate { get; }
+  string Source { get; }
+  bool? FileExists { get; }
+  MIGraphXNativeDiagnosticKind Kind { get; }
+  string Message { get; }
+JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXEnvironmentReport
+  string State { get; }
+  string? LoadedPath { get; }
+  bool ExportsComplete { get; }
+  bool ObjectsExecuted { get; }
+  IReadOnlyList<MIGraphXNativeDiagnostic> Diagnostics { get; }

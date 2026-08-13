@@ -2,24 +2,38 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "schemaVersion": "1.0.0",
   "generatedAtUtc": "2026-08-13T00:00:00Z",
-  "validationLevel": "planned",
+  "validationLevel": "statically-verified",
   "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
-  "upstream": {
-    "functionCount": 159,
-    "enumCount": 2,
-    "opaqueHandleCount": 25
+  "upstream": { "functionCount": 159, "enumCount": 2, "opaqueHandleCount": 25 },
+  "m1Subset": {
+    "manifest": "compatibility/m1-binding-subset.json",
+    "functionCount": 6,
+    "enumCount": 1,
+    "handleCount": 2,
+    "managedFunctionCount": 6,
+    "subsetFunctionCoveragePercent": 100.0,
+    "fullUpstreamFunctionCoveragePercent": 3.773585,
+    "fullUpstreamEnumCoveragePercent": 50.0,
+    "fullUpstreamHandleCoveragePercent": 8.0
   },
   "managed": {
-    "generatedFunctionCount": 0,
+    "generatedFunctionCount": 6,
     "handwrittenFunctionCount": 0,
-    "enumCount": 0,
-    "handleCount": 0,
-    "coverageStatus": "not-started"
+    "enumCount": 1,
+    "handleCount": 2,
+    "coverageStatus": "m1-subset-complete-full-api-incomplete"
   },
   "interopCompilationPaths": {
-    "net7OrLater": "LibraryImport-planned",
-    "olderTargets": "DllImport-planned",
-    "singleManifestModel": "planned"
+    "net7OrLater": "LibraryImport",
+    "olderTargets": "DllImport",
+    "singleManifestModel": "statically-verified",
+    "representativeFakeNativeExecution": ["net46", "netcoreapp3.1", "net7.0", "net10.0"]
   },
-  "reason": "M0 intentionally freezes inputs and compilation boundaries without introducing unverified native signatures."
+  "exportGate": {
+    "headerSubset": "statically-verified",
+    "managedEntryPoints": "statically-verified",
+    "fakeNativeExports": "fake-native-executed",
+    "officialElfExports": "statically-verified"
+  },
+  "scopeBoundary": "M1 does not bind ONNX parse, compile, run, arguments, async, or shape APIs."
 }

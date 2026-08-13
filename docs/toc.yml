@@ -12,8 +12,14 @@
   items:
   - name: M0 native baseline
     href: design/m0-native-baseline.md
+  - name: M1 Direct P/Invoke
+    href: design/m1-direct-pinvoke.md
 - name: Validation
-  href: validation/README.md
+  items:
+  - name: Overview
+    href: validation/README.md
+  - name: M1 local status
+    href: validation/m1-local-validation.md
 - name: Release notes
   href: releases/0.0.0.md
 - name: API reference

@@ -6,8 +6,6 @@ test -f "${repo_root}/MIGraphXSharp.sln"
 cd "${repo_root}"
 
 configuration="${CONFIGURATION:-Release}"
-dotnet restore ./MIGraphXSharp.sln
-dotnet build ./MIGraphXSharp.sln -c "${configuration}" --no-restore
-dotnet test ./MIGraphXSharp.sln -c "${configuration}" --no-build
-dotnet tool restore
-dotnet tool run docfx ./docfx.json --warningsAsErrors
+pwsh ./eng/build.ps1 -Configuration "${configuration}"
+pwsh ./eng/test.ps1 -Configuration "${configuration}" -NoBuild
+pwsh ./eng/docs.ps1 -Configuration "${configuration}" -NoBuild

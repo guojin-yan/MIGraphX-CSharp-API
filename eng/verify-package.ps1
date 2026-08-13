@@ -31,6 +31,7 @@ try {
     $forbidden = @($entries | Where-Object {
         $_ -match '(^|/)(bin|obj|TestResults|plan|Radeon_Cloud|downloads|models)(/|$)' -or
         $_ -match '\.(pdb|onnx|so|dylib)$' -or
+        $_ -match '(?i)(fake[-_]?native|migraphx_c|\.obj$|\.lib$|\.exp$)' -or
         $_ -match '(?i)(unit|projectquality|packagetests)\.dll$'
     })
     if ($forbidden.Count -ne 0) {
@@ -99,9 +100,10 @@ finally {
 
 if (-not $SkipConsumers) {
     $consumerConfig = Join-Path $root 'tests\fixtures\package-consumers\NuGet.Config'
+    $consumerPackages = Join-Path $root "artifacts\package-audit\$([Guid]::NewGuid().ToString('N'))"
     foreach ($framework in @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')) {
         $project = Join-Path $root "tests\fixtures\package-consumers\$framework\Consumer.csproj"
-        & dotnet restore $project --configfile $consumerConfig --no-http-cache
+        & dotnet restore $project --configfile $consumerConfig --packages $consumerPackages --no-http-cache --force-evaluate
         if ($LASTEXITCODE -ne 0) { throw "Consumer restore failed for $framework." }
         & dotnet build $project -c Release --no-restore
         if ($LASTEXITCODE -ne 0) { throw "Consumer build failed for $framework." }

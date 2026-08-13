@@ -2,5 +2,5 @@ using JYPPX.ROCm.MIGraphXSharp;
 
 internal static class Program
 {
-    private static int Main() => MIGraphXBuildInfo.NativeBindingsAvailable ? 1 : 0;
+    private static int Main() => MIGraphXBuildInfo.NativeBindingsAvailable && MIGraphXStatus.Success == 0 ? 0 : 1;
 }

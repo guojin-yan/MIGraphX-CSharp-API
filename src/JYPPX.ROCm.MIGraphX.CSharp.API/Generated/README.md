@@ -1,3 +1,3 @@
 # Generated sources
 
-Generated interop sources will appear here only after a generator can reproduce them from the frozen header. M0 intentionally contains no generated binding source.
+M1 sources in this directory are generated from [`compatibility/m1-binding-subset.json`](../../../compatibility/m1-binding-subset.json) after verifying the frozen `migraphx.h` SHA-256. Run `eng/generate-interop.ps1 -AcquireHeader` to update them and add `-Verify` for the drift gate. Do not maintain handwritten declaration files here.

@@ -17,6 +17,6 @@ printf 'cmake=%s\n' "$(cmake --version 2>/dev/null | head -n 1 || printf unavail
 printf 'rocm=%s\n' "$(cat /opt/rocm/.info/version 2>/dev/null || printf unavailable)"
 printf 'migraphx-header=%s\n' "$(test -f /opt/rocm/include/migraphx/migraphx.h && sha256sum /opt/rocm/include/migraphx/migraphx.h | cut -d' ' -f1 || printf unavailable)"
 printf 'persistent=%s\n' "$(test -d /persistent && printf available || printf unavailable)"
+printf 'rocminfo-command=%s\n' "$(command -v rocminfo >/dev/null 2>&1 && printf available || printf unavailable)"
 df -hT /workspace
 test ! -d /persistent || df -hT /persistent
-command -v rocminfo >/dev/null 2>&1 && rocminfo | sed -n '1,80p' || true

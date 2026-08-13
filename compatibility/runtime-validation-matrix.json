@@ -1,47 +1,19 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "generatedAtUtc": "2026-08-13T00:00:00Z",
-  "allowedStatuses": ["planned", "statically-verified", "runtime-executed", "not-applicable"],
-  "environment": {
-    "localOs": "Windows",
-    "amdGpuAvailable": false
-  },
+  "allowedStatuses": ["planned", "statically-verified", "fake-native-executed", "runtime-executed", "not-applicable"],
+  "environment": { "localOs": "Windows", "amdGpuAvailable": false, "officialMIGraphXInstalled": false },
   "validations": [
-    {
-      "id": "official-package-integrity",
-      "status": "statically-verified",
-      "evidence": "AMD repository SHA-256 matched downloaded development and runtime packages."
-    },
-    {
-      "id": "installed-header-api-families",
-      "status": "statically-verified",
-      "evidence": "The installed package header was parsed and matched the fixed release commit header."
-    },
-    {
-      "id": "linux-library-elf-metadata",
-      "status": "statically-verified",
-      "evidence": "SONAME, DT_NEEDED entries, and key exports were read from the official package ELF."
-    },
-    {
-      "id": "native-loader",
-      "status": "planned",
-      "evidence": "No native loader is implemented in M0."
-    },
-    {
-      "id": "onnx-parse",
-      "status": "planned",
-      "evidence": "Header and export presence are not parse execution evidence."
-    },
-    {
-      "id": "amd-gpu-execution",
-      "status": "planned",
-      "evidence": "The local machine has no AMD GPU and no Radeon Cloud session was authorized."
-    },
-    {
-      "id": "runtime-package",
-      "status": "planned",
-      "evidence": "Runtime packaging is disabled until the native manifest is complete and verified."
-    }
+    { "id": "official-package-integrity", "status": "statically-verified", "evidence": "AMD repository SHA-256 matched the frozen development/runtime inputs; no AMD binary is committed or packed." },
+    { "id": "m1-header-managed-signatures", "status": "statically-verified", "evidence": "Six M1 function declarations, one status enum, and two opaque handles trace to the frozen header and one machine-readable manifest." },
+    { "id": "m1-official-elf-exports", "status": "statically-verified", "evidence": "All six M1 subset names exist in the hash-verified official libmigraphx_c.so.3.0.70201 ELF dynamic symbol table." },
+    { "id": "m1-fake-native-loader-and-objects", "status": "fake-native-executed", "evidence": "A local C test substitute exercised loader diagnostics, exports, UTF-8, known/unknown status, null/failing construction, assign behavior, SafeHandle disposal, and concurrency. This is not official MIGraphX or GPU evidence." },
+    { "id": "m1-representative-tfm-paths", "status": "fake-native-executed", "evidence": "net46, netcoreapp3.1, net7.0, and net10.0 executed against the test substitute, covering DllImport and LibraryImport declarations." },
+    { "id": "official-native-loader", "status": "planned", "evidence": "Radeon Cloud execution requires a pushed SHA and explicit Owner authorization." },
+    { "id": "official-target-program-lifecycle", "status": "planned", "evidence": "No official MIGraphX target/program create, assign_to, or destroy call has executed locally." },
+    { "id": "onnx-parse", "status": "not-applicable", "evidence": "ONNX parse belongs to M2 and is intentionally absent from M1." },
+    { "id": "amd-gpu-execution", "status": "not-applicable", "evidence": "M1 does not compile or run a GPU graph; the local machine has no AMD GPU." },
+    { "id": "runtime-package", "status": "planned", "evidence": "Runtime packaging remains disabled and fail closed pending closure and license verification." }
   ]
 }

@@ -5,6 +5,7 @@ artifacts/
 _site/
 /api/
 TestResults/
+test-results/
 *.trx
 *.coverage
 *.coveragexml
@@ -34,6 +35,9 @@ cmake-build-*/
 *.so.*
 *.dll
 *.dylib
+/*.obj
+/*.lib
+/*.exp
 *.pfx
 *.pem
 *.key

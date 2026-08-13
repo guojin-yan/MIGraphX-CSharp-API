@@ -1,11 +1,12 @@
 # JYPPX.ROCm.MIGraphX.CSharp.API 0.0.0
 
-This is a local M0 engineering package. It contains managed assets for 15 exact target frameworks and XML documentation, but no functional MIGraphX binding or native library.
+This unpublished local engineering candidate contains managed assets for 15 exact target frameworks, XML documentation, and a six-entry M1 Direct P/Invoke subset for target/program lifecycle diagnostics. It carries no AMD or fake-native binary.
 
-- Native bindings: unavailable
-- ONNX parse/compile/run: unavailable
-- AMD GPU validation: not executed
-- Runtime package: disabled
-- License: Apache-2.0; the M0 `0.0.0` candidate remains local-only and unpublished
+- Native declarations: generated from a frozen header subset
+- Official native runtime: not executed; local fake-native is test-substitute evidence only
+- ONNX parse/compile/run: not included
+- AMD GPU validation: not applicable to M1
+- Runtime package: disabled and fail closed
+- License: Apache-2.0; Copyright 2026 Guojin Yan
 
-See the [source repository](https://github.com/guojin-yan/MIGraphX-CSharp-API) for the frozen research manifest and validation limits.
+See the [source repository](https://github.com/guojin-yan/MIGraphX-CSharp-API) for the frozen manifest and validation limits.
