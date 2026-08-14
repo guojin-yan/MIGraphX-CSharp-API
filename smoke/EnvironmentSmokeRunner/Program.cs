@@ -31,8 +31,32 @@ if (string.IsNullOrEmpty(nativePath) || !Path.IsPathRooted(nativePath))
 
 try
 {
-    var targetName = isUtf8Probe ? "gpu-\u4e2d\u6587-\u03a9" : "gpu";
-    var report = MIGraphXEnvironment.Probe(nativePath, exerciseObjects: true, targetName: targetName);
+    var utf8Target = "not-requested";
+    int? utf8StatusCode = null;
+    string? utf8Operation = null;
+    if (isUtf8Probe)
+    {
+        try
+        {
+            var utf8Report = MIGraphXEnvironment.Probe(nativePath, exerciseObjects: true, targetName: "gpu-\u4e2d\u6587-\u03a9");
+            if (!utf8Report.ObjectsExecuted)
+            {
+                throw new InvalidOperationException("The non-ASCII target probe neither executed nor returned a native status.");
+            }
+
+            utf8Target = "runtime-accepted";
+        }
+        catch (MIGraphXException exception) when (
+            exception.Operation == "migraphx_target_create"
+            && (exception.KnownStatus == MIGraphXStatus.UnknownTarget || exception.KnownStatus == MIGraphXStatus.UnknownError))
+        {
+            utf8Target = "marshalled-runtime-rejected-unknown-target";
+            utf8StatusCode = exception.StatusCode;
+            utf8Operation = exception.Operation;
+        }
+    }
+
+    var report = MIGraphXEnvironment.Probe(nativePath, exerciseObjects: true, targetName: "gpu");
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         schemaVersion = "1.0.0",
@@ -43,7 +67,9 @@ try
         exports = report.ExportsComplete ? "verified" : "not-available",
         target = report.ObjectsExecuted ? "executed" : "not-executed",
         program = report.ObjectsExecuted ? "executed" : "not-executed",
-        utf8Target = isUtf8Probe ? report.ObjectsExecuted ? "executed" : "not-executed" : "not-requested",
+        utf8Target,
+        utf8StatusCode,
+        utf8Operation,
         onnxFrontend = "not-applicable-m1",
         amdGpu = "not-probed",
         diagnostics = report.Diagnostics.Select(item => new
