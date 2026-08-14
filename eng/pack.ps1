@@ -13,11 +13,8 @@ $root = Get-RepositoryRoot
 $packageDirectory = Join-Path $root 'artifacts\packages'
 
 if ($Runtime) {
-    $policy = Get-Content -Raw -LiteralPath (Join-Path $root 'pack\runtime-validation-disclosure-policy.json') | ConvertFrom-Json
-    if (-not $policy.runtimePackagingEnabled -or $policy.failClosed) {
-        throw "Runtime packaging is disabled and fail-closed: $($policy.reason)"
-    }
-    throw 'Runtime packaging has no implementation in M0.'
+    & (Join-Path $PSScriptRoot 'pack-runtime.ps1')
+    return
 }
 
 Push-Location $root

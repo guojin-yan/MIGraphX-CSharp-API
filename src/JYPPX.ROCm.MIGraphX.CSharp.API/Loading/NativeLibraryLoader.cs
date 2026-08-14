@@ -31,6 +31,7 @@ internal static class NativeLibraryLoader
     private static readonly object Sync = new object();
     private static IntPtr loadedHandle;
     private static string? loadedPath;
+    private static string? loadedClosureIdentity;
 #if MIGRAPHX_NATIVE_LIBRARY_PATH
     private static int resolverConfigured;
 #endif
@@ -76,11 +77,20 @@ internal static class NativeLibraryLoader
             if (candidate.IsPath && !File.Exists(candidate.Value))
             {
                 diagnostics.Add(new MIGraphXNativeDiagnostic(candidate.Value, candidate.Source, false, MIGraphXNativeDiagnosticKind.FileNotFound, "Candidate file does not exist."));
+                if (candidate.RequirePackageMarker && RuntimeClosureGuard.ReservedPackageDirectoryExists(candidate.Value))
+                {
+                    diagnostics.Add(new MIGraphXNativeDiagnostic(candidate.Value, candidate.Source, false, MIGraphXNativeDiagnosticKind.LoadFailure, "A reserved Runtime package directory exists but its allowlisted MIGraphX root is missing; system fallback is blocked."));
+                    return new NativeLoadResult(false, null, diagnostics);
+                }
                 continue;
             }
 
             var result = LoadCandidate(candidate.Value, candidate.Source, candidate.IsPath, diagnostics, false, false);
             if (result.Success)
+            {
+                return result;
+            }
+            if (candidate.RequirePackageMarker && candidate.IsPath)
             {
                 return result;
             }
@@ -112,6 +122,17 @@ internal static class NativeLibraryLoader
                     return new NativeLoadResult(true, loadedPath, diagnostics);
                 }
 
+                if (loadedClosureIdentity is not null || isFilePath && RuntimeClosureGuard.IsReservedPackageCandidate(candidate))
+                {
+                    diagnostics.Add(new MIGraphXNativeDiagnostic(
+                        candidate,
+                        source,
+                        isFilePath ? true : null,
+                        MIGraphXNativeDiagnosticKind.LoadFailure,
+                        $"A different native library is already active: {loadedPath}. Loading a second package/system directory is blocked before native probing. Active closure: {loadedClosureIdentity ?? "system-native"}."));
+                    return new NativeLoadResult(false, null, diagnostics);
+                }
+
                 if (!TryLoad(candidate, out var probeHandle, out var probeFailure))
                 {
                     diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, ClassifyLoadFailure(probeFailure!), probeFailure!));
@@ -127,6 +148,17 @@ internal static class NativeLibraryLoader
 
                 diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.LoadFailure, $"A different native library is already active: {loadedPath}"));
                 return new NativeLoadResult(false, null, diagnostics);
+            }
+
+            RuntimeClosureValidation? closure = null;
+            if (isFilePath)
+            {
+                closure = RuntimeClosureGuard.ValidateCandidate(candidate, RuntimeClosureGuard.IsReservedPackageCandidate(candidate));
+                if (!closure.Success)
+                {
+                    diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, File.Exists(candidate), MIGraphXNativeDiagnosticKind.LoadFailure, closure.Detail));
+                    return new NativeLoadResult(false, null, diagnostics);
+                }
             }
 
             IntPtr handle;
@@ -148,6 +180,7 @@ internal static class NativeLibraryLoader
 
             loadedHandle = handle;
             loadedPath = candidate;
+            loadedClosureIdentity = closure?.Identity;
 #if MIGRAPHX_NATIVE_LIBRARY_PATH
             try
             {
@@ -157,6 +190,7 @@ internal static class NativeLibraryLoader
             {
                 loadedHandle = IntPtr.Zero;
                 loadedPath = null;
+                loadedClosureIdentity = null;
                 Free(handle);
                 diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.LoadFailure, $"Loaded the native library, but could not install the assembly resolver: {exception.Message}"));
                 return new NativeLoadResult(false, null, diagnostics);
@@ -167,6 +201,10 @@ internal static class NativeLibraryLoader
                 : requireOnnxWorkflow
                     ? "Loaded native library and verified the fixed M2 ONNX synchronous-workflow exports."
                     : "Loaded native library and verified all fixed M1 exports.";
+            if (closure?.IsPackageCandidate == true)
+            {
+                loadedMessage += " " + closure.Detail;
+            }
             diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.Loaded, loadedMessage));
             return new NativeLoadResult(true, loadedPath, diagnostics);
         }
@@ -195,6 +233,13 @@ internal static class NativeLibraryLoader
         var baseDirectory = AppContext.BaseDirectory;
         var rid = GetRuntimeIdentifier();
         var names = PlatformFileNames();
+        if (IsLinux())
+        {
+            foreach (var name in names)
+            {
+                yield return new NativeCandidate(Path.Combine(baseDirectory, "runtimes", rid, "native", "lib", name), "application-rid-package", true, true);
+            }
+        }
         foreach (var name in names)
         {
             yield return new NativeCandidate(Path.Combine(baseDirectory, "runtimes", rid, "native", name), "application-rid-native", true);
@@ -384,11 +429,12 @@ internal static class NativeLibraryLoader
 
     private sealed class NativeCandidate
     {
-        internal NativeCandidate(string value, string source, bool isPath)
+        internal NativeCandidate(string value, string source, bool isPath, bool requirePackageMarker = false)
         {
             Value = value;
             Source = source;
             IsPath = isPath;
+            RequirePackageMarker = requirePackageMarker;
         }
 
         internal string Value { get; }
@@ -396,5 +442,7 @@ internal static class NativeLibraryLoader
         internal string Source { get; }
 
         internal bool IsPath { get; }
+
+        internal bool RequirePackageMarker { get; }
     }
 }

@@ -4,6 +4,8 @@
   href: guides/getting-started.md
 - name: Managed objects
   href: guides/managed-objects.md
+- name: Runtime deployment
+  href: guides/runtime-deployment.md
 - name: Compatibility
   items:
   - name: Frameworks
@@ -26,6 +28,8 @@
     href: design/m5-dynamic-shape-cache.md
   - name: M6 HIP async interop
     href: design/m6-hip-async-interop.md
+  - name: M7 Runtime packaging
+    href: design/m7-runtime-packaging.md
 - name: Validation
   items:
   - name: Overview
@@ -42,6 +46,8 @@
     href: validation/m5-local-validation.md
   - name: M6 local status
     href: validation/m6-local-validation.md
+  - name: M7 local Runtime status
+    href: validation/m7-local-validation.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes

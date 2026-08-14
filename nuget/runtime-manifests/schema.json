@@ -1,36 +1,315 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/guojin-yan/MIGraphX-CSharp-API/runtime-manifest.schema.json",
-  "title": "MIGraphXSharp runtime native asset manifest",
+  "title": "MIGraphXSharp native runtime supply-chain manifest",
   "type": "object",
   "required": [
-    "schemaVersion",
-    "rid",
-    "nativeVersion",
-    "sourceUrl",
-    "sha256",
-    "license",
-    "files",
-    "transitiveDependencies",
-    "validation"
+    "$schema", "schemaVersion", "packageId", "packageVersion", "versionSemantics", "rid",
+    "nativeVersion", "technicalStatus", "candidateStaged", "verified", "publishAuthorized",
+    "releaseAuthorized", "source", "topology", "packages", "files", "licenses", "closure",
+    "systemDependencies", "driverBoundary", "size", "metadata", "verification", "blockers"
   ],
   "properties": {
-    "schemaVersion": { "type": "string" },
-    "rid": { "type": "string" },
-    "nativeVersion": { "type": "string" },
-    "sourceUrl": { "type": "string", "format": "uri" },
-    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
-    "license": { "type": "string", "minLength": 1 },
-    "files": { "type": "array", "minItems": 1 },
-    "transitiveDependencies": { "type": "array" },
-    "validation": {
+    "$schema": { "const": "./schema.json" },
+    "schemaVersion": { "const": 2 },
+    "packageId": { "const": "JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.linux-x64" },
+    "packageVersion": { "const": "7.2.1" },
+    "versionSemantics": { "const": "ROCm lockstep; MIGraphX native identity is recorded separately" },
+    "rid": { "const": "linux-x64" },
+    "nativeVersion": { "const": "2.15.0.70201-81~24.04" },
+    "technicalStatus": {
+      "enum": ["runtime-deferred", "runtime-candidate-staged", "runtime-candidate-executed", "runtime-executed"]
+    },
+    "candidateStaged": { "type": "boolean" },
+    "verified": { "type": "boolean" },
+    "publishAuthorized": { "const": false },
+    "releaseAuthorized": { "const": false },
+    "source": { "$ref": "#/$defs/source" },
+    "topology": { "$ref": "#/$defs/topology" },
+    "packages": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/sourcePackage" }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/runtimeFile" }
+    },
+    "licenses": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/license" }
+    },
+    "closure": {
       "type": "object",
-      "required": ["build", "package", "runtime"],
+      "required": ["path", "sha256"],
       "properties": {
-        "build": { "enum": ["planned", "build-validated"] },
-        "package": { "enum": ["planned", "package-consumer-validated"] },
-        "runtime": { "enum": ["planned", "runtime-executed"] }
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": false
+    },
+    "systemDependencies": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/systemDependency" }
+    },
+    "driverBoundary": { "$ref": "#/$defs/driverBoundary" },
+    "size": { "$ref": "#/$defs/size" },
+    "metadata": { "$ref": "#/$defs/metadata" },
+    "verification": { "$ref": "#/$defs/verification" },
+    "blockers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/blocker" }
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "technicalStatus": { "const": "runtime-deferred" } } },
+      "then": {
+        "properties": {
+          "candidateStaged": { "const": false },
+          "verified": { "const": false },
+          "publishAuthorized": { "const": false },
+          "releaseAuthorized": { "const": false }
+        }
       }
     }
-  }
+  ],
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "relativePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?![A-Za-z]:)(?!.*(?:^|/)\\.{1,2}(?:/|$))(?!.*//)[^\\\\\\u0000-\\u001f]+$"
+    },
+    "officialUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://repo\\.radeon\\.com/"
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "repositoryUrl", "distribution", "component", "architecture", "inReleaseUrl",
+        "packagesIndexUrl", "signingKeyUrl", "signingKeyFingerprint", "signingKeySha256",
+        "inReleaseSha256", "packagesIndexSha256", "headerSha256", "upstreamTag", "upstreamCommit"
+      ],
+      "properties": {
+        "repositoryUrl": { "$ref": "#/$defs/officialUrl" },
+        "distribution": { "const": "noble" },
+        "component": { "const": "main" },
+        "architecture": { "const": "amd64" },
+        "inReleaseUrl": { "$ref": "#/$defs/officialUrl" },
+        "packagesIndexUrl": { "$ref": "#/$defs/officialUrl" },
+        "signingKeyUrl": { "$ref": "#/$defs/officialUrl" },
+        "signingKeyFingerprint": { "type": "string", "pattern": "^[0-9A-F]{40}$" },
+        "signingKeySha256": { "$ref": "#/$defs/hash" },
+        "inReleaseSha256": { "$ref": "#/$defs/hash" },
+        "packagesIndexSha256": { "$ref": "#/$defs/hash" },
+        "headerSha256": { "$ref": "#/$defs/hash" },
+        "upstreamTag": { "const": "rocm-7.2.1" },
+        "upstreamCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      },
+      "additionalProperties": false
+    },
+    "topology": {
+      "type": "object",
+      "required": ["decision", "runtimeDependency", "migraphxPayload", "reason", "rejected"],
+      "properties": {
+        "decision": { "const": "layered-deferred" },
+        "runtimeDependency": {
+          "type": "object",
+          "required": ["id", "version", "requiredFamily", "provides"],
+          "properties": {
+            "id": { "const": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64" },
+            "version": { "const": "[7.2.1]" },
+            "requiredFamily": { "const": "ROCm-7.2.1-linux-x64" },
+            "provides": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+          },
+          "additionalProperties": false
+        },
+        "migraphxPayload": { "type": "string", "minLength": 1 },
+        "reason": { "type": "string", "minLength": 1 },
+        "rejected": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["candidate", "reason"],
+            "properties": {
+              "candidate": { "type": "string", "minLength": 1 },
+              "reason": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "sourcePackage": {
+      "type": "object",
+      "required": ["name", "version", "architecture", "url", "size", "sha256", "role", "acquisition"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 },
+        "architecture": { "const": "amd64" },
+        "url": { "$ref": "#/$defs/officialUrl" },
+        "size": { "type": "integer", "minimum": 1 },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "role": { "enum": ["migraphx-root", "incremental-provider", "provided-by-exact-hip-runtime"] },
+        "acquisition": { "enum": ["required", "metadata-only"] },
+        "provides": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      },
+      "additionalProperties": false
+    },
+    "runtimeFile": {
+      "type": "object",
+      "required": ["path", "sourcePath", "sourcePackage", "sha256", "size", "purpose"],
+      "properties": {
+        "path": { "$ref": "#/$defs/relativePath" },
+        "sourcePath": { "$ref": "#/$defs/relativePath" },
+        "sourcePackage": { "type": "string", "minLength": 1 },
+        "sha256": { "$ref": "#/$defs/hash" },
+        "size": { "type": "integer", "minimum": 1 },
+        "purpose": { "type": "string", "minLength": 1 },
+        "aliasFor": { "$ref": "#/$defs/relativePath" },
+        "soname": { "type": "string", "minLength": 1 },
+        "needed": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+        "rpath": { "type": "string" },
+        "elfClass": { "const": "ELF64" },
+        "machine": { "const": "x86-64" }
+      },
+      "oneOf": [
+        { "required": ["aliasFor"], "not": { "anyOf": [{ "required": ["soname"] }, { "required": ["needed"] }] } },
+        { "required": ["soname", "needed", "rpath", "elfClass", "machine"], "not": { "required": ["aliasFor"] } }
+      ],
+      "additionalProperties": false
+    },
+    "license": {
+      "type": "object",
+      "required": ["sourcePackage", "expression", "sourcePath", "packagePath", "sha256"],
+      "properties": {
+        "sourcePackage": { "type": "string", "minLength": 1 },
+        "expression": { "type": "string", "minLength": 1 },
+        "sourcePath": { "$ref": "#/$defs/relativePath" },
+        "packagePath": { "$ref": "#/$defs/relativePath" },
+        "sha256": { "$ref": "#/$defs/hash" }
+      },
+      "additionalProperties": false
+    },
+    "systemDependency": {
+      "type": "object",
+      "required": ["soname", "ubuntuPackage", "minimumVersion", "usage"],
+      "properties": {
+        "soname": { "type": "string", "minLength": 1 },
+        "ubuntuPackage": { "type": "string", "minLength": 1 },
+        "minimumVersion": { "type": "string", "minLength": 1 },
+        "usage": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "driverBoundary": {
+      "type": "object",
+      "required": ["deviceNodes", "kernelDriver", "firmware", "excludedFromPackage", "rule"],
+      "properties": {
+        "deviceNodes": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "kernelDriver": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "firmware": { "const": "host-provided" },
+        "excludedFromPackage": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "rule": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "size": {
+      "type": "object",
+      "required": [
+        "manifestCanonicalBytes", "manifestAliasMaterializedBytes", "incrementalSourceArchiveBytes",
+        "largestRequiredSourceArchiveBytes", "packageLimitBytes", "unpackedLimitBytes", "status", "decision"
+      ],
+      "properties": {
+        "manifestCanonicalBytes": { "type": "integer", "minimum": 1 },
+        "manifestAliasMaterializedBytes": { "type": "integer", "minimum": 1 },
+        "incrementalSourceArchiveBytes": { "type": "integer", "minimum": 1 },
+        "largestRequiredSourceArchiveBytes": { "type": "integer", "minimum": 1 },
+        "packageLimitBytes": { "type": "integer", "minimum": 1 },
+        "unpackedLimitBytes": { "type": "integer", "minimum": 1 },
+        "status": { "const": "blocked" },
+        "decision": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["sbom", "provenance", "packageMarker", "declaredContentDigestSha256", "stagingDigestSha256", "candidatePackageSha256", "promotionReceiptSha256"],
+      "properties": {
+        "sbom": {
+          "type": "object",
+          "required": ["format", "path", "sha256"],
+          "properties": {
+            "format": { "const": "CycloneDX-1.5" },
+            "path": { "$ref": "#/$defs/relativePath" },
+            "sha256": { "$ref": "#/$defs/hash" }
+          },
+          "additionalProperties": false
+        },
+        "provenance": {
+          "type": "object",
+          "required": ["path", "selfReferenceBoundary"],
+          "properties": {
+            "path": { "$ref": "#/$defs/relativePath" },
+            "selfReferenceBoundary": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": false
+        },
+        "packageMarker": {
+          "type": "object",
+          "required": ["format", "packagePath", "requiredFamily", "status"],
+          "properties": {
+            "format": { "const": "MIGraphX runtime closure XML v1" },
+            "packagePath": { "const": "runtimes/linux-x64/native/migraphx-runtime-closure.xml" },
+            "requiredFamily": { "const": "ROCm-7.2.1-linux-x64" },
+            "status": { "const": "not-generated-runtime-deferred" }
+          },
+          "additionalProperties": false
+        },
+        "declaredContentDigestSha256": { "$ref": "#/$defs/hash" },
+        "stagingDigestSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "candidatePackageSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" },
+        "promotionReceiptSha256": { "type": ["string", "null"], "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": ["signedSource", "rootElf", "closure", "licenses", "sbom", "packageAudit", "cleanConsumer", "packageOnlyRuntime", "mixedDirectoryNegative", "evidenceLevel", "baselineCommit"],
+      "properties": {
+        "signedSource": { "const": "verified-root-package" },
+        "rootElf": { "const": "statically-verified" },
+        "closure": { "const": "incomplete" },
+        "licenses": { "const": "incomplete" },
+        "sbom": { "const": "deferred-inventory-generated" },
+        "packageAudit": { "const": "not-run" },
+        "cleanConsumer": { "const": "not-run" },
+        "packageOnlyRuntime": { "const": "not-authorized" },
+        "mixedDirectoryNegative": { "const": "not-run" },
+        "evidenceLevel": { "const": "statically-verified" },
+        "baselineCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+      },
+      "additionalProperties": false
+    },
+    "blocker": {
+      "type": "object",
+      "required": ["id", "category", "detail"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^M7-[A-Z]+-[0-9]{3}$" },
+        "category": { "enum": ["size", "closure", "loader", "shared-runtime", "authorization"] },
+        "detail": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
 }

@@ -19,7 +19,8 @@ public sealed class M1NativeVerticalTests
         Assert.Throws<ArgumentException>(() => MIGraphXEnvironment.Probe("relative-native-library"));
 
         var candidates = NativeLibraryLoader.CandidateOrderForCurrentPlatform();
-        Assert.StartsWith("application-rid-native:", candidates[0], StringComparison.Ordinal);
+        Assert.StartsWith(OperatingSystem.IsLinux() ? "application-rid-package:" : "application-rid-native:", candidates[0], StringComparison.Ordinal);
+        Assert.Contains(candidates, item => item.StartsWith("application-rid-native:", StringComparison.Ordinal));
         Assert.Contains(candidates, item => item.StartsWith("application-base:", StringComparison.Ordinal));
         Assert.StartsWith("system-loader:", candidates[^1], StringComparison.Ordinal);
         Assert.Equal(MIGraphXNativeDiagnosticKind.BadImage, NativeLibraryLoader.ClassifyLoadFailure("platform error 0x8007000B"));

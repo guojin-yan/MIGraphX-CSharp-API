@@ -1,22 +1,18 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "2.0.0",
   "runtimePackagingEnabled": false,
   "failClosed": true,
+  "technicalStatus": "runtime-deferred",
+  "candidateStaged": false,
+  "verified": false,
+  "publishAuthorized": false,
+  "releaseAuthorized": false,
   "requiredStatuses": [
-    "build-validated",
-    "package-consumer-validated",
+    "runtime-candidate-staged",
+    "runtime-candidate-executed",
     "runtime-executed"
   ],
-  "requiredManifestFields": [
-    "rid",
-    "nativeVersion",
-    "sourceUrl",
-    "sha256",
-    "license",
-    "files",
-    "transitiveDependencies",
-    "validation"
-  ],
-  "reason": "M1/M2 unified official runtime validation and the complete licensed native dependency closure are not complete."
+  "promotionRule": "A tracked source flag never authorizes publication. Promotion requires a separate receipt bound to the exact source SHA, nupkg SHA, native fingerprint, manifest, SBOM, environment, model, commands, and reviewed exits.",
+  "reason": "The signed MIGraphX root is statically audited, but provider closure/licenses, package topology, size, clean consumer, mixed-directory negatives, and newly authorized package-only execution are incomplete."
 }

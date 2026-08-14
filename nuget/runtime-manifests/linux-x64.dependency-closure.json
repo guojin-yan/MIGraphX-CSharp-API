@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "rid": "linux-x64",
+  "rocmVersion": "7.2.1",
+  "migraphxVersion": "2.15.0.70201-81~24.04",
+  "root": "libmigraphx_c.so.3",
+  "evidenceBoundary": "DT_NEEDED edges are read from the signed official ELF bytes. Target/plugin and workload edges are fixed-source requirements whose package-only loader traces remain pending.",
+  "edges": [
+    { "from": "libmigraphx_c.so.3", "to": "libmigraphx.so.2015000", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_c.so.3", "to": "libmigraphx_onnx.so.2015000", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_c.so.3", "to": "libmigraphx_tf.so.2015000", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_onnx.so.2015000", "to": "libmigraphx.so.2015000", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_tf.so.2015000", "to": "libmigraphx.so.2015000", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "make_target(gpu)", "to": "libmigraphx_gpu.so.2015000", "kind": "dlopen-target", "evidence": "AMDMIGraphX de19b73 src/register_target.cpp", "traceStatus": "pending" },
+    { "from": "libmigraphx_gpu.so.2015000", "to": "libmigraphx_device.so.2015000", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_gpu.so.2015000", "to": "libamdhip64.so.7", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_gpu.so.2015000", "to": "libhiprtc.so.7", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_gpu.so.2015000", "to": "libhsa-runtime64.so.1", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_gpu.so.2015000", "to": "libMIOpen.so.1", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_gpu.so.2015000", "to": "librocblas.so.5", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_gpu.so.2015000", "to": "libhipblaslt.so.1", "kind": "DT_NEEDED", "evidence": "official-elf" },
+    { "from": "libmigraphx_device.so.2015000", "to": "libamdhip64.so.7", "kind": "DT_NEEDED", "evidence": "official-elf" }
+  ],
+  "workflowLoads": [
+    { "workflow": "parse-onnx-file-buffer", "required": ["libmigraphx_c.so.3", "libmigraphx.so.2015000", "libmigraphx_onnx.so.2015000", "libmigraphx_tf.so.2015000"], "traceStatus": "pending-package-only" },
+    { "workflow": "gpu-compile-sync-run", "required": ["libmigraphx_gpu.so.2015000", "libmigraphx_device.so.2015000", "libamdhip64.so.7", "libhiprtc.so.7", "libhsa-runtime64.so.1", "libMIOpen.so.1", "librocblas.so.5", "libhipblaslt.so.1"], "traceStatus": "pending-package-only" },
+    { "workflow": "m5-save-load-cache", "required": ["same target closure as the serialized program"], "traceStatus": "pending-package-only" },
+    { "workflow": "m6-host-async-device-input", "required": ["gpu-compile-sync-run closure", "HipSharp runtime and stream from the same ROCm family"], "traceStatus": "pending-package-only" }
+  ],
+  "excluded": [
+    { "name": "libmigraphx_ref.so.2015000", "reason": "The first candidate is GPU-only; ref target is not in the required package-only workflow." },
+    { "name": "MIGraphX Python modules and drivers", "reason": "Managed runtime package must not carry Python bindings or command-line tools." },
+    { "name": "development packages and rocm-llvm", "reason": "Headers, hipcc, compilers, and development payload are Debian build/install dependencies, not accepted runtime payload." }
+  ]
+}

@@ -16,6 +16,8 @@ dotnet tool restore
 .\eng\verify-m4-coverage.ps1
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
+.\eng\validate-runtime-manifest.ps1
+.\eng\test-runtime-supply-chain.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
@@ -30,6 +32,8 @@ $adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.0.0 -HipShar
 `generate-interop.ps1` stops before generation if the header SHA-256 differs from the frozen value and verify mode never writes tracked outputs. `verify-m2-abi.ps1` preserves the 41-function workflow gate and deterministic Identity model. `verify-m3-abi.ps1` closes the complete 159-function header against 158 managed EntryPoints, one explicit variadic unsupported item, and 159 official public ELF exports.
 
 For explicit target/program/options/argument composition, continue with the [managed object workflow](managed-objects.md). Its inputs and outputs are copied for safety; it does not expose zero-copy or async behavior.
+
+The optional Runtime is not installable in M7. See [Runtime deployment](runtime-deployment.md) before using system or explicit native libraries; never copy assets from the ignored source cache into an application.
 
 ## Run with a HipSharp stream
 

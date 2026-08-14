@@ -147,7 +147,7 @@ public sealed class RepositoryQualityTests
     {
         var allowed = new HashSet<string>(StringComparer.Ordinal)
         {
-            "planned", "statically-verified", "fake-native-executed", "runtime-executed", "not-applicable",
+            "planned", "statically-verified", "fake-native-executed", "runtime-deferred", "runtime-executed", "not-applicable",
         };
         var compatibility = Path.Combine(RepositoryRoot, "compatibility");
 
@@ -185,6 +185,12 @@ public sealed class RepositoryQualityTests
                 "f1a11cfd1701a041cee29188f7600c85b34ae260",
                 item.GetProperty("evidence").GetString(),
                 StringComparison.Ordinal));
+        Assert.Equal(
+            "runtime-deferred",
+            runtimeMatrix.RootElement.GetProperty("validations")
+                .EnumerateArray()
+                .Single(item => item.GetProperty("id").GetString() == "m7-runtime-package")
+                .GetProperty("status").GetString());
     }
 
     [Fact]
@@ -335,7 +341,7 @@ public sealed class RepositoryQualityTests
             Assert.Contains("runtime", text, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("f1a11cfd1701a041cee29188f7600c85b34ae260", text, StringComparison.Ordinal);
             Assert.Contains("gfx1100", text, StringComparison.Ordinal);
-            Assert.DoesNotContain("runtime-deferred", text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("runtime-deferred", text, StringComparison.OrdinalIgnoreCase);
         }
     }
 
@@ -413,12 +419,15 @@ public sealed class RepositoryQualityTests
             "design/m4-managed-object-model.md",
             "design/m5-dynamic-shape-cache.md",
             "design/m6-hip-async-interop.md",
+            "design/m7-runtime-packaging.md",
             "validation/README.md",
             "validation/m2-local-validation.md",
             "validation/m3-local-validation.md",
             "validation/m4-local-validation.md",
             "validation/m5-local-validation.md",
             "validation/m6-local-validation.md",
+            "validation/m7-local-validation.md",
+            "guides/runtime-deployment.md",
             "guides/managed-objects.md",
             "articles/m4-resource-safe-dotnet.md",
             "articles/m5-dynamic-shape-cache.md",
@@ -527,7 +536,8 @@ public sealed class RepositoryQualityTests
     }
 
     private static bool IsGeneratedPath(string path) =>
-        path.Contains($"{Path.DirectorySeparatorChar}artifacts{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
+        path.Contains($"{Path.DirectorySeparatorChar}.cache{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
+        || path.Contains($"{Path.DirectorySeparatorChar}artifacts{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
         || path.Contains($"{Path.DirectorySeparatorChar}bin{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
         || path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
         || path.Contains($"{Path.DirectorySeparatorChar}api{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)

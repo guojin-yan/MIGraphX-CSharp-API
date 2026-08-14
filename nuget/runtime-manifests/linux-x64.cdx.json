@@ -1,0 +1,803 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "bom-ref": "pkg:nuget/JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.linux-x64@7.2.1",
+      "name": "JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.linux-x64",
+      "version": "7.2.1"
+    },
+    "properties": [
+      {
+        "name": "migraphx:technical-status",
+        "value": "runtime-deferred"
+      },
+      {
+        "name": "migraphx:evidence-boundary",
+        "value": "Deferred inventory only; no candidate nupkg or package-only runtime claim."
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:nuget/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64@7.2.1",
+      "name": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
+      "version": "7.2.1",
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "exact-runtime-dependency"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/comgr-rpath7.2.1@3.0.0.70201-81~24.04?arch=amd64",
+      "name": "comgr-rpath7.2.1",
+      "version": "3.0.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "237aa75c2bd9f1c23532b5c0681e0ef01c45bff607fdf314b05bc0cca44e5087"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "provided-by-exact-hip-runtime"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/c/comgr-rpath7.2.1/comgr-rpath7.2.1_3.0.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "40334664"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64",
+      "name": "hip-runtime-amd-rpath7.2.1",
+      "version": "7.2.53211.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e94b1466208e91ddee85db475658113c71db565fee6f3f39e973ab2b6c1552d8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "provided-by-exact-hip-runtime"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hip-runtime-amd-rpath7.2.1/hip-runtime-amd-rpath7.2.1_7.2.53211.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "9959856"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/hipblaslt-rpath7.2.1@1.2.2.70201-81~24.04?arch=amd64",
+      "name": "hipblaslt-rpath7.2.1",
+      "version": "1.2.2.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "334e6b2c2c779517740a31b884efb0f86db7dc0d781a0fce688da26d1ff2f458"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "incremental-provider"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hipblaslt-rpath7.2.1/hipblaslt-rpath7.2.1_1.2.2.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "1613836012"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/hsa-rocr-rpath7.2.1@1.18.0.70201-81~24.04?arch=amd64",
+      "name": "hsa-rocr-rpath7.2.1",
+      "version": "1.18.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3485899502a1ca8b058a4ae35890f8c7713625aebe0fb6938ff7fe3921d64b30"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "provided-by-exact-hip-runtime"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hsa-rocr-rpath7.2.1/hsa-rocr-rpath7.2.1_1.18.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "912124"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/migraphx-rpath7.2.1@2.15.0.70201-81~24.04?arch=amd64",
+      "name": "migraphx-rpath7.2.1",
+      "version": "2.15.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "071eeaf5653447b3328298ab5800e069534c620d01eae5dcad4ec50777cc85d9"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "migraphx-root"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "required"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/m/migraphx-rpath7.2.1/migraphx-rpath7.2.1_2.15.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "68651368"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "recorded"
+        }
+      ],
+      "licenses": [
+        {
+          "license": {
+            "id": "MIT"
+          }
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/miopen-hip-rpath7.2.1@3.5.1.70201-81~24.04?arch=amd64",
+      "name": "miopen-hip-rpath7.2.1",
+      "version": "3.5.1.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2efa7cbe5881b6a2b28d30b04b7031ed11bc1f9faea332647385029bc4887668"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "incremental-provider"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/m/miopen-hip-rpath7.2.1/miopen-hip-rpath7.2.1_3.5.1.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "307906628"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/rocblas-rpath7.2.1@5.2.0.70201-81~24.04?arch=amd64",
+      "name": "rocblas-rpath7.2.1",
+      "version": "5.2.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b02c03d59cadb428e20142d1765664dda4c852720d158d40e9d2781781b196ef"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "incremental-provider"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocblas-rpath7.2.1/rocblas-rpath7.2.1_5.2.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "164793360"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/rocm-core-rpath7.2.1@7.2.1.70201-81~24.04?arch=amd64",
+      "name": "rocm-core-rpath7.2.1",
+      "version": "7.2.1.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "d25ef0c49da9af08fb5b3d9c05ea16369a62ddb54428cdc3518c078474d45d1a"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "provided-by-exact-hip-runtime"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocm-core-rpath7.2.1/rocm-core-rpath7.2.1_7.2.1.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "29140"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/rocminfo-rpath7.2.1@1.0.0.70201-81~24.04?arch=amd64",
+      "name": "rocminfo-rpath7.2.1",
+      "version": "1.0.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "fecfd9b9f113c85b8bbf9c71fa7169fac1819a5004f03ccd883f4c969a540346"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "provided-by-exact-hip-runtime"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocminfo-rpath7.2.1/rocminfo-rpath7.2.1_1.0.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "22708"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/rocprofiler-register-rpath7.2.1@0.6.0.70201-81~24.04?arch=amd64",
+      "name": "rocprofiler-register-rpath7.2.1",
+      "version": "0.6.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4c1d580f4dbe456b98c1965fc0c575a113f463a10055186d2bb5c5a92e6eaefd"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "provided-by-exact-hip-runtime"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocprofiler-register-rpath7.2.1/rocprofiler-register-rpath7.2.1_0.6.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "194264"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/rocrand-rpath7.2.1@4.2.0.70201-81~24.04?arch=amd64",
+      "name": "rocrand-rpath7.2.1",
+      "version": "4.2.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "b08b960ec811f5fff4d567425dc15b06cb5df8dd8477694db87a45149959126d"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "incremental-provider"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocrand-rpath7.2.1/rocrand-rpath7.2.1_4.2.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "39599460"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:deb/amd/roctracer-rpath7.2.1@4.1.70201.70201-81~24.04?arch=amd64",
+      "name": "roctracer-rpath7.2.1",
+      "version": "4.1.70201.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4f99f047ee429a591b40a6c41909cadc28d22eedf5066a98cc29336d3a15bfbf"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:role",
+          "value": "incremental-provider"
+        },
+        {
+          "name": "migraphx:acquisition",
+          "value": "metadata-only"
+        },
+        {
+          "name": "migraphx:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/roctracer-rpath7.2.1/roctracer-rpath7.2.1_4.1.70201.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "migraphx:source-size",
+          "value": "294240"
+        },
+        {
+          "name": "migraphx:license-inventory",
+          "value": "pending"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/libmigraphx_c.so.3",
+      "name": "libmigraphx_c.so.3",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "581582270fe1a8bb323eba04fb23f2969bbcdcff4a2a92d501eba7adf6a349ac"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/libmigraphx_c.so.3"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:alias-for",
+          "value": "runtimes/linux-x64/native/lib/libmigraphx_c.so.3.0.70201"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/libmigraphx_c.so.3.0.70201",
+      "name": "libmigraphx_c.so.3.0.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "581582270fe1a8bb323eba04fb23f2969bbcdcff4a2a92d501eba7adf6a349ac"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/libmigraphx_c.so.3.0.70201"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:soname",
+          "value": "libmigraphx_c.so.3"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_device.so.2015000",
+      "name": "libmigraphx_device.so.2015000",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2ce415f03449fc85d8732345123d98542cd8ec8f7c540016cc494afe26e13f8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_device.so.2015000"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:alias-for",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_device.so.2015000.0.70201"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_device.so.2015000.0.70201",
+      "name": "libmigraphx_device.so.2015000.0.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "e2ce415f03449fc85d8732345123d98542cd8ec8f7c540016cc494afe26e13f8"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_device.so.2015000.0.70201"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:soname",
+          "value": "libmigraphx_device.so.2015000"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_gpu.so.2015000",
+      "name": "libmigraphx_gpu.so.2015000",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c8840113f5de5237be404ada3400fe75d889fe2810c61e2f9a7082dcbf4244c0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_gpu.so.2015000"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:alias-for",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_gpu.so.2015000.0.70201"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_gpu.so.2015000.0.70201",
+      "name": "libmigraphx_gpu.so.2015000.0.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c8840113f5de5237be404ada3400fe75d889fe2810c61e2f9a7082dcbf4244c0"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_gpu.so.2015000.0.70201"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:soname",
+          "value": "libmigraphx_gpu.so.2015000"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_onnx.so.2015000",
+      "name": "libmigraphx_onnx.so.2015000",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3817b77e9945b58f6a2b07e3ad9a45a06af1d1e3a6ce367fb50cd67e44b7c88c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_onnx.so.2015000"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:alias-for",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_onnx.so.2015000.0.70201"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_onnx.so.2015000.0.70201",
+      "name": "libmigraphx_onnx.so.2015000.0.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3817b77e9945b58f6a2b07e3ad9a45a06af1d1e3a6ce367fb50cd67e44b7c88c"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_onnx.so.2015000.0.70201"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:soname",
+          "value": "libmigraphx_onnx.so.2015000"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_tf.so.2015000",
+      "name": "libmigraphx_tf.so.2015000",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c332639d8ee99da43269db0eef10523b4974c5924197396b59c6c3d433dcadc6"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_tf.so.2015000"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:alias-for",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_tf.so.2015000.0.70201"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_tf.so.2015000.0.70201",
+      "name": "libmigraphx_tf.so.2015000.0.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "c332639d8ee99da43269db0eef10523b4974c5924197396b59c6c3d433dcadc6"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_tf.so.2015000.0.70201"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:soname",
+          "value": "libmigraphx_tf.so.2015000"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000",
+      "name": "libmigraphx.so.2015000",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4cce6f53994b2284cb2220ac507ed9632b2226f68e1e83255d053e98fe107172"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:alias-for",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201"
+        }
+      ]
+    },
+    {
+      "type": "file",
+      "bom-ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201",
+      "name": "libmigraphx.so.2015000.0.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4cce6f53994b2284cb2220ac507ed9632b2226f68e1e83255d053e98fe107172"
+        }
+      ],
+      "properties": [
+        {
+          "name": "migraphx:package-path",
+          "value": "runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201"
+        },
+        {
+          "name": "migraphx:source-package",
+          "value": "migraphx-rpath7.2.1"
+        },
+        {
+          "name": "migraphx:soname",
+          "value": "libmigraphx.so.2015000"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:nuget/JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.linux-x64@7.2.1",
+      "dependsOn": [
+        "pkg:deb/amd/hipblaslt-rpath7.2.1@1.2.2.70201-81~24.04?arch=amd64",
+        "pkg:deb/amd/migraphx-rpath7.2.1@2.15.0.70201-81~24.04?arch=amd64",
+        "pkg:deb/amd/miopen-hip-rpath7.2.1@3.5.1.70201-81~24.04?arch=amd64",
+        "pkg:deb/amd/rocblas-rpath7.2.1@5.2.0.70201-81~24.04?arch=amd64",
+        "pkg:deb/amd/rocrand-rpath7.2.1@4.2.0.70201-81~24.04?arch=amd64",
+        "pkg:deb/amd/roctracer-rpath7.2.1@4.1.70201.70201-81~24.04?arch=amd64",
+        "pkg:nuget/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64@7.2.1"
+      ]
+    },
+    {
+      "ref": "native:runtimes/linux-x64/native/lib/libmigraphx_c.so.3.0.70201",
+      "dependsOn": [
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_onnx.so.2015000.0.70201",
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_tf.so.2015000.0.70201",
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201"
+      ]
+    },
+    {
+      "ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_device.so.2015000.0.70201",
+      "dependsOn": [
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201"
+      ]
+    },
+    {
+      "ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_gpu.so.2015000.0.70201",
+      "dependsOn": [
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_device.so.2015000.0.70201",
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201"
+      ]
+    },
+    {
+      "ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_onnx.so.2015000.0.70201",
+      "dependsOn": [
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201"
+      ]
+    },
+    {
+      "ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx_tf.so.2015000.0.70201",
+      "dependsOn": [
+        "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201"
+      ]
+    },
+    {
+      "ref": "native:runtimes/linux-x64/native/lib/migraphx/lib/libmigraphx.so.2015000.0.70201",
+      "dependsOn": []
+    }
+  ]
+}

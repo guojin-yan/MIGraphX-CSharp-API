@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "predicateType": "https://slsa.dev/provenance/v1",
+  "technicalStatus": "runtime-deferred",
+  "publishable": false,
+  "releaseAuthorized": false,
+  "source": {
+    "repository": "https://github.com/guojin-yan/MIGraphX-CSharp-API.git",
+    "developmentBaselineCommit": "5a7f441851d5d2232ab30155eb5b778d6643a1ed",
+    "finalCommitBinding": "external receipt required after the clean M7 commit",
+    "upstreamRepository": "https://github.com/ROCm/AMDMIGraphX",
+    "upstreamTag": "rocm-7.2.1",
+    "upstreamCommit": "de19b73ad280476e646512b847885eda100ec35e"
+  },
+  "inputs": {
+    "manifest": {
+      "path": "nuget/runtime-manifests/linux-x64.json",
+      "sha256": "d3290ec2a0a842904eb4f08f52dcdc890ac8bdf22597ebed85d275ad614ce7c7"
+    },
+    "closure": {
+      "path": "nuget/runtime-manifests/linux-x64.dependency-closure.json",
+      "sha256": "f4ade807dfefb057f0354c34466272a6dbd3e4b40ab88cd0e7315aa269d5d01b"
+    },
+    "sbom": {
+      "path": "nuget/runtime-manifests/linux-x64.cdx.json",
+      "sha256": "30ae95d1892b2a234d7326336f4d92a21cb771e41dab70b8fc200b90721a479e"
+    },
+    "inRelease": {
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/InRelease",
+      "sha256": "8c0a2a0a6075f0301e01deff8b6ac3dae18bbe2b115a7a3f28dd7991197671e0"
+    },
+    "packagesIndex": {
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/main/binary-amd64/Packages.gz",
+      "sha256": "739224fb69cef365b96e96699073e84f066d2d8a8547273bebbca17712dc38cc"
+    },
+    "rootSourcePackage": {
+      "name": "migraphx-rpath7.2.1",
+      "sha256": "071eeaf5653447b3328298ab5800e069534c620d01eae5dcad4ec50777cc85d9"
+    }
+  },
+  "payload": {
+    "declaredContentDigestSha256": "47fbc0f38f145aa4285f4dc98817457477a407288f78064bf5b244225bf825e2",
+    "stagingDigestSha256": null,
+    "candidateNupkgSha256": null,
+    "nativeFamilyFingerprint": null
+  },
+  "verification": {
+    "signedSource": "verified-root-package",
+    "rootElf": "statically-verified",
+    "closure": "incomplete",
+    "licenses": "incomplete",
+    "sbom": "deferred-inventory-generated",
+    "packageAudit": "not-run",
+    "cleanConsumer": "not-run",
+    "packageOnlyRuntime": "not-authorized",
+    "mixedDirectoryNegative": "not-run",
+    "evidenceLevel": "statically-verified",
+    "baselineCommit": "5a7f441851d5d2232ab30155eb5b778d6643a1ed"
+  },
+  "blockers": [
+    {
+      "id": "M7-SIZE-001",
+      "category": "size",
+      "detail": "The required hipBLASLt archive is 1,613,836,012 bytes and the incremental source archives total 2,195,081,068 bytes against a 262,144,000-byte package gate."
+    },
+    {
+      "id": "M7-CLOSURE-002",
+      "category": "closure",
+      "detail": "MIOpen, rocBLAS, hipBLASLt, rocRAND, and rocTracer payload/file/license inventories are not yet independently extracted and closed."
+    },
+    {
+      "id": "M7-LOADER-003",
+      "category": "loader",
+      "detail": "Upstream MIGraphX RPATH topology and HipSharp's flat runtime asset directory need an authorized package-only trace; no RPATH rewrite is approved."
+    },
+    {
+      "id": "M7-FAMILY-004",
+      "category": "shared-runtime",
+      "detail": "HipSharp does not expose a cross-assembly native closure fingerprint that the optional adapter can compare after either runtime is already loaded."
+    },
+    {
+      "id": "M7-RUNTIME-005",
+      "category": "authorization",
+      "detail": "No new official-host authorization exists for the exact package-only M1-M6 runtime matrix."
+    }
+  ]
+}

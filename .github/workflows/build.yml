@@ -42,13 +42,7 @@ jobs:
           ./eng/verify-package.ps1 -PackagePath $package -Version 0.0.0
       - name: Verify runtime fail-closed behavior
         shell: pwsh
-        run: |
-          try {
-            ./eng/pack.ps1 -Runtime
-            throw 'Runtime packaging unexpectedly succeeded.'
-          } catch {
-            if ($_.Exception.Message -notmatch 'disabled and fail-closed') { throw }
-          }
+        run: ./eng/test-runtime-supply-chain.ps1
       - name: Build DocFX site
         shell: pwsh
         run: ./eng/docs.ps1 -Configuration Release -NoBuild

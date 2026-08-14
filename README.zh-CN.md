@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp `0.0.0` 现已包含 AMD 官方 MIGraphX C API 的 M1 生命周期基础、M2 受限 ONNX 闭环、M3 可复现低层绑定生产线、M4 资源安全同步对象层、M5 动态 Shape/缓存策略，以及可选的 M6 HipSharp 异步适配器。当前仍是本地工程候选，不是已发布版本。
+MIGraphXSharp `0.0.0` 现已包含 AMD 官方 MIGraphX C API 的 M1 生命周期基础、M2 受限 ONNX 闭环、M3 可复现低层绑定生产线、M4 资源安全同步对象层、M5 动态 Shape/缓存策略、可选的 M6 HipSharp 异步适配器，以及 M7 默认关闭的 Runtime 供应链基础设施。当前仍是本地工程候选，不是已发布版本。
 
 ## 状态
 
@@ -14,14 +14,15 @@ MIGraphXSharp `0.0.0` 现已包含 AMD 官方 MIGraphX C API 的 M1 生命周期
 - M4 公开显式 `MIGraphXProgram`、`MIGraphXShape`、`MIGraphXArgument`、`MIGraphXTarget`、ONNX/compile options、parameter map 与复制输出集合。独立的 192 项高层映射闭合为 52 supported、139 planned、1 unsupported。
 - M5 新增不可变动态维度、严格的静态/动态 ONNX override、固定版本 `msgpack` Save/Load 和显式根目录的完整性校验模型缓存；映射闭合为 74 supported、117 planned、1 unsupported。
 - M6 新增可选 `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` 适配器，包含 3 个公开类型和 11 个成员。它使用固定名称 `hipStream_t` 提交原生 `migraphx_program_run_async`，并将 program/map/input/output/device 租约保活到 HipStream 完成；映射闭合为 75 supported、116 planned、1 unsupported。
+- M7 固定了 ROCm 7.2.1 Ubuntu Noble amd64 的签名源元数据、精确 MIGraphX 根包、6 个 canonical MIGraphX ELF 与 6 个物化 alias、1 份根包许可证、CycloneDX 1.5 SBOM、provenance 和依赖证据。这些证据是 `statically-verified`；Runtime 仍为 `runtime-deferred`。
 - 静态 shape 元数据包含已映射标量类型、lengths、strides、rank、溢出检查后的元素/字节数、standard 与 packed 标志。typed argument 拥有复制后的 host 内存；parameter map 深拷贝 argument；run 输出在原生集合释放前复制。
 - 一个 normalized model 同源生成各 158 个 `LibraryImport` 与 `DllImport` EntryPoint。C 可变参数函数 `migraphx_operation_create` 被显式标为 unsupported，不猜测 ABI。
 - 固定头中的 159 个函数全部匹配 hash 校验后的官方 ELF；ELF 额外的私有测试导出单独分类。这些 M3 结论属于 `statically-verified`，不是官方 runtime 执行。
 - 本地 fake-native 测试实际执行 loader、frontend/export 分类、对象构造、parse、不可变 shape 快照、typed host copy、多项集合、compile、同步 run、定向失败清理及并发/Dispose 边界。它继续作为测试替身证据，与官方 runtime 证据分开记录。
 - M1/M2 官方 runtime 已在 `f1a11cfd1701a041cee29188f7600c85b34ae260` 通过：环境为 Ubuntu 24.04 x86-64、ROCm 7.2.1、固定 MIGraphX 包和一张 gfx1100 GPU；实际执行了官方 loader、target/program 生命周期、ONNX file/buffer parse、GPU compile、同步 run 和 Identity reference 对比。
-- M6 host 路径要求 `offloadCopy=true`；device input 路径只接受 `HipDeviceMemory`、要求 `offloadCopy=false`，并在 stream 完成后显式 D2H 复制输出。custom op、图编辑/capture 互操作、任意设备指针和 runtime NuGet 仍不在范围内。
+- M6 host 路径要求 `offloadCopy=true`；device input 路径只接受 `HipDeviceMemory`、要求 `offloadCopy=false`，并在 stream 完成后显式 D2H 复制输出。custom op、图编辑/capture 互操作、任意设备指针和可用的 Runtime NuGet 包仍不在范围内。
 - M4/M5/M6 行为只有本地 `statically-verified` 与 `fake-native-executed` 证据；M6 没有官方 GPU、zero-copy、重叠或性能结论。
-- 核心包不含 AMD 或 fake-native 二进制。Runtime 包继续禁用并 fail closed。
+- 核心包不含 AMD 或 fake-native 二进制。`JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.linux-x64` `7.2.1` 只是被阻塞的包身份和工程骨架；当前没有 Runtime nupkg，受控入口与直接 pack 都以 `MIGRAPHX1001` 失败关闭。
 
 ## 安装
 
@@ -69,6 +70,12 @@ var inputShape = program.GetParameterShapes()["input"];
 
 `MIGraphXHipAsyncRun.TryComplete` 非阻塞，`Synchronize` 阻塞，`Outputs` 只在 stream 完成并形成 owned host 副本后可用。显式释放 pending 结果会等待完成。适配器不公开裸指针或自由 backend 名称，拒绝 graph capture，并对 device input 的输出执行显式 D2H。状态与所有权契约见 [M6 设计](docs/design/m6-hip-async-interop.md)。
 
+## M7 Runtime 打包状态
+
+M7 原则上选择分层拓扑：未来的 MIGraphX Runtime 精确依赖 `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` `[7.2.1]`，自身只携带 MIGraphX/provider 增量。独立索引得到的增量来源归档合计 2,195,081,068 字节，仅必需的 hipBLASLt 归档就有 1,613,836,012 字节，超过 262,144,000 字节包门槛。provider payload/许可证清单、package-only RPATH/load trace、跨程序集 family identity、clean Runtime consumer 与新的官方主机执行仍未闭合。
+
+loader 为未来包保留 `runtimes/linux-x64/native/lib`。在该目录发现候选时必须存在 `migraphx-runtime-closure.xml`；native load 前逐项核对文件 hash、SONAME、包/RID/版本与 ROCm family。保留目录不完整或被篡改时禁止回退系统库。没有 package marker 时，原有显式路径和 system `libmigraphx_c.so.3` 查找仍然可用。详见 [M7 设计](docs/design/m7-runtime-packaging.md)、[部署指南](docs/guides/runtime-deployment.md)与 [M7 验证状态](docs/validation/m7-local-validation.md)。
+
 ## 构建
 
 安装 `global.json` 选择的 .NET 10 SDK、PowerShell 7、CMake 和 C 编译器，然后执行：
@@ -80,6 +87,8 @@ dotnet tool restore
 .\eng\verify-m4-coverage.ps1
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
+.\eng\validate-runtime-manifest.ps1
+.\eng\test-runtime-supply-chain.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
@@ -95,7 +104,7 @@ $adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.0.0 -HipShar
 
 ## 文档
 
-请阅读 [M4 托管对象设计](docs/design/m4-managed-object-model.md)、[M5 动态 Shape 与缓存设计](docs/design/m5-dynamic-shape-cache.md)、[M6 异步/HIP 设计](docs/design/m6-hip-async-interop.md)、[托管对象指南](docs/guides/managed-objects.md)、[M6 本地验证](docs/validation/m6-local-validation.md)、[平台证据](docs/compatibility/platforms.md)和[M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
+请阅读 [M4 托管对象设计](docs/design/m4-managed-object-model.md)、[M5 动态 Shape 与缓存设计](docs/design/m5-dynamic-shape-cache.md)、[M6 异步/HIP 设计](docs/design/m6-hip-async-interop.md)、[M7 Runtime 设计](docs/design/m7-runtime-packaging.md)、[托管对象指南](docs/guides/managed-objects.md)、[Runtime 部署指南](docs/guides/runtime-deployment.md)、[M7 本地验证](docs/validation/m7-local-validation.md)、[平台证据](docs/compatibility/platforms.md)和[M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
 
 ## 许可证
 
