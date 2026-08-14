@@ -24,6 +24,8 @@
     href: validation/m1-local-validation.md
   - name: M2 local status
     href: validation/m2-local-validation.md
+  - name: M1/M2 official runtime
+    href: validation/m1-m2-official-runtime.md
 - name: Release notes
   href: releases/0.0.0.md
 - name: API reference

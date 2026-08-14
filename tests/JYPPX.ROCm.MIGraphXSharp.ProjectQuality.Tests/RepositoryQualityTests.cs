@@ -151,12 +151,31 @@ public sealed class RepositoryQualityTests
             foreach (var status in EnumerateStatuses(document.RootElement))
             {
                 Assert.Contains(status, allowed);
-                if (status == "runtime-executed")
-                {
-                    Assert.Contains("official", path, StringComparison.OrdinalIgnoreCase);
-                }
             }
         }
+
+        var runtimeMatrixPath = Path.Combine(compatibility, "runtime-validation-matrix.json");
+        using var runtimeMatrix = JsonDocument.Parse(File.ReadAllText(runtimeMatrixPath));
+        var runtimeExecuted = runtimeMatrix.RootElement.GetProperty("validations")
+            .EnumerateArray()
+            .Where(item => item.GetProperty("status").GetString() == "runtime-executed")
+            .ToArray();
+        var expectedRuntimeIds = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "official-native-loader",
+            "official-target-program-lifecycle",
+            "official-onnx-parse-compile-run",
+            "amd-gpu-execution",
+        };
+
+        Assert.True(
+            expectedRuntimeIds.SetEquals(runtimeExecuted.Select(item => item.GetProperty("id").GetString()!)),
+            "Only the independently reviewed M1/M2 official runtime entries may be runtime-executed.");
+        Assert.All(runtimeExecuted, item =>
+            Assert.Contains(
+                "f1a11cfd1701a041cee29188f7600c85b34ae260",
+                item.GetProperty("evidence").GetString(),
+                StringComparison.Ordinal));
     }
 
     [Fact]
@@ -170,8 +189,12 @@ public sealed class RepositoryQualityTests
         {
             Assert.Contains("0.0.0", text);
             Assert.Contains("M1", text);
-            Assert.Contains("AMD GPU", text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("AMD", text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("GPU", text, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("runtime", text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("f1a11cfd1701a041cee29188f7600c85b34ae260", text, StringComparison.Ordinal);
+            Assert.Contains("gfx1100", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("runtime-deferred", text, StringComparison.OrdinalIgnoreCase);
         }
     }
 

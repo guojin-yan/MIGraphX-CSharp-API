@@ -31,6 +31,6 @@ Target names are encoded with strict UTF-8 into a call-duration unmanaged buffer
 
 The official ELF static export gate, generated declarations, and header subset all match six names. The local fake validates enum size, pointer size, UTF-8 bytes, status injection, null/failing construction, destroy counts, assign copy behavior, and concurrent create/destroy balance across representative old and modern TFMs.
 
-Fake execution is `fake-native-executed`, not `runtime-executed` official MIGraphX evidence. M1 remains blocked pending an authorized official Linux runtime session. ONNX, compile, run, arguments, shape, async, and GPU inference remain M2 or later.
+Fake execution remains `fake-native-executed`, not official MIGraphX evidence. An independent official Linux session at `f1a11cfd1701a041cee29188f7600c85b34ae260` loaded the fixed library, verified exports, passed the strict UTF-8 runtime-rejection probe, and executed valid `gpu` target/program create, assign, and destroy. ONNX compile/run belongs to the separately bounded M2 result; async and device buffers remain later work.
 
-中文摘要：M1 由单一 manifest 生成两条声明路径，严格区分固定头/官方 ELF 静态证据、本地 fake 执行与官方 runtime 执行。SafeHandle 覆盖失败清理与幂等释放，但不提前公开 Program/Target 高层 clone API。
+中文摘要：M1 由单一 manifest 生成两条声明路径，严格区分固定头/官方 ELF 静态证据、本地 fake 执行与精确 SHA 的官方 runtime 执行。SafeHandle 覆盖失败清理与幂等释放，但不提前公开 Program/Target 高层 clone API。

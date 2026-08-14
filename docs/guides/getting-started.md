@@ -47,6 +47,6 @@ Running the smoke command with no path has no native side effects and returns `n
 
 ## Evidence boundary
 
-The local test suite passes `--fake-native` only for the small C test substitute and emits `fake-native-executed`. Official runtime claims additionally require the unified M1/M2 Radeon Cloud record, exact pushed SHA, frozen installation header, and redacted environment evidence. The Owner deferred that session, so M1/M2 remain `runtime-deferred`.
+The local test suite passes `--fake-native` only for the small C test substitute and emits `fake-native-executed`. The separate official session used a clean detached checkout of `f1a11cfd1701a041cee29188f7600c85b34ae260`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) for the exact boundary.
 
-中文提示：显式路径只接受绝对文件路径。本地 fake-native 仅验证托管边界与 ABI 形状，不能作为官方 MIGraphX 或 AMD GPU 已运行的证据。
+中文提示：显式路径只接受绝对文件路径。本地 fake-native 仅验证托管边界与 ABI 形状；官方 runtime 结论来自独立的精确 SHA 会话，不能扩展到未测试能力。
