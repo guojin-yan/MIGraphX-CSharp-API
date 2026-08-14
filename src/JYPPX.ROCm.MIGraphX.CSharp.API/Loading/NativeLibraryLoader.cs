@@ -254,7 +254,7 @@ internal static class NativeLibraryLoader
     internal static MIGraphXNativeDiagnosticKind ClassifyLoadFailure(string message)
     {
         var text = message.ToLowerInvariant();
-        if (text.Contains("badimageformatexception") || text.Contains("0x8007000b") || text.Contains("win32 error 193") || text.Contains("bad image") || text.Contains("wrong elf class") || text.Contains("not a valid win32") || text.Contains("architecture"))
+        if (text.Contains("badimageformatexception") || text.Contains("0x8007000b") || text.Contains("win32 error 193") || text.Contains("bad image") || text.Contains("wrong elf class") || text.Contains("invalid elf header") || text.Contains("file too short") || text.Contains("not a valid win32") || text.Contains("architecture"))
         {
             return MIGraphXNativeDiagnosticKind.BadImage;
         }

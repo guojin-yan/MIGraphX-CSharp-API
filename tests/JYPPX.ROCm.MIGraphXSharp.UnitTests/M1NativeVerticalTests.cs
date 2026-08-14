@@ -23,6 +23,8 @@ public sealed class M1NativeVerticalTests
         Assert.Contains(candidates, item => item.StartsWith("application-base:", StringComparison.Ordinal));
         Assert.StartsWith("system-loader:", candidates[^1], StringComparison.Ordinal);
         Assert.Equal(MIGraphXNativeDiagnosticKind.BadImage, NativeLibraryLoader.ClassifyLoadFailure("platform error 0x8007000B"));
+        Assert.Equal(MIGraphXNativeDiagnosticKind.BadImage, NativeLibraryLoader.ClassifyLoadFailure("DllNotFoundException: invalid ELF header"));
+        Assert.Equal(MIGraphXNativeDiagnosticKind.BadImage, NativeLibraryLoader.ClassifyLoadFailure("DllNotFoundException: file too short"));
         Assert.Equal(MIGraphXNativeDiagnosticKind.DependencyMissing, NativeLibraryLoader.ClassifyLoadFailure("platform error 0x8007007E"));
         Assert.Equal(MIGraphXNativeDiagnosticKind.DependencyMissing, NativeLibraryLoader.ClassifyLoadFailure("DllNotFoundException (HRESULT 0x80131524): localized platform error"));
         Assert.Equal(MIGraphXNativeDiagnosticKind.DependencyMissing, NativeLibraryLoader.ClassifyLoadFailure("LoadLibraryW failed with Win32 error 126."));
