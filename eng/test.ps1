@@ -10,6 +10,7 @@ $root = Get-RepositoryRoot
 Push-Location $root
 try {
     & (Join-Path $PSScriptRoot 'verify-m3-coverage.ps1') | Out-Host
+    & (Join-Path $PSScriptRoot 'verify-m4-coverage.ps1') | Out-Host
     if (-not $NoBuild) {
         & (Join-Path $PSScriptRoot 'build.ps1') -Configuration $Configuration
     }

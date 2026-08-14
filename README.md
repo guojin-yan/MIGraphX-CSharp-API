@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, the M2 restricted ONNX workflow, and the M3 reproducible low-level binding pipeline for the official AMD MIGraphX C API. The complete frozen header inventory is classified and 158 non-variadic declarations are emitted from one normalized model. This remains a local engineering candidate, not a published release.
+MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, M2 restricted ONNX workflow, M3 reproducible low-level binding pipeline, and M4 resource-safe synchronous object layer for the official AMD MIGraphX C API. This remains a local engineering candidate, not a published release.
 
 ## Status
 
@@ -11,11 +11,13 @@ MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, the M2 restricte
 - M1 provides explicit/system native loading diagnostics, exact status mapping, strict UTF-8, and owned target/program lifetimes.
 - M2 adds explicit file and byte-buffer ONNX entry points for one static, standard float32 input/output, synchronous GPU-target compile with offload-copy, pinned input, and copied output.
 - M3 inventories 159 functions, 2 enums, 25 opaque handles, and 6 callbacks. Its 192 entities close as 144 generated, 47 handwritten-policy, 1 unsupported, and 0 configuration-unavailable; functions close as 117/41/1/0.
+- M4 exposes explicit `MIGraphXProgram`, `MIGraphXShape`, `MIGraphXArgument`, `MIGraphXTarget`, ONNX/compile options, parameter map, and copied output collection objects. Its separate 192-item high-level map closes as 52 supported, 139 planned, and 1 unsupported.
+- Static shape metadata includes mapped scalar type, lengths, strides, rank, checked element/byte counts, standard, and packed flags. Typed arguments own copied host memory; parameter maps deep-copy arguments; run outputs are copied before native collections are released.
 - One normalized model emits 158 matching `LibraryImport` and `DllImport` EntryPoints. The C-variadic `migraphx_operation_create` is explicitly unsupported instead of receiving a guessed ABI.
 - All 159 header functions match the hash-verified official ELF; its additional private test export is separately classified. These M3 results are `statically-verified`, not official runtime execution.
-- Local fake-native tests execute loader, frontend/export classification, parse, shape validation, compile, run, failure cleanup, and concurrency. They remain test-substitute evidence and are recorded separately from official runtime evidence.
+- Local fake-native tests execute loader, frontend/export classification, object construction, parse, immutable shape snapshots, typed host copies, multi-item collections, compile, synchronous run, targeted failure cleanup, and concurrency/Dispose boundaries. They remain test-substitute evidence and are recorded separately from official runtime evidence.
 - M1/M2 official runtime validation passed at `f1a11cfd1701a041cee29188f7600c85b34ae260` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and one gfx1100 GPU. The official loader, target/program lifecycle, file/buffer ONNX parse, GPU compile, synchronous run, and Identity reference comparison executed successfully.
-- M3 adds no public `Program`, `Shape`, `Argument`, `Target`, options, or collection model. Dynamic shapes, general multi-tensor workflows, async/stream/device-buffer APIs, and runtime NuGet packages remain excluded.
+- Dynamic dimensions/overrides, save/load/cache, async/stream/device-buffer APIs, custom ops, graph editing, and runtime NuGet packages remain excluded.
 - The core package contains no AMD or fake-native binaries. Runtime packages remain disabled and fail closed.
 
 ## Install
@@ -43,6 +45,11 @@ var result = MIGraphXOnnxWorkflow.RunFile(
     @"C:\absolute\path\to\identity.onnx",
     new[] { 1f, 2f, 3f, 4f });
 Console.WriteLine(string.Join(",", result.Output));
+
+var modelBytes = System.IO.File.ReadAllBytes(@"C:\absolute\path\to\identity.onnx");
+using var parseOptions = new MIGraphXOnnxOptions(@"C:\absolute\path\to\migraphx_c.dll");
+using var program = MIGraphXProgram.ParseOnnxBuffer(modelBytes, parseOptions);
+var inputShape = program.GetParameterShapes()["input"];
 ```
 
 `ProbeSystem` audits application RID, application-base, and system-loader candidates. Linux candidates include `libmigraphx_c.so.3` and `migraphx_c`. Windows and macOS candidates are implemented for diagnostics but have no official MIGraphX runtime support claim.
@@ -54,6 +61,7 @@ Install the .NET 10 SDK selected by `global.json`, PowerShell 7, CMake, and a C 
 ```powershell
 dotnet tool restore
 .\eng\generate-interop.ps1 -AcquireHeader -Verify
+.\eng\verify-m4-coverage.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
@@ -67,7 +75,7 @@ Build, static official-ELF evidence, fake-native execution, and official MIGraph
 
 ## Documentation
 
-See the [M3 binding pipeline design](docs/design/m3-binding-generator.md), [M3 local validation](docs/validation/m3-local-validation.md), [getting started guide](docs/guides/getting-started.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
+See the [M4 managed-object design](docs/design/m4-managed-object-model.md), [managed object guide](docs/guides/managed-objects.md), [M4 local validation](docs/validation/m4-local-validation.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
 
 ## License
 
@@ -75,4 +83,4 @@ Copyright 2026 Guojin Yan. This managed project is licensed under the [Apache Li
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), the [M3 normalized model](compatibility/m3-normalized-api.json), and the [coverage summary](compatibility/m3-coverage-summary.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), the [M3 normalized model](compatibility/m3-normalized-api.json), and the [M4 high-level map](compatibility/m4-high-level-api-map.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.

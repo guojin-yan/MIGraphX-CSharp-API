@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "generatedAtUtc": "2026-08-14T00:00:00Z",
   "allowedStatuses": ["planned", "statically-verified", "fake-native-executed", "runtime-executed", "not-applicable"],
   "environment": { "localOs": "Windows", "amdGpuAvailable": false, "officialMIGraphXInstalled": false },
@@ -19,6 +19,9 @@
     { "id": "m3-dual-managed-declarations", "status": "statically-verified", "evidence": "One normalized model emitted matching LibraryImport and DllImport sets with 158 EntryPoints each; the only header function without a managed declaration is the explicitly unsupported C-variadic migraphx_operation_create." },
     { "id": "m3-full-official-elf-exports", "status": "statically-verified", "evidence": "All 159 frozen-header function names exist in hash-verified official ELF SHA-256 3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff; one extra private test symbol is separately classified." },
     { "id": "m3-fake-abi-patterns", "status": "fake-native-executed", "evidence": "A minimal local test substitute executed callback retention and exception containment, one-byte bool, size_t, explicit UTF-8 length, borrowed pointer identity, out handle cleanup, and array-length behavior. This is not official MIGraphX or GPU evidence." },
+    { "id": "m4-high-level-map-and-ownership", "status": "statically-verified", "evidence": "The separate high-level map closes all 192 M3 inventory items as 52 supported, 139 planned, and one unsupported; eight public ownership records cover copied, owned, borrowed, cleanup, Dispose, and post-Dispose behavior." },
+    { "id": "m4-fake-native-managed-objects", "status": "fake-native-executed", "evidence": "The local test substitute executed explicit Target, Program, ONNX/compile options, shape snapshots, typed owned host buffers, parameter maps, multi-item outputs, synchronous run, targeted failures, nulls, drift, and cleanup. No new official runtime session was performed." },
+    { "id": "m4-representative-consumers", "status": "statically-verified", "evidence": "Isolated net46, netcoreapp3.1, net7.0, and net10.0 package consumers compile the same M4 enum and pure managed shape metadata contract." },
     { "id": "official-native-loader", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260, the fixed official libmigraphx_c.so.3 loaded on Ubuntu 24.04 x86-64 with ROCm 7.2.1; header/library hashes and 41 subset exports were verified." },
     { "id": "official-target-program-lifecycle", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, strict UTF-8 reached the runtime and valid gpu target/program create, assign_to, and destroy calls executed." },
     { "id": "official-onnx-parse-compile-run", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, the generated 128-byte Identity float32[1,4] model parsed from file and buffer, compiled for gpu with offload-copy, ran synchronously, and exactly matched [0.25,-1,2,9]." },

@@ -1,12 +1,10 @@
 using System;
-using Microsoft.Win32.SafeHandles;
 
 namespace JYPPX.ROCm.MIGraphXSharp.Interop;
 
-internal sealed class NativeTargetHandle : SafeHandleZeroOrMinusOneIsInvalid
+internal sealed class NativeTargetHandle : NativeOwnedHandle
 {
     private NativeTargetHandle()
-        : base(true)
     {
     }
 
@@ -41,10 +39,9 @@ internal sealed class NativeTargetHandle : SafeHandleZeroOrMinusOneIsInvalid
     }
 }
 
-internal sealed class NativeProgramHandle : SafeHandleZeroOrMinusOneIsInvalid
+internal sealed class NativeProgramHandle : NativeOwnedHandle
 {
     private NativeProgramHandle()
-        : base(true)
     {
     }
 
@@ -75,9 +72,21 @@ internal sealed class NativeProgramHandle : SafeHandleZeroOrMinusOneIsInvalid
         return CompleteParsed(status, raw, "migraphx_parse_onnx");
     }
 
+    internal static NativeProgramHandle ParseFile(IntPtr path, IntPtr options)
+    {
+        var status = NativeMethods.ParseOnnx(out var raw, path, options);
+        return CompleteParsed(status, raw, "migraphx_parse_onnx");
+    }
+
     internal static NativeProgramHandle ParseBuffer(IntPtr data, UIntPtr size, NativeOnnxOptionsHandle options)
     {
         var status = NativeMethods.ParseOnnxBuffer(out var raw, data, size, options.DangerousGetHandle());
+        return CompleteParsed(status, raw, "migraphx_parse_onnx_buffer");
+    }
+
+    internal static NativeProgramHandle ParseBuffer(IntPtr data, UIntPtr size, IntPtr options)
+    {
+        var status = NativeMethods.ParseOnnxBuffer(out var raw, data, size, options);
         return CompleteParsed(status, raw, "migraphx_parse_onnx_buffer");
     }
 

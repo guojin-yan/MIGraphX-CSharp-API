@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guojin-yan.github.io/MIGraphX-CSharp-API/schemas/m4-high-level-api-map.schema.json",
+  "title": "M4 high-level API map",
+  "type": "object",
+  "required": ["schemaVersion", "sourceHeaderSha256", "counts", "mappings"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "mappings": { "type": "array", "minItems": 192, "maxItems": 192 }
+  }
+}

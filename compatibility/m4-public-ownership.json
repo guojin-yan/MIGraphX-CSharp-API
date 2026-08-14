@@ -1,0 +1,79 @@
+{
+  "$schema": "./schemas/m4-public-ownership.schema.json",
+  "schemaVersion": "1.0.0",
+  "validationLevel": "fake-native-executed",
+  "types": [
+    {
+      "type": "MIGraphXShape",
+      "nativeOwnership": "none",
+      "managedOwnership": "immutable copied metadata",
+      "threadSafety": "immutable and safe for concurrent reads",
+      "disposeBehavior": "not disposable because no native resource is retained",
+      "failureCleanup": "native collection owners remain responsible for borrowed handles",
+      "afterOwnerDispose": "snapshot remains valid"
+    },
+    {
+      "type": "MIGraphXTarget",
+      "nativeOwnership": "owned migraphx_target_t SafeHandle",
+      "managedOwnership": "target name copied as System.String",
+      "threadSafety": "operations and Dispose are serialized per resource",
+      "disposeBehavior": "idempotent; native destroy is finalizer-safe",
+      "failureCleanup": "non-null handles returned with failure are destroyed",
+      "afterOwnerDispose": "native operations throw ObjectDisposedException"
+    },
+    {
+      "type": "MIGraphXProgram",
+      "nativeOwnership": "owned migraphx_program_t SafeHandle",
+      "managedOwnership": "compiled state stored per instance",
+      "threadSafety": "same-instance operations and Dispose are serialized; no general upstream thread-safety claim",
+      "disposeBehavior": "idempotent; collection snapshots remain valid",
+      "failureCleanup": "parse success-null and failure-non-null paths fail closed and release",
+      "afterOwnerDispose": "all instance members throw ObjectDisposedException except repeated Dispose"
+    },
+    {
+      "type": "MIGraphXArgument",
+      "nativeOwnership": "owned migraphx_argument_t SafeHandle",
+      "managedOwnership": "owned unmanaged host buffer deep-copied from input or native output",
+      "threadSafety": "copy and Dispose are serialized per resource",
+      "disposeBehavior": "native argument is released before host buffer; idempotent",
+      "failureCleanup": "temporary shape, native argument, and host allocation are released in reverse order",
+      "afterOwnerDispose": "ToArray throws ObjectDisposedException; Shape metadata remains valid"
+    },
+    {
+      "type": "MIGraphXOnnxOptions",
+      "nativeOwnership": "owned migraphx_onnx_options_t SafeHandle",
+      "managedOwnership": "none",
+      "threadSafety": "parse and Dispose are serialized through owner locks",
+      "disposeBehavior": "idempotent",
+      "failureCleanup": "non-null handles returned with failure are destroyed",
+      "afterOwnerDispose": "parse attempts throw ObjectDisposedException"
+    },
+    {
+      "type": "MIGraphXCompileOptions",
+      "nativeOwnership": "owned migraphx_compile_options_t SafeHandle",
+      "managedOwnership": "immutable offload-copy value",
+      "threadSafety": "compile and Dispose are serialized through owner locks",
+      "disposeBehavior": "idempotent",
+      "failureCleanup": "setter failure destroys the just-created handle",
+      "afterOwnerDispose": "compile attempts throw ObjectDisposedException"
+    },
+    {
+      "type": "MIGraphXParameterMap",
+      "nativeOwnership": "owned migraphx_program_parameters_t SafeHandle",
+      "managedOwnership": "ordered names and deep-copied MIGraphXArgument owners",
+      "threadSafety": "Add, Run borrowing, properties, and Dispose are serialized",
+      "disposeBehavior": "native map is released before argument copies; idempotent",
+      "failureCleanup": "failed additions destroy their argument copy",
+      "afterOwnerDispose": "members throw ObjectDisposedException except repeated Dispose"
+    },
+    {
+      "type": "MIGraphXArgumentCollection",
+      "nativeOwnership": "none after Run returns",
+      "managedOwnership": "ordered owned MIGraphXArgument outputs",
+      "threadSafety": "collection access and Dispose are serialized",
+      "disposeBehavior": "owned outputs are disposed in index order; idempotent",
+      "failureCleanup": "partial output copies are disposed before propagating failure",
+      "afterOwnerDispose": "collection access throws ObjectDisposedException"
+    }
+  ]
+}

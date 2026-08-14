@@ -1,0 +1,113 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+
+namespace JYPPX.ROCm.MIGraphXSharp.Interop;
+
+internal sealed class NativeResourceOwner<THandle> : IDisposable
+    where THandle : NativeOwnedHandle
+{
+    private readonly object sync = new object();
+    private THandle? handle;
+
+    internal NativeResourceOwner(NativeRuntime runtime, THandle handle)
+    {
+        Runtime = runtime;
+        this.handle = handle;
+        Id = NativeResourceIds.Next();
+    }
+
+    internal NativeRuntime Runtime { get; }
+
+    internal long Id { get; }
+
+    internal object Sync => sync;
+
+    internal IntPtr HandleUnderLock
+    {
+        get
+        {
+            if (handle is null || handle.IsClosed || handle.IsInvalid)
+            {
+                throw new ObjectDisposedException(typeof(THandle).Name);
+            }
+
+            return handle.DangerousGetHandle();
+        }
+    }
+
+    internal TResult WithHandle<TResult>(Func<IntPtr, TResult> action)
+    {
+        lock (sync)
+        {
+            return action(HandleUnderLock);
+        }
+    }
+
+    internal void WithHandle(Action<IntPtr> action)
+    {
+        lock (sync)
+        {
+            action(HandleUnderLock);
+        }
+    }
+
+    public void Dispose()
+    {
+        lock (sync)
+        {
+            var owned = handle;
+            handle = null;
+            owned?.Dispose();
+        }
+    }
+}
+
+internal static class NativeResourceIds
+{
+    private static long nextId;
+
+    internal static long Next() => Interlocked.Increment(ref nextId);
+}
+
+internal static class NativeResourceLock
+{
+    internal static NativeResourceLockTarget Target(long id, object sync) => new NativeResourceLockTarget(id, sync);
+
+    internal static TResult With<TResult>(IReadOnlyList<NativeResourceLockTarget> resources, Func<TResult> action)
+    {
+        var ordered = resources
+            .GroupBy(resource => resource.Id)
+            .Select(group => group.First())
+            .OrderBy(resource => resource.Id)
+            .ToArray();
+        return Enter(ordered, 0, action);
+    }
+
+    private static TResult Enter<TResult>(NativeResourceLockTarget[] resources, int index, Func<TResult> action)
+    {
+        if (index == resources.Length)
+        {
+            return action();
+        }
+
+        lock (resources[index].Sync)
+        {
+            return Enter(resources, index + 1, action);
+        }
+    }
+}
+
+internal sealed class NativeResourceLockTarget
+{
+    internal NativeResourceLockTarget(long id, object sync)
+    {
+        Id = id;
+        Sync = sync;
+    }
+
+    internal long Id { get; }
+
+    internal object Sync { get; }
+}

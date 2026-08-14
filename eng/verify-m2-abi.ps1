@@ -71,6 +71,12 @@ if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $fakeDump = & (Get-Command nm -ErrorAction Stop).Source -D --defined-only $fakePath
     $fake = @([regex]::Matches(($fakeDump -join "`n"), '\bmigraphx_[a-z0-9_]+\b') | ForEach-Object { $_.Value } | Sort-Object -Unique)
 }
+$fakeSubset = @($fake | Where-Object { $_ -in $expected })
+$allowedM4FakeExports = @('migraphx_shape_create', 'migraphx_shape_destroy')
+$unexpectedFakeExports = @($fake | Where-Object { $_ -notin $expected -and $_ -notin $allowedM4FakeExports })
+if ($unexpectedFakeExports.Count -ne 0) {
+    throw "fake-native contains exports outside the M2 subset and reviewed M4 test additions: $($unexpectedFakeExports -join ', ')"
+}
 
 $officialAll = @(& dotnet run --project (Join-Path $root 'tools\ElfExportReader\ElfExportReader.csproj') -c Release -- $OfficialElfPath)
 if ($LASTEXITCODE -ne 0) { throw 'Official ELF export reader failed.' }
@@ -78,7 +84,7 @@ $official = @($officialAll | Where-Object { $_ -in $expected } | Sort-Object -Un
 
 foreach ($projection in @(
     @{ Name = 'managed M2 EntryPoints'; Values = $managedSubset },
-    @{ Name = 'fake-native exports'; Values = $fake },
+    @{ Name = 'fake-native M2 exports'; Values = $fakeSubset },
     @{ Name = 'official ELF exports'; Values = $official }
 )) {
     $difference = Compare-Object $expected $projection.Values
@@ -96,7 +102,8 @@ if ($model.Sha256 -ne $manifest.reproducibleModel.sha256 -or $model.Bytes -ne $m
     SubsetFunctions = $expected.Count
     ManagedSubsetEntryPoints = $managedSubset.Count
     ManagedTotalEntryPoints = $managed.Count
-    FakeExports = $fake.Count
+    FakeExports = $fakeSubset.Count
+    FakeTotalExports = $fake.Count
     OfficialElfExports = $official.Count
     OfficialAllMIGraphXExports = $officialAll.Count
     ModelSha256 = $model.Sha256

@@ -98,13 +98,18 @@ public sealed class RepositoryQualityTests
             }
             foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
-                AssertBilingual(members, $"P:{type.FullName}.{property.Name}");
+                var indexParameters = property.GetIndexParameters();
+                var indexSuffix = indexParameters.Length == 0
+                    ? string.Empty
+                    : $"({string.Join(",", indexParameters.Select(parameter => XmlTypeName(parameter.ParameterType)))})";
+                AssertBilingual(members, $"P:{type.FullName}.{property.Name}{indexSuffix}");
             }
             foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Where(method => !method.IsSpecialName))
             {
                 var parameters = method.GetParameters();
                 var suffix = parameters.Length == 0 ? string.Empty : $"({string.Join(",", parameters.Select(parameter => XmlTypeName(parameter.ParameterType)))})";
-                var id = $"M:{type.FullName}.{method.Name}{suffix}";
+                var genericSuffix = method.IsGenericMethodDefinition ? $"``{method.GetGenericArguments().Length}" : string.Empty;
+                var id = $"M:{type.FullName}.{method.Name}{genericSuffix}{suffix}";
                 AssertBilingual(members, id);
                 var member = members[id];
                 foreach (var parameter in parameters)
@@ -176,6 +181,82 @@ public sealed class RepositoryQualityTests
                 "f1a11cfd1701a041cee29188f7600c85b34ae260",
                 item.GetProperty("evidence").GetString(),
                 StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void M4HighLevelCoverageAndOwnershipAreClosed()
+    {
+        var compatibility = Path.Combine(RepositoryRoot, "compatibility");
+        using var inventory = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m3-api-inventory.json")));
+        using var map = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m4-high-level-api-map.json")));
+        using var ownership = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m4-public-ownership.json")));
+
+        var inventoryIds = inventory.RootElement.GetProperty("items").EnumerateArray()
+            .Select(item => item.GetProperty("id").GetString()!)
+            .ToArray();
+        var mappings = map.RootElement.GetProperty("mappings").EnumerateArray().ToArray();
+        Assert.Equal(192, mappings.Length);
+        Assert.Equal(inventoryIds, mappings.Select(item => item.GetProperty("id").GetString()));
+        Assert.Equal(52, mappings.Count(item => item.GetProperty("supportStatus").GetString() == "supported"));
+        Assert.Equal(139, mappings.Count(item => item.GetProperty("supportStatus").GetString() == "planned"));
+        Assert.Single(mappings, item => item.GetProperty("supportStatus").GetString() == "unsupported");
+        Assert.All(mappings.Where(item => item.GetProperty("supportStatus").GetString() == "supported"), item =>
+        {
+            Assert.NotEmpty(item.GetProperty("publicMembers").EnumerateArray());
+            Assert.NotEmpty(item.GetProperty("tests").EnumerateArray());
+            Assert.Equal("fake-native-executed", item.GetProperty("validationLevel").GetString());
+        });
+
+        var ownershipTypes = ownership.RootElement.GetProperty("types").EnumerateArray().ToArray();
+        Assert.Equal(8, ownershipTypes.Length);
+        Assert.Equal(8, ownershipTypes.Select(item => item.GetProperty("type").GetString()).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(
+            "unsupported",
+            mappings.Single(item => item.GetProperty("id").GetString() == "function:migraphx_operation_create")
+                .GetProperty("supportStatus").GetString());
+    }
+
+    [Fact]
+    public void ReviewedPublicBaselineMatchesExportedTypesAndM4Shape()
+    {
+        var assembly = typeof(MIGraphXBuildInfo).Assembly;
+        var baselineTypes = File.ReadAllLines(Path.Combine(RepositoryRoot, "compatibility", "managed-public-api.txt"))
+            .Where(line => line.StartsWith("JYPPX.", StringComparison.Ordinal))
+            .Select(line => line.Split(new[] { " :" }, StringSplitOptions.None)[0].Trim())
+            .ToHashSet(StringComparer.Ordinal);
+        var exportedTypes = assembly.GetExportedTypes().Select(type => type.FullName!).ToHashSet(StringComparer.Ordinal);
+        Assert.True(baselineTypes.SetEquals(exportedTypes),
+            $"Public type baseline drift. Missing: {string.Join(", ", exportedTypes.Except(baselineTypes))}; stale: {string.Join(", ", baselineTypes.Except(exportedTypes))}");
+
+        var m4Types = new[]
+        {
+            typeof(MIGraphXShapeDataType), typeof(MIGraphXShape), typeof(MIGraphXTarget),
+            typeof(MIGraphXProgram), typeof(MIGraphXArgument), typeof(MIGraphXOnnxOptions),
+            typeof(MIGraphXCompileOptions), typeof(MIGraphXParameterMap), typeof(MIGraphXArgumentCollection),
+        };
+        Assert.Equal(9, m4Types.Length);
+        Assert.Equal(10, typeof(MIGraphXShapeDataType).GetFields(BindingFlags.Public | BindingFlags.Static).Length);
+
+        var classMemberCount = m4Types.Where(type => !type.IsEnum).Sum(type =>
+            type.GetConstructors(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
+            + type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(field => !field.IsSpecialName)
+            + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
+            + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
+        Assert.Equal(39, classMemberCount);
+
+        foreach (var type in m4Types)
+        {
+            Assert.DoesNotContain(".Interop", type.FullName, StringComparison.Ordinal);
+            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            {
+                Assert.DoesNotContain(method.GetParameters(), parameter => ContainsRawPointerType(parameter.ParameterType));
+                Assert.False(ContainsRawPointerType(method.ReturnType));
+            }
+            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            {
+                Assert.False(ContainsRawPointerType(property.PropertyType));
+            }
+        }
     }
 
     [Fact]
@@ -269,9 +350,13 @@ public sealed class RepositoryQualityTests
             "design/m1-direct-pinvoke.md",
             "design/m2-onnx-workflow.md",
             "design/m3-binding-generator.md",
+            "design/m4-managed-object-model.md",
             "validation/README.md",
             "validation/m2-local-validation.md",
             "validation/m3-local-validation.md",
+            "validation/m4-local-validation.md",
+            "guides/managed-objects.md",
+            "articles/m4-resource-safe-dotnet.md",
             "releases/0.0.0.md",
             "api/index.md",
         })
@@ -287,6 +372,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("eng/generate-interop.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m2-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m3-abi.ps1", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("eng/verify-m4-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);
@@ -351,9 +437,21 @@ public sealed class RepositoryQualityTests
         .Select(line => line.TakeWhile(character => character == '#').Count())
         .ToArray();
 
+    private static bool ContainsRawPointerType(Type type)
+    {
+        if (type == typeof(IntPtr) || type == typeof(UIntPtr) || type.IsPointer) { return true; }
+        if (type.IsArray || type.IsByRef) { return ContainsRawPointerType(type.GetElementType()!); }
+        return type.IsGenericType && type.GetGenericArguments().Any(ContainsRawPointerType);
+    }
+
     private static string XmlTypeName(Type type)
     {
         if (type.IsByRef) { return $"{XmlTypeName(type.GetElementType()!)}@"; }
+        if (type.IsArray) { return $"{XmlTypeName(type.GetElementType()!)}[]"; }
+        if (type.IsGenericParameter)
+        {
+            return $"{(type.DeclaringMethod is null ? "`" : "``")}{type.GenericParameterPosition}";
+        }
         return type.FullName?.Replace('+', '.') ?? type.Name;
     }
 

@@ -10,6 +10,64 @@ JYPPX.ROCm.MIGraphXSharp.MIGraphXStatus : System.Enum
   BadParameter = 1
   UnknownTarget = 3
   UnknownError = 4
+JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType : System.Enum
+  Float32 = 4
+  Float64 = 5
+  UInt8 = 6
+  Int8 = 7
+  UInt16 = 8
+  Int16 = 9
+  Int32 = 10
+  Int64 = 11
+  UInt32 = 12
+  UInt64 = 13
+JYPPX.ROCm.MIGraphXSharp.MIGraphXShape
+  MIGraphXShape(MIGraphXShapeDataType dataType, IReadOnlyList<long> lengths)
+  MIGraphXShapeDataType DataType { get; }
+  IReadOnlyList<long> Lengths { get; }
+  IReadOnlyList<long> Strides { get; }
+  int Rank { get; }
+  long ElementCount { get; }
+  long ByteCount { get; }
+  bool IsStandard { get; }
+  bool IsPacked { get; }
+JYPPX.ROCm.MIGraphXSharp.MIGraphXTarget : System.IDisposable
+  MIGraphXTarget(string nativeLibraryPath, string name = "gpu")
+  string Name { get; }
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions : System.IDisposable
+  MIGraphXOnnxOptions(string nativeLibraryPath)
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions : System.IDisposable
+  MIGraphXCompileOptions(string nativeLibraryPath, bool offloadCopy = true)
+  bool OffloadCopy { get; }
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument : System.IDisposable
+  MIGraphXShape Shape { get; }
+  static MIGraphXArgument Create<T>(string nativeLibraryPath, MIGraphXShape shape, T[] values) where T : unmanaged
+  T[] ToArray<T>() where T : unmanaged
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXParameterMap : System.IDisposable
+  MIGraphXParameterMap(string nativeLibraryPath)
+  int Count { get; }
+  IReadOnlyList<string> Names { get; }
+  void Add(string name, MIGraphXArgument argument)
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection : System.Collections.Generic.IReadOnlyList<MIGraphXArgument>, System.IDisposable
+  int Count { get; }
+  MIGraphXArgument this[int index] { get; }
+  IEnumerator<MIGraphXArgument> GetEnumerator()
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram : System.IDisposable
+  MIGraphXProgram(string nativeLibraryPath)
+  bool IsCompiled { get; }
+  static MIGraphXProgram ParseOnnxFile(string modelPath, MIGraphXOnnxOptions options)
+  static MIGraphXProgram ParseOnnxBuffer(byte[] model, MIGraphXOnnxOptions options)
+  void Compile(MIGraphXTarget target, MIGraphXCompileOptions options)
+  IReadOnlyDictionary<string, MIGraphXShape> GetParameterShapes()
+  IReadOnlyList<MIGraphXShape> GetOutputShapes()
+  MIGraphXArgumentCollection Run(MIGraphXParameterMap parameters)
+  void Dispose()
 JYPPX.ROCm.MIGraphXSharp.MIGraphXException : System.Exception
   int StatusCode { get; }
   string Operation { get; }

@@ -2,6 +2,8 @@
   href: index.md
 - name: Getting started
   href: guides/getting-started.md
+- name: Managed objects
+  href: guides/managed-objects.md
 - name: Compatibility
   items:
   - name: Frameworks
@@ -18,6 +20,8 @@
     href: design/m2-onnx-workflow.md
   - name: M3 binding generator
     href: design/m3-binding-generator.md
+  - name: M4 managed objects
+    href: design/m4-managed-object-model.md
 - name: Validation
   items:
   - name: Overview
@@ -28,9 +32,13 @@
     href: validation/m2-local-validation.md
   - name: M3 local status
     href: validation/m3-local-validation.md
+  - name: M4 local status
+    href: validation/m4-local-validation.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes
   href: releases/0.0.0.md
 - name: API reference
   href: api/index.md
+- name: Engineering article
+  href: articles/m4-resource-safe-dotnet.md

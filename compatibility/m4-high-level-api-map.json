@@ -1,0 +1,2146 @@
+{
+  "$schema": "./schemas/m4-high-level-api-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-08-14T00:00:00Z",
+  "sourceInventory": "compatibility/m3-api-inventory.json",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "evidenceBoundary": "M4 high-level behavior is fake-native-executed only; the four M1/M2 official runtime records are unchanged.",
+  "counts": {
+    "supported": 52,
+    "planned": 139,
+    "unsupported": 1
+  },
+  "mappings": [
+    {
+      "id": "function:migraphx_optimals_destroy",
+      "kind": "function",
+      "cName": "migraphx_optimals_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_optimals_assign_to",
+      "kind": "function",
+      "cName": "migraphx_optimals_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_optimals_create",
+      "kind": "function",
+      "cName": "migraphx_optimals_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_destroy",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_assign_to",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_create_min_max",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_create_min_max",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_create_min_max_optimals",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_create_min_max_optimals",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_is_fixed",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_is_fixed",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_equal",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_equal",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_destroy",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_assign_to",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_create",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_size",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_size",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_get",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_get",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_destroy",
+      "kind": "function",
+      "cName": "migraphx_shape_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgument.Dispose"
+      ],
+      "ownership": "internal temporary owned shape release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_assign_to",
+      "kind": "function",
+      "cName": "migraphx_shape_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_create",
+      "kind": "function",
+      "cName": "migraphx_shape_create",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgument.Create<T>"
+      ],
+      "ownership": "temporary owned shape used to construct a copied native argument",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_create_with_strides",
+      "kind": "function",
+      "cName": "migraphx_shape_create_with_strides",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_create_scalar",
+      "kind": "function",
+      "cName": "migraphx_shape_create_scalar",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_create_dynamic",
+      "kind": "function",
+      "cName": "migraphx_shape_create_dynamic",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_lengths",
+      "kind": "function",
+      "cName": "migraphx_shape_lengths",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.Lengths"
+      ],
+      "ownership": "borrowed size_t storage copied with overflow checks",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_strides",
+      "kind": "function",
+      "cName": "migraphx_shape_strides",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.Strides",
+        "MIGraphXShape.IsPacked"
+      ],
+      "ownership": "borrowed size_t storage copied with rank validation",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_dyn_dims",
+      "kind": "function",
+      "cName": "migraphx_shape_dyn_dims",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_type",
+      "kind": "function",
+      "cName": "migraphx_shape_type",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.DataType"
+      ],
+      "ownership": "copied value",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_elements",
+      "kind": "function",
+      "cName": "migraphx_shape_elements",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.ElementCount"
+      ],
+      "ownership": "copied size_t with Int64 overflow check",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_bytes",
+      "kind": "function",
+      "cName": "migraphx_shape_bytes",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.ByteCount"
+      ],
+      "ownership": "copied size_t with Int64 overflow check",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_ndim",
+      "kind": "function",
+      "cName": "migraphx_shape_ndim",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_equal",
+      "kind": "function",
+      "cName": "migraphx_shape_equal",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shape_standard",
+      "kind": "function",
+      "cName": "migraphx_shape_standard",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.IsStandard"
+      ],
+      "ownership": "copied C bool",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_dynamic",
+      "kind": "function",
+      "cName": "migraphx_shape_dynamic",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape"
+      ],
+      "ownership": "copied C bool; dynamic shapes rejected",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_index",
+      "kind": "function",
+      "cName": "migraphx_shape_index",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_argument_destroy",
+      "kind": "function",
+      "cName": "migraphx_argument_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgument.Dispose"
+      ],
+      "ownership": "owned SafeHandle release before host buffer",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_argument_assign_to",
+      "kind": "function",
+      "cName": "migraphx_argument_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_argument_create",
+      "kind": "function",
+      "cName": "migraphx_argument_create",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgument.Create<T>"
+      ],
+      "ownership": "owned argument borrowing object-owned host buffer",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_argument_create_empty",
+      "kind": "function",
+      "cName": "migraphx_argument_create_empty",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_argument_shape",
+      "kind": "function",
+      "cName": "migraphx_argument_shape",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgument.Shape"
+      ],
+      "ownership": "borrowed output shape copied before parent collection release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_argument_buffer",
+      "kind": "function",
+      "cName": "migraphx_argument_buffer",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgument.ToArray<T>"
+      ],
+      "ownership": "borrowed output buffer copied before parent collection release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_argument_equal",
+      "kind": "function",
+      "cName": "migraphx_argument_equal",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_argument_save",
+      "kind": "function",
+      "cName": "migraphx_argument_save",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_argument_load",
+      "kind": "function",
+      "cName": "migraphx_argument_load",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_argument_generate",
+      "kind": "function",
+      "cName": "migraphx_argument_generate",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_target_destroy",
+      "kind": "function",
+      "cName": "migraphx_target_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXTarget.Dispose"
+      ],
+      "ownership": "owned SafeHandle release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_target_assign_to",
+      "kind": "function",
+      "cName": "migraphx_target_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_target_create",
+      "kind": "function",
+      "cName": "migraphx_target_create",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXTarget.#ctor"
+      ],
+      "ownership": "owned SafeHandle with failure cleanup",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_destroy",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetParameterShapes"
+      ],
+      "ownership": "internal owned collection release after snapshot",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_assign_to",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_size",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_size",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetParameterShapes"
+      ],
+      "ownership": "copied count with overflow and drift checks",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_get",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_get",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetParameterShapes"
+      ],
+      "ownership": "borrowed shape copied while collection is alive",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_names",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_names",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetParameterShapes"
+      ],
+      "ownership": "borrowed strict UTF-8 names copied and de-duplicated",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_parameters_destroy",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXParameterMap.Dispose"
+      ],
+      "ownership": "owned map released before owned argument copies",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_parameters_assign_to",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_parameters_create",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_create",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXParameterMap.#ctor"
+      ],
+      "ownership": "owned SafeHandle with failure cleanup",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_parameters_add",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_add",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXParameterMap.Add"
+      ],
+      "ownership": "native value receives an argument whose host buffer remains map-owned",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_arguments_destroy",
+      "kind": "function",
+      "cName": "migraphx_arguments_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.Run"
+      ],
+      "ownership": "internal owned run collection released after all outputs are copied",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_arguments_assign_to",
+      "kind": "function",
+      "cName": "migraphx_arguments_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_arguments_size",
+      "kind": "function",
+      "cName": "migraphx_arguments_size",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgumentCollection.Count"
+      ],
+      "ownership": "copied count with overflow and drift checks",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_arguments_get",
+      "kind": "function",
+      "cName": "migraphx_arguments_get",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgumentCollection.Item"
+      ],
+      "ownership": "borrowed argument copied before native collection release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_shapes_destroy",
+      "kind": "function",
+      "cName": "migraphx_shapes_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetOutputShapes"
+      ],
+      "ownership": "internal owned collection release after snapshot",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shapes_assign_to",
+      "kind": "function",
+      "cName": "migraphx_shapes_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_shapes_size",
+      "kind": "function",
+      "cName": "migraphx_shapes_size",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetOutputShapes"
+      ],
+      "ownership": "copied count with overflow and drift checks",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_shapes_get",
+      "kind": "function",
+      "cName": "migraphx_shapes_get",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetOutputShapes"
+      ],
+      "ownership": "borrowed shape copied before native collection release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_instruction_destroy",
+      "kind": "function",
+      "cName": "migraphx_instruction_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_instruction_assign_to",
+      "kind": "function",
+      "cName": "migraphx_instruction_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_instructions_destroy",
+      "kind": "function",
+      "cName": "migraphx_instructions_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_instructions_assign_to",
+      "kind": "function",
+      "cName": "migraphx_instructions_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_instructions_create",
+      "kind": "function",
+      "cName": "migraphx_instructions_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_modules_destroy",
+      "kind": "function",
+      "cName": "migraphx_modules_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_modules_assign_to",
+      "kind": "function",
+      "cName": "migraphx_modules_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_modules_create",
+      "kind": "function",
+      "cName": "migraphx_modules_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_create",
+      "kind": "function",
+      "cName": "migraphx_module_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_print",
+      "kind": "function",
+      "cName": "migraphx_module_print",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_add_instruction",
+      "kind": "function",
+      "cName": "migraphx_module_add_instruction",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_add_instruction_with_mod_args",
+      "kind": "function",
+      "cName": "migraphx_module_add_instruction_with_mod_args",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_add_literal",
+      "kind": "function",
+      "cName": "migraphx_module_add_literal",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_add_parameter",
+      "kind": "function",
+      "cName": "migraphx_module_add_parameter",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_add_return",
+      "kind": "function",
+      "cName": "migraphx_module_add_return",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_module_add_allocation",
+      "kind": "function",
+      "cName": "migraphx_module_add_allocation",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_destroy",
+      "kind": "function",
+      "cName": "migraphx_program_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.Dispose"
+      ],
+      "ownership": "owned SafeHandle release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_assign_to",
+      "kind": "function",
+      "cName": "migraphx_program_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_create",
+      "kind": "function",
+      "cName": "migraphx_program_create",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.#ctor"
+      ],
+      "ownership": "owned SafeHandle with failure cleanup",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_get_main_module",
+      "kind": "function",
+      "cName": "migraphx_program_get_main_module",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_create_module",
+      "kind": "function",
+      "cName": "migraphx_program_create_module",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_compile",
+      "kind": "function",
+      "cName": "migraphx_program_compile",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.Compile"
+      ],
+      "ownership": "program, target, and options borrowed under ordered owner locks",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_get_parameter_shapes",
+      "kind": "function",
+      "cName": "migraphx_program_get_parameter_shapes",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetParameterShapes"
+      ],
+      "ownership": "returns internal owned collection",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_get_output_shapes",
+      "kind": "function",
+      "cName": "migraphx_program_get_output_shapes",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetOutputShapes"
+      ],
+      "ownership": "returns internal owned collection",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_print",
+      "kind": "function",
+      "cName": "migraphx_program_print",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_sort",
+      "kind": "function",
+      "cName": "migraphx_program_sort",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_run",
+      "kind": "function",
+      "cName": "migraphx_program_run",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.Run"
+      ],
+      "ownership": "returns internal owned collection; public outputs are deep copies",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_run_async",
+      "kind": "function",
+      "cName": "migraphx_program_run_async",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_equal",
+      "kind": "function",
+      "cName": "migraphx_program_equal",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_program_experimental_get_context",
+      "kind": "function",
+      "cName": "migraphx_program_experimental_get_context",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_operation_destroy",
+      "kind": "function",
+      "cName": "migraphx_operation_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_operation_assign_to",
+      "kind": "function",
+      "cName": "migraphx_operation_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_operation_create",
+      "kind": "function",
+      "cName": "migraphx_operation_create",
+      "supportStatus": "unsupported",
+      "publicMembers": [],
+      "ownership": "No safe high-level projection is defined.",
+      "validationLevel": "statically-verified",
+      "tests": [
+        "BindingGeneratorTests.InventoryClassificationIsClosedAndMatchesFrozenCounts"
+      ]
+    },
+    {
+      "id": "function:migraphx_operation_name",
+      "kind": "function",
+      "cName": "migraphx_operation_name",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_load",
+      "kind": "function",
+      "cName": "migraphx_load",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_save",
+      "kind": "function",
+      "cName": "migraphx_save",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXOnnxOptions.Dispose"
+      ],
+      "ownership": "owned SafeHandle release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_onnx_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_create",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_create",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXOnnxOptions.#ctor"
+      ],
+      "ownership": "owned SafeHandle with failure cleanup",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_input_parameter_shape",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_input_parameter_shape",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_dyn_input_parameter_shape",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_dyn_input_parameter_shape",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_default_dim_value",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_default_dim_value",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_default_dyn_dim_value",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_default_dyn_dim_value",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_default_loop_iterations",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_default_loop_iterations",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_limit_loop_iterations",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_limit_loop_iterations",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_external_data_path",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_external_data_path",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_file_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_file_options_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_file_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_file_options_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_file_options_create",
+      "kind": "function",
+      "cName": "migraphx_file_options_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_file_options_set_file_format",
+      "kind": "function",
+      "cName": "migraphx_file_options_set_file_format",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_compile_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_compile_options_destroy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXCompileOptions.Dispose"
+      ],
+      "ownership": "owned SafeHandle release",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_compile_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_compile_options_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_compile_options_create",
+      "kind": "function",
+      "cName": "migraphx_compile_options_create",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXCompileOptions.#ctor"
+      ],
+      "ownership": "owned SafeHandle with failure cleanup",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_compile_options_set_offload_copy",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_offload_copy",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXCompileOptions.OffloadCopy"
+      ],
+      "ownership": "copied immutable option value",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "function:migraphx_compile_options_set_fast_math",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_fast_math",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_compile_options_set_exhaustive_tune_flag",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_exhaustive_tune_flag",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_parse_onnx",
+      "kind": "function",
+      "cName": "migraphx_parse_onnx",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.ParseOnnxFile"
+      ],
+      "ownership": "path borrowed for call; returns owned program",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M1NativeVerticalTests.FakeNativeExercisesLoaderStatusUtf8OwnershipAssignAndConcurrency"
+      ]
+    },
+    {
+      "id": "function:migraphx_parse_onnx_buffer",
+      "kind": "function",
+      "cName": "migraphx_parse_onnx_buffer",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.ParseOnnxBuffer"
+      ],
+      "ownership": "pinned buffer borrowed for parse call; returns owned program",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "function:migraphx_tf_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_tf_options_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_tf_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_tf_options_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_tf_options_create",
+      "kind": "function",
+      "cName": "migraphx_tf_options_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_tf_options_set_nhwc",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_nhwc",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_tf_options_set_input_parameter_shape",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_input_parameter_shape",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_tf_options_set_default_dim_value",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_default_dim_value",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_tf_options_set_output_names",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_output_names",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_parse_tf",
+      "kind": "function",
+      "cName": "migraphx_parse_tf",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_parse_tf_buffer",
+      "kind": "function",
+      "cName": "migraphx_parse_tf_buffer",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_destroy",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_assign_to",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_create",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_add",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_add",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_fp16_with_op_names",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp16_with_op_names",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_fp16",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp16",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_bf16_with_op_names",
+      "kind": "function",
+      "cName": "migraphx_quantize_bf16_with_op_names",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_bf16",
+      "kind": "function",
+      "cName": "migraphx_quantize_bf16",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_create",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_add_op_name",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_add_op_name",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_add_calibration_data",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_add_calibration_data",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_int8",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_create",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_add_calibration_data",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_add_calibration_data",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_quantize_fp8",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_get_onnx_operator_name_at_index",
+      "kind": "function",
+      "cName": "migraphx_get_onnx_operator_name_at_index",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_get_onnx_operators_size",
+      "kind": "function",
+      "cName": "migraphx_get_onnx_operators_size",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_context_finish",
+      "kind": "function",
+      "cName": "migraphx_context_finish",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_context_get_queue",
+      "kind": "function",
+      "cName": "migraphx_context_get_queue",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_destroy",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_destroy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_assign_to",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_assign_to",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_create",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_create",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_compute",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_compute",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_compute_shape",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_compute_shape",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_output_alias",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_output_alias",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_runs_on_offload_target",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_runs_on_offload_target",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_register",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_register",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "enum:migraphx_status",
+      "kind": "enum",
+      "cName": "migraphx_status",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "enum:migraphx_shape_datatype_t",
+      "kind": "enum",
+      "cName": "migraphx_shape_datatype_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShapeDataType"
+      ],
+      "ownership": "stable managed enum; no native lifetime",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ShapeMetadataIsImmutableMappedAndOverflowChecked"
+      ]
+    },
+    {
+      "id": "handle:migraphx_optimals_t",
+      "kind": "handle",
+      "cName": "migraphx_optimals_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_dynamic_dimension_t",
+      "kind": "handle",
+      "cName": "migraphx_dynamic_dimension_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_dynamic_dimensions_t",
+      "kind": "handle",
+      "cName": "migraphx_dynamic_dimensions_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_shape_t",
+      "kind": "handle",
+      "cName": "migraphx_shape_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape"
+      ],
+      "ownership": "borrowed native shapes are copied to immutable managed metadata; temporary owned shapes are internal",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "handle:migraphx_argument_t",
+      "kind": "handle",
+      "cName": "migraphx_argument_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgument"
+      ],
+      "ownership": "owned SafeHandle plus owned host buffer",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "handle:migraphx_target_t",
+      "kind": "handle",
+      "cName": "migraphx_target_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXTarget"
+      ],
+      "ownership": "owned SafeHandle",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "handle:migraphx_program_parameter_shapes_t",
+      "kind": "handle",
+      "cName": "migraphx_program_parameter_shapes_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetParameterShapes"
+      ],
+      "ownership": "internal owned collection; borrowed entries copied before destroy",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "handle:migraphx_program_parameters_t",
+      "kind": "handle",
+      "cName": "migraphx_program_parameters_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXParameterMap"
+      ],
+      "ownership": "owned SafeHandle and deep-copied argument owners",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "handle:migraphx_arguments_t",
+      "kind": "handle",
+      "cName": "migraphx_arguments_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXArgumentCollection"
+      ],
+      "ownership": "internal owned run collection; borrowed arguments copied before destroy",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "handle:migraphx_shapes_t",
+      "kind": "handle",
+      "cName": "migraphx_shapes_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.GetOutputShapes"
+      ],
+      "ownership": "internal owned collection; borrowed shapes copied before destroy",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+      ]
+    },
+    {
+      "id": "handle:migraphx_instruction_t",
+      "kind": "handle",
+      "cName": "migraphx_instruction_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_instructions_t",
+      "kind": "handle",
+      "cName": "migraphx_instructions_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_modules_t",
+      "kind": "handle",
+      "cName": "migraphx_modules_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_module_t",
+      "kind": "handle",
+      "cName": "migraphx_module_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_program_t",
+      "kind": "handle",
+      "cName": "migraphx_program_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram"
+      ],
+      "ownership": "owned SafeHandle",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "handle:migraphx_operation_t",
+      "kind": "handle",
+      "cName": "migraphx_operation_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_onnx_options_t",
+      "kind": "handle",
+      "cName": "migraphx_onnx_options_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXOnnxOptions"
+      ],
+      "ownership": "owned SafeHandle",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.EntryPointFailuresAndNullOwnedHandlesCleanUp"
+      ]
+    },
+    {
+      "id": "handle:migraphx_file_options_t",
+      "kind": "handle",
+      "cName": "migraphx_file_options_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_compile_options_t",
+      "kind": "handle",
+      "cName": "migraphx_compile_options_t",
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXCompileOptions"
+      ],
+      "ownership": "owned SafeHandle",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose"
+      ]
+    },
+    {
+      "id": "handle:migraphx_tf_options_t",
+      "kind": "handle",
+      "cName": "migraphx_tf_options_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_quantize_op_names_t",
+      "kind": "handle",
+      "cName": "migraphx_quantize_op_names_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_quantize_int8_options_t",
+      "kind": "handle",
+      "cName": "migraphx_quantize_int8_options_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_quantize_fp8_options_t",
+      "kind": "handle",
+      "cName": "migraphx_quantize_fp8_options_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_context_t",
+      "kind": "handle",
+      "cName": "migraphx_context_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "handle:migraphx_experimental_custom_op_t",
+      "kind": "handle",
+      "cName": "migraphx_experimental_custom_op_t",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_compute",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_compute",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_compute_shape",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_compute_shape",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_output_alias",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_output_alias",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_runs_on_offload_target",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_runs_on_offload_target",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_copy",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_copy",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_delete",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_delete",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
+      "validationLevel": "planned",
+      "tests": []
+    }
+  ]
+}

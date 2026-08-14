@@ -9,6 +9,7 @@ param(
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
+& (Join-Path $PSScriptRoot 'verify-m4-coverage.ps1') | Out-Host
 $packagePath = (Resolve-Path -LiteralPath $PackagePath).Path
 $expectedFrameworks = @(
     'net46', 'net461', 'net462', 'net47', 'net471', 'net472', 'net48', 'net481',

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
 namespace JYPPX.ROCm.MIGraphXSharp.Interop;
@@ -59,6 +60,14 @@ internal sealed class NativeProgramParameterShapesHandle : NativeOwnedHandle
         return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_get_parameter_shapes");
     }
 
+    internal static NativeProgramParameterShapesHandle Create(IntPtr program)
+    {
+        var status = NativeMethods.ProgramGetParameterShapes(out var raw, program);
+        var owned = new NativeProgramParameterShapesHandle();
+        owned.Initialize(raw);
+        return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_get_parameter_shapes");
+    }
+
     protected override bool ReleaseHandle() { NativeMethods.ProgramParameterShapesDestroy(handle); return true; }
 }
 
@@ -67,6 +76,14 @@ internal sealed class NativeShapesHandle : NativeOwnedHandle
     internal static NativeShapesHandle Create(NativeProgramHandle program)
     {
         var status = NativeMethods.ProgramGetOutputShapes(out var raw, program.DangerousGetHandle());
+        var owned = new NativeShapesHandle();
+        owned.Initialize(raw);
+        return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_get_output_shapes");
+    }
+
+    internal static NativeShapesHandle Create(IntPtr program)
+    {
+        var status = NativeMethods.ProgramGetOutputShapes(out var raw, program);
         var owned = new NativeShapesHandle();
         owned.Initialize(raw);
         return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_get_output_shapes");
@@ -88,6 +105,52 @@ internal sealed class NativeArgumentHandle : NativeOwnedHandle
     protected override bool ReleaseHandle() { NativeMethods.ArgumentDestroy(handle); return true; }
 }
 
+internal sealed class NativeShapeHandle : NativeOwnedHandle
+{
+    internal static NativeShapeHandle Create(MIGraphXShape shape)
+    {
+        var lengths = shape.CopyLengths();
+        var bytes = checked(lengths.Length * UIntPtr.Size);
+        var buffer = bytes == 0 ? IntPtr.Zero : Marshal.AllocHGlobal(bytes);
+        try
+        {
+            for (var index = 0; index < lengths.Length; index++)
+            {
+                if (UIntPtr.Size == 8)
+                {
+                    Marshal.WriteInt64(buffer, index * UIntPtr.Size, lengths[index]);
+                }
+                else
+                {
+                    if (lengths[index] > uint.MaxValue)
+                    {
+                        throw new OverflowException("A shape length exceeds the native 32-bit size_t range.");
+                    }
+                    Marshal.WriteInt32(buffer, index * UIntPtr.Size, unchecked((int)(uint)lengths[index]));
+                }
+            }
+
+            var status = NativeM4Methods.ShapeCreate(
+                out var raw,
+                ShapeDataTypeMap.ToNative(shape.DataType),
+                buffer,
+                new UIntPtr((uint)lengths.Length));
+            var owned = new NativeShapeHandle();
+            owned.Initialize(raw);
+            return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_shape_create");
+        }
+        finally
+        {
+            if (buffer != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+    }
+
+    protected override bool ReleaseHandle() { NativeMethods.ShapeDestroy(handle); return true; }
+}
+
 internal sealed class NativeProgramParametersHandle : NativeOwnedHandle
 {
     internal static NativeProgramParametersHandle Create()
@@ -106,6 +169,14 @@ internal sealed class NativeArgumentsHandle : NativeOwnedHandle
     internal static NativeArgumentsHandle Run(NativeProgramHandle program, NativeProgramParametersHandle parameters)
     {
         var status = NativeMethods.ProgramRun(out var raw, program.DangerousGetHandle(), parameters.DangerousGetHandle());
+        var owned = new NativeArgumentsHandle();
+        owned.Initialize(raw);
+        return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_run");
+    }
+
+    internal static NativeArgumentsHandle Run(IntPtr program, IntPtr parameters)
+    {
+        var status = NativeMethods.ProgramRun(out var raw, program, parameters);
         var owned = new NativeArgumentsHandle();
         owned.Initialize(raw);
         return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_run");

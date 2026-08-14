@@ -5,7 +5,7 @@ namespace JYPPX.ROCm.MIGraphXSharp.Interop;
 
 internal sealed class NativeShapeSnapshot
 {
-    private NativeShapeSnapshot(NativeMIGraphXShapeDataType type, long[] dimensions, long[] strides, int elements, int bytes, bool standard, bool dynamic)
+    private NativeShapeSnapshot(NativeMIGraphXShapeDataType type, long[] dimensions, long[] strides, long elements, long bytes, bool standard, bool dynamic)
     {
         Type = type;
         Dimensions = dimensions;
@@ -19,8 +19,8 @@ internal sealed class NativeShapeSnapshot
     internal NativeMIGraphXShapeDataType Type { get; }
     internal long[] Dimensions { get; }
     internal long[] Strides { get; }
-    internal int Elements { get; }
-    internal int Bytes { get; }
+    internal long Elements { get; }
+    internal long Bytes { get; }
     internal bool Standard { get; }
     internal bool Dynamic { get; }
 
@@ -34,7 +34,7 @@ internal sealed class NativeShapeSnapshot
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeBytes(out var bytes, shape), "migraphx_shape_bytes");
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeStandard(out var standard, shape), "migraphx_shape_standard");
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeDynamic(out var dynamic, shape), "migraphx_shape_dynamic");
-        return new NativeShapeSnapshot(type, CopySizeT(lengths, lengthCount, "shape lengths"), CopySizeT(strides, strideCount, "shape strides"), ToInt(elements, "shape elements"), ToInt(bytes, "shape bytes"), standard != 0, dynamic != 0);
+        return new NativeShapeSnapshot(type, CopySizeT(lengths, lengthCount, "shape lengths"), CopySizeT(strides, strideCount, "shape strides"), ToLong(elements, "shape elements"), ToLong(bytes, "shape bytes"), standard != 0, dynamic != 0);
     }
 
     internal void RequireFloat32StaticStandard()
@@ -50,6 +50,19 @@ internal sealed class NativeShapeSnapshot
         var number = value.ToUInt64();
         if (number > int.MaxValue) { throw new OverflowException($"Native {name} exceeds the managed array limit."); }
         return (int)number;
+    }
+
+    internal static int ToInt(long value, string name)
+    {
+        if (value < 0 || value > int.MaxValue) { throw new OverflowException($"Native {name} exceeds the managed array limit."); }
+        return (int)value;
+    }
+
+    internal static long ToLong(UIntPtr value, string name)
+    {
+        var number = value.ToUInt64();
+        if (number > long.MaxValue) { throw new OverflowException($"Native {name} exceeds Int64."); }
+        return (long)number;
     }
 
     private static long[] CopySizeT(IntPtr pointer, UIntPtr countValue, string name)

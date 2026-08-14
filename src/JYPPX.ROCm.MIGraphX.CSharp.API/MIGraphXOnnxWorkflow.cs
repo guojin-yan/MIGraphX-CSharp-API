@@ -114,7 +114,7 @@ public static class MIGraphXOnnxWorkflow
                                 }
                                 NativeStatus.ThrowIfFailed(NativeMethods.ArgumentBuffer(out var outputBuffer, outputArgument), "migraphx_argument_buffer");
                                 if (outputBuffer == IntPtr.Zero) { throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_argument_buffer (success with null buffer)"); }
-                                var copied = new float[runSnapshot.Elements];
+                                var copied = new float[NativeShapeSnapshot.ToInt(runSnapshot.Elements, "run output element count")];
                                 Marshal.Copy(outputBuffer, copied, 0, copied.Length);
                                 return new MIGraphXOnnxExecutionResult(inputName, inputSnapshot.Dimensions, runSnapshot.Dimensions, copied);
                             }
