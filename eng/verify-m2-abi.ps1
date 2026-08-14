@@ -26,14 +26,7 @@ if ($AcquireInputs) {
         if ((Get-FileHash -Algorithm SHA256 -LiteralPath $deb).Hash.ToLowerInvariant() -ne 'cf0381824856c7181cfc45db415c1d25a98625090cf06de98de564693c02a01e') {
             throw 'Official runtime package SHA-256 mismatch.'
         }
-        Push-Location $cache
-        try {
-            & tar -xf $deb data.tar.xz
-            if ($LASTEXITCODE -ne 0) { throw 'Failed to extract data.tar.xz from the official runtime package.' }
-            & tar -xf data.tar.xz './opt/rocm-7.2.1/lib/libmigraphx_c.so.3.0.70201'
-            if ($LASTEXITCODE -ne 0) { throw 'Failed to extract the official MIGraphX C library.' }
-        }
-        finally { Pop-Location }
+        Expand-DebDataFile -DebPath $deb -Destination $cache -ArchiveMember './opt/rocm-7.2.1/lib/libmigraphx_c.so.3.0.70201'
         $OfficialElfPath = Join-Path $cache 'opt\rocm-7.2.1\lib\libmigraphx_c.so.3.0.70201'
     }
 }
@@ -57,6 +50,7 @@ if ($expected.Count -ne $manifest.scope.subsetFunctionCount) { throw 'M2 subset 
 $generatedText = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Generated\NativeMethods.LibraryImport.g.cs')
 $generatedText += Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Generated\NativeMethods.DllImport.g.cs')
 $managed = @([regex]::Matches($generatedText, 'EntryPoint\s*=\s*"(?<name>migraphx_[a-z0-9_]+)"') | ForEach-Object { $_.Groups['name'].Value } | Sort-Object -Unique)
+$managedSubset = @($managed | Where-Object { $_ -in $expected })
 
 & (Join-Path $root 'eng\build-fake-native.ps1') -Configuration $Configuration | Out-Host
 $fakePath = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
@@ -83,7 +77,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Official ELF export reader failed.' }
 $official = @($officialAll | Where-Object { $_ -in $expected } | Sort-Object -Unique)
 
 foreach ($projection in @(
-    @{ Name = 'managed EntryPoints'; Values = $managed },
+    @{ Name = 'managed M2 EntryPoints'; Values = $managedSubset },
     @{ Name = 'fake-native exports'; Values = $fake },
     @{ Name = 'official ELF exports'; Values = $official }
 )) {
@@ -100,7 +94,8 @@ if ($model.Sha256 -ne $manifest.reproducibleModel.sha256 -or $model.Bytes -ne $m
 [PSCustomObject]@{
     HeaderSha256 = $manifest.source.headerSha256
     SubsetFunctions = $expected.Count
-    ManagedEntryPoints = $managed.Count
+    ManagedSubsetEntryPoints = $managedSubset.Count
+    ManagedTotalEntryPoints = $managed.Count
     FakeExports = $fake.Count
     OfficialElfExports = $official.Count
     OfficialAllMIGraphXExports = $officialAll.Count

@@ -1,0 +1,27 @@
+{
+  "$schema": "./schemas/m3-classification.schema.json",
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "m3-1",
+  "validationLevel": "statically-verified",
+  "items": [
+    {
+      "kind": "function",
+      "cName": "migraphx_operation_create",
+      "reason": "The frozen C declaration is variadic. Source-generated LibraryImport cannot represent C varargs, and a guessed fixed DllImport overload would not be ABI-complete.",
+      "risk": "Calling an incorrectly projected variadic function can corrupt registers or the native stack.",
+      "plannedStage": "M4 or a later focused operation vertical slice after the accepted attribute argument forms are proven from implementation and runtime evidence.",
+      "coverage": "Header and official ELF presence are statically verified; no managed EntryPoint or runtime-executed claim is emitted."
+    }
+  ],
+  "configurationUnavailable": [],
+  "managedSemanticLimitations": [
+    {
+      "scope": "M3 automatically projected functions outside the M1/M2 subset",
+      "reason": "Raw internal ABI declarations are generated, but ownership and high-level behavior are not promoted to public managed objects without implementation evidence.",
+      "risk": "Calling a raw pointer declaration without a reviewed lifetime wrapper can leak, double-free, or outlive borrowed storage.",
+      "plannedStage": "M4 and later milestone-specific vertical slices",
+      "coverage": "Header/normalized-model/managed/official-ELF parity only; no runtime-executed claim."
+    }
+  ],
+  "classificationReason": "All non-variadic declarations can be represented as internal raw ABI declarations. The single C variadic function remains explicitly unsupported rather than receiving a guessed managed signature."
+}

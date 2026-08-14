@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/guojin-yan/MIGraphX-CSharp-API/schemas/m3-inventory.schema.json",
+  "title": "MIGraphXSharp complete C API inventory",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "inventoryVersion", "counts", "items"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "inventoryVersion": { "const": "m3-1" },
+    "items": { "type": "array" }
+  },
+  "additionalProperties": true
+}

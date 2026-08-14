@@ -1,0 +1,28 @@
+{
+  "$schema": "./schemas/m3-classification.schema.json",
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "m3-1",
+  "validationLevel": "statically-verified",
+  "functionProjection": {
+    "sourceManifest": "compatibility/m2-binding-subset.json",
+    "expectedCount": 41,
+    "reason": "Preserve the runtime-validated M1/M2 managed projection, direction, UTF-8, bool, and ownership semantics while declarations remain generated from the normalized model.",
+    "risk": "Changing these projections could regress the exact M1/M2 workflow validated at f1a11cfd1701a041cee29188f7600c85b34ae260.",
+    "plannedStage": "Retain through M3; reconsider public object semantics only in M4.",
+    "coverage": "M1/M2 unit, fake-native, representative TFM, ABI/export, and bounded official runtime evidence."
+  },
+  "callbackOverrides": {
+    "reason": "Callback signatures are generated, but retention, exception containment, object state, and output-buffer rules require explicit policy rather than inferred marshalling.",
+    "risk": "An unrooted delegate or exception crossing the native boundary can corrupt process state.",
+    "plannedStage": "Low-level delegates remain internal in M3; any public callback object model is deferred beyond M4.",
+    "coverage": "The M3 fake ABI probe exercises cdecl invocation, retention, exception-to-status containment, one-byte bool, size_t, UTF-8, borrowed pointer identity, output handle, and array length.",
+    "items": [
+      { "cName": "migraphx_experimental_custom_op_compute", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_compute_shape", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_output_alias", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_runs_on_offload_target", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_copy", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_delete", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." }
+    ]
+  }
+}

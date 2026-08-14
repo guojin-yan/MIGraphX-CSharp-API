@@ -1,0 +1,2351 @@
+{
+  "$schema": "./schemas/m3-inventory.schema.json",
+  "schemaVersion": "1.0.0",
+  "inventoryVersion": "m3-1",
+  "generatedAtUtc": "2026-08-14T00:00:00Z",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "counts": {
+    "functions": {
+      "total": 159,
+      "generated": 117,
+      "handwritten": 41,
+      "unsupported": 1,
+      "configurationUnavailable": 0
+    },
+    "enums": {
+      "total": 2,
+      "generated": 2,
+      "handwritten": 0,
+      "unsupported": 0,
+      "configurationUnavailable": 0
+    },
+    "handles": {
+      "total": 25,
+      "generated": 25,
+      "handwritten": 0,
+      "unsupported": 0,
+      "configurationUnavailable": 0
+    },
+    "callbacks": {
+      "total": 6,
+      "generated": 0,
+      "handwritten": 6,
+      "unsupported": 0,
+      "configurationUnavailable": 0
+    },
+    "overall": {
+      "total": 192,
+      "generated": 144,
+      "handwritten": 47,
+      "unsupported": 1,
+      "configurationUnavailable": 0
+    }
+  },
+  "classificationClosed": true,
+  "items": [
+    {
+      "id": "function:migraphx_optimals_destroy",
+      "kind": "function",
+      "cName": "migraphx_optimals_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 182,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_optimals_assign_to",
+      "kind": "function",
+      "cName": "migraphx_optimals_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 184,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_optimals_create",
+      "kind": "function",
+      "cName": "migraphx_optimals_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 187,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_destroy",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 192,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_assign_to",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 194,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_create_min_max",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_create_min_max",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 197,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_create_min_max_optimals",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_create_min_max_optimals",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 201,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_is_fixed",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_is_fixed",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 206,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimension_equal",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimension_equal",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 210,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_destroy",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 215,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_assign_to",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 217,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_create",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 221,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_size",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_size",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 226,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_dynamic_dimensions_get",
+      "kind": "function",
+      "cName": "migraphx_dynamic_dimensions_get",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 229,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_shape_destroy",
+      "kind": "function",
+      "cName": "migraphx_shape_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 233,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_assign_to",
+      "kind": "function",
+      "cName": "migraphx_shape_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 235,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_create",
+      "kind": "function",
+      "cName": "migraphx_shape_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 238,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_create_with_strides",
+      "kind": "function",
+      "cName": "migraphx_shape_create_with_strides",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 243,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_create_scalar",
+      "kind": "function",
+      "cName": "migraphx_shape_create_scalar",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 250,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_create_dynamic",
+      "kind": "function",
+      "cName": "migraphx_shape_create_dynamic",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 253,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_lengths",
+      "kind": "function",
+      "cName": "migraphx_shape_lengths",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 257,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_strides",
+      "kind": "function",
+      "cName": "migraphx_shape_strides",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 261,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_dyn_dims",
+      "kind": "function",
+      "cName": "migraphx_shape_dyn_dims",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 265,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_type",
+      "kind": "function",
+      "cName": "migraphx_shape_type",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 268,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_elements",
+      "kind": "function",
+      "cName": "migraphx_shape_elements",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 271,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_bytes",
+      "kind": "function",
+      "cName": "migraphx_shape_bytes",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 274,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_ndim",
+      "kind": "function",
+      "cName": "migraphx_shape_ndim",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 276,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_equal",
+      "kind": "function",
+      "cName": "migraphx_shape_equal",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 278,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_standard",
+      "kind": "function",
+      "cName": "migraphx_shape_standard",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 282,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_dynamic",
+      "kind": "function",
+      "cName": "migraphx_shape_dynamic",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 284,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shape_index",
+      "kind": "function",
+      "cName": "migraphx_shape_index",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 286,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_destroy",
+      "kind": "function",
+      "cName": "migraphx_argument_destroy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 290,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_assign_to",
+      "kind": "function",
+      "cName": "migraphx_argument_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 292,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_create",
+      "kind": "function",
+      "cName": "migraphx_argument_create",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 295,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_create_empty",
+      "kind": "function",
+      "cName": "migraphx_argument_create_empty",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 299,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_shape",
+      "kind": "function",
+      "cName": "migraphx_argument_shape",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 302,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_buffer",
+      "kind": "function",
+      "cName": "migraphx_argument_buffer",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 305,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_equal",
+      "kind": "function",
+      "cName": "migraphx_argument_equal",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 308,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_save",
+      "kind": "function",
+      "cName": "migraphx_argument_save",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 312,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_load",
+      "kind": "function",
+      "cName": "migraphx_argument_load",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 315,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_argument_generate",
+      "kind": "function",
+      "cName": "migraphx_argument_generate",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 318,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_target_destroy",
+      "kind": "function",
+      "cName": "migraphx_target_destroy",
+      "classification": "handwritten",
+      "milestone": "M1",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 322,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_target_assign_to",
+      "kind": "function",
+      "cName": "migraphx_target_assign_to",
+      "classification": "handwritten",
+      "milestone": "M1",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 324,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_target_create",
+      "kind": "function",
+      "cName": "migraphx_target_create",
+      "classification": "handwritten",
+      "milestone": "M1",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 327,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_destroy",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_destroy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 330,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_assign_to",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 333,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_size",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_size",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 336,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_get",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_get",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 340,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameter_shapes_names",
+      "kind": "function",
+      "cName": "migraphx_program_parameter_shapes_names",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 344,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameters_destroy",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_destroy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 348,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameters_assign_to",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 350,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameters_create",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_create",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 354,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_program_parameters_add",
+      "kind": "function",
+      "cName": "migraphx_program_parameters_add",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 357,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_arguments_destroy",
+      "kind": "function",
+      "cName": "migraphx_arguments_destroy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 361,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_arguments_assign_to",
+      "kind": "function",
+      "cName": "migraphx_arguments_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 363,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_arguments_size",
+      "kind": "function",
+      "cName": "migraphx_arguments_size",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 366,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_arguments_get",
+      "kind": "function",
+      "cName": "migraphx_arguments_get",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 369,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shapes_destroy",
+      "kind": "function",
+      "cName": "migraphx_shapes_destroy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 373,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shapes_assign_to",
+      "kind": "function",
+      "cName": "migraphx_shapes_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 375,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shapes_size",
+      "kind": "function",
+      "cName": "migraphx_shapes_size",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 378,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_shapes_get",
+      "kind": "function",
+      "cName": "migraphx_shapes_get",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 380,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_instruction_destroy",
+      "kind": "function",
+      "cName": "migraphx_instruction_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 384,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_instruction_assign_to",
+      "kind": "function",
+      "cName": "migraphx_instruction_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 387,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_instructions_destroy",
+      "kind": "function",
+      "cName": "migraphx_instructions_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 390,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_instructions_assign_to",
+      "kind": "function",
+      "cName": "migraphx_instructions_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 392,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_instructions_create",
+      "kind": "function",
+      "cName": "migraphx_instructions_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 395,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_modules_destroy",
+      "kind": "function",
+      "cName": "migraphx_modules_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 398,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_modules_assign_to",
+      "kind": "function",
+      "cName": "migraphx_modules_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 400,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_modules_create",
+      "kind": "function",
+      "cName": "migraphx_modules_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 403,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_module_create",
+      "kind": "function",
+      "cName": "migraphx_module_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 407,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_module_print",
+      "kind": "function",
+      "cName": "migraphx_module_print",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 409,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_module_add_instruction",
+      "kind": "function",
+      "cName": "migraphx_module_add_instruction",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 411,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_module_add_instruction_with_mod_args",
+      "kind": "function",
+      "cName": "migraphx_module_add_instruction_with_mod_args",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 417,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_module_add_literal",
+      "kind": "function",
+      "cName": "migraphx_module_add_literal",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 423,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_module_add_parameter",
+      "kind": "function",
+      "cName": "migraphx_module_add_parameter",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 428,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_module_add_return",
+      "kind": "function",
+      "cName": "migraphx_module_add_return",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 433,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_module_add_allocation",
+      "kind": "function",
+      "cName": "migraphx_module_add_allocation",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 437,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_destroy",
+      "kind": "function",
+      "cName": "migraphx_program_destroy",
+      "classification": "handwritten",
+      "milestone": "M1",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 441,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_assign_to",
+      "kind": "function",
+      "cName": "migraphx_program_assign_to",
+      "classification": "handwritten",
+      "milestone": "M1",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 443,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_create",
+      "kind": "function",
+      "cName": "migraphx_program_create",
+      "classification": "handwritten",
+      "milestone": "M1",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 446,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_get_main_module",
+      "kind": "function",
+      "cName": "migraphx_program_get_main_module",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 448,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_create_module",
+      "kind": "function",
+      "cName": "migraphx_program_create_module",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 451,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_compile",
+      "kind": "function",
+      "cName": "migraphx_program_compile",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 455,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_get_parameter_shapes",
+      "kind": "function",
+      "cName": "migraphx_program_get_parameter_shapes",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 459,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_get_output_shapes",
+      "kind": "function",
+      "cName": "migraphx_program_get_output_shapes",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 462,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_print",
+      "kind": "function",
+      "cName": "migraphx_program_print",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 465,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_sort",
+      "kind": "function",
+      "cName": "migraphx_program_sort",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 467,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_run",
+      "kind": "function",
+      "cName": "migraphx_program_run",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 469,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_run_async",
+      "kind": "function",
+      "cName": "migraphx_program_run_async",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 473,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_equal",
+      "kind": "function",
+      "cName": "migraphx_program_equal",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 479,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_program_experimental_get_context",
+      "kind": "function",
+      "cName": "migraphx_program_experimental_get_context",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 483,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_operation_destroy",
+      "kind": "function",
+      "cName": "migraphx_operation_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 486,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_operation_assign_to",
+      "kind": "function",
+      "cName": "migraphx_operation_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 488,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_operation_create",
+      "kind": "function",
+      "cName": "migraphx_operation_create",
+      "classification": "unsupported",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 491,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_operation_name",
+      "kind": "function",
+      "cName": "migraphx_operation_name",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 496,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_load",
+      "kind": "function",
+      "cName": "migraphx_load",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 500,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_save",
+      "kind": "function",
+      "cName": "migraphx_save",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 504,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_destroy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 509,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 511,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_create",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_create",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 515,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_input_parameter_shape",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_input_parameter_shape",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 517,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_dyn_input_parameter_shape",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_dyn_input_parameter_shape",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 520,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_default_dim_value",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_default_dim_value",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 524,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_default_dyn_dim_value",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_default_dyn_dim_value",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 526,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_default_loop_iterations",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_default_loop_iterations",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 529,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_limit_loop_iterations",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_limit_loop_iterations",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 532,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_external_data_path",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_external_data_path",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 535,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_file_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_file_options_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 539,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_file_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_file_options_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 541,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_file_options_create",
+      "kind": "function",
+      "cName": "migraphx_file_options_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 545,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_file_options_set_file_format",
+      "kind": "function",
+      "cName": "migraphx_file_options_set_file_format",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 548,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_compile_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_compile_options_destroy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 551,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_compile_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_compile_options_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 553,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_compile_options_create",
+      "kind": "function",
+      "cName": "migraphx_compile_options_create",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 557,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_compile_options_set_offload_copy",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_offload_copy",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 560,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_compile_options_set_fast_math",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_fast_math",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 563,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_compile_options_set_exhaustive_tune_flag",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_exhaustive_tune_flag",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 565,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_parse_onnx",
+      "kind": "function",
+      "cName": "migraphx_parse_onnx",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 568,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_parse_onnx_buffer",
+      "kind": "function",
+      "cName": "migraphx_parse_onnx_buffer",
+      "classification": "handwritten",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 572,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_tf_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_tf_options_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 577,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_tf_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_tf_options_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 579,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_tf_options_create",
+      "kind": "function",
+      "cName": "migraphx_tf_options_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 582,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_tf_options_set_nhwc",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_nhwc",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 584,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_tf_options_set_input_parameter_shape",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_input_parameter_shape",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 587,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_tf_options_set_default_dim_value",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_default_dim_value",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 591,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_tf_options_set_output_names",
+      "kind": "function",
+      "cName": "migraphx_tf_options_set_output_names",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 593,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_parse_tf",
+      "kind": "function",
+      "cName": "migraphx_parse_tf",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 596,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_parse_tf_buffer",
+      "kind": "function",
+      "cName": "migraphx_parse_tf_buffer",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 600,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_destroy",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 606,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_assign_to",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 608,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_create",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 612,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_op_names_add",
+      "kind": "function",
+      "cName": "migraphx_quantize_op_names_add",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 615,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_fp16_with_op_names",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp16_with_op_names",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 618,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_fp16",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp16",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 620,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_bf16_with_op_names",
+      "kind": "function",
+      "cName": "migraphx_quantize_bf16_with_op_names",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 623,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_bf16",
+      "kind": "function",
+      "cName": "migraphx_quantize_bf16",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 625,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 628,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 630,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_create",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 634,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_add_op_name",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_add_op_name",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 636,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_int8_options_add_calibration_data",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8_options_add_calibration_data",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 639,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_int8",
+      "kind": "function",
+      "cName": "migraphx_quantize_int8",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 642,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_destroy",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 647,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_assign_to",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 649,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_create",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 653,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_fp8_options_add_calibration_data",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8_options_add_calibration_data",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 655,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_quantize_fp8",
+      "kind": "function",
+      "cName": "migraphx_quantize_fp8",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 658,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_get_onnx_operator_name_at_index",
+      "kind": "function",
+      "cName": "migraphx_get_onnx_operator_name_at_index",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 662,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_get_onnx_operators_size",
+      "kind": "function",
+      "cName": "migraphx_get_onnx_operators_size",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 665,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_context_finish",
+      "kind": "function",
+      "cName": "migraphx_context_finish",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 667,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_context_get_queue",
+      "kind": "function",
+      "cName": "migraphx_context_get_queue",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 669,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_destroy",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_destroy",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 673,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_assign_to",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_assign_to",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 675,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_create",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_create",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 679,
+        "column": 1
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_compute",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_compute",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 686,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_compute_shape",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_compute_shape",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 689,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_output_alias",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_output_alias",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 692,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_set_runs_on_offload_target",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_set_runs_on_offload_target",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 695,
+        "column": 35
+      }
+    },
+    {
+      "id": "function:migraphx_experimental_custom_op_register",
+      "kind": "function",
+      "cName": "migraphx_experimental_custom_op_register",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 700,
+        "column": 1
+      }
+    },
+    {
+      "id": "enum:migraphx_status",
+      "kind": "enum",
+      "cName": "migraphx_status",
+      "classification": "generated",
+      "milestone": "M1",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 67,
+        "column": 3
+      }
+    },
+    {
+      "id": "enum:migraphx_shape_datatype_t",
+      "kind": "enum",
+      "cName": "migraphx_shape_datatype_t",
+      "classification": "generated",
+      "milestone": "M2",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 76,
+        "column": 3
+      }
+    },
+    {
+      "id": "handle:migraphx_optimals_t",
+      "kind": "handle",
+      "cName": "migraphx_optimals_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 79,
+        "column": 35
+      }
+    },
+    {
+      "id": "handle:migraphx_dynamic_dimension_t",
+      "kind": "handle",
+      "cName": "migraphx_dynamic_dimension_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 82,
+        "column": 44
+      }
+    },
+    {
+      "id": "handle:migraphx_dynamic_dimensions_t",
+      "kind": "handle",
+      "cName": "migraphx_dynamic_dimensions_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 85,
+        "column": 45
+      }
+    },
+    {
+      "id": "handle:migraphx_shape_t",
+      "kind": "handle",
+      "cName": "migraphx_shape_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 88,
+        "column": 32
+      }
+    },
+    {
+      "id": "handle:migraphx_argument_t",
+      "kind": "handle",
+      "cName": "migraphx_argument_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 91,
+        "column": 35
+      }
+    },
+    {
+      "id": "handle:migraphx_target_t",
+      "kind": "handle",
+      "cName": "migraphx_target_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 94,
+        "column": 33
+      }
+    },
+    {
+      "id": "handle:migraphx_program_parameter_shapes_t",
+      "kind": "handle",
+      "cName": "migraphx_program_parameter_shapes_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 97,
+        "column": 51
+      }
+    },
+    {
+      "id": "handle:migraphx_program_parameters_t",
+      "kind": "handle",
+      "cName": "migraphx_program_parameters_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 100,
+        "column": 45
+      }
+    },
+    {
+      "id": "handle:migraphx_arguments_t",
+      "kind": "handle",
+      "cName": "migraphx_arguments_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 103,
+        "column": 36
+      }
+    },
+    {
+      "id": "handle:migraphx_shapes_t",
+      "kind": "handle",
+      "cName": "migraphx_shapes_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 106,
+        "column": 33
+      }
+    },
+    {
+      "id": "handle:migraphx_instruction_t",
+      "kind": "handle",
+      "cName": "migraphx_instruction_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 109,
+        "column": 38
+      }
+    },
+    {
+      "id": "handle:migraphx_instructions_t",
+      "kind": "handle",
+      "cName": "migraphx_instructions_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 112,
+        "column": 39
+      }
+    },
+    {
+      "id": "handle:migraphx_modules_t",
+      "kind": "handle",
+      "cName": "migraphx_modules_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 115,
+        "column": 34
+      }
+    },
+    {
+      "id": "handle:migraphx_module_t",
+      "kind": "handle",
+      "cName": "migraphx_module_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 118,
+        "column": 33
+      }
+    },
+    {
+      "id": "handle:migraphx_program_t",
+      "kind": "handle",
+      "cName": "migraphx_program_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 121,
+        "column": 34
+      }
+    },
+    {
+      "id": "handle:migraphx_operation_t",
+      "kind": "handle",
+      "cName": "migraphx_operation_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 124,
+        "column": 36
+      }
+    },
+    {
+      "id": "handle:migraphx_onnx_options_t",
+      "kind": "handle",
+      "cName": "migraphx_onnx_options_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 127,
+        "column": 39
+      }
+    },
+    {
+      "id": "handle:migraphx_file_options_t",
+      "kind": "handle",
+      "cName": "migraphx_file_options_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 130,
+        "column": 39
+      }
+    },
+    {
+      "id": "handle:migraphx_compile_options_t",
+      "kind": "handle",
+      "cName": "migraphx_compile_options_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 133,
+        "column": 42
+      }
+    },
+    {
+      "id": "handle:migraphx_tf_options_t",
+      "kind": "handle",
+      "cName": "migraphx_tf_options_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 136,
+        "column": 37
+      }
+    },
+    {
+      "id": "handle:migraphx_quantize_op_names_t",
+      "kind": "handle",
+      "cName": "migraphx_quantize_op_names_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 139,
+        "column": 44
+      }
+    },
+    {
+      "id": "handle:migraphx_quantize_int8_options_t",
+      "kind": "handle",
+      "cName": "migraphx_quantize_int8_options_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 142,
+        "column": 48
+      }
+    },
+    {
+      "id": "handle:migraphx_quantize_fp8_options_t",
+      "kind": "handle",
+      "cName": "migraphx_quantize_fp8_options_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 145,
+        "column": 47
+      }
+    },
+    {
+      "id": "handle:migraphx_context_t",
+      "kind": "handle",
+      "cName": "migraphx_context_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 148,
+        "column": 34
+      }
+    },
+    {
+      "id": "handle:migraphx_experimental_custom_op_t",
+      "kind": "handle",
+      "cName": "migraphx_experimental_custom_op_t",
+      "classification": "generated",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 151,
+        "column": 49
+      }
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_compute",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_compute",
+      "classification": "handwritten",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 154,
+        "column": 27
+      }
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_compute_shape",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_compute_shape",
+      "classification": "handwritten",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 162,
+        "column": 27
+      }
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_output_alias",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_output_alias",
+      "classification": "handwritten",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 168,
+        "column": 27
+      }
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_runs_on_offload_target",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_runs_on_offload_target",
+      "classification": "handwritten",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 175,
+        "column": 27
+      }
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_copy",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_copy",
+      "classification": "handwritten",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 178,
+        "column": 27
+      }
+    },
+    {
+      "id": "callback:migraphx_experimental_custom_op_delete",
+      "kind": "callback",
+      "cName": "migraphx_experimental_custom_op_delete",
+      "classification": "handwritten",
+      "milestone": "M3",
+      "validationLevel": "statically-verified",
+      "source": {
+        "line": 180,
+        "column": 27
+      }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.1.0",
-  "generatedAtUtc": "2026-08-14T02:49:26Z",
+  "schemaVersion": "1.2.0",
+  "generatedAtUtc": "2026-08-14T00:00:00Z",
   "allowedStatuses": ["planned", "statically-verified", "fake-native-executed", "runtime-executed", "not-applicable"],
   "environment": { "localOs": "Windows", "amdGpuAvailable": false, "officialMIGraphXInstalled": false },
   "validations": [
@@ -15,6 +15,10 @@
     { "id": "m2-generated-identity-model", "status": "statically-verified", "evidence": "The deterministic 128-byte ONNX Identity float32[1,4] model matches SHA-256 0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9; the binary is generated and not tracked or packed." },
     { "id": "m2-fake-native-onnx-workflow", "status": "fake-native-executed", "evidence": "File and memory parse, parameter/output shapes, compile, pinned host input, synchronous run, copied output, validation failures, cleanup, and concurrency executed against a local test substitute." },
     { "id": "m2-representative-tfm-paths", "status": "fake-native-executed", "evidence": "net46, netcoreapp3.1, net7.0, and net10.0 executed the restricted ONNX workflow against the test substitute." },
+    { "id": "m3-normalized-api-model", "status": "statically-verified", "evidence": "The structured parser closed over 159 functions, 2 enums, 25 opaque handles, and 6 callbacks from frozen header SHA-256 a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2." },
+    { "id": "m3-dual-managed-declarations", "status": "statically-verified", "evidence": "One normalized model emitted matching LibraryImport and DllImport sets with 158 EntryPoints each; the only header function without a managed declaration is the explicitly unsupported C-variadic migraphx_operation_create." },
+    { "id": "m3-full-official-elf-exports", "status": "statically-verified", "evidence": "All 159 frozen-header function names exist in hash-verified official ELF SHA-256 3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff; one extra private test symbol is separately classified." },
+    { "id": "m3-fake-abi-patterns", "status": "fake-native-executed", "evidence": "A minimal local test substitute executed callback retention and exception containment, one-byte bool, size_t, explicit UTF-8 length, borrowed pointer identity, out handle cleanup, and array-length behavior. This is not official MIGraphX or GPU evidence." },
     { "id": "official-native-loader", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260, the fixed official libmigraphx_c.so.3 loaded on Ubuntu 24.04 x86-64 with ROCm 7.2.1; header/library hashes and 41 subset exports were verified." },
     { "id": "official-target-program-lifecycle", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, strict UTF-8 reached the runtime and valid gpu target/program create, assign_to, and destroy calls executed." },
     { "id": "official-onnx-parse-compile-run", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, the generated 128-byte Identity float32[1,4] model parsed from file and buffer, compiled for gpu with offload-copy, ran synchronously, and exactly matched [0.25,-1,2,9]." },

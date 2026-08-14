@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "baselineVersion": "m3-1",
+  "validationLevel": "statically-verified",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "officialRuntimePackageSha256": "cf0381824856c7181cfc45db415c1d25a98625090cf06de98de564693c02a01e",
+  "officialElfSha256": "3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff",
+  "exports": {
+    "headerFunctionCount": 159,
+    "managedEntryPointCount": 158,
+    "unsupportedHeaderFunctions": ["migraphx_operation_create"],
+    "officialMigraphxSymbolCount": 160,
+    "officialPublicFunctionCount": 159,
+    "officialPrivateFunctions": ["migraphx_test_private_disable_exception_catch"],
+    "officialNonFunctionSymbols": []
+  },
+  "x64Abi": {
+    "statusSize": 4,
+    "shapeDatatypeSize": 4,
+    "sizeTSize": 8,
+    "boolSize": 1,
+    "opaqueHandleSize": 8,
+    "callbackPointerSize": 8,
+    "statusSuccess": 0,
+    "statusBadParam": 1,
+    "statusUnknownTarget": 3,
+    "statusUnknownError": 4,
+    "shapeTuple": 0,
+    "shapeFp8E5M2Fnuz": 18
+  },
+  "runtimeBoundary": "The baseline is static ABI/export evidence. It does not execute M3 declarations against official MIGraphX."
+}

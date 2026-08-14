@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation and the M2 restricted ONNX parse/compile/run workflow for the official AMD MIGraphX C API. Forty-one cumulative declarations are generated from one frozen ROCm 7.2.1 manifest. This remains a local engineering candidate, not a published release.
+MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, the M2 restricted ONNX workflow, and the M3 reproducible low-level binding pipeline for the official AMD MIGraphX C API. The complete frozen header inventory is classified and 158 non-variadic declarations are emitted from one normalized model. This remains a local engineering candidate, not a published release.
 
 ## Status
 
@@ -10,9 +10,12 @@ MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation and the M2 restri
 - The frozen input is ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04`, header SHA-256 `a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2`.
 - M1 provides explicit/system native loading diagnostics, exact status mapping, strict UTF-8, and owned target/program lifetimes.
 - M2 adds explicit file and byte-buffer ONNX entry points for one static, standard float32 input/output, synchronous GPU-target compile with offload-copy, pinned input, and copied output.
+- M3 inventories 159 functions, 2 enums, 25 opaque handles, and 6 callbacks. Its 192 entities close as 144 generated, 47 handwritten-policy, 1 unsupported, and 0 configuration-unavailable; functions close as 117/41/1/0.
+- One normalized model emits 158 matching `LibraryImport` and `DllImport` EntryPoints. The C-variadic `migraphx_operation_create` is explicitly unsupported instead of receiving a guessed ABI.
+- All 159 header functions match the hash-verified official ELF; its additional private test export is separately classified. These M3 results are `statically-verified`, not official runtime execution.
 - Local fake-native tests execute loader, frontend/export classification, parse, shape validation, compile, run, failure cleanup, and concurrency. They remain test-substitute evidence and are recorded separately from official runtime evidence.
 - M1/M2 official runtime validation passed at `f1a11cfd1701a041cee29188f7600c85b34ae260` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and one gfx1100 GPU. The official loader, target/program lifecycle, file/buffer ONNX parse, GPU compile, synchronous run, and Identity reference comparison executed successfully.
-- Dynamic shape, multiple inputs/outputs, non-float32 tensors, async/stream/device-buffer APIs, general Program/Shape/Argument objects, and runtime NuGet packages remain outside M2.
+- M3 adds no public `Program`, `Shape`, `Argument`, `Target`, options, or collection model. Dynamic shapes, general multi-tensor workflows, async/stream/device-buffer APIs, and runtime NuGet packages remain excluded.
 - The core package contains no AMD or fake-native binaries. Runtime packages remain disabled and fail closed.
 
 ## Install
@@ -54,6 +57,7 @@ dotnet tool restore
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
+.\eng\verify-m3-abi.ps1 -AcquireInputs
 $package = .\eng\pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
 .\eng\verify-package.ps1 -PackagePath $package
 .\eng\docs.ps1 -Configuration Release -NoBuild
@@ -63,7 +67,7 @@ Build, static official-ELF evidence, fake-native execution, and official MIGraph
 
 ## Documentation
 
-See the [M2 ONNX design](docs/design/m2-onnx-workflow.md), [getting started guide](docs/guides/getting-started.md), [platform evidence](docs/compatibility/platforms.md), and [official runtime summary](docs/validation/m1-m2-official-runtime.md). The [M1 design](docs/design/m1-direct-pinvoke.md) remains the lifecycle foundation.
+See the [M3 binding pipeline design](docs/design/m3-binding-generator.md), [M3 local validation](docs/validation/m3-local-validation.md), [getting started guide](docs/guides/getting-started.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
 
 ## License
 
@@ -71,4 +75,4 @@ Copyright 2026 Guojin Yan. This managed project is licensed under the [Apache Li
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and the machine-readable [M2 subset manifest](compatibility/m2-binding-subset.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), the [M3 normalized model](compatibility/m3-normalized-api.json), and the [coverage summary](compatibility/m3-coverage-summary.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.

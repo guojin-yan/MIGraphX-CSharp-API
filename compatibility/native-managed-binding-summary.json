@@ -1,10 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.1.0",
+  "schemaVersion": "1.2.0",
   "generatedAtUtc": "2026-08-14T00:00:00Z",
   "validationLevel": "statically-verified",
   "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
-  "upstream": { "functionCount": 159, "enumCount": 2, "opaqueHandleCount": 25 },
+  "upstream": {
+    "functionCount": 159,
+    "enumCount": 2,
+    "opaqueHandleCount": 25,
+    "callbackCount": 6
+  },
   "m1Subset": {
     "manifest": "compatibility/m1-binding-subset.json",
     "functionCount": 6,
@@ -12,9 +17,7 @@
     "handleCount": 2,
     "managedFunctionCount": 6,
     "subsetFunctionCoveragePercent": 100.0,
-    "fullUpstreamFunctionCoveragePercent": 3.773585,
-    "fullUpstreamEnumCoveragePercent": 50.0,
-    "fullUpstreamHandleCoveragePercent": 8.0
+    "fullUpstreamFunctionCoveragePercent": 3.773585
   },
   "m2Subset": {
     "manifest": "compatibility/m2-binding-subset.json",
@@ -23,28 +26,46 @@
     "handleCount": 10,
     "managedFunctionCount": 41,
     "subsetFunctionCoveragePercent": 100.0,
-    "fullUpstreamFunctionCoveragePercent": 25.786164,
-    "fullUpstreamEnumCoveragePercent": 100.0,
-    "fullUpstreamHandleCoveragePercent": 40.0
+    "fullUpstreamFunctionCoveragePercent": 25.786164
+  },
+  "m3": {
+    "normalizedModel": "compatibility/m3-normalized-api.json",
+    "inventory": "compatibility/m3-api-inventory.json",
+    "coverageSummary": "compatibility/m3-coverage-summary.json",
+    "totalInventoryItems": 192,
+    "functionCount": 159,
+    "enumCount": 2,
+    "handleCount": 25,
+    "callbackCount": 6,
+    "managedEntryPointCount": 158,
+    "generatedFunctionCount": 117,
+    "handwrittenFunctionProjectionCount": 41,
+    "unsupportedFunctionCount": 1,
+    "configurationUnavailableCount": 0,
+    "classificationClosed": true
   },
   "managed": {
-    "generatedFunctionCount": 41,
-    "handwrittenFunctionCount": 0,
-    "enumCount": 2,
-    "handleCount": 10,
-    "coverageStatus": "m2-subset-complete-full-api-incomplete"
+    "libraryImportEntryPointCount": 158,
+    "dllImportEntryPointCount": 158,
+    "generatedEnumCount": 2,
+    "generatedHandleMetadataCount": 25,
+    "generatedCallbackDelegateCount": 6,
+    "coverageStatus": "m3-full-inventory-closed-one-variadic-function-unsupported"
   },
   "interopCompilationPaths": {
     "net7OrLater": "LibraryImport",
     "olderTargets": "DllImport",
-    "singleManifestModel": "statically-verified",
+    "singleNormalizedModel": "statically-verified",
     "representativeFakeNativeExecution": ["net46", "netcoreapp3.1", "net7.0", "net10.0"]
   },
   "exportGate": {
-    "headerSubset": "statically-verified",
-    "managedEntryPoints": "statically-verified",
-    "fakeNativeExports": "fake-native-executed",
-    "officialElfExports": "statically-verified"
+    "headerFunctions": 159,
+    "officialPublicFunctionExports": 159,
+    "managedEntryPoints": 158,
+    "unsupportedHeaderFunctions": ["migraphx_operation_create"],
+    "knownOfficialPrivateExtras": ["migraphx_test_private_disable_exception_catch"],
+    "headerManagedElfParity": "statically-verified",
+    "fakeAbiPatterns": "fake-native-executed"
   },
-  "scopeBoundary": "M2 binds only a restricted single-input/single-output static float32 synchronous ONNX workflow; dynamic dimensions, async, streams, device buffers, save/load, and a general object model remain excluded."
+  "scopeBoundary": "M3 provides internal raw ABI declarations and audit metadata only. It does not expose the M4 Program, Shape, Argument, Target, options, or collection object model, and it adds no official runtime-executed claims."
 }

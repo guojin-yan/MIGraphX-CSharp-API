@@ -12,5 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\JYPPX.ROCm.MIGraphX.CSharp.API\JYPPX.ROCm.MIGraphX.CSharp.API.csproj" />
+    <ProjectReference Include="..\..\tools\BindingGenerator\BindingGenerator.csproj" />
   </ItemGroup>
 </Project>

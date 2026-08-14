@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/guojin-yan/MIGraphX-CSharp-API/schemas/m3-normalized-api.schema.json",
+  "title": "MIGraphXSharp normalized C API model",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "modelVersion", "source", "configuration", "enums", "handles", "callbacks", "functions"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "modelVersion": { "const": "m3-1" },
+    "enums": { "type": "array" },
+    "handles": { "type": "array" },
+    "callbacks": { "type": "array" },
+    "functions": { "type": "array" },
+    "configuration": {
+      "type": "object",
+      "required": ["language", "defines", "targetAbi", "typeSystem"]
+    }
+  },
+  "additionalProperties": true
+}

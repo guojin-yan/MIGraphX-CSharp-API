@@ -1,6 +1,6 @@
 # Getting started
 
-M2 supports explicit diagnostics plus a restricted single-input, single-output, static float32 ONNX parse/compile/run workflow. It does not expose dynamic shapes, multiple inputs/outputs, non-float32 tensors, async, streams, device buffers, or a general Program/Shape/Argument object model.
+The public M2 surface supports explicit diagnostics plus a restricted single-input, single-output, static float32 ONNX parse/compile/run workflow. M3 adds a complete internal low-level declaration inventory, not a new public object model. Dynamic shapes, general multiple inputs/outputs, non-float32 workflows, async, streams, device buffers, and general Program/Shape/Argument objects remain excluded.
 
 ## Prerequisites
 
@@ -16,12 +16,13 @@ dotnet tool restore
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
+.\eng\verify-m3-abi.ps1 -AcquireInputs
 $package = .\eng\pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
 .\eng\verify-package.ps1 -PackagePath $package
 .\eng\docs.ps1 -Configuration Release -NoBuild
 ```
 
-`generate-interop.ps1` stops before generation if the header SHA-256 differs from the frozen value. `verify-m2-abi.ps1` compares all 41 cumulative manifest names with the header-validated generated declarations, fake exports, and hash-verified official ELF exports, then verifies the generated Identity model hash.
+`generate-interop.ps1` stops before generation if the header SHA-256 differs from the frozen value and verify mode never writes tracked outputs. `verify-m2-abi.ps1` preserves the 41-function workflow gate and deterministic Identity model. `verify-m3-abi.ps1` closes the complete 159-function header against 158 managed EntryPoints, one explicit variadic unsupported item, and 159 official public ELF exports.
 
 ## Run the restricted workflow
 
@@ -47,6 +48,6 @@ Running the smoke command with no path has no native side effects and returns `n
 
 ## Evidence boundary
 
-The local test suite passes `--fake-native` only for the small C test substitute and emits `fake-native-executed`. The separate official session used a clean detached checkout of `f1a11cfd1701a041cee29188f7600c85b34ae260`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) for the exact boundary.
+The local test suite passes `--fake-native` only for the small C test substitute and emits `fake-native-executed`. M3's other new declarations remain `statically-verified`. The separate official session used a clean detached checkout of `f1a11cfd1701a041cee29188f7600c85b34ae260`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) for the exact boundary.
 
 中文提示：显式路径只接受绝对文件路径。本地 fake-native 仅验证托管边界与 ABI 形状；官方 runtime 结论来自独立的精确 SHA 会话，不能扩展到未测试能力。

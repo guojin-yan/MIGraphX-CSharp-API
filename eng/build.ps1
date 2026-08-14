@@ -9,6 +9,7 @@ param(
 $root = Get-RepositoryRoot
 Push-Location $root
 try {
+    & (Join-Path $PSScriptRoot 'verify-m3-coverage.ps1') | Out-Host
     if (-not $NoRestore) {
         Invoke-DotNet -Arguments @('restore', '.\MIGraphXSharp.sln')
     }

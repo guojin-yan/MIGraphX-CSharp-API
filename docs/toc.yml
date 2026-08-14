@@ -16,6 +16,8 @@
     href: design/m1-direct-pinvoke.md
   - name: M2 restricted ONNX workflow
     href: design/m2-onnx-workflow.md
+  - name: M3 binding generator
+    href: design/m3-binding-generator.md
 - name: Validation
   items:
   - name: Overview
@@ -24,6 +26,8 @@
     href: validation/m1-local-validation.md
   - name: M2 local status
     href: validation/m2-local-validation.md
+  - name: M3 local status
+    href: validation/m3-local-validation.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes

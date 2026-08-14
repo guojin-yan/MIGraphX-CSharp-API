@@ -42,6 +42,13 @@ typedef struct fake_shapes { fake_shape shape; } *migraphx_shapes_t;
 typedef struct fake_argument { fake_shape shape; char* buffer; int owns_buffer; } *migraphx_argument_t;
 typedef struct fake_program_parameters { struct fake_argument argument; int has_argument; char name[64]; } *migraphx_program_parameters_t;
 typedef struct fake_arguments { struct fake_argument argument; } *migraphx_arguments_t;
+typedef migraphx_status (*fake_m3_callback)(
+    void* state,
+    const char* text,
+    size_t text_size,
+    uint8_t flag,
+    const void* borrowed,
+    void** out_handle);
 
 static volatile int32_t next_status;
 static volatile int32_t create_null;
@@ -65,6 +72,8 @@ static volatile int32_t run_count;
 static volatile int32_t m2_destroy_count;
 static volatile int32_t m2_live_count;
 static volatile int32_t shape_mode;
+static fake_m3_callback m3_callback;
+static void* m3_callback_state;
 
 static int take_status(void)
 {
@@ -116,6 +125,8 @@ EXPORT void fake_reset(void)
     m2_destroy_count = 0;
     m2_live_count = 0;
     shape_mode = 0;
+    m3_callback = NULL;
+    m3_callback_state = NULL;
 }
 
 EXPORT void fake_set_next_status(int status) { ATOMIC_EXCHANGE(next_status, status); }
@@ -142,6 +153,50 @@ EXPORT int fake_run_count(void) { return run_count; }
 EXPORT int fake_m2_destroy_count(void) { return m2_destroy_count; }
 EXPORT int fake_m2_live_count(void) { return m2_live_count; }
 EXPORT void fake_set_shape_mode(int value) { ATOMIC_EXCHANGE(shape_mode, value); }
+
+EXPORT migraphx_status fake_m3_store_callback(fake_m3_callback callback, void* state)
+{
+    if(callback == NULL)
+        return migraphx_status_bad_param;
+    m3_callback = callback;
+    m3_callback_state = state;
+    return migraphx_status_success;
+}
+
+EXPORT migraphx_status fake_m3_invoke_stored(
+    const char* text,
+    size_t text_size,
+    uint8_t flag,
+    const void* borrowed,
+    void** out_handle)
+{
+    migraphx_status status;
+    if(m3_callback == NULL || text == NULL || borrowed == NULL || out_handle == NULL)
+        return migraphx_status_bad_param;
+    *out_handle = NULL;
+    status = m3_callback(m3_callback_state, text, text_size, flag, borrowed, out_handle);
+    if(status != migraphx_status_success)
+        *out_handle = NULL;
+    return status;
+}
+
+EXPORT void fake_m3_clear_callback(void)
+{
+    m3_callback = NULL;
+    m3_callback_state = NULL;
+}
+
+EXPORT migraphx_status fake_m3_sum_size_t(const size_t* values, size_t count, size_t* out)
+{
+    size_t index;
+    size_t sum = 0;
+    if(values == NULL || out == NULL)
+        return migraphx_status_bad_param;
+    for(index = 0; index < count; ++index)
+        sum += values[index];
+    *out = sum;
+    return migraphx_status_success;
+}
 
 EXPORT migraphx_status migraphx_target_destroy(migraphx_target_t target)
 {

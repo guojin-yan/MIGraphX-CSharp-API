@@ -1,0 +1,61 @@
+{
+  "$schema": "./schemas/m3-coverage-summary.schema.json",
+  "schemaVersion": "1.0.0",
+  "summaryVersion": "m3-1",
+  "generatedAtUtc": "2026-08-14T00:00:00Z",
+  "validationLevel": "statically-verified",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "counts": {
+    "functions": {
+      "total": 159,
+      "generated": 117,
+      "handwritten": 41,
+      "unsupported": 1,
+      "configurationUnavailable": 0
+    },
+    "enums": {
+      "total": 2,
+      "generated": 2,
+      "handwritten": 0,
+      "unsupported": 0,
+      "configurationUnavailable": 0
+    },
+    "handles": {
+      "total": 25,
+      "generated": 25,
+      "handwritten": 0,
+      "unsupported": 0,
+      "configurationUnavailable": 0
+    },
+    "callbacks": {
+      "total": 6,
+      "generated": 0,
+      "handwritten": 6,
+      "unsupported": 0,
+      "configurationUnavailable": 0
+    },
+    "overall": {
+      "total": 192,
+      "generated": 144,
+      "handwritten": 47,
+      "unsupported": 1,
+      "configurationUnavailable": 0
+    }
+  },
+  "classificationClosed": true,
+  "m1FunctionCount": 6,
+  "m2CumulativeFunctionCount": 41,
+  "m3DeclaredFunctionCount": 159,
+  "managedEntryPointCount": 158,
+  "unsupportedFunctionCount": 1,
+  "fullHeaderFunctionCoveragePercent": 100,
+  "officialElf": {
+    "expectedPublicFunctions": 159,
+    "observedMigraphxExports": 160,
+    "knownPrivateExtras": [
+      "migraphx_test_private_disable_exception_catch"
+    ],
+    "evidence": "statically-verified by eng/verify-m3-abi.ps1; no new runtime execution"
+  },
+  "runtimeBoundary": "Only the bounded M1/M2 workflow at f1a11cfd1701a041cee29188f7600c85b34ae260 is runtime-executed; M3 additions are static ABI declarations."
+}

@@ -1,13 +1,14 @@
 using System.Buffers.Binary;
 using System.Text;
 
-if (args.Length != 1)
+var classify = args.Length == 2 && args[0] == "--classify";
+if (args.Length != 1 && !classify)
 {
-    Console.Error.WriteLine("Usage: ElfExportReader <ELF-file>");
+    Console.Error.WriteLine("Usage: ElfExportReader [--classify] <ELF-file>");
     return 2;
 }
 
-var bytes = File.ReadAllBytes(args[0]);
+var bytes = File.ReadAllBytes(args[^1]);
 if (bytes.Length < 64 || bytes[0] != 0x7f || bytes[1] != (byte)'E' || bytes[2] != (byte)'L' || bytes[3] != (byte)'F')
 {
     Console.Error.WriteLine("Input is not an ELF file.");
@@ -34,7 +35,7 @@ for (var index = 0; index < sectionCount; index++)
         checked((int)ReadUInt64(bytes, offset + 56)));
 }
 
-var exports = new SortedSet<string>(StringComparer.Ordinal);
+var exports = new SortedDictionary<string, string>(StringComparer.Ordinal);
 foreach (var section in sections.Where(item => item.Type == 11))
 {
     if (section.Link >= sections.Length || section.EntrySize < 24)
@@ -56,14 +57,26 @@ foreach (var section in sections.Where(item => item.Type == 11))
         var name = ReadString(bytes, strings.Offset + checked((int)nameOffset), strings.Offset + strings.Size);
         if (name.StartsWith("migraphx_", StringComparison.Ordinal))
         {
-            exports.Add(name);
+            var type = (info & 0xf) switch
+            {
+                0 => "notype",
+                1 => "object",
+                2 => "function",
+                3 => "section",
+                4 => "file",
+                5 => "common",
+                6 => "tls",
+                10 => "gnu-ifunc",
+                var value => $"type-{value}",
+            };
+            exports[name] = type;
         }
     }
 }
 
-foreach (var exportName in exports)
+foreach (var export in exports)
 {
-    Console.WriteLine(exportName);
+    Console.WriteLine(classify ? $"{export.Value}|{export.Key}" : export.Key);
 }
 
 return 0;

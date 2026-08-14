@@ -13,6 +13,6 @@ MIGraphXSharp is evidence-driven. Keep changes scoped, preserve the repository b
 
 ## Local gates
 
-Run `eng/build.ps1`, `eng/test.ps1`, `eng/pack.ps1`, `eng/verify-package.ps1`, and `eng/docs.ps1` in Release configuration. A runtime package request must continue to fail until its complete manifest and validation evidence are reviewed.
+Run `eng/generate-interop.ps1 -AcquireHeader -Verify`, `eng/verify-m3-abi.ps1 -AcquireInputs`, `eng/build.ps1`, `eng/test.ps1`, `eng/pack.ps1`, `eng/verify-package.ps1`, and `eng/docs.ps1` in Release configuration. A runtime package request must continue to fail until its complete manifest and validation evidence are reviewed.
 
-The project is licensed under Apache-2.0. Unless explicitly stated otherwise, intentionally submitted contributions are provided under that license. Version `0.0.0` is still an M0 candidate; do not publish a NuGet package or create a release as part of M0.
+The project is licensed under Apache-2.0. Unless explicitly stated otherwise, intentionally submitted contributions are provided under that license. Version `0.0.0` is still an unpublished engineering candidate; do not publish a NuGet package or create a release without explicit owner authorization.

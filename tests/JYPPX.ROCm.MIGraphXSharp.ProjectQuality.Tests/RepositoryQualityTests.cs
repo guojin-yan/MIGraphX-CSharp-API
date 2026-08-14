@@ -268,8 +268,10 @@ public sealed class RepositoryQualityTests
             "design/m0-native-baseline.md",
             "design/m1-direct-pinvoke.md",
             "design/m2-onnx-workflow.md",
+            "design/m3-binding-generator.md",
             "validation/README.md",
             "validation/m2-local-validation.md",
+            "validation/m3-local-validation.md",
             "releases/0.0.0.md",
             "api/index.md",
         })
@@ -284,6 +286,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("eng/verify-package.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/generate-interop.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m2-abi.ps1", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("eng/verify-m3-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);

@@ -32,6 +32,7 @@ try {
         $_ -match '(^|/)(bin|obj|TestResults|plan|Radeon_Cloud|downloads|models)(/|$)' -or
         $_ -match '\.(pdb|onnx|so|dylib)$' -or
         $_ -match '(?i)(fake[-_]?native|migraphx_c|\.obj$|\.lib$|\.exp$)' -or
+        $_ -match '(?i)(BindingGenerator|m3-(normalized|api-inventory|coverage|abi-export))' -or
         $_ -match '(?i)(unit|projectquality|packagetests)\.dll$'
     })
     if ($forbidden.Count -ne 0) {

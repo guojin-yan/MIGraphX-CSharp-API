@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/guojin-yan/MIGraphX-CSharp-API/schemas/m3-coverage-summary.schema.json",
+  "title": "MIGraphXSharp M3 coverage summary",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "summaryVersion", "sourceHeaderSha256", "counts", "classificationClosed"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "summaryVersion": { "const": "m3-1" },
+    "classificationClosed": { "const": true }
+  },
+  "additionalProperties": true
+}

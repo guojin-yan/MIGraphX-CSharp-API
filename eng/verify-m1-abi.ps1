@@ -27,14 +27,7 @@ if ($AcquireInputs) {
         if ((Get-FileHash -Algorithm SHA256 -LiteralPath $deb).Hash.ToLowerInvariant() -ne 'cf0381824856c7181cfc45db415c1d25a98625090cf06de98de564693c02a01e') {
             throw 'Official runtime package SHA-256 mismatch.'
         }
-        Push-Location $cache
-        try {
-            & tar -xf $deb data.tar.xz
-            if ($LASTEXITCODE -ne 0) { throw 'Failed to extract data.tar.xz from the official runtime package.' }
-            & tar -xf data.tar.xz './opt/rocm-7.2.1/lib/libmigraphx_c.so.3.0.70201'
-            if ($LASTEXITCODE -ne 0) { throw 'Failed to extract the official MIGraphX C library.' }
-        }
-        finally { Pop-Location }
+        Expand-DebDataFile -DebPath $deb -Destination $cache -ArchiveMember './opt/rocm-7.2.1/lib/libmigraphx_c.so.3.0.70201'
         $OfficialElfPath = Join-Path $cache 'opt\rocm-7.2.1\lib\libmigraphx_c.so.3.0.70201'
     }
 }
