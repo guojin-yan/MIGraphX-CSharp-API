@@ -13,8 +13,7 @@ $root = Get-RepositoryRoot
 $packageDirectory = Join-Path $root 'artifacts\packages'
 
 if ($Runtime) {
-    & (Join-Path $PSScriptRoot 'pack-runtime.ps1')
-    return
+    throw 'MIGRAPHX1001: Runtime NuGet packaging is not supported. Install MIGraphX and ROCm from the AMD official system repository.'
 }
 
 Push-Location $root

@@ -186,7 +186,7 @@ public sealed class RepositoryQualityTests
                 item.GetProperty("evidence").GetString(),
                 StringComparison.Ordinal));
         Assert.Equal(
-            "runtime-deferred",
+            "not-applicable",
             runtimeMatrix.RootElement.GetProperty("validations")
                 .EnumerateArray()
                 .Single(item => item.GetProperty("id").GetString() == "m7-runtime-package")
@@ -341,7 +341,7 @@ public sealed class RepositoryQualityTests
             Assert.Contains("runtime", text, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("f1a11cfd1701a041cee29188f7600c85b34ae260", text, StringComparison.Ordinal);
             Assert.Contains("gfx1100", text, StringComparison.Ordinal);
-            Assert.Contains("runtime-deferred", text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("system-native", text, StringComparison.OrdinalIgnoreCase);
         }
     }
 

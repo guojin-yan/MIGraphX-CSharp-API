@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.4.0",
+  "schemaVersion": "1.5.0",
   "generatedAtUtc": "2026-08-14T00:00:00Z",
   "allowedStatuses": ["planned", "statically-verified", "fake-native-executed", "runtime-deferred", "runtime-executed", "not-applicable"],
   "environment": { "localOs": "Windows", "amdGpuAvailable": false, "officialMIGraphXInstalled": false },
@@ -30,7 +30,7 @@
     { "id": "official-target-program-lifecycle", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, strict UTF-8 reached the runtime and valid gpu target/program create, assign_to, and destroy calls executed." },
     { "id": "official-onnx-parse-compile-run", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, the generated 128-byte Identity float32[1,4] model parsed from file and buffer, compiled for gpu with offload-copy, ran synchronously, and exactly matched [0.25,-1,2,9]." },
     { "id": "amd-gpu-execution", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260, one gfx1100 AMD Radeon Graphics device executed the restricted Identity workflow after independent JSON evidence review; this does not cover other devices, models, dynamic shapes, async, or device buffers." },
-    { "id": "m7-signed-source-and-root-elf", "status": "statically-verified", "evidence": "The AMD archive key fingerprint, signed Noble amd64 package index, exact MIGraphX root package, six canonical MIGraphX ELF files, aliases, SONAME, DT_NEEDED, RPATH, sizes, hashes, and one root-package license are independently recorded. This does not close provider payloads or package-only loading." },
-    { "id": "m7-runtime-package", "status": "runtime-deferred", "evidence": "Runtime packaging remains fail closed: the provider closure/licenses and layered layout are incomplete, the largest required archive exceeds the reviewed size gate, no clean Runtime consumer exists, and no new package-only official-host authorization was provided." }
+    { "id": "m7-signed-source-and-root-elf", "status": "statically-verified", "evidence": "The AMD archive key fingerprint, signed Noble amd64 package index, exact MIGraphX root package, six canonical MIGraphX ELF files, aliases, SONAME, DT_NEEDED, RPATH, sizes, hashes, and one root-package license are independently recorded. This is source compatibility evidence, not redistribution or a claim for every system-installed provider." },
+    { "id": "m7-runtime-package", "status": "not-applicable", "evidence": "Owner selected managed-only distribution with AMD official system installation for MIGraphX/ROCm. The repository contains no Runtime package project, native package loader branch, staging/promotion state, or native payload." }
   ]
 }

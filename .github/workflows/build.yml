@@ -40,15 +40,12 @@ jobs:
         run: |
           $package = ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
           ./eng/verify-package.ps1 -PackagePath $package -Version 0.0.0
-      - name: Verify runtime fail-closed behavior
-        shell: pwsh
-        run: ./eng/test-runtime-supply-chain.ps1
       - name: Build DocFX site
         shell: pwsh
         run: ./eng/docs.ps1 -Configuration Release -NoBuild
       - uses: actions/upload-artifact@v7
         with:
-          name: m5-local-package-and-docs
+          name: managed-packages-and-docs
           path: |
             artifacts/packages/*.nupkg
             artifacts/docs/**

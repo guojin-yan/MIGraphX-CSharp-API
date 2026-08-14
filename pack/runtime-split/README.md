@@ -1,5 +1,5 @@
-# Runtime topology (deferred)
+# Runtime topology decision
 
-M7 selects a layered topology in principle: `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.linux-x64` version `7.2.1` would depend on exact `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` version `[7.2.1]` and carry only MIGraphX/provider increments. The two packages may not contain the same target path or mix ROCm families.
+The native Runtime nupkg design was rejected. The reviewed closure is too large and overlaps ROCm assets already governed by AMD's package repository; splitting it would make this project own native version, dependency, license, RPATH, and cross-package upgrade policy.
 
-Packing remains disabled. hipBLASLt alone exceeds the 262,144,000-byte gate, five provider inventories/licenses remain open, upstream MIGraphX RPATH layout has no package-only proof against HipSharp's runtime asset layout, and the adapter cannot yet compare a cross-assembly loaded-runtime fingerprint. No component split or RPATH rewrite is approved without a new topology review and authorized package-only evidence.
+M7 therefore selects managed-only distribution and requires users to install a coherent MIGraphX/ROCm family through AMD's official system repository. No component split, Runtime package ID, staging directory, promotion receipt, or RPATH rewrite remains planned.

@@ -17,8 +17,8 @@
 | Windows/macOS native runtime | Unverified diagnostic candidates | Candidates are honest loader diagnostics, not an official MIGraphX build/support claim |
 | Official ONNX parse/compile/run | Runtime-executed | Generated Identity file and buffer paths compiled and ran synchronously with matching reference output |
 | AMD GPU | Runtime-executed | One gfx1100 GPU executed the restricted static float32 Identity graph; this is not a general device claim |
-| Runtime NuGet | Runtime-deferred | No nupkg exists. Provider closure/licenses, size topology, package-only layout/consumer, shared-family proof, and fresh official execution remain open; packing fails with `MIGRAPHX1001` |
+| Runtime NuGet | Not applicable | Owner selected managed-only distribution and AMD official system installation; no Runtime package project, staging/promotion path, marker loader, or native payload exists |
 
-The deferred package identity targets Ubuntu 24.04 amd64 metadata and establishes the Linux SONAME `libmigraphx_c.so.3`; it is not an installable asset. The historical official record additionally proves one exact system-installed host configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish package-only loading, other distributions, versions, devices, models, dynamic shapes, M6 async/device-buffer, zero-copy, or performance paths.
+The system-native policy targets the audited Ubuntu 24.04 amd64 metadata and Linux SONAME `libmigraphx_c.so.3`. The historical official record proves one exact system-installed host configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish other distributions, versions, devices, models, dynamic shapes, M6 async/device-buffer, zero-copy, or performance paths.
 
-中文摘要：平台表把“可编译”“完整头/官方 ELF 静态对照”“fake-native 执行”“runtime-deferred”和“官方 runtime 执行”分开。M7 没有生成 Runtime 包或新增官方 runtime 结论；精确环境的 M1/M2 已运行，Windows/macOS 仍不因候选字符串存在而获得支持声明。
+中文摘要：M7 将 Runtime NuGet 标为 `not-applicable`，冻结 managed-only + AMD 官方系统安装策略，没有新增官方 runtime 结论。精确环境的 M1/M2 已运行，Windows/macOS 仍不因候选字符串存在而获得支持声明。

@@ -2,9 +2,7 @@
 param(
     [string] $Manifest = 'nuget/runtime-manifests/linux-x64.json',
     [string] $CacheDirectory = '.cache/runtime/rocm-7.2.1-noble',
-    [string] $StagingDirectory = 'artifacts/runtime-staging/linux-x64',
     [switch] $Offline,
-    [switch] $VerifyOnly,
     [string] $TarPath = 'tar',
     [string] $GpgPath = 'gpg',
     [string] $GpgvPath = 'gpgv'
@@ -14,16 +12,16 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
-Import-Module (Join-Path $PSScriptRoot 'runtime-manifest.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'runtime-source-lock.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'runtime-archive.psm1') -Force
 $manifestPath = if ([IO.Path]::IsPathRooted($Manifest)) { [IO.Path]::GetFullPath($Manifest) } else { [IO.Path]::GetFullPath((Join-Path $root $Manifest)) }
-$runtime = (Get-MIGraphXRuntimeManifest $manifestPath).Value
-Assert-MIGraphXRuntimeManifest $runtime
+$runtime = (Get-MIGraphXSystemRuntimeSourceLock $manifestPath).Value
+Assert-MIGraphXSystemRuntimeSourceLock $runtime
 
 function Resolve-UnderRepository([string] $Value) {
     $path = if ([IO.Path]::IsPathRooted($Value)) { [IO.Path]::GetFullPath($Value) } else { [IO.Path]::GetFullPath((Join-Path $root $Value)) }
     if (-not $path.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "Runtime cache/staging paths must remain under the repository: $path"
+        throw "Runtime audit cache paths must remain under the repository: $path"
     }
     $relative = [IO.Path]::GetRelativePath($root, $path)
     $current = $root
@@ -32,7 +30,7 @@ function Resolve-UnderRepository([string] $Value) {
         if (Test-Path -LiteralPath $current) {
             $item = Get-Item -Force -LiteralPath $current
             if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
-                throw "Runtime cache/staging paths cannot traverse a symbolic link or junction: $current"
+                throw "Runtime audit cache paths cannot traverse a symbolic link or junction: $current"
             }
         }
     }
@@ -155,7 +153,6 @@ function Invoke-SignatureVerification([string] $KeyPath, [string] $KeyringPath, 
 }
 
 $cache = Resolve-UnderRepository $CacheDirectory
-$staging = Resolve-UnderRepository $StagingDirectory
 New-Item -ItemType Directory -Force -Path $cache | Out-Null
 $key = Join-Path $cache 'rocm.gpg.key'
 $keyring = Join-Path $cache 'rocm-archive-keyring.gpg'
@@ -191,9 +188,4 @@ foreach ($package in @($runtime.packages)) {
     }
 }
 
-if (-not $VerifyOnly) {
-    Assert-MIGraphXRuntimeManifest $runtime -RequireCandidate
-    throw "MIGRAPHX1001: Candidate staging is not implemented until the M7 blockers are closed: $staging"
-}
-
-Write-Host "Signed AMD source lock verified for $($runtime.packageId); staging remains $($runtime.technicalStatus)."
+Write-Host "Signed AMD system-runtime source lock verified for $($runtime.rid), ROCm 7.2.1, MIGraphX $($runtime.nativeVersion). No NuGet staging is performed."

@@ -18,7 +18,7 @@ function Assert-Rejected([string] $Name, [scriptblock] $Mutation) {
     $path = Join-Path $testRoot (($Name -replace '[^A-Za-z0-9.-]', '-') + '.json')
     [IO.File]::WriteAllText($path, (($value | ConvertTo-Json -Depth 40) + "`n"), [Text.UTF8Encoding]::new($false))
     try {
-        & (Join-Path $PSScriptRoot 'prepare-runtime.ps1') -Manifest $path -CacheDirectory $CacheDirectory -Offline -VerifyOnly
+        & (Join-Path $PSScriptRoot 'prepare-runtime.ps1') -Manifest $path -CacheDirectory $CacheDirectory -Offline
         throw "Negative runtime source test unexpectedly passed: $Name"
     } catch {
         if ($_.Exception.Message -like 'Negative runtime source test unexpectedly passed:*') { throw }
@@ -37,14 +37,16 @@ function Assert-ArchiveEntryRejected([string] $Name, [string] $Path, [char] $Typ
 }
 
 New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
-& (Join-Path $PSScriptRoot 'prepare-runtime.ps1') -Manifest $manifestPath -CacheDirectory $CacheDirectory -Offline -VerifyOnly
+& (Join-Path $PSScriptRoot 'prepare-runtime.ps1') -Manifest $manifestPath -CacheDirectory $CacheDirectory -Offline
 Assert-Rejected 'package-hash' { param($m) $m.packages[0].sha256 = '0' * 64 }
 Assert-Rejected 'package-version' { param($m) $m.packages[0].version = '2.15.0-invalid' }
 Assert-Rejected 'wrong-architecture' { param($m) $m.packages[0].architecture = 'arm64' }
 Assert-Rejected 'unapproved-host' { param($m) $m.packages[0].url = 'https://example.invalid/package.deb' }
+Assert-Rejected 'repository-version' { param($m) $m.source.repositoryUrl = 'https://repo.radeon.com/rocm/apt/7.2.0' }
+Assert-Rejected 'signing-key-fingerprint' { param($m) $m.source.signingKeyFingerprint = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' }
 Assert-Rejected 'inrelease-hash' { param($m) $m.source.inReleaseSha256 = '1' * 64 }
 Assert-ArchiveEntryRejected 'archive-path-traversal' '../escape.so' '-' $null
 Assert-ArchiveEntryRejected 'archive-absolute-path' '/etc/escape' '-' $null
 Assert-ArchiveEntryRejected 'archive-symlink-escape' 'opt/rocm/lib/escape.so' 'l' '../../../../outside'
 Assert-ArchiveEntryRejected 'archive-special-device' 'opt/rocm/dev/kfd' 'c' $null
-Write-Host 'Runtime signed-source/archive positive and 9 mutation tests passed.'
+Write-Host 'Official system-runtime signed-source/archive positive and 11 mutation tests passed.'

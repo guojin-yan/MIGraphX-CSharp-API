@@ -1,18 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "2.0.0",
+  "schemaVersion": "3.0.0",
+  "nativeDistributionMode": "system-native",
+  "runtimeNuGetSupported": false,
   "runtimePackagingEnabled": false,
   "failClosed": true,
-  "technicalStatus": "runtime-deferred",
-  "candidateStaged": false,
-  "verified": false,
+  "technicalStatus": "system-native-only",
+  "officialInstallationRequired": true,
+  "managedPackagesContainNativeAssets": false,
   "publishAuthorized": false,
   "releaseAuthorized": false,
-  "requiredStatuses": [
-    "runtime-candidate-staged",
-    "runtime-candidate-executed",
-    "runtime-executed"
-  ],
-  "promotionRule": "A tracked source flag never authorizes publication. Promotion requires a separate receipt bound to the exact source SHA, nupkg SHA, native fingerprint, manifest, SBOM, environment, model, commands, and reviewed exits.",
-  "reason": "The signed MIGraphX root is statically audited, but provider closure/licenses, package topology, size, clean consumer, mixed-directory negatives, and newly authorized package-only execution are incomplete."
+  "ownerDecision": "The project distributes managed assemblies only. Users install the coherent MIGraphX and ROCm native runtime through AMD's official system installation path.",
+  "reason": "The complete native closure is too large and duplicates assets managed by AMD's package repository. No Runtime nupkg, staging state, promotion receipt, or native package publication path is supported."
 }

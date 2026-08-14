@@ -1,5 +1,5 @@
-# Runtime manifests
+# Archived Runtime-package feasibility evidence
 
-`linux-x64.json` is the M7 source and proposed-payload allowlist for ROCm 7.2.1 on Ubuntu 24.04 amd64. It records the independently audited MIGraphX root package and ELF bytes, the layered HipSharp runtime dependency, the provider closure, licenses, system/driver boundary, size gate, SBOM, and verification state.
+These files record the M7 analysis that rejected a native Runtime nupkg for ROCm 7.2.1 on Ubuntu 24.04 amd64. They preserve the independently audited MIGraphX root package/ELF bytes, proposed closure, size study, historical SBOM, and provenance for review.
 
-The manifest is deliberately `runtime-deferred`. It is not a package receipt and does not authorize packing or publication. `candidateStaged`, `verified`, `publishAuthorized`, and `releaseAuthorized` remain separate false fields. The generated SBOM covers the deferred inventory; it does not claim that missing provider licenses or package-only loader traces have been completed.
+They are no longer an active package allowlist, build input, promotion state machine, or product SBOM. The current policy is managed-only distribution with AMD official system installation. `prepare-runtime.ps1` reads only the signed source-lock fields for optional verification and never stages native files.

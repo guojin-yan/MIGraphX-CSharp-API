@@ -6,7 +6,7 @@ The core public surface supports explicit diagnostics, the unchanged M2 single-i
 
 - The .NET SDK selected by `global.json`.
 - PowerShell 7 and a C compiler for the local fake-native gate.
-- For official runtime probing: the frozen ROCm 7.2.1 MIGraphX installation and its transitive dependencies on a compatible Linux x86-64 host.
+- For official runtime probing: install the frozen ROCm 7.2.1/MIGraphX system packages from AMD's official repository on a compatible Linux x86-64 host.
 
 ## Build and verify
 
@@ -16,8 +16,6 @@ dotnet tool restore
 .\eng\verify-m4-coverage.ps1
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
-.\eng\validate-runtime-manifest.ps1
-.\eng\test-runtime-supply-chain.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
@@ -33,7 +31,7 @@ $adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.0.0 -HipShar
 
 For explicit target/program/options/argument composition, continue with the [managed object workflow](managed-objects.md). Its inputs and outputs are copied for safety; it does not expose zero-copy or async behavior.
 
-The optional Runtime is not installable in M7. See [Runtime deployment](runtime-deployment.md) before using system or explicit native libraries; never copy assets from the ignored source cache into an application.
+MIGraphXSharp does not publish a Runtime nupkg. See [System-native deployment](runtime-deployment.md) before using system or explicit native libraries; never copy assets from the ignored source cache into an application.
 
 ## Run with a HipSharp stream
 
