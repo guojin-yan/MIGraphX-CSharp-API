@@ -5,6 +5,7 @@ param(
     [string] $StagingDirectory = 'artifacts/runtime-staging/linux-x64',
     [switch] $Offline,
     [switch] $VerifyOnly,
+    [string] $TarPath = 'tar',
     [string] $GpgPath = 'gpg',
     [string] $GpgvPath = 'gpgv'
 )
@@ -14,6 +15,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
 Import-Module (Join-Path $PSScriptRoot 'runtime-manifest.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'runtime-archive.psm1') -Force
 $manifestPath = if ([IO.Path]::IsPathRooted($Manifest)) { [IO.Path]::GetFullPath($Manifest) } else { [IO.Path]::GetFullPath((Join-Path $root $Manifest)) }
 $runtime = (Get-MIGraphXRuntimeManifest $manifestPath).Value
 Assert-MIGraphXRuntimeManifest $runtime
@@ -22,6 +24,17 @@ function Resolve-UnderRepository([string] $Value) {
     $path = if ([IO.Path]::IsPathRooted($Value)) { [IO.Path]::GetFullPath($Value) } else { [IO.Path]::GetFullPath((Join-Path $root $Value)) }
     if (-not $path.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Runtime cache/staging paths must remain under the repository: $path"
+    }
+    $relative = [IO.Path]::GetRelativePath($root, $path)
+    $current = $root
+    foreach ($segment in $relative.Split([IO.Path]::DirectorySeparatorChar, [StringSplitOptions]::RemoveEmptyEntries)) {
+        $current = Join-Path $current $segment
+        if (Test-Path -LiteralPath $current) {
+            $item = Get-Item -Force -LiteralPath $current
+            if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw "Runtime cache/staging paths cannot traverse a symbolic link or junction: $current"
+            }
+        }
     }
     return $path
 }
@@ -159,7 +172,7 @@ if ($releaseText -notmatch "(?m)^\s*$escapedHash\s+\d+\s+main/binary-amd64/Packa
     throw 'The signed InRelease metadata does not bind the pinned Packages.gz hash.'
 }
 $index = Read-PackagesIndex $packagesIndex
-$downloads = Join-Path $cache 'downloads'
+$downloads = Resolve-UnderRepository (Join-Path $cache 'downloads')
 foreach ($package in @($runtime.packages)) {
     if (-not $index.ContainsKey([string]$package.name)) { throw "Pinned package is missing from the signed index: $($package.name)" }
     $record = $index[[string]$package.name]
@@ -171,7 +184,10 @@ foreach ($package in @($runtime.packages)) {
     if ($package.acquisition -eq 'required') {
         $fileName = [IO.Path]::GetFileName(([Uri]$package.url).AbsolutePath)
         if ($fileName -notmatch '^[A-Za-z0-9.+_~-]+\.deb$') { throw "Unsafe Debian package file name: $fileName" }
-        Download-Verified $package.url (Join-Path $downloads $fileName) $package.sha256 ([int64]$package.size)
+        $downloadPath = Resolve-UnderRepository (Join-Path $downloads $fileName)
+        Download-Verified $package.url $downloadPath $package.sha256 ([int64]$package.size)
+        $inspection = Resolve-UnderRepository (Join-Path $cache ("archive-inspection/" + $package.sha256))
+        Assert-MIGraphXDebArchive -DebPath $downloadPath -InspectionDirectory $inspection -TarPath $TarPath
     }
 }
 

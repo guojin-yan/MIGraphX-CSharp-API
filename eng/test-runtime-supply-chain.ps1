@@ -6,6 +6,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
 Import-Module (Join-Path $PSScriptRoot 'runtime-manifest.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'runtime-archive.psm1') -Force
 $manifestPath = Join-Path $root $Manifest
 
 function New-Copy { return Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable }
@@ -57,6 +58,21 @@ Assert-Rejected 'publication authorization' { param($m) $m.publishAuthorized = $
 Assert-Rejected 'unresolved dependency' { param($m) $m.files[0].needed += 'libnotallowlisted.so.1' }
 Assert-Rejected 'missing payload license' { param($m) $m.licenses = @() }
 
+foreach ($archiveMutation in @(
+    @{ Name = 'archive path traversal'; Path = '../escape.so'; Type = '-'; Target = $null },
+    @{ Name = 'archive absolute path'; Path = '/etc/escape'; Type = '-'; Target = $null },
+    @{ Name = 'archive symlink escape'; Path = 'opt/rocm/lib/escape.so'; Type = 'l'; Target = '../../../../outside' },
+    @{ Name = 'archive special device'; Path = 'opt/rocm/dev/kfd'; Type = 'c'; Target = $null }
+)) {
+    try {
+        Assert-MIGraphXArchiveEntry -Path $archiveMutation.Path -Type ([char]$archiveMutation.Type) -LinkTarget $archiveMutation.Target
+        throw "Negative runtime archive test unexpectedly passed: $($archiveMutation.Name)"
+    } catch {
+        if ($_.Exception.Message -like 'Negative runtime archive test unexpectedly passed:*') { throw }
+        Write-Host "Rejected as expected: $($archiveMutation.Name)"
+    }
+}
+
 try {
     & (Join-Path $PSScriptRoot 'pack-runtime.ps1')
     throw 'Deferred controlled runtime pack unexpectedly passed.'
@@ -70,4 +86,4 @@ if ($LASTEXITCODE -eq 0 -or ($directPackOutput -join "`n") -notmatch 'MIGRAPHX10
     throw "Direct runtime pack guard did not fail closed with MIGRAPHX1001:`n$($directPackOutput -join "`n")"
 }
 Write-Host 'Rejected as expected: direct dotnet pack property bypass'
-Write-Host 'Runtime supply-chain positive and 17 fail-closed mutation tests passed.'
+Write-Host 'Runtime supply-chain positive and 21 fail-closed mutation tests passed.'

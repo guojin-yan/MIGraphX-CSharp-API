@@ -8,6 +8,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
+Import-Module (Join-Path $PSScriptRoot 'runtime-archive.psm1') -Force
 $manifestPath = Join-Path $root $Manifest
 $testRoot = Join-Path $root 'artifacts/runtime-source-tests'
 
@@ -25,6 +26,16 @@ function Assert-Rejected([string] $Name, [scriptblock] $Mutation) {
     }
 }
 
+function Assert-ArchiveEntryRejected([string] $Name, [string] $Path, [char] $Type, [AllowNull()][string] $LinkTarget) {
+    try {
+        Assert-MIGraphXArchiveEntry -Path $Path -Type $Type -LinkTarget $LinkTarget
+        throw "Negative runtime archive test unexpectedly passed: $Name"
+    } catch {
+        if ($_.Exception.Message -like 'Negative runtime archive test unexpectedly passed:*') { throw }
+        Write-Host "Rejected as expected: $Name"
+    }
+}
+
 New-Item -ItemType Directory -Force -Path $testRoot | Out-Null
 & (Join-Path $PSScriptRoot 'prepare-runtime.ps1') -Manifest $manifestPath -CacheDirectory $CacheDirectory -Offline -VerifyOnly
 Assert-Rejected 'package-hash' { param($m) $m.packages[0].sha256 = '0' * 64 }
@@ -32,4 +43,8 @@ Assert-Rejected 'package-version' { param($m) $m.packages[0].version = '2.15.0-i
 Assert-Rejected 'wrong-architecture' { param($m) $m.packages[0].architecture = 'arm64' }
 Assert-Rejected 'unapproved-host' { param($m) $m.packages[0].url = 'https://example.invalid/package.deb' }
 Assert-Rejected 'inrelease-hash' { param($m) $m.source.inReleaseSha256 = '1' * 64 }
-Write-Host 'Runtime signed-source positive and mutation tests passed.'
+Assert-ArchiveEntryRejected 'archive-path-traversal' '../escape.so' '-' $null
+Assert-ArchiveEntryRejected 'archive-absolute-path' '/etc/escape' '-' $null
+Assert-ArchiveEntryRejected 'archive-symlink-escape' 'opt/rocm/lib/escape.so' 'l' '../../../../outside'
+Assert-ArchiveEntryRejected 'archive-special-device' 'opt/rocm/dev/kfd' 'c' $null
+Write-Host 'Runtime signed-source/archive positive and 9 mutation tests passed.'
