@@ -28,6 +28,8 @@
     <BaseIntermediateOutputPath>$(RepositoryRoot)artifacts\obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
     <RestorePackagesPath>$(RepositoryRoot)artifacts\packages\restore</RestorePackagesPath>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <HipSharpRepositoryRoot Condition="'$(HipSharpRepositoryRoot)' == ''">$(MSBuildThisFileDirectory)..\..\HIP-CSharp-API\HIP-CSharp-API\</HipSharpRepositoryRoot>
+    <HipSharpPackageVersion Condition="'$(HipSharpPackageVersion)' == ''">0.9.1</HipSharpPackageVersion>
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>

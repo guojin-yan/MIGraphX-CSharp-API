@@ -5,7 +5,8 @@
       "src": [
         {
           "files": [
-            "src/JYPPX.ROCm.MIGraphX.CSharp.API/JYPPX.ROCm.MIGraphX.CSharp.API.csproj"
+            "src/JYPPX.ROCm.MIGraphX.CSharp.API/JYPPX.ROCm.MIGraphX.CSharp.API.csproj",
+            "src/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.csproj"
           ],
           "src": "."
         }

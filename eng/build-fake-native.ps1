@@ -8,7 +8,10 @@ param(
 $root = Get-RepositoryRoot
 $sourceDirectory = Join-Path $root 'native\fake-migraphx'
 $outputDirectory = Join-Path $root "artifacts\fake-native\$Configuration"
+$hipSource = Join-Path $root 'native\fake-hip\fake_hip.c'
+$hipOutputDirectory = Join-Path $root "artifacts\fake-hip\$Configuration"
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
+New-Item -ItemType Directory -Force -Path $hipOutputDirectory | Out-Null
 
 if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
@@ -42,6 +45,11 @@ if ($IsWindows -or $env:OS -eq 'Windows_NT') {
                     throw "Failed to build fake native library: $($item.Output)"
                 }
             }
+            $hipOutput = Join-Path $hipOutputDirectory 'amdhip64.dll'
+            & $compilerPath /nologo /LD /W4 /WX /O2 $hipSource /link "/OUT:$hipOutput"
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $hipOutput)) {
+                throw 'Failed to build fake HIP native library.'
+            }
         }
         finally { Pop-Location }
     }
@@ -65,6 +73,8 @@ else {
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build missing-export fake native library.' }
     & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 (Join-Path $sourceDirectory 'm1_only.c') -o (Join-Path $outputDirectory 'libmigraphx_c_m1_only.so')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build M1-only fake native library.' }
+    & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 $hipSource -o (Join-Path $hipOutputDirectory 'libamdhip64.so')
+    if ($LASTEXITCODE -ne 0) { throw 'Failed to build fake HIP native library.' }
     $compiler = $compilerCommand.Source
 }
 
@@ -72,4 +82,5 @@ else {
     Evidence = 'fake-native-executed-test-substitute'
     Compiler = $compiler
     Directory = $outputDirectory
+    HipDirectory = $hipOutputDirectory
 }

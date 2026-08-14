@@ -1,0 +1,62 @@
+{
+  "$schema": "./schemas/m6-high-level-api-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M6",
+  "sourceMap": "compatibility/m5-high-level-api-map.json",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "sourceImplementation": "AMDMIGraphX rocm-7.2.1 commit de19b73ad280476e646512b847885eda100ec35e",
+  "evidenceBoundary": "M6 async and device-input behavior is fake-native-executed; no new official runtime authorization was available.",
+  "counts": { "inventory": 192, "supported": 75, "planned": 116, "unsupported": 1 },
+  "mappings": [
+    {
+      "id": "function:migraphx_program_run_async",
+      "kind": "function",
+      "cName": "migraphx_program_run_async",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXHipExecution.RunHostAsync", "MIGraphXHipExecution.RunDeviceAsync", "MIGraphXHipAsyncRun.TryComplete", "MIGraphXHipAsyncRun.Synchronize"],
+      "ownership": "program, parameter map, arguments, returned output collection, stream pending callback, and device pointer leases survive enqueue until completion",
+      "validationLevel": "fake-native-executed",
+      "tests": ["M6HipAsyncTests.HostAsyncIsQueuedAndEarlyDisposeKeepsEveryNativeOwnerAlive", "M6HipAsyncTests.DeviceInputRetainsPointerAndCopiesOutputToOwnedHostMemoryAfterCompletion", "M6HipAsyncTests.SuccessWithNullAndCompletionSnapshotFailuresReleaseAllOwners", "M6HipAsyncTests.DifferentStreamsKeepNativeCompletionIsolated", "M6HipAsyncTests.DeviceValidationRejectsCrossDeviceAndCompletionReportsD2HFailure"]
+    },
+    {
+      "id": "function:migraphx_argument_create",
+      "kind": "function",
+      "cName": "migraphx_argument_create",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXArgument.Create<T>", "MIGraphXHipDeviceInput"],
+      "ownership": "host arguments own their unmanaged buffer; device arguments borrow a pointer only while a HipSharp lease is held",
+      "validationLevel": "fake-native-executed",
+      "tests": ["M4ManagedObjectTests.ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose", "M6HipAsyncTests.DeviceInputRetainsPointerAndCopiesOutputToOwnedHostMemoryAfterCompletion"]
+    },
+    {
+      "id": "function:migraphx_program_experimental_get_context",
+      "kind": "function",
+      "cName": "migraphx_program_experimental_get_context",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "Experimental context remains internal and is not required by HipStream completion.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_context_finish",
+      "kind": "function",
+      "cName": "migraphx_context_finish",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "Context finish is not used; HipStream.Synchronize is the completion boundary.",
+      "validationLevel": "planned",
+      "tests": []
+    },
+    {
+      "id": "function:migraphx_context_get_queue",
+      "kind": "function",
+      "cName": "migraphx_context_get_queue",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "Borrowed queue identity is documented but not exposed or destroyed by the adapter.",
+      "validationLevel": "planned",
+      "tests": []
+    }
+  ]
+}

@@ -81,11 +81,12 @@ $allowedManagedObjectFakeExports = @(
     'migraphx_onnx_options_set_input_parameter_shape', 'migraphx_onnx_options_set_dyn_input_parameter_shape',
     'migraphx_onnx_options_set_default_dim_value', 'migraphx_onnx_options_set_default_dyn_dim_value',
     'migraphx_file_options_create', 'migraphx_file_options_set_file_format', 'migraphx_file_options_destroy',
-    'migraphx_save', 'migraphx_load'
+    'migraphx_save', 'migraphx_load',
+    'migraphx_program_run_async'
 )
 $unexpectedFakeExports = @($fake | Where-Object { $_ -notin $expected -and $_ -notin $allowedManagedObjectFakeExports })
 if ($unexpectedFakeExports.Count -ne 0) {
-    throw "fake-native contains exports outside the M2 subset and reviewed M4/M5 test additions: $($unexpectedFakeExports -join ', ')"
+    throw "fake-native contains exports outside the M2 subset and reviewed M4/M5/M6 test additions: $($unexpectedFakeExports -join ', ')"
 }
 
 $officialAll = @(& dotnet run --project (Join-Path $root 'tools\ElfExportReader\ElfExportReader.csproj') -c Release -- $OfficialElfPath)

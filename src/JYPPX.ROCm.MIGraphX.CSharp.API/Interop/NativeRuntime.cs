@@ -40,4 +40,10 @@ internal sealed class NativeRuntime
             throw new ArgumentException("The native resource belongs to a different loaded MIGraphX library.", parameterName);
         }
     }
+
+    internal void RequireM6()
+    {
+        var result = NativeLibraryLoader.LoadExplicit(Path, requireOnnxWorkflow: true, requireManagedObjects: true, requireM6: true);
+        if (!result.Success) throw new MIGraphXNativeLoadException(result.Diagnostics);
+    }
 }

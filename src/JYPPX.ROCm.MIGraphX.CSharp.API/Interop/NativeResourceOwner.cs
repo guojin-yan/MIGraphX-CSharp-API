@@ -53,6 +53,26 @@ internal sealed class NativeResourceOwner<THandle> : IDisposable
         }
     }
 
+    internal NativeHandleLease AcquireLease()
+    {
+        lock (sync)
+        {
+            var owned = handle;
+            _ = HandleUnderLock;
+            var addedReference = false;
+            try
+            {
+                owned!.DangerousAddRef(ref addedReference);
+                return new NativeHandleLease(owned, owned.DangerousGetHandle(), addedReference);
+            }
+            catch
+            {
+                if (addedReference) owned!.DangerousRelease();
+                throw;
+            }
+        }
+    }
+
     public void Dispose()
     {
         lock (sync)
@@ -60,6 +80,42 @@ internal sealed class NativeResourceOwner<THandle> : IDisposable
             var owned = handle;
             handle = null;
             owned?.Dispose();
+        }
+    }
+}
+
+internal sealed class NativeHandleLease : IDisposable
+{
+    private NativeOwnedHandle? handle;
+
+    internal NativeHandleLease(NativeOwnedHandle handle, IntPtr pointer, bool addedReference)
+    {
+        this.handle = addedReference ? handle : null;
+        Pointer = pointer;
+    }
+
+    internal IntPtr Pointer { get; }
+
+    public void Dispose()
+    {
+        Interlocked.Exchange(ref handle, null)?.DangerousRelease();
+    }
+}
+
+internal sealed class NativeLeaseSet : IDisposable
+{
+    private IDisposable[]? leases;
+
+    internal NativeLeaseSet(IEnumerable<IDisposable> leases) => this.leases = leases.ToArray();
+
+    public void Dispose()
+    {
+        var owned = Interlocked.Exchange(ref leases, null);
+        if (owned is null) return;
+        for (var index = owned.Length - 1; index >= 0; index--)
+        {
+            try { owned[index].Dispose(); }
+            catch { }
         }
     }
 }

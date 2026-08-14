@@ -31,4 +31,6 @@ float[] copied = outputs[0].ToArray<float>();
 
 M5 adds `MIGraphXDynamicDimension` ranges and explicit ONNX static/dynamic overrides. Dynamic snapshots expose ranges but no concrete element or byte count; choose a concrete static shape before creating a typed argument. Tuple and bool/half/bfloat16/float8 families remain rejected. The older `MIGraphXOnnxWorkflow` retains its exact single-input, single-output, standard float32 behavior and remains the shortest compatibility path.
 
-中文摘要：所有原生资源都用显式实例和同一绝对库路径创建。Shape/名称/输出在原生集合释放前复制，typed input 与 parameter map 都拥有独立副本。M4 不公开动态 shape、异步或设备 buffer。
+M6 keeps the synchronous core API unchanged. Native asynchronous execution lives in the optional adapter, where program/map/argument handles are leased until HipStream completion and outputs become owned host snapshots. Device input is limited to validated `HipDeviceMemory` and has an explicit D2H output boundary. See the [M6 design](../design/m6-hip-async-interop.md).
+
+中文摘要：所有原生资源都用显式实例和同一绝对库路径创建。Shape/名称/同步输出在原生集合释放前复制，typed input 与 parameter map 都拥有独立副本。M6 异步能力位于可选适配器中，通过租约保活并显式 D2H 固化 device path 输出，不公开裸指针。

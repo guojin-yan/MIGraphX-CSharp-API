@@ -11,11 +11,15 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 public sealed class MIGraphXArgument : IDisposable
 {
     private readonly NativeResourceOwner<NativeArgumentHandle> owner;
+    private readonly bool ownsBuffer;
     private IntPtr buffer;
+    private int asyncLeaseCount;
+    private bool disposeRequested;
 
     private MIGraphXArgument(NativeRuntime runtime, MIGraphXShape shape, byte[] bytes)
     {
         Shape = shape;
+        ownsBuffer = true;
         var allocationSize = Math.Max(1, bytes.Length);
         buffer = Marshal.AllocHGlobal(allocationSize);
         try
@@ -35,6 +39,18 @@ public sealed class MIGraphXArgument : IDisposable
             Marshal.FreeHGlobal(buffer);
             buffer = IntPtr.Zero;
             throw;
+        }
+    }
+
+    private MIGraphXArgument(NativeRuntime runtime, MIGraphXShape shape, IntPtr externalBuffer)
+    {
+        if (externalBuffer == IntPtr.Zero) { throw new ArgumentException("The external buffer pointer must not be null.", nameof(externalBuffer)); }
+        Shape = shape;
+        ownsBuffer = false;
+        buffer = externalBuffer;
+        using (var nativeShape = NativeShapeHandle.Create(shape))
+        {
+            owner = new NativeResourceOwner<NativeArgumentHandle>(runtime, NativeArgumentHandle.Create(nativeShape.DangerousGetHandle(), buffer));
         }
     }
 
@@ -80,6 +96,7 @@ public sealed class MIGraphXArgument : IDisposable
     public T[] ToArray<T>() where T : unmanaged
     {
         ValidateType<T>(Shape);
+        if (!ownsBuffer) { throw new NotSupportedException("A borrowed device argument is not directly host-readable."); }
         var count = NativeShapeSnapshot.ToInt(Shape.ElementCount, "argument element count");
         return owner.WithHandle(_ =>
         {
@@ -94,10 +111,33 @@ public sealed class MIGraphXArgument : IDisposable
 
     internal MIGraphXArgument CloneForMap()
     {
-        return owner.WithHandle(_ => new MIGraphXArgument(owner.Runtime, Shape, CopyBytesUnderLock()));
+        return owner.WithHandle(_ => ownsBuffer
+            ? new MIGraphXArgument(owner.Runtime, Shape, CopyBytesUnderLock())
+            : new MIGraphXArgument(owner.Runtime, Shape, buffer));
+    }
+
+    internal static MIGraphXArgument CreateExternal(NativeRuntime runtime, MIGraphXShape shape, IntPtr buffer)
+        => new MIGraphXArgument(runtime, shape, buffer);
+
+    internal IDisposable AcquireAsyncLease()
+    {
+        lock (owner.Sync)
+        {
+            _ = owner.HandleUnderLock;
+            asyncLeaseCount++;
+            try { return new ArgumentAsyncLease(this, owner.AcquireLease()); }
+            catch { asyncLeaseCount--; throw; }
+        }
     }
 
     internal static MIGraphXArgument CopyFromNative(NativeRuntime runtime, IntPtr argument, string context)
+        => CopyFromNative(runtime, argument, context, null);
+
+    internal static MIGraphXArgument CopyFromNative(
+        NativeRuntime runtime,
+        IntPtr argument,
+        string context,
+        Func<IntPtr, int, byte[]>? copyBuffer)
     {
         if (argument == IntPtr.Zero)
         {
@@ -115,10 +155,19 @@ public sealed class MIGraphXArgument : IDisposable
         {
             throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_argument_buffer (success with null buffer)");
         }
-        var bytes = new byte[byteCount];
-        if (byteCount != 0)
+        byte[] bytes;
+        if (copyBuffer is not null)
         {
-            Marshal.Copy(nativeBuffer, bytes, 0, byteCount);
+            bytes = copyBuffer(nativeBuffer, byteCount);
+            if (bytes is null || bytes.Length != byteCount)
+            {
+                throw new InvalidOperationException("The device-to-host copier returned an invalid byte count.");
+            }
+        }
+        else
+        {
+            bytes = new byte[byteCount];
+            if (byteCount != 0) Marshal.Copy(nativeBuffer, bytes, 0, byteCount);
         }
         return new MIGraphXArgument(runtime, shape, bytes);
     }
@@ -128,14 +177,28 @@ public sealed class MIGraphXArgument : IDisposable
     {
         lock (owner.Sync)
         {
+            disposeRequested = true;
             owner.Dispose();
-            var allocated = buffer;
-            buffer = IntPtr.Zero;
-            if (allocated != IntPtr.Zero)
-            {
-                Marshal.FreeHGlobal(allocated);
-            }
+            TryFreeBufferUnderLock();
         }
+    }
+
+    private void ReleaseAsyncLease(NativeHandleLease handleLease)
+    {
+        handleLease.Dispose();
+        lock (owner.Sync)
+        {
+            asyncLeaseCount--;
+            TryFreeBufferUnderLock();
+        }
+    }
+
+    private void TryFreeBufferUnderLock()
+    {
+        if (!disposeRequested || asyncLeaseCount != 0 || !ownsBuffer) return;
+        var allocated = buffer;
+        buffer = IntPtr.Zero;
+        if (allocated != IntPtr.Zero) Marshal.FreeHGlobal(allocated);
     }
 
     private byte[] CopyBytesUnderLock()
@@ -155,6 +218,25 @@ public sealed class MIGraphXArgument : IDisposable
         if (mapped != shape.DataType)
         {
             throw new ArgumentException($"Managed element type '{typeof(T).FullName}' maps to {mapped}, not shape type {shape.DataType}.", nameof(T));
+        }
+    }
+
+    private sealed class ArgumentAsyncLease : IDisposable
+    {
+        private MIGraphXArgument? argument;
+        private NativeHandleLease? handleLease;
+
+        internal ArgumentAsyncLease(MIGraphXArgument argument, NativeHandleLease handleLease)
+        {
+            this.argument = argument;
+            this.handleLease = handleLease;
+        }
+
+        public void Dispose()
+        {
+            var ownedArgument = System.Threading.Interlocked.Exchange(ref argument, null);
+            var ownedHandle = System.Threading.Interlocked.Exchange(ref handleLease, null);
+            if (ownedArgument is not null && ownedHandle is not null) ownedArgument.ReleaseAsyncLease(ownedHandle);
         }
     }
 }

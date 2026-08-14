@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.3.0",
+  "schemaVersion": "1.4.0",
   "generatedAtUtc": "2026-08-14T00:00:00Z",
   "allowedStatuses": ["planned", "statically-verified", "fake-native-executed", "runtime-executed", "not-applicable"],
   "environment": { "localOs": "Windows", "amdGpuAvailable": false, "officialMIGraphXInstalled": false },
@@ -22,6 +22,10 @@
     { "id": "m4-high-level-map-and-ownership", "status": "statically-verified", "evidence": "The separate high-level map closes all 192 M3 inventory items as 52 supported, 139 planned, and one unsupported; eight public ownership records cover copied, owned, borrowed, cleanup, Dispose, and post-Dispose behavior." },
     { "id": "m4-fake-native-managed-objects", "status": "fake-native-executed", "evidence": "The local test substitute executed explicit Target, Program, ONNX/compile options, shape snapshots, typed owned host buffers, parameter maps, multi-item outputs, synchronous run, targeted failures, nulls, drift, and cleanup. No new official runtime session was performed." },
     { "id": "m4-representative-consumers", "status": "statically-verified", "evidence": "Isolated net46, netcoreapp3.1, net7.0, and net10.0 package consumers compile the same M4 enum and pure managed shape metadata contract." },
+    { "id": "m5-dynamic-shape-cache", "status": "fake-native-executed", "evidence": "Dynamic ranges, static/dynamic ONNX overrides, msgpack Save/Load, deterministic cache metadata, corrupt rebuild, and same-key concurrency executed against the local test substitute. No official M5 runtime session was performed." },
+    { "id": "m6-fixed-source-async-semantics", "status": "statically-verified", "evidence": "Official AMDMIGraphX rocm-7.2.1 commit de19b73ad280476e646512b847885eda100ec35e derives the exact hipStream_t name and orders asynchronous evaluation against the supplied queue." },
+    { "id": "m6-fake-native-hip-interop", "status": "fake-native-executed", "evidence": "Local MIGraphX and HIP substitutes executed enqueue/completion state, early disposal, distinct-stream isolation, device pointer leases, validation failures, explicit D2H, and completion error cleanup. This is not official MIGraphX or GPU evidence." },
+    { "id": "m6-adapter-package", "status": "statically-verified", "evidence": "The unpublished managed adapter candidate contains 15 DLL/XML asset pairs, exactly the two core package dependencies, no native payload, and a package-only consumer for host and device-input surfaces." },
     { "id": "official-native-loader", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260, the fixed official libmigraphx_c.so.3 loaded on Ubuntu 24.04 x86-64 with ROCm 7.2.1; header/library hashes and 41 subset exports were verified." },
     { "id": "official-target-program-lifecycle", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, strict UTF-8 reached the runtime and valid gpu target/program create, assign_to, and destroy calls executed." },
     { "id": "official-onnx-parse-compile-run", "status": "runtime-executed", "evidence": "At pushed SHA f1a11cfd1701a041cee29188f7600c85b34ae260 in the recorded environment, the generated 128-byte Identity float32[1,4] model parsed from file and buffer, compiled for gpu with offload-copy, ran synchronously, and exactly matched [0.25,-1,2,9]." },

@@ -202,6 +202,23 @@ internal sealed class NativeArgumentsHandle : NativeOwnedHandle
         return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_run");
     }
 
+    internal static NativeArgumentsHandle RunAsync(IntPtr program, IntPtr parameters, IntPtr stream, string streamType)
+    {
+        var slot = Marshal.AllocHGlobal(IntPtr.Size);
+        try
+        {
+            Marshal.WriteIntPtr(slot, IntPtr.Zero);
+            using (var name = new StrictUtf8String(streamType, nameof(streamType)))
+            {
+                var status = NativeMethods.ProgramRunAsync(slot, program, parameters, stream, name.Pointer);
+                var owned = new NativeArgumentsHandle();
+                owned.Initialize(Marshal.ReadIntPtr(slot));
+                return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_program_run_async");
+            }
+        }
+        finally { Marshal.FreeHGlobal(slot); }
+    }
+
     protected override bool ReleaseHandle() { NativeMethods.ArgumentsDestroy(handle); return true; }
 }
 

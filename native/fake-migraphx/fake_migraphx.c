@@ -52,7 +52,7 @@ typedef struct fake_options
     size_t static_count;
     size_t static_values[8];
 } *migraphx_onnx_options_t;
-typedef struct fake_program { int value; int compiled; int dynamic; size_t dynamic_count; fake_dynamic_dimension dynamic_values[8]; size_t static_count; size_t static_values[8]; } *migraphx_program_t;
+typedef struct fake_program { int value; int compiled; int offload_copy; int dynamic; size_t dynamic_count; fake_dynamic_dimension dynamic_values[8]; size_t static_count; size_t static_values[8]; } *migraphx_program_t;
 typedef struct fake_compile_options { uint8_t offload_copy; } *migraphx_compile_options_t;
 typedef struct fake_shape
 {
@@ -77,7 +77,7 @@ typedef struct fake_program_parameters
     char names[4][64];
     size_t count;
 } *migraphx_program_parameters_t;
-typedef struct fake_arguments { struct fake_argument argument; } *migraphx_arguments_t;
+typedef struct fake_arguments { struct fake_argument argument; void* stream; const char* queued_source; int pending; } *migraphx_arguments_t;
 typedef migraphx_status (*fake_m3_callback)(
     void* state,
     const char* text,
@@ -112,12 +112,19 @@ static volatile int32_t m5_destroy_count;
 static volatile int32_t shape_mode;
 static volatile int32_t shape_type_override = -1;
 static volatile int32_t parameter_size_reads;
+static volatile int32_t argument_size_reads;
 static volatile int32_t last_parameter_count;
 static char failure_entry[128];
 static volatile int32_t failure_status;
 static char null_entry[128];
 static fake_m3_callback m3_callback;
 static void* m3_callback_state;
+static migraphx_arguments_t async_runs[64];
+static volatile int32_t async_run_count;
+static volatile int32_t async_complete_count;
+static void* last_async_stream;
+static void* last_async_input;
+static char last_async_name[64];
 
 static int take_status(void)
 {
@@ -193,12 +200,19 @@ EXPORT void fake_reset(void)
     shape_mode = 0;
     shape_type_override = -1;
     parameter_size_reads = 0;
+    argument_size_reads = 0;
     last_parameter_count = 0;
     failure_entry[0] = '\0';
     failure_status = 0;
     null_entry[0] = '\0';
     m3_callback = NULL;
     m3_callback_state = NULL;
+    memset(async_runs, 0, sizeof(async_runs));
+    async_run_count = 0;
+    async_complete_count = 0;
+    last_async_stream = NULL;
+    last_async_input = NULL;
+    last_async_name[0] = '\0';
 }
 
 EXPORT void fake_set_next_status(int status) { ATOMIC_EXCHANGE(next_status, status); }
@@ -227,6 +241,31 @@ EXPORT int fake_m2_destroy_count(void) { return m2_destroy_count; }
 EXPORT int fake_m2_live_count(void) { return m2_live_count; }
 EXPORT int fake_m5_live_count(void) { return m5_live_count; }
 EXPORT int fake_m5_destroy_count(void) { return m5_destroy_count; }
+EXPORT int fake_async_run_count(void) { return async_run_count; }
+EXPORT int fake_async_complete_count(void) { return async_complete_count; }
+EXPORT void* fake_last_async_stream(void) { return last_async_stream; }
+EXPORT void* fake_last_async_input(void) { return last_async_input; }
+EXPORT const char* fake_last_async_name(void) { return last_async_name; }
+EXPORT void fake_complete_stream(void* stream)
+{
+    size_t index;
+    for(index = 0; index < sizeof(async_runs) / sizeof(async_runs[0]); ++index)
+    {
+        migraphx_arguments_t run = async_runs[index];
+        if(run != NULL && run->pending && run->stream == stream)
+        {
+            memcpy(run->argument.buffer, run->queued_source, run->argument.shape.bytes);
+            run->pending = 0;
+            ATOMIC_INCREMENT(async_complete_count);
+        }
+    }
+}
+EXPORT void fake_complete_all_streams(void)
+{
+    size_t index;
+    for(index = 0; index < sizeof(async_runs) / sizeof(async_runs[0]); ++index)
+        if(async_runs[index] != NULL && async_runs[index]->pending) fake_complete_stream(async_runs[index]->stream);
+}
 EXPORT void fake_set_shape_mode(int value) { ATOMIC_EXCHANGE(shape_mode, value); }
 EXPORT void fake_set_shape_type(int value) { ATOMIC_EXCHANGE(shape_type_override, value); }
 EXPORT void fake_set_failure(const char* entry, int status)
@@ -547,6 +586,9 @@ EXPORT migraphx_status migraphx_program_parameters_add(migraphx_program_paramete
 }
 EXPORT migraphx_status migraphx_arguments_destroy(migraphx_arguments_t value)
 {
+    size_t index;
+    for(index = 0; index < sizeof(async_runs) / sizeof(async_runs[0]); ++index)
+        if(async_runs[index] == value) async_runs[index] = NULL;
     if(value != NULL && value->argument.owns_buffer) free(value->argument.buffer);
     destroy_m2(value);
     return (migraphx_status)take_status_for("migraphx_arguments_destroy");
@@ -554,12 +596,16 @@ EXPORT migraphx_status migraphx_arguments_destroy(migraphx_arguments_t value)
 EXPORT migraphx_status migraphx_arguments_size(size_t* out, migraphx_arguments_t value)
 {
     if(out == NULL || value == NULL) return migraphx_status_bad_param;
-    *out = shape_mode == 6 ? 2 : 1;
+    if(shape_mode == 16)
+        *out = (ATOMIC_INCREMENT(argument_size_reads) % 2) == 1 ? 1 : 2;
+    else
+        *out = shape_mode == 6 ? 2 : 1;
     return (migraphx_status)take_status_for("migraphx_arguments_size");
 }
 EXPORT migraphx_status migraphx_arguments_get(const struct fake_argument** out, migraphx_arguments_t value, size_t idx)
 {
     if(out == NULL || value == NULL || idx >= (shape_mode == 6 ? 2u : 1u)) return migraphx_status_bad_param;
+    if(value->pending) return migraphx_status_unknown_error;
     *out = shape_mode == 9 ? NULL : &value->argument;
     return (migraphx_status)take_status_for("migraphx_arguments_get");
 }
@@ -607,8 +653,8 @@ EXPORT migraphx_status migraphx_argument_shape(const fake_shape** out, const mig
 EXPORT migraphx_status migraphx_argument_buffer(char** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = value->buffer; return (migraphx_status)take_status_for("migraphx_argument_buffer"); }
 EXPORT migraphx_status migraphx_program_compile(migraphx_program_t program, migraphx_target_t target, migraphx_compile_options_t options)
 {
-    if(program == NULL || target == NULL || options == NULL || !options->offload_copy) return migraphx_status_bad_param;
-    program->compiled = 1; ATOMIC_INCREMENT(compile_count); return (migraphx_status)take_status_for("migraphx_program_compile");
+    if(program == NULL || target == NULL || options == NULL) return migraphx_status_bad_param;
+    program->compiled = 1; program->offload_copy = options->offload_copy != 0; ATOMIC_INCREMENT(compile_count); return (migraphx_status)take_status_for("migraphx_program_compile");
 }
 EXPORT migraphx_status migraphx_program_get_parameter_shapes(migraphx_program_parameter_shapes_t* out, migraphx_program_t program)
 {
@@ -641,6 +687,43 @@ EXPORT migraphx_status migraphx_program_run(migraphx_arguments_t* out, migraphx_
     memcpy((*out)->argument.buffer, parameters->arguments[0].buffer, (*out)->argument.shape.bytes);
     (*out)->argument.owns_buffer = 1;
     ATOMIC_INCREMENT(run_count); status = take_status_for("migraphx_program_run"); return (migraphx_status)status;
+}
+EXPORT migraphx_status migraphx_program_run_async(
+    migraphx_arguments_t* out,
+    migraphx_program_t program,
+    migraphx_program_parameters_t parameters,
+    void* stream,
+    const char* name)
+{
+    size_t slot;
+    int status;
+    if(out == NULL || program == NULL || parameters == NULL || stream == NULL || name == NULL ||
+       strcmp(name, "hipStream_t") != 0 || !program->compiled || parameters->count == 0)
+        return migraphx_status_bad_param;
+    if(take_null_for("migraphx_program_run_async")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_program_run_async"); }
+    *out = (migraphx_arguments_t)create_m2(sizeof(**out));
+    if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->argument.shape = parameters->arguments[0].shape;
+    (*out)->argument.buffer = (char*)malloc((*out)->argument.shape.bytes);
+    if((*out)->argument.buffer == NULL) { destroy_m2(*out); *out = NULL; return migraphx_status_unknown_error; }
+    memset((*out)->argument.buffer, 0, (*out)->argument.shape.bytes);
+    (*out)->argument.owns_buffer = 1;
+    (*out)->stream = stream;
+    (*out)->queued_source = parameters->arguments[0].buffer;
+    (*out)->pending = 1;
+    for(slot = 0; slot < sizeof(async_runs) / sizeof(async_runs[0]); ++slot)
+        if(async_runs[slot] == NULL) { async_runs[slot] = *out; break; }
+    if(slot == sizeof(async_runs) / sizeof(async_runs[0]))
+    {
+        free((*out)->argument.buffer); destroy_m2(*out); *out = NULL; return migraphx_status_unknown_error;
+    }
+    last_async_stream = stream;
+    last_async_input = parameters->arguments[0].buffer;
+    copy_string(last_async_name, sizeof(last_async_name), name);
+    ATOMIC_INCREMENT(async_run_count);
+    ATOMIC_INCREMENT(run_count);
+    status = take_status_for("migraphx_program_run_async");
+    return (migraphx_status)status;
 }
 EXPORT migraphx_status migraphx_onnx_options_destroy(migraphx_onnx_options_t value) { destroy_m2(value); return (migraphx_status)take_status_for("migraphx_onnx_options_destroy"); }
 EXPORT migraphx_status migraphx_onnx_options_create(migraphx_onnx_options_t* out)

@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup><ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally></PropertyGroup>
+  <ItemGroup>
+    <PackageVersion Include="JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop" Version="0.0.0" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(JYPPXManagedTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop</AssemblyName>
+    <RootNamespace>JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop</RootNamespace>
+    <PackageId>JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop</PackageId>
+    <AdapterPackageVersion Condition="'$(AdapterPackageVersion)' == ''">$(MIGraphXSharpVersion)</AdapterPackageVersion>
+    <Version>$(AdapterPackageVersion)</Version>
+    <PackageVersion>$(AdapterPackageVersion)</PackageVersion>
+    <Title>MIGraphX HIP interop adapter</Title>
+    <Description>Optional resource-safe native async adapter between the MIGraphX and HIP managed cores. Contains no native runtime binaries.</Description>
+    <PackageTags>AMD;ROCm;MIGraphX;HIP;async;interop</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\JYPPX.ROCm.MIGraphX.CSharp.API\JYPPX.ROCm.MIGraphX.CSharp.API.csproj" />
+    <ProjectReference Include="$(HipSharpRepositoryRoot)src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="" />
+  </ItemGroup>
+</Project>

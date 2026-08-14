@@ -20,8 +20,12 @@ public sealed class MIGraphXParameterMap : IDisposable
     /// </summary>
     /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute path to the MIGraphX C native library.</param>
     public MIGraphXParameterMap(string nativeLibraryPath)
+        : this(NativeRuntime.Load(nativeLibraryPath))
     {
-        var runtime = NativeRuntime.Load(nativeLibraryPath);
+    }
+
+    internal MIGraphXParameterMap(NativeRuntime runtime)
+    {
         owner = new NativeResourceOwner<NativeProgramParametersHandle>(runtime, NativeProgramParametersHandle.Create());
     }
 
@@ -68,6 +72,34 @@ public sealed class MIGraphXParameterMap : IDisposable
     }
 
     internal NativeResourceOwner<NativeProgramParametersHandle> Owner => owner;
+
+    internal void AddExternal(string name, MIGraphXShape shape, IntPtr pointer)
+    {
+        using (var argument = MIGraphXArgument.CreateExternal(owner.Runtime, shape, pointer))
+        {
+            Add(name, argument);
+        }
+    }
+
+    internal IDisposable AcquireAsyncLease()
+    {
+        lock (owner.Sync)
+        {
+            _ = owner.HandleUnderLock;
+            var leases = new List<IDisposable>();
+            try
+            {
+                leases.Add(owner.AcquireLease());
+                foreach (var entry in entries) leases.Add(entry.Value.AcquireAsyncLease());
+                return new NativeLeaseSet(leases);
+            }
+            catch
+            {
+                for (var index = leases.Count - 1; index >= 0; index--) leases[index].Dispose();
+                throw;
+            }
+        }
+    }
 
     internal string[] NamesUnderLock
     {

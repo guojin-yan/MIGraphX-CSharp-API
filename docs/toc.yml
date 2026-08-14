@@ -24,6 +24,8 @@
     href: design/m4-managed-object-model.md
   - name: M5 dynamic shapes and cache
     href: design/m5-dynamic-shape-cache.md
+  - name: M6 HIP async interop
+    href: design/m6-hip-async-interop.md
 - name: Validation
   items:
   - name: Overview
@@ -38,6 +40,8 @@
     href: validation/m4-local-validation.md
   - name: M5 local status
     href: validation/m5-local-validation.md
+  - name: M6 local status
+    href: validation/m6-local-validation.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes
@@ -48,3 +52,5 @@
   href: articles/m4-resource-safe-dotnet.md
 - name: M5 engineering article
   href: articles/m5-dynamic-shape-cache.md
+- name: M6 engineering article
+  href: articles/m6-hip-async-copy-boundary.md

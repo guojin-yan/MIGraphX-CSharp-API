@@ -16,6 +16,7 @@ public sealed class MIGraphXProgram : IDisposable
     private readonly NativeResourceOwner<NativeProgramHandle> owner;
     private readonly IReadOnlyDictionary<string, MIGraphXDynamicDimension[]> dynamicOverrides;
     private bool compiled;
+    private bool compiledOffloadCopy;
 
     /// <summary>
     /// 使用显式原生库创建空 program。
@@ -112,6 +113,7 @@ public sealed class MIGraphXProgram : IDisposable
                     NativeMethods.ProgramCompile(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock),
                     "migraphx_program_compile");
                 compiled = true;
+                compiledOffloadCopy = options.OffloadCopy;
                 return 0;
             });
     }
@@ -218,6 +220,57 @@ public sealed class MIGraphXProgram : IDisposable
             });
     }
 
+    internal NativeRuntime Runtime => owner.Runtime;
+
+    internal MIGraphXNativeAsyncRun EnqueueNativeAsync(
+        MIGraphXParameterMap parameters,
+        IntPtr stream,
+        bool requireOffloadCopy,
+        IReadOnlyList<IDisposable>? externalLeases = null)
+    {
+        if (parameters is null) throw new ArgumentNullException(nameof(parameters));
+        if (stream == IntPtr.Zero) throw new ArgumentException("The HIP stream pointer must not be null.", nameof(stream));
+        owner.Runtime.RequireSame(parameters.Owner.Runtime, nameof(parameters));
+        owner.Runtime.RequireM6();
+
+        return NativeResourceLock.With(
+            new[]
+            {
+                NativeResourceLock.Target(owner.Id, owner.Sync),
+                NativeResourceLock.Target(parameters.Owner.Id, parameters.Owner.Sync),
+            },
+            () =>
+            {
+                if (!compiled) throw new InvalidOperationException("The program must be compiled before asynchronous execution.");
+                if (compiledOffloadCopy != requireOffloadCopy)
+                {
+                    throw new InvalidOperationException(requireOffloadCopy
+                        ? "Host async execution requires a program compiled with offloadCopy=true."
+                        : "Device-input async execution requires a program compiled with offloadCopy=false.");
+                }
+                ValidateParameterNamesUnderLock(parameters);
+
+                var leases = new List<IDisposable>();
+                try
+                {
+                    if (externalLeases is not null) leases.AddRange(externalLeases);
+                    leases.Add(owner.AcquireLease());
+                    leases.Add(parameters.AcquireAsyncLease());
+                    var nativeOutputs = NativeArgumentsHandle.RunAsync(
+                        owner.HandleUnderLock,
+                        parameters.Owner.HandleUnderLock,
+                        stream,
+                        "hipStream_t");
+                    return new MIGraphXNativeAsyncRun(owner.Runtime, nativeOutputs, new NativeLeaseSet(leases));
+                }
+                catch
+                {
+                    for (var index = leases.Count - 1; index >= (externalLeases?.Count ?? 0); index--) leases[index].Dispose();
+                    throw;
+                }
+            });
+    }
+
     /// <summary>确定性释放 owned program handle；重复调用安全。 Deterministically releases the owned program handle; repeated calls are safe.</summary>
     public void Dispose() => owner.Dispose();
 
@@ -259,6 +312,19 @@ public sealed class MIGraphXProgram : IDisposable
             {
                 if (namesBuffer != IntPtr.Zero) { Marshal.FreeHGlobal(namesBuffer); }
             }
+        }
+    }
+
+    private void ValidateParameterNamesUnderLock(MIGraphXParameterMap parameters)
+    {
+        var required = GetParameterShapesUnderLock(owner.HandleUnderLock).Keys.ToArray();
+        var supplied = parameters.NamesUnderLock;
+        var requiredSet = new HashSet<string>(required, StringComparer.Ordinal);
+        if (required.Length != supplied.Length || !requiredSet.SetEquals(supplied))
+        {
+            throw new ArgumentException(
+                $"Parameter names must exactly match the native set. Required: [{string.Join(", ", required)}]; supplied: [{string.Join(", ", supplied)}].",
+                nameof(parameters));
         }
     }
 

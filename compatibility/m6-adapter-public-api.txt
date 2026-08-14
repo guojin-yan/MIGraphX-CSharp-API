@@ -1,0 +1,14 @@
+JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun : System.IDisposable
+  bool IsCompleted { get; }
+  JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection Outputs { get; }
+  bool TryComplete()
+  void Synchronize()
+  void Dispose()
+JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput
+  MIGraphXHipDeviceInput(string name, JYPPX.ROCm.MIGraphXSharp.MIGraphXShape shape, JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory memory)
+  string Name { get; }
+  JYPPX.ROCm.MIGraphXSharp.MIGraphXShape Shape { get; }
+  JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory Memory { get; }
+JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipExecution
+  static MIGraphXHipAsyncRun RunHostAsync(JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram program, JYPPX.ROCm.MIGraphXSharp.MIGraphXParameterMap parameters, JYPPX.ROCm.HipSharp.Streams.HipStream stream)
+  static MIGraphXHipAsyncRun RunDeviceAsync(JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram program, System.Collections.Generic.IReadOnlyList<MIGraphXHipDeviceInput> inputs, JYPPX.ROCm.HipSharp.Streams.HipStream stream)

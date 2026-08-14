@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
 using Xunit;
 
 namespace JYPPX.ROCm.MIGraphXSharp.ProjectQuality.Tests;
@@ -62,6 +63,8 @@ public sealed class RepositoryQualityTests
             RegexOptions.CultureInvariant);
         var sourceViolations = Directory.EnumerateFiles(RepositoryRoot, "*.cs", SearchOption.AllDirectories)
             .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}artifacts{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase))
+            .Where(path => !File.ReadAllText(path).Contains("namespace JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop", StringComparison.Ordinal))
+            .Where(path => !File.ReadAllText(path).Contains("using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;", StringComparison.Ordinal))
             .Where(path => legacyCodeNamespace.IsMatch(File.ReadAllText(path)))
             .ToArray();
         Assert.Empty(sourceViolations);
@@ -73,6 +76,7 @@ public sealed class RepositoryQualityTests
                 .Where(element => element.Name.LocalName == "RootNamespace")
                 .Select(element => element.Value))
             .Where(value => value == "JYPPX.ROCm.MIGraphX" || value.StartsWith("JYPPX.ROCm.MIGraphX.", StringComparison.Ordinal))
+            .Where(value => value != "JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop")
             .ToArray();
         Assert.Empty(projectViolations);
     }
@@ -263,6 +267,59 @@ public sealed class RepositoryQualityTests
     }
 
     [Fact]
+    public void M6AdapterPublicBaselineIsSmallBilingualAndPointerFree()
+    {
+        var assembly = typeof(MIGraphXHipAsyncRun).Assembly;
+        var types = assembly.GetExportedTypes();
+        Assert.Equal(3, types.Length);
+        Assert.All(types, type => Assert.StartsWith("JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop", type.Namespace));
+        var baselineTypes = File.ReadAllLines(Path.Combine(RepositoryRoot, "compatibility", "m6-adapter-public-api.txt"))
+            .Where(line => line.StartsWith("JYPPX.", StringComparison.Ordinal))
+            .Select(line => line.Split(new[] { " :" }, StringSplitOptions.None)[0].Trim())
+            .ToHashSet(StringComparer.Ordinal);
+        Assert.True(baselineTypes.SetEquals(types.Select(type => type.FullName!)));
+
+        var memberCount = types.Sum(type =>
+            type.GetConstructors(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
+            + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
+            + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
+        Assert.Equal(11, memberCount);
+        foreach (var type in types)
+        {
+            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            {
+                Assert.DoesNotContain(method.GetParameters(), parameter => ContainsRawPointerType(parameter.ParameterType));
+                Assert.False(ContainsRawPointerType(method.ReturnType));
+            }
+            Assert.All(type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly),
+                property => Assert.False(ContainsRawPointerType(property.PropertyType)));
+        }
+
+        var xmlPath = Path.ChangeExtension(assembly.Location, ".xml");
+        var xmlMembers = XDocument.Load(xmlPath).Descendants("member").ToDictionary(
+            element => element.Attribute("name")!.Value,
+            element => element);
+        foreach (var type in types)
+        {
+            AssertBilingual(xmlMembers, $"T:{type.FullName}");
+            foreach (var property in type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                AssertBilingual(xmlMembers, $"P:{type.FullName}.{property.Name}");
+            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Where(method => !method.IsSpecialName))
+            {
+                var parameters = method.GetParameters();
+                var suffix = parameters.Length == 0 ? string.Empty : $"({string.Join(",", parameters.Select(parameter => XmlTypeName(parameter.ParameterType)))})";
+                AssertBilingual(xmlMembers, $"M:{type.FullName}.{method.Name}{suffix}");
+            }
+            foreach (var constructor in type.GetConstructors(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+            {
+                var parameters = constructor.GetParameters();
+                var suffix = parameters.Length == 0 ? string.Empty : $"({string.Join(",", parameters.Select(parameter => XmlTypeName(parameter.ParameterType)))})";
+                AssertBilingual(xmlMembers, $"M:{type.FullName}.#ctor{suffix}");
+            }
+        }
+    }
+
+    [Fact]
     public void ReadmesHaveCorrespondingStructureAndNoCapabilityOverstatement()
     {
         var english = File.ReadAllText(Path.Combine(RepositoryRoot, "README.md"));
@@ -355,14 +412,17 @@ public sealed class RepositoryQualityTests
             "design/m3-binding-generator.md",
             "design/m4-managed-object-model.md",
             "design/m5-dynamic-shape-cache.md",
+            "design/m6-hip-async-interop.md",
             "validation/README.md",
             "validation/m2-local-validation.md",
             "validation/m3-local-validation.md",
             "validation/m4-local-validation.md",
             "validation/m5-local-validation.md",
+            "validation/m6-local-validation.md",
             "guides/managed-objects.md",
             "articles/m4-resource-safe-dotnet.md",
             "articles/m5-dynamic-shape-cache.md",
+            "articles/m6-hip-async-copy-boundary.md",
             "releases/0.0.0.md",
             "api/index.md",
         })
