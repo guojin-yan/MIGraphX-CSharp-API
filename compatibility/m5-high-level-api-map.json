@@ -1,0 +1,33 @@
+{
+  "$schema": "./schemas/m4-high-level-api-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M5",
+  "sourceMap": "compatibility/m4-high-level-api-map.json",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "evidenceBoundary": "M5 dynamic shape, Save/Load, and cache behavior is fake-native-executed only; the four M1/M2 official runtime records are unchanged.",
+  "counts": { "inventory": 192, "supported": 74, "planned": 117, "unsupported": 1 },
+  "supportedM5Capabilities": [
+    "migraphx_optimals_create",
+    "migraphx_optimals_destroy",
+    "migraphx_dynamic_dimension_create_min_max",
+    "migraphx_dynamic_dimension_create_min_max_optimals",
+    "migraphx_dynamic_dimension_is_fixed",
+    "migraphx_dynamic_dimension_equal",
+    "migraphx_dynamic_dimensions_create",
+    "migraphx_dynamic_dimensions_destroy",
+    "migraphx_dynamic_dimensions_size",
+    "migraphx_dynamic_dimensions_get",
+    "migraphx_shape_create_dynamic",
+    "migraphx_shape_dyn_dims",
+    "migraphx_shape_dynamic",
+    "migraphx_onnx_options_set_input_parameter_shape",
+    "migraphx_onnx_options_set_dyn_input_parameter_shape",
+    "migraphx_onnx_options_set_default_dim_value",
+    "migraphx_onnx_options_set_default_dyn_dim_value",
+    "migraphx_file_options_create",
+    "migraphx_file_options_set_file_format",
+    "migraphx_file_options_destroy",
+    "migraphx_save",
+    "migraphx_load"
+  ]
+}

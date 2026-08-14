@@ -29,6 +29,6 @@ float[] copied = outputs[0].ToArray<float>();
 
 `GetParameterShapes` and `GetOutputShapes` return managed snapshots; they do not keep native collections alive. `Create<T>` and `Add` both deep-copy their data. `Run` validates that supplied parameter names exactly match the native parameter set and returns outputs already detached from the native run collection.
 
-M4 accepts static mapped scalar tensors. Dynamic or tuple shapes and bool/half/bfloat16/float8 families are rejected. The older `MIGraphXOnnxWorkflow` retains its exact single-input, single-output, standard float32 behavior and remains the shortest compatibility path.
+M5 adds `MIGraphXDynamicDimension` ranges and explicit ONNX static/dynamic overrides. Dynamic snapshots expose ranges but no concrete element or byte count; choose a concrete static shape before creating a typed argument. Tuple and bool/half/bfloat16/float8 families remain rejected. The older `MIGraphXOnnxWorkflow` retains its exact single-input, single-output, standard float32 behavior and remains the shortest compatibility path.
 
 中文摘要：所有原生资源都用显式实例和同一绝对库路径创建。Shape/名称/输出在原生集合释放前复制，typed input 与 parameter map 都拥有独立副本。M4 不公开动态 shape、异步或设备 buffer。

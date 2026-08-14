@@ -23,6 +23,7 @@ JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType : System.Enum
   UInt64 = 13
 JYPPX.ROCm.MIGraphXSharp.MIGraphXShape
   MIGraphXShape(MIGraphXShapeDataType dataType, IReadOnlyList<long> lengths)
+  MIGraphXShape(MIGraphXShapeDataType dataType, IReadOnlyList<MIGraphXDynamicDimension> dimensions)
   MIGraphXShapeDataType DataType { get; }
   IReadOnlyList<long> Lengths { get; }
   IReadOnlyList<long> Strides { get; }
@@ -31,12 +32,21 @@ JYPPX.ROCm.MIGraphXSharp.MIGraphXShape
   long ByteCount { get; }
   bool IsStandard { get; }
   bool IsPacked { get; }
+  bool IsDynamic { get; }
+  IReadOnlyList<MIGraphXDynamicDimension> DynamicDimensions { get; }
+  static MIGraphXShape CreateDynamic(MIGraphXShapeDataType dataType, IReadOnlyList<MIGraphXDynamicDimension> dimensions)
 JYPPX.ROCm.MIGraphXSharp.MIGraphXTarget : System.IDisposable
   MIGraphXTarget(string nativeLibraryPath, string name = "gpu")
   string Name { get; }
   void Dispose()
 JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions : System.IDisposable
   MIGraphXOnnxOptions(string nativeLibraryPath)
+  void SetInputParameterShape(string name, IReadOnlyList<long> dimensions)
+  void SetDynamicInputParameterShape(string name, IReadOnlyList<MIGraphXDynamicDimension> dimensions)
+  void SetDynInputParameterShape(string name, IReadOnlyList<MIGraphXDynamicDimension> dimensions)
+  void SetDefaultDimensionValue(long value)
+  void SetDefaultDynamicDimensionValue(MIGraphXDynamicDimension value)
+  void SetDefaultDynDimValue(MIGraphXDynamicDimension value)
   void Dispose()
 JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions : System.IDisposable
   MIGraphXCompileOptions(string nativeLibraryPath, bool offloadCopy = true)
@@ -63,7 +73,9 @@ JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram : System.IDisposable
   bool IsCompiled { get; }
   static MIGraphXProgram ParseOnnxFile(string modelPath, MIGraphXOnnxOptions options)
   static MIGraphXProgram ParseOnnxBuffer(byte[] model, MIGraphXOnnxOptions options)
+  static MIGraphXProgram Load(string path, MIGraphXFileOptions options)
   void Compile(MIGraphXTarget target, MIGraphXCompileOptions options)
+  void Save(string path, MIGraphXFileOptions options)
   IReadOnlyDictionary<string, MIGraphXShape> GetParameterShapes()
   IReadOnlyList<MIGraphXShape> GetOutputShapes()
   MIGraphXArgumentCollection Run(MIGraphXParameterMap parameters)
@@ -107,3 +119,64 @@ JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXEnvironmentReport
   bool ExportsComplete { get; }
   bool ObjectsExecuted { get; }
   IReadOnlyList<MIGraphXNativeDiagnostic> Diagnostics { get; }
+JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension
+  MIGraphXDynamicDimension(long value)
+  MIGraphXDynamicDimension(long minimum, long maximum, IReadOnlyList<long>? optimals = null)
+  long Minimum { get; }
+  long Maximum { get; }
+  IReadOnlyList<long> Optimals { get; }
+  bool IsFixed { get; }
+  static MIGraphXDynamicDimension Fixed(long value)
+  static MIGraphXDynamicDimension Range(long minimum, long maximum, IReadOnlyList<long>? optimals = null)
+  static MIGraphXDynamicDimension Unknown { get; }
+  bool Equals(MIGraphXDynamicDimension other)
+  override bool Equals(object obj)
+  override int GetHashCode()
+  override string ToString()
+  static bool operator ==(MIGraphXDynamicDimension left, MIGraphXDynamicDimension right)
+  static bool operator !=(MIGraphXDynamicDimension left, MIGraphXDynamicDimension right)
+JYPPX.ROCm.MIGraphXSharp.MIGraphXFileOptions : System.IDisposable
+  MIGraphXFileOptions(string nativeLibraryPath, string fileFormat = "msgpack")
+  string FileFormat { get; }
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride
+  MIGraphXCacheOverride(string inputName, IReadOnlyList<long> dimensions)
+  MIGraphXCacheOverride(string inputName, IReadOnlyList<MIGraphXDynamicDimension> dimensions)
+  string InputName { get; }
+  IReadOnlyList<long> Dimensions { get; }
+  IReadOnlyList<MIGraphXDynamicDimension> DynamicDimensions { get; }
+  bool IsDynamic { get; }
+JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata
+  MIGraphXCacheMetadata(string modelSha256, string targetName, string compileOptions, string fileFormat, string nativeFingerprint, IReadOnlyList<MIGraphXCacheOverride>? inputOverrides = null, string? headerSha256 = null, string? apiIdentity = null, string? managedIdentity = null)
+  int SchemaVersion { get; }
+  string ModelSha256 { get; }
+  string HeaderSha256 { get; }
+  string ApiIdentity { get; }
+  string ManagedIdentity { get; }
+  string NativeFingerprint { get; }
+  string TargetName { get; }
+  string CompileOptions { get; }
+  string FileFormat { get; }
+  IReadOnlyList<MIGraphXCacheOverride> InputOverrides { get; }
+  static string ComputeModelSha256(byte[] model)
+  static string ComputeNativeFingerprint(string nativeLibraryPath)
+  string ComputeKey()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind : System.Enum
+  Hit = 0
+  Miss = 1
+  Corrupt = 2
+  Rebuilt = 3
+JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheResult : System.IDisposable
+  MIGraphXCacheLookupKind Kind { get; }
+  MIGraphXCacheLookupKind? PreviousLookup { get; }
+  string Key { get; }
+  MIGraphXProgram Program { get; }
+  void Dispose()
+JYPPX.ROCm.MIGraphXSharp.MIGraphXModelCache
+  MIGraphXModelCache(string rootDirectory)
+  string RootDirectory { get; }
+  MIGraphXCacheResult GetOrBuild(MIGraphXCacheMetadata metadata, MIGraphXFileOptions fileOptions, Func<MIGraphXProgram> builder)
+JYPPX.ROCm.MIGraphXSharp.MIGraphXProgramCache
+  MIGraphXProgramCache(string rootDirectory)
+  string RootDirectory { get; }
+  MIGraphXCacheResult GetOrBuild(MIGraphXCacheMetadata metadata, MIGraphXFileOptions fileOptions, Func<MIGraphXProgram> builder)

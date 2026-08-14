@@ -11,7 +11,7 @@ internal abstract class NativeOwnedHandle : SafeHandleZeroOrMinusOneIsInvalid
     {
     }
 
-    protected void Initialize(IntPtr raw) => SetHandle(raw);
+    internal void Initialize(IntPtr raw) => SetHandle(raw);
 }
 
 internal sealed class NativeOnnxOptionsHandle : NativeOwnedHandle
@@ -144,6 +144,26 @@ internal sealed class NativeShapeHandle : NativeOwnedHandle
             if (buffer != IntPtr.Zero)
             {
                 Marshal.FreeHGlobal(buffer);
+            }
+        }
+    }
+
+    internal static NativeShapeHandle CreateDynamic(MIGraphXShape shape)
+    {
+        if (!shape.IsDynamic) { return Create(shape); }
+        using (var dimensions = NativeDynamicDimensionsHandle.Create(shape.DynamicDimensions))
+        {
+            var owned = OutHandle<NativeShapeHandle>.Create("migraphx_shape_create_dynamic");
+            try
+            {
+                var status = NativeMethods.ShapeCreateDynamic(owned.OutSlot, ShapeDataTypeMap.ToNative(shape.DataType), dimensions.DangerousGetHandle());
+                owned.Complete(status);
+                return owned.Handle;
+            }
+            catch
+            {
+                owned.Dispose();
+                throw;
             }
         }
     }

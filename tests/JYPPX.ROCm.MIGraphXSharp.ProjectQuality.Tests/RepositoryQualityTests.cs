@@ -184,7 +184,7 @@ public sealed class RepositoryQualityTests
     }
 
     [Fact]
-    public void M4HighLevelCoverageAndOwnershipAreClosed()
+    public void M5HighLevelCoverageAndOwnershipAreClosed()
     {
         var compatibility = Path.Combine(RepositoryRoot, "compatibility");
         using var inventory = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m3-api-inventory.json")));
@@ -197,8 +197,8 @@ public sealed class RepositoryQualityTests
         var mappings = map.RootElement.GetProperty("mappings").EnumerateArray().ToArray();
         Assert.Equal(192, mappings.Length);
         Assert.Equal(inventoryIds, mappings.Select(item => item.GetProperty("id").GetString()));
-        Assert.Equal(52, mappings.Count(item => item.GetProperty("supportStatus").GetString() == "supported"));
-        Assert.Equal(139, mappings.Count(item => item.GetProperty("supportStatus").GetString() == "planned"));
+        Assert.Equal(74, mappings.Count(item => item.GetProperty("supportStatus").GetString() == "supported"));
+        Assert.Equal(117, mappings.Count(item => item.GetProperty("supportStatus").GetString() == "planned"));
         Assert.Single(mappings, item => item.GetProperty("supportStatus").GetString() == "unsupported");
         Assert.All(mappings.Where(item => item.GetProperty("supportStatus").GetString() == "supported"), item =>
         {
@@ -208,8 +208,8 @@ public sealed class RepositoryQualityTests
         });
 
         var ownershipTypes = ownership.RootElement.GetProperty("types").EnumerateArray().ToArray();
-        Assert.Equal(8, ownershipTypes.Length);
-        Assert.Equal(8, ownershipTypes.Select(item => item.GetProperty("type").GetString()).Distinct(StringComparer.Ordinal).Count());
+        Assert.Equal(13, ownershipTypes.Length);
+        Assert.Equal(13, ownershipTypes.Select(item => item.GetProperty("type").GetString()).Distinct(StringComparer.Ordinal).Count());
         Assert.Equal(
             "unsupported",
             mappings.Single(item => item.GetProperty("id").GetString() == "function:migraphx_operation_create")
@@ -228,23 +228,26 @@ public sealed class RepositoryQualityTests
         Assert.True(baselineTypes.SetEquals(exportedTypes),
             $"Public type baseline drift. Missing: {string.Join(", ", exportedTypes.Except(baselineTypes))}; stale: {string.Join(", ", baselineTypes.Except(exportedTypes))}");
 
-        var m4Types = new[]
+        var m5Types = new[]
         {
             typeof(MIGraphXShapeDataType), typeof(MIGraphXShape), typeof(MIGraphXTarget),
             typeof(MIGraphXProgram), typeof(MIGraphXArgument), typeof(MIGraphXOnnxOptions),
             typeof(MIGraphXCompileOptions), typeof(MIGraphXParameterMap), typeof(MIGraphXArgumentCollection),
+            typeof(MIGraphXDynamicDimension), typeof(MIGraphXFileOptions), typeof(MIGraphXCacheOverride),
+            typeof(MIGraphXCacheMetadata), typeof(MIGraphXCacheResult), typeof(MIGraphXCacheLookupKind),
+            typeof(MIGraphXModelCache), typeof(MIGraphXProgramCache),
         };
-        Assert.Equal(9, m4Types.Length);
+        Assert.Equal(17, m5Types.Length);
         Assert.Equal(10, typeof(MIGraphXShapeDataType).GetFields(BindingFlags.Public | BindingFlags.Static).Length);
 
-        var classMemberCount = m4Types.Where(type => !type.IsEnum).Sum(type =>
+        var classMemberCount = m5Types.Where(type => !type.IsEnum).Sum(type =>
             type.GetConstructors(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(field => !field.IsSpecialName)
             + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
-        Assert.Equal(39, classMemberCount);
+        Assert.Equal(98, classMemberCount);
 
-        foreach (var type in m4Types)
+        foreach (var type in m5Types)
         {
             Assert.DoesNotContain(".Interop", type.FullName, StringComparison.Ordinal);
             foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
@@ -351,12 +354,15 @@ public sealed class RepositoryQualityTests
             "design/m2-onnx-workflow.md",
             "design/m3-binding-generator.md",
             "design/m4-managed-object-model.md",
+            "design/m5-dynamic-shape-cache.md",
             "validation/README.md",
             "validation/m2-local-validation.md",
             "validation/m3-local-validation.md",
             "validation/m4-local-validation.md",
+            "validation/m5-local-validation.md",
             "guides/managed-objects.md",
             "articles/m4-resource-safe-dotnet.md",
+            "articles/m5-dynamic-shape-cache.md",
             "releases/0.0.0.md",
             "api/index.md",
         })
@@ -451,6 +457,11 @@ public sealed class RepositoryQualityTests
         if (type.IsGenericParameter)
         {
             return $"{(type.DeclaringMethod is null ? "`" : "``")}{type.GenericParameterPosition}";
+        }
+        if (type.IsGenericType)
+        {
+            var definition = type.GetGenericTypeDefinition().FullName!.Split('`')[0];
+            return $"{definition}{{{string.Join(",", type.GetGenericArguments().Select(XmlTypeName))}}}";
         }
         return type.FullName?.Replace('+', '.') ?? type.Name;
     }

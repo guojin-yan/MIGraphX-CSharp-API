@@ -85,6 +85,11 @@ internal static class NativeResourceLock
         return Enter(ordered, 0, action);
     }
 
+    internal static void With(IReadOnlyList<NativeResourceLockTarget> resources, Action action)
+    {
+        With(resources, () => { action(); return 0; });
+    }
+
     private static TResult Enter<TResult>(NativeResourceLockTarget[] resources, int index, Func<TResult> action)
     {
         if (index == resources.Length)

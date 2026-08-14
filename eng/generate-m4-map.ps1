@@ -68,7 +68,7 @@ $document = [ordered]@{
     generatedAtUtc = '2026-08-14T00:00:00Z'
     sourceInventory = 'compatibility/m3-api-inventory.json'
     sourceHeaderSha256 = $inventory.sourceHeaderSha256
-    evidenceBoundary = 'M4 high-level behavior is fake-native-executed only; the four M1/M2 official runtime records are unchanged.'
+    evidenceBoundary = 'M5 high-level behavior is fake-native-executed only; the four M1/M2 official runtime records are unchanged.'
     counts = $counts
     mappings = $mappings
 }

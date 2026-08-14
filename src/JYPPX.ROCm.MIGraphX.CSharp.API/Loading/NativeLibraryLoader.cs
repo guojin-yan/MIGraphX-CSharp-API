@@ -46,7 +46,7 @@ internal static class NativeLibraryLoader
     private static extern bool FreeLibrary(IntPtr module);
 #endif
 
-    internal static NativeLoadResult LoadExplicit(string path, bool requireOnnxWorkflow = false, bool requireManagedObjects = false)
+    internal static NativeLoadResult LoadExplicit(string path, bool requireOnnxWorkflow = false, bool requireManagedObjects = false, bool requireM5 = false)
     {
         if (path is null)
         {
@@ -65,7 +65,7 @@ internal static class NativeLibraryLoader
             return new NativeLoadResult(false, null, diagnostics);
         }
 
-        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects);
+        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects, requireM5);
     }
 
     internal static NativeLoadResult LoadSystemCandidates()
@@ -93,7 +93,7 @@ internal static class NativeLibraryLoader
         .Select(candidate => $"{candidate.Source}:{candidate.Value}")
         .ToArray();
 
-    private static NativeLoadResult LoadCandidate(string candidate, string source, bool isFilePath, List<MIGraphXNativeDiagnostic> diagnostics, bool requireOnnxWorkflow, bool requireManagedObjects)
+    private static NativeLoadResult LoadCandidate(string candidate, string source, bool isFilePath, List<MIGraphXNativeDiagnostic> diagnostics, bool requireOnnxWorkflow, bool requireManagedObjects, bool requireM5 = false)
     {
         lock (Sync)
         {
@@ -101,7 +101,7 @@ internal static class NativeLibraryLoader
             {
                 if (string.Equals(loadedPath, candidate, StringComparison.OrdinalIgnoreCase))
                 {
-                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects));
+                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5));
                     if (missingFromActive.Length != 0)
                     {
                         diagnostics.Add(CreateMissingExportDiagnostic(candidate, source, isFilePath, missingFromActive, requireOnnxWorkflow, requireManagedObjects));
@@ -117,7 +117,7 @@ internal static class NativeLibraryLoader
                     diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, ClassifyLoadFailure(probeFailure!), probeFailure!));
                     return new NativeLoadResult(false, null, diagnostics);
                 }
-                var probeMissing = MissingExports(probeHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects));
+                var probeMissing = MissingExports(probeHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5));
                 Free(probeHandle);
                 if (probeMissing.Length != 0)
                 {
@@ -137,7 +137,7 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
-            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects);
+            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5);
             var missing = MissingExports(handle, requiredExports);
             if (missing.Length != 0)
             {
@@ -172,8 +172,12 @@ internal static class NativeLibraryLoader
         }
     }
 
-    private static IEnumerable<string> RequiredExports(bool requireOnnxWorkflow, bool requireManagedObjects)
+    private static IEnumerable<string> RequiredExports(bool requireOnnxWorkflow, bool requireManagedObjects, bool requireM5 = false)
     {
+        if (requireM5)
+        {
+            return NativeMethods.M2RequiredExports.Concat(NativeM4Methods.AdditionalRequiredExports).Concat(NativeM5Methods.AdditionalRequiredExports);
+        }
         if (requireManagedObjects)
         {
             return NativeMethods.M2RequiredExports.Concat(NativeM4Methods.AdditionalRequiredExports);

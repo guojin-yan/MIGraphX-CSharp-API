@@ -74,6 +74,51 @@
       "disposeBehavior": "owned outputs are disposed in index order; idempotent",
       "failureCleanup": "partial output copies are disposed before propagating failure",
       "afterOwnerDispose": "collection access throws ObjectDisposedException"
+    },
+    {
+      "type": "MIGraphXDynamicDimension",
+      "nativeOwnership": "managed immutable value; native temporary handles exist only during a call",
+      "managedOwnership": "copied minimum, maximum, and sorted optimal values",
+      "threadSafety": "immutable and safe for concurrent reads",
+      "disposeBehavior": "not disposable; native temporaries are released by the creating operation",
+      "failureCleanup": "optimals, dimension, and collection temporaries unwind in reverse order",
+      "afterOwnerDispose": "value remains valid"
+    },
+    {
+      "type": "MIGraphXFileOptions",
+      "nativeOwnership": "owned migraphx_file_options_t SafeHandle",
+      "managedOwnership": "immutable fixed file-format string",
+      "threadSafety": "save/load and Dispose serialize through the owner lock",
+      "disposeBehavior": "idempotent; native destroy is finalizer-safe",
+      "failureCleanup": "create/set-format failures release non-null handles",
+      "afterOwnerDispose": "save/load attempts throw ObjectDisposedException"
+    },
+    {
+      "type": "MIGraphXModelCache",
+      "nativeOwnership": "none; cache owns only managed files under the explicit root",
+      "managedOwnership": "versioned sidecar, payload, and same-directory temporary files",
+      "threadSafety": "same-key writes serialize within the process and final files are atomically replaced",
+      "disposeBehavior": "not disposable; no process-global directory is retained",
+      "failureCleanup": "temporary payload/sidecar files are removed after failure",
+      "afterOwnerDispose": "not applicable"
+    },
+    {
+      "type": "MIGraphXCacheMetadata",
+      "nativeOwnership": "none",
+      "managedOwnership": "immutable normalized metadata; no machine path or credential fields",
+      "threadSafety": "immutable and safe for concurrent reads",
+      "disposeBehavior": "not disposable",
+      "failureCleanup": "invalid hashes, tokens, and dimensions are rejected before persistence",
+      "afterOwnerDispose": "not applicable"
+    },
+    {
+      "type": "MIGraphXCacheResult",
+      "nativeOwnership": "owns the returned MIGraphXProgram until Dispose",
+      "managedOwnership": "explicit hit/miss/corrupt/rebuilt diagnostic state",
+      "threadSafety": "program access follows the program owner lock",
+      "disposeBehavior": "disposing the result disposes its owned program",
+      "failureCleanup": "load failures are treated as cache misses and rebuilds",
+      "afterOwnerDispose": "Program access remains a normal disposed-program failure"
     }
   ]
 }

@@ -17,7 +17,7 @@ MIGraphXSharp `0.0.0` 现已包含 AMD 官方 MIGraphX C API 的 M1 生命周期
 - 固定头中的 159 个函数全部匹配 hash 校验后的官方 ELF；ELF 额外的私有测试导出单独分类。这些 M3 结论属于 `statically-verified`，不是官方 runtime 执行。
 - 本地 fake-native 测试实际执行 loader、frontend/export 分类、对象构造、parse、不可变 shape 快照、typed host copy、多项集合、compile、同步 run、定向失败清理及并发/Dispose 边界。它继续作为测试替身证据，与官方 runtime 证据分开记录。
 - M1/M2 官方 runtime 已在 `f1a11cfd1701a041cee29188f7600c85b34ae260` 通过：环境为 Ubuntu 24.04 x86-64、ROCm 7.2.1、固定 MIGraphX 包和一张 gfx1100 GPU；实际执行了官方 loader、target/program 生命周期、ONNX file/buffer parse、GPU compile、同步 run 和 Identity reference 对比。
-- 动态 dimension/override、save/load/cache、async/stream/device buffer、custom op、图编辑与 runtime NuGet 仍不在范围内。
+- async/stream/device buffer、custom op、图编辑与 runtime NuGet 仍不在范围内。M5 动态 dimension、受限 override、Save/Load 和显式根缓存仅有本地 fake-native 能力。
 - 核心包不含 AMD 或 fake-native 二进制。Runtime 包继续禁用并 fail closed。
 
 ## 安装
@@ -52,6 +52,12 @@ using var program = MIGraphXProgram.ParseOnnxBuffer(modelBytes, parseOptions);
 var inputShape = program.GetParameterShapes()["input"];
 ```
 
+## M5 动态 Shape 与模型缓存
+
+`MIGraphXDynamicDimension` 与 `MIGraphXShape.CreateDynamic` 表达范围而不暴露 native handle。`MIGraphXOnnxOptions` 接受严格 UTF-8 的静态或动态输入 override；创建 typed host argument 之前仍必须有 concrete 静态 shape。`MIGraphXFileOptions` 将 Save/Load 限定为已测试的 `msgpack` 格式。
+
+`MIGraphXModelCache` 要求调用方显式提供绝对根目录。缓存 key 是规范化模型、固定 header/API、托管构建、native fingerprint、target、compile options、格式和有序 override 的 SHA-256。JSON sidecar（schema 1）校验 payload hash；同目录临时文件通过原子替换写入。`MIGraphXCacheResult` 可观察 hit、miss、损坏和重建来源。缓存不承诺跨 MIGraphX 版本、target、编译参数或 native fingerprint 通用。
+
 `ProbeSystem` 会审计应用 RID、应用基目录和系统 loader 候选。Linux 候选包含 `libmigraphx_c.so.3` 与 `migraphx_c`。Windows/macOS 只实现诚实诊断候选，不作官方 MIGraphX runtime 支持声明。
 
 ## 构建
@@ -75,7 +81,7 @@ $package = .\eng\pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
 
 ## 文档
 
-请阅读 [M4 托管对象设计](docs/design/m4-managed-object-model.md)、[托管对象指南](docs/guides/managed-objects.md)、[M4 本地验证](docs/validation/m4-local-validation.md)、[平台证据](docs/compatibility/platforms.md)和[M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
+请阅读 [M4 托管对象设计](docs/design/m4-managed-object-model.md)、[M5 动态 Shape 与缓存设计](docs/design/m5-dynamic-shape-cache.md)、[托管对象指南](docs/guides/managed-objects.md)、[M5 本地验证](docs/validation/m5-local-validation.md)、[平台证据](docs/compatibility/platforms.md)和[M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
 
 ## 许可证
 

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #if defined(_WIN32)
 #include <windows.h>
@@ -24,8 +25,34 @@ typedef enum
 } migraphx_status;
 
 typedef struct fake_target { int value; } *migraphx_target_t;
-typedef struct fake_program { int value; int compiled; } *migraphx_program_t;
-typedef struct fake_options { int value; } *migraphx_onnx_options_t;
+typedef struct fake_dynamic_dimension
+{
+    size_t minimum;
+    size_t maximum;
+    size_t optimal_count;
+    size_t optimals[8];
+} fake_dynamic_dimension;
+typedef fake_dynamic_dimension* migraphx_dynamic_dimension_t;
+typedef const fake_dynamic_dimension* const_migraphx_dynamic_dimension_t;
+typedef struct fake_dynamic_dimensions
+{
+    size_t count;
+    size_t size_calls;
+    fake_dynamic_dimension* values[8];
+} *migraphx_dynamic_dimensions_t;
+typedef struct fake_optimals { size_t count; size_t values[8]; } *migraphx_optimals_t;
+typedef struct fake_file_options { char format[32]; } *migraphx_file_options_t;
+typedef struct fake_options
+{
+    int value;
+    int dynamic;
+    size_t dynamic_count;
+    fake_dynamic_dimension dynamic_values[8];
+    int static_override;
+    size_t static_count;
+    size_t static_values[8];
+} *migraphx_onnx_options_t;
+typedef struct fake_program { int value; int compiled; int dynamic; size_t dynamic_count; fake_dynamic_dimension dynamic_values[8]; size_t static_count; size_t static_values[8]; } *migraphx_program_t;
 typedef struct fake_compile_options { uint8_t offload_copy; } *migraphx_compile_options_t;
 typedef struct fake_shape
 {
@@ -37,6 +64,8 @@ typedef struct fake_shape
     size_t bytes;
     uint8_t standard;
     uint8_t dynamic;
+    size_t dynamic_count;
+    fake_dynamic_dimension dynamic_values[8];
 } fake_shape;
 typedef fake_shape* migraphx_shape_t;
 typedef struct fake_parameter_shapes { fake_shape shape; } *migraphx_program_parameter_shapes_t;
@@ -78,6 +107,8 @@ static volatile int32_t compile_count;
 static volatile int32_t run_count;
 static volatile int32_t m2_destroy_count;
 static volatile int32_t m2_live_count;
+static volatile int32_t m5_live_count;
+static volatile int32_t m5_destroy_count;
 static volatile int32_t shape_mode;
 static volatile int32_t shape_type_override = -1;
 static volatile int32_t parameter_size_reads;
@@ -157,6 +188,8 @@ EXPORT void fake_reset(void)
     run_count = 0;
     m2_destroy_count = 0;
     m2_live_count = 0;
+    m5_live_count = 0;
+    m5_destroy_count = 0;
     shape_mode = 0;
     shape_type_override = -1;
     parameter_size_reads = 0;
@@ -192,6 +225,8 @@ EXPORT int fake_run_count(void) { return run_count; }
 EXPORT int fake_last_parameter_count(void) { return last_parameter_count; }
 EXPORT int fake_m2_destroy_count(void) { return m2_destroy_count; }
 EXPORT int fake_m2_live_count(void) { return m2_live_count; }
+EXPORT int fake_m5_live_count(void) { return m5_live_count; }
+EXPORT int fake_m5_destroy_count(void) { return m5_destroy_count; }
 EXPORT void fake_set_shape_mode(int value) { ATOMIC_EXCHANGE(shape_mode, value); }
 EXPORT void fake_set_shape_type(int value) { ATOMIC_EXCHANGE(shape_type_override, value); }
 EXPORT void fake_set_failure(const char* entry, int status)
@@ -331,6 +366,10 @@ EXPORT migraphx_status migraphx_program_create(migraphx_program_t* program)
         if(*program == NULL)
             return migraphx_status_unknown_error;
         (*program)->value = ATOMIC_INCREMENT(next_value);
+        (*program)->compiled = 0;
+        (*program)->dynamic = 0;
+        (*program)->dynamic_count = 0;
+        (*program)->static_count = 0;
         ATOMIC_INCREMENT(program_live_count);
     }
     status = take_status_for("migraphx_program_create");
@@ -341,19 +380,45 @@ static void destroy_m2(void* value);
 static void* create_m2(size_t size);
 static size_t element_size(int type);
 
-static void initialize_shape(fake_shape* shape)
+static void initialize_shape(fake_shape* shape, const migraphx_program_t program)
 {
     int mode = shape_mode;
     shape->type = shape_type_override >= 0 ? shape_type_override : mode == 3 ? 10 : 4;
-    shape->rank = 2;
+    shape->rank = program != NULL && program->static_count != 0 ? program->static_count : 2;
     shape->lengths[0] = 1;
     shape->lengths[1] = 4;
-    shape->strides[0] = 4;
-    shape->strides[1] = 1;
-    shape->elements = mode == 13 ? (size_t)-1 : 4;
+    if(program != NULL && program->static_count != 0)
+    {
+        for(size_t i = 0; i < program->static_count && i < 8; ++i) shape->lengths[i] = program->static_values[i];
+        size_t running = 1;
+        for(size_t i = program->static_count; i > 0; --i)
+        {
+            shape->strides[i - 1] = running;
+            running *= shape->lengths[i - 1];
+        }
+        shape->elements = running;
+    }
+    else
+    {
+        shape->strides[0] = 4;
+        shape->strides[1] = 1;
+        shape->elements = 4;
+    }
+    if(mode == 13) shape->elements = (size_t)-1;
     shape->bytes = mode == 13 ? (size_t)-1 : shape->elements * element_size(shape->type);
     shape->standard = mode == 2 ? 0 : 1;
-    shape->dynamic = mode == 1 ? 1 : 0;
+    shape->dynamic = (mode == 1 || (program != NULL && program->dynamic)) ? 1 : 0;
+    shape->dynamic_count = shape->dynamic ? (program != NULL && program->dynamic_count != 0 ? program->dynamic_count : 2) : 0;
+    if(shape->dynamic)
+    {
+        if(program != NULL && program->dynamic_count != 0)
+            for(size_t i = 0; i < program->dynamic_count && i < 8; ++i) shape->dynamic_values[i] = program->dynamic_values[i];
+        else
+        {
+            shape->dynamic_values[0].minimum = 1; shape->dynamic_values[0].maximum = 4;
+            shape->dynamic_values[1].minimum = 1; shape->dynamic_values[1].maximum = 8;
+        }
+    }
 }
 
 static size_t element_size(int type)
@@ -552,7 +617,7 @@ EXPORT migraphx_status migraphx_program_get_parameter_shapes(migraphx_program_pa
     if(take_null_for("migraphx_program_get_parameter_shapes")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_program_get_parameter_shapes"); }
     *out = (migraphx_program_parameter_shapes_t)create_m2(sizeof(**out));
     if(*out == NULL) return migraphx_status_unknown_error;
-    initialize_shape(&(*out)->shape); status = take_status_for("migraphx_program_get_parameter_shapes"); return (migraphx_status)status;
+    initialize_shape(&(*out)->shape, program); status = take_status_for("migraphx_program_get_parameter_shapes"); return (migraphx_status)status;
 }
 EXPORT migraphx_status migraphx_program_get_output_shapes(migraphx_shapes_t* out, migraphx_program_t program)
 {
@@ -561,7 +626,7 @@ EXPORT migraphx_status migraphx_program_get_output_shapes(migraphx_shapes_t* out
     if(take_null_for("migraphx_program_get_output_shapes")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_program_get_output_shapes"); }
     *out = (migraphx_shapes_t)create_m2(sizeof(**out));
     if(*out == NULL) return migraphx_status_unknown_error;
-    initialize_shape(&(*out)->shape); status = take_status_for("migraphx_program_get_output_shapes"); return (migraphx_status)status;
+    initialize_shape(&(*out)->shape, program); status = take_status_for("migraphx_program_get_output_shapes"); return (migraphx_status)status;
 }
 EXPORT migraphx_status migraphx_program_run(migraphx_arguments_t* out, migraphx_program_t program, migraphx_program_parameters_t parameters)
 {
@@ -593,6 +658,14 @@ EXPORT migraphx_status migraphx_parse_onnx(migraphx_program_t* out, const char* 
     migraphx_status status;
     if(out == NULL || name == NULL || options == NULL) return migraphx_status_bad_param;
     status = migraphx_program_create(out);
+    if(status == migraphx_status_success && *out != NULL && options != NULL)
+    {
+        (*out)->dynamic = options->dynamic;
+        (*out)->dynamic_count = options->dynamic_count;
+        memcpy((*out)->dynamic_values, options->dynamic_values, sizeof(options->dynamic_values));
+        (*out)->static_count = options->static_count;
+        memcpy((*out)->static_values, options->static_values, sizeof(options->static_values));
+    }
     if(status == migraphx_status_success && take_null_for("migraphx_parse_onnx")) { migraphx_program_destroy(*out); *out = NULL; }
     copy_string(last_model_path, sizeof(last_model_path), name);
     ATOMIC_INCREMENT(parse_file_count);
@@ -604,9 +677,153 @@ EXPORT migraphx_status migraphx_parse_onnx_buffer(migraphx_program_t* out, const
     migraphx_status status;
     if(out == NULL || data == NULL || size == 0 || options == NULL) return migraphx_status_bad_param;
     status = migraphx_program_create(out);
+    if(status == migraphx_status_success && *out != NULL && options != NULL)
+    {
+        (*out)->dynamic = options->dynamic;
+        (*out)->dynamic_count = options->dynamic_count;
+        memcpy((*out)->dynamic_values, options->dynamic_values, sizeof(options->dynamic_values));
+        (*out)->static_count = options->static_count;
+        memcpy((*out)->static_values, options->static_values, sizeof(options->static_values));
+    }
     if(status == migraphx_status_success && take_null_for("migraphx_parse_onnx_buffer")) { migraphx_program_destroy(*out); *out = NULL; }
     ATOMIC_EXCHANGE(last_model_size, (int)size);
     ATOMIC_INCREMENT(parse_buffer_count);
     if(status != migraphx_status_success) return status;
     return (migraphx_status)take_status_for("migraphx_parse_onnx_buffer");
+}
+
+static void* create_m5(size_t size)
+{
+    void* value = calloc(1, size);
+    if(value != NULL) ATOMIC_INCREMENT(m5_live_count);
+    return value;
+}
+
+static void destroy_m5(void* value)
+{
+    if(value != NULL) { free(value); ATOMIC_INCREMENT(m5_destroy_count); ATOMIC_DECREMENT(m5_live_count); }
+}
+
+EXPORT migraphx_status migraphx_optimals_destroy(migraphx_optimals_t value) { destroy_m5(value); return (migraphx_status)take_status_for("migraphx_optimals_destroy"); }
+EXPORT migraphx_status migraphx_optimals_create(migraphx_optimals_t* out, const size_t* values, size_t count)
+{
+    if(out == NULL || (count != 0 && values == NULL) || count > 8) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_optimals_create")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_optimals_create"); }
+    *out = (migraphx_optimals_t)create_m5(sizeof(**out));
+    if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->count = count; if(count != 0) memcpy((*out)->values, values, count * sizeof(size_t));
+    return (migraphx_status)take_status_for("migraphx_optimals_create");
+}
+
+EXPORT migraphx_status migraphx_dynamic_dimension_destroy(migraphx_dynamic_dimension_t value) { destroy_m5(value); return (migraphx_status)take_status_for("migraphx_dynamic_dimension_destroy"); }
+EXPORT migraphx_status migraphx_dynamic_dimension_create_min_max(migraphx_dynamic_dimension_t* out, size_t minimum, size_t maximum)
+{
+    if(out == NULL || minimum > maximum) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_dynamic_dimension_create_min_max")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_dynamic_dimension_create_min_max"); }
+    *out = (migraphx_dynamic_dimension_t)create_m5(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->minimum = minimum; (*out)->maximum = maximum;
+    return (migraphx_status)take_status_for("migraphx_dynamic_dimension_create_min_max");
+}
+EXPORT migraphx_status migraphx_dynamic_dimension_create_min_max_optimals(migraphx_dynamic_dimension_t* out, size_t minimum, size_t maximum, migraphx_optimals_t optimals)
+{
+    if(out == NULL || optimals == NULL || minimum > maximum || optimals->count > 8) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_dynamic_dimension_create_min_max_optimals")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_dynamic_dimension_create_min_max_optimals"); }
+    *out = (migraphx_dynamic_dimension_t)create_m5(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->minimum = minimum; (*out)->maximum = maximum; (*out)->optimal_count = optimals->count; memcpy((*out)->optimals, optimals->values, optimals->count * sizeof(size_t));
+    return (migraphx_status)take_status_for("migraphx_dynamic_dimension_create_min_max_optimals");
+}
+EXPORT migraphx_status migraphx_dynamic_dimension_is_fixed(uint8_t* out, const_migraphx_dynamic_dimension_t value)
+{
+    if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = value->minimum == value->maximum ? 1 : 0; return (migraphx_status)take_status_for("migraphx_dynamic_dimension_is_fixed");
+}
+EXPORT migraphx_status migraphx_dynamic_dimension_equal(uint8_t* out, const_migraphx_dynamic_dimension_t left, const_migraphx_dynamic_dimension_t right)
+{
+    if(out == NULL || left == NULL || right == NULL) return migraphx_status_bad_param;
+    *out = left->minimum == right->minimum && left->maximum == right->maximum && left->optimal_count == right->optimal_count && memcmp(left->optimals, right->optimals, left->optimal_count * sizeof(size_t)) == 0;
+    return (migraphx_status)take_status_for("migraphx_dynamic_dimension_equal");
+}
+EXPORT migraphx_status migraphx_dynamic_dimensions_destroy(migraphx_dynamic_dimensions_t value) { destroy_m5(value); return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_destroy"); }
+EXPORT migraphx_status migraphx_dynamic_dimensions_create(migraphx_dynamic_dimensions_t* out, const migraphx_dynamic_dimension_t* values, size_t count)
+{
+    if(out == NULL || (count != 0 && values == NULL) || count > 8) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_dynamic_dimensions_create")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_create"); }
+    *out = (migraphx_dynamic_dimensions_t)create_m5(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->count = count; for(size_t i = 0; i < count; ++i) { if(values[i] == NULL) { destroy_m5(*out); *out = NULL; return migraphx_status_bad_param; } (*out)->values[i] = values[i]; }
+    return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_create");
+}
+EXPORT migraphx_status migraphx_dynamic_dimensions_size(size_t* out, migraphx_dynamic_dimensions_t value)
+{
+    if(out == NULL || value == NULL) return migraphx_status_bad_param;
+    *out = shape_mode == 15 && value->size_calls++ != 0 ? value->count + 1 : value->count;
+    return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_size");
+}
+EXPORT migraphx_status migraphx_dynamic_dimensions_get(migraphx_dynamic_dimension_t* out, migraphx_dynamic_dimensions_t value, size_t index)
+{
+    if(out == NULL || value == NULL || index >= value->count) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_dynamic_dimensions_get")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_get"); }
+    *out = value->values[index]; return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_get");
+}
+
+EXPORT migraphx_status migraphx_shape_create_dynamic(migraphx_shape_t* out, int type, migraphx_dynamic_dimensions_t dims)
+{
+    if(out == NULL || dims == NULL || dims->count > 8 || element_size(type) == 0) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_shape_create_dynamic")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_shape_create_dynamic"); }
+    *out = (migraphx_shape_t)create_m2(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->type = type; (*out)->rank = dims->count; (*out)->dynamic = 1; (*out)->standard = 0; (*out)->dynamic_count = dims->count; (*out)->elements = 0; (*out)->bytes = 0;
+    for(size_t i = 0; i < dims->count; ++i) { (*out)->dynamic_values[i] = *dims->values[i]; (*out)->lengths[i] = dims->values[i]->minimum; (*out)->strides[i] = 1; }
+    return (migraphx_status)take_status_for("migraphx_shape_create_dynamic");
+}
+EXPORT migraphx_status migraphx_shape_dyn_dims(migraphx_dynamic_dimensions_t* out, migraphx_shape_t shape)
+{
+    if(out == NULL || shape == NULL || !shape->dynamic) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_shape_dyn_dims")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_shape_dyn_dims"); }
+    *out = (migraphx_dynamic_dimensions_t)create_m5(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error;
+    (*out)->count = shape->dynamic_count; for(size_t i = 0; i < shape->dynamic_count; ++i) (*out)->values[i] = &shape->dynamic_values[i];
+    return (migraphx_status)take_status_for("migraphx_shape_dyn_dims");
+}
+
+EXPORT migraphx_status migraphx_onnx_options_set_input_parameter_shape(migraphx_onnx_options_t options, const char* name, const size_t* values, size_t count)
+{
+    if(options == NULL || name == NULL || (count != 0 && values == NULL) || count > 8) return migraphx_status_bad_param;
+    options->static_override = 1; options->static_count = count; if(count != 0) memcpy(options->static_values, values, count * sizeof(size_t));
+    return (migraphx_status)take_status_for("migraphx_onnx_options_set_input_parameter_shape");
+}
+EXPORT migraphx_status migraphx_onnx_options_set_dyn_input_parameter_shape(migraphx_onnx_options_t options, const char* name, migraphx_dynamic_dimensions_t dims)
+{
+    if(options == NULL || name == NULL || dims == NULL || dims->count > 8) return migraphx_status_bad_param;
+    options->dynamic = 1; options->dynamic_count = dims->count; for(size_t i = 0; i < dims->count; ++i) options->dynamic_values[i] = *dims->values[i];
+    return (migraphx_status)take_status_for("migraphx_onnx_options_set_dyn_input_parameter_shape");
+}
+EXPORT migraphx_status migraphx_onnx_options_set_default_dim_value(migraphx_onnx_options_t options, size_t value)
+{
+    (void)value;
+    if(options == NULL) return migraphx_status_bad_param; return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_dim_value");
+}
+EXPORT migraphx_status migraphx_onnx_options_set_default_dyn_dim_value(migraphx_onnx_options_t options, migraphx_dynamic_dimension_t value)
+{
+    if(options == NULL || value == NULL) return migraphx_status_bad_param; return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_dyn_dim_value");
+}
+
+EXPORT migraphx_status migraphx_file_options_destroy(migraphx_file_options_t value) { destroy_m5(value); return (migraphx_status)take_status_for("migraphx_file_options_destroy"); }
+EXPORT migraphx_status migraphx_file_options_create(migraphx_file_options_t* out)
+{
+    if(out == NULL) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_file_options_create")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_file_options_create"); }
+    *out = (migraphx_file_options_t)create_m5(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; return (migraphx_status)take_status_for("migraphx_file_options_create");
+}
+EXPORT migraphx_status migraphx_file_options_set_file_format(migraphx_file_options_t options, const char* format)
+{
+    if(options == NULL || format == NULL || strcmp(format, "msgpack") != 0) return migraphx_status_bad_param; copy_string(options->format, sizeof(options->format), format); return (migraphx_status)take_status_for("migraphx_file_options_set_file_format");
+}
+EXPORT migraphx_status migraphx_save(migraphx_program_t program, const char* name, migraphx_file_options_t options)
+{
+    if(program == NULL || name == NULL || options == NULL || strcmp(options->format, "msgpack") != 0) return migraphx_status_bad_param;
+    FILE* file = fopen(name, "wb"); if(file == NULL) return migraphx_status_unknown_error; fputs("fake-migraphx-msgpack\n", file); fclose(file); return (migraphx_status)take_status_for("migraphx_save");
+}
+EXPORT migraphx_status migraphx_load(migraphx_program_t* out, const char* name, migraphx_file_options_t options)
+{
+    if(out == NULL || name == NULL || options == NULL || strcmp(options->format, "msgpack") != 0) return migraphx_status_bad_param;
+    FILE* file = fopen(name, "rb"); if(file == NULL) return migraphx_status_unknown_error; fclose(file);
+    if(take_null_for("migraphx_load")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_load"); }
+    *out = (migraphx_program_t)malloc(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; memset(*out, 0, sizeof(**out)); (*out)->value = ATOMIC_INCREMENT(next_value); ATOMIC_INCREMENT(program_live_count); return (migraphx_status)take_status_for("migraphx_load");
 }

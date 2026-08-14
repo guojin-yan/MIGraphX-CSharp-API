@@ -4,10 +4,10 @@
   "generatedAtUtc": "2026-08-14T00:00:00Z",
   "sourceInventory": "compatibility/m3-api-inventory.json",
   "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
-  "evidenceBoundary": "M4 high-level behavior is fake-native-executed only; the four M1/M2 official runtime records are unchanged.",
+  "evidenceBoundary": "M5 high-level behavior is fake-native-executed only; the four M1/M2 official runtime records are unchanged.",
   "counts": {
-    "supported": 52,
-    "planned": 139,
+    "supported": 74,
+    "planned": 117,
     "unsupported": 1
   },
   "mappings": [
@@ -15,11 +15,15 @@
       "id": "function:migraphx_optimals_destroy",
       "kind": "function",
       "cName": "migraphx_optimals_destroy",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXDynamicDimension"
+      ],
+      "ownership": "owned temporary optimals released after dynamic dimension creation",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicDimensionAndShapeHaveExplicitValueSemantics"
+      ]
     },
     {
       "id": "function:migraphx_optimals_assign_to",
@@ -35,21 +39,29 @@
       "id": "function:migraphx_optimals_create",
       "kind": "function",
       "cName": "migraphx_optimals_create",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXDynamicDimension"
+      ],
+      "ownership": "size_t values copied into an owned temporary",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicDimensionAndShapeHaveExplicitValueSemantics"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimension_destroy",
       "kind": "function",
       "cName": "migraphx_dynamic_dimension_destroy",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXDynamicDimension"
+      ],
+      "ownership": "owned temporary dimension released after collection creation",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimension_assign_to",
@@ -65,51 +77,71 @@
       "id": "function:migraphx_dynamic_dimension_create_min_max",
       "kind": "function",
       "cName": "migraphx_dynamic_dimension_create_min_max",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXDynamicDimension"
+      ],
+      "ownership": "owned temporary native dimension with checked size_t values",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimension_create_min_max_optimals",
       "kind": "function",
       "cName": "migraphx_dynamic_dimension_create_min_max_optimals",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXDynamicDimension"
+      ],
+      "ownership": "optimals and dimension unwind in reverse order",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimension_is_fixed",
       "kind": "function",
       "cName": "migraphx_dynamic_dimension_is_fixed",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXDynamicDimension.IsFixed"
+      ],
+      "ownership": "borrowed dimension queried while collection is alive",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimension_equal",
       "kind": "function",
       "cName": "migraphx_dynamic_dimension_equal",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXDynamicDimension.Equals"
+      ],
+      "ownership": "borrowed dimensions compared without exposing handles",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicDimensionAndShapeHaveExplicitValueSemantics"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimensions_destroy",
       "kind": "function",
       "cName": "migraphx_dynamic_dimensions_destroy",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.DynamicDimensions"
+      ],
+      "ownership": "owned dynamic-dimension collection destroyed after copied snapshot",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimensions_assign_to",
@@ -125,31 +157,43 @@
       "id": "function:migraphx_dynamic_dimensions_create",
       "kind": "function",
       "cName": "migraphx_dynamic_dimensions_create",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.CreateDynamic"
+      ],
+      "ownership": "owned collection borrows temporary dimensions only during native call",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimensions_size",
       "kind": "function",
       "cName": "migraphx_dynamic_dimensions_size",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.DynamicDimensions"
+      ],
+      "ownership": "checked collection count",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_dynamic_dimensions_get",
       "kind": "function",
       "cName": "migraphx_dynamic_dimensions_get",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.DynamicDimensions"
+      ],
+      "ownership": "borrowed element copied while owned collection lives",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_shape_destroy",
@@ -213,11 +257,15 @@
       "id": "function:migraphx_shape_create_dynamic",
       "kind": "function",
       "cName": "migraphx_shape_create_dynamic",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.CreateDynamic"
+      ],
+      "ownership": "temporary owned native dynamic shape released after snapshot",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_shape_lengths",
@@ -252,11 +300,15 @@
       "id": "function:migraphx_shape_dyn_dims",
       "kind": "function",
       "cName": "migraphx_shape_dyn_dims",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXShape.DynamicDimensions"
+      ],
+      "ownership": "owned collection and borrowed elements are copied before destroy",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_shape_type",
@@ -340,12 +392,12 @@
       "cName": "migraphx_shape_dynamic",
       "supportStatus": "supported",
       "publicMembers": [
-        "MIGraphXShape"
+        "MIGraphXShape.IsDynamic"
       ],
-      "ownership": "copied C bool; dynamic shapes rejected",
+      "ownership": "copied native dynamic flag",
       "validationLevel": "fake-native-executed",
       "tests": [
-        "M4ManagedObjectTests.SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections"
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
       ]
     },
     {
@@ -1104,21 +1156,29 @@
       "id": "function:migraphx_load",
       "kind": "function",
       "cName": "migraphx_load",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.Load"
+      ],
+      "ownership": "returns a new owned program; source file and options remain caller-owned",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.SaveLoadAndCacheUseOwnedProgramsAndDeterministicMetadata"
+      ]
     },
     {
       "id": "function:migraphx_save",
       "kind": "function",
       "cName": "migraphx_save",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXProgram.Save"
+      ],
+      "ownership": "borrows the program and file options synchronously; ownership is not transferred",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.SaveLoadAndCacheUseOwnedProgramsAndDeterministicMetadata"
+      ]
     },
     {
       "id": "function:migraphx_onnx_options_destroy",
@@ -1162,41 +1222,57 @@
       "id": "function:migraphx_onnx_options_set_input_parameter_shape",
       "kind": "function",
       "cName": "migraphx_onnx_options_set_input_parameter_shape",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXOnnxOptions.SetInputParameterShape"
+      ],
+      "ownership": "checked size_t array borrowed only for the setter call",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_onnx_options_set_dyn_input_parameter_shape",
       "kind": "function",
       "cName": "migraphx_onnx_options_set_dyn_input_parameter_shape",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXOnnxOptions.SetDynamicInputParameterShape"
+      ],
+      "ownership": "owned temporary dynamic collection consumed by options",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_onnx_options_set_default_dim_value",
       "kind": "function",
       "cName": "migraphx_onnx_options_set_default_dim_value",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXOnnxOptions.SetDefaultDimensionValue"
+      ],
+      "ownership": "checked scalar size_t copied by native options",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_onnx_options_set_default_dyn_dim_value",
       "kind": "function",
       "cName": "migraphx_onnx_options_set_default_dyn_dim_value",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXOnnxOptions.SetDefaultDynamicDimensionValue"
+      ],
+      "ownership": "temporary owned dimension remains alive through setter",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.DynamicOnnxOverrideIsCopiedIntoShapeSnapshot"
+      ]
     },
     {
       "id": "function:migraphx_onnx_options_set_default_loop_iterations",
@@ -1232,11 +1308,15 @@
       "id": "function:migraphx_file_options_destroy",
       "kind": "function",
       "cName": "migraphx_file_options_destroy",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXFileOptions.Dispose"
+      ],
+      "ownership": "owned file-options SafeHandle",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.SaveLoadAndCacheUseOwnedProgramsAndDeterministicMetadata"
+      ]
     },
     {
       "id": "function:migraphx_file_options_assign_to",
@@ -1252,21 +1332,29 @@
       "id": "function:migraphx_file_options_create",
       "kind": "function",
       "cName": "migraphx_file_options_create",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXFileOptions.#ctor"
+      ],
+      "ownership": "owned file-options SafeHandle with failure cleanup",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.SaveLoadAndCacheUseOwnedProgramsAndDeterministicMetadata"
+      ]
     },
     {
       "id": "function:migraphx_file_options_set_file_format",
       "kind": "function",
       "cName": "migraphx_file_options_set_file_format",
-      "supportStatus": "planned",
-      "publicMembers": [],
-      "ownership": "No M4 public ownership contract; raw declaration remains internal.",
-      "validationLevel": "planned",
-      "tests": []
+      "supportStatus": "supported",
+      "publicMembers": [
+        "MIGraphXFileOptions.FileFormat"
+      ],
+      "ownership": "format copied during immutable construction",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M5DynamicShapeCacheTests.SaveLoadAndCacheUseOwnedProgramsAndDeterministicMetadata"
+      ]
     },
     {
       "id": "function:migraphx_compile_options_destroy",

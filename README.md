@@ -17,7 +17,7 @@ MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, M2 restricted ON
 - All 159 header functions match the hash-verified official ELF; its additional private test export is separately classified. These M3 results are `statically-verified`, not official runtime execution.
 - Local fake-native tests execute loader, frontend/export classification, object construction, parse, immutable shape snapshots, typed host copies, multi-item collections, compile, synchronous run, targeted failure cleanup, and concurrency/Dispose boundaries. They remain test-substitute evidence and are recorded separately from official runtime evidence.
 - M1/M2 official runtime validation passed at `f1a11cfd1701a041cee29188f7600c85b34ae260` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and one gfx1100 GPU. The official loader, target/program lifecycle, file/buffer ONNX parse, GPU compile, synchronous run, and Identity reference comparison executed successfully.
-- Dynamic dimensions/overrides, save/load/cache, async/stream/device-buffer APIs, custom ops, graph editing, and runtime NuGet packages remain excluded.
+- Async/stream/device-buffer APIs, custom ops, graph editing, and runtime NuGet packages remain excluded. M5 dynamic dimensions, constrained overrides, Save/Load, and explicit-root cache are local fake-native capabilities only.
 - The core package contains no AMD or fake-native binaries. Runtime packages remain disabled and fail closed.
 
 ## Install
@@ -52,6 +52,12 @@ using var program = MIGraphXProgram.ParseOnnxBuffer(modelBytes, parseOptions);
 var inputShape = program.GetParameterShapes()["input"];
 ```
 
+## M5 dynamic shapes and cache
+
+`MIGraphXDynamicDimension` and `MIGraphXShape.CreateDynamic` model ranges without exposing native handles. `MIGraphXOnnxOptions` accepts strict UTF-8 static or dynamic input overrides; concrete static shapes are still required before creating typed host arguments. `MIGraphXFileOptions` restricts Save/Load to the tested `msgpack` format.
+
+`MIGraphXModelCache` requires an explicit absolute root. Its key is a SHA-256 of normalized model, fixed-header/API, managed build, native fingerprint, target, compile options, format, and ordered overrides. A JSON sidecar (schema 1) authenticates the payload hash; same-directory temporary files are atomically replaced. Cache hits, misses, corruption, and rebuild provenance are observable through `MIGraphXCacheResult`. The cache is not portable across MIGraphX versions, targets, compile options, or native fingerprints.
+
 `ProbeSystem` audits application RID, application-base, and system-loader candidates. Linux candidates include `libmigraphx_c.so.3` and `migraphx_c`. Windows and macOS candidates are implemented for diagnostics but have no official MIGraphX runtime support claim.
 
 ## Build
@@ -75,7 +81,7 @@ Build, static official-ELF evidence, fake-native execution, and official MIGraph
 
 ## Documentation
 
-See the [M4 managed-object design](docs/design/m4-managed-object-model.md), [managed object guide](docs/guides/managed-objects.md), [M4 local validation](docs/validation/m4-local-validation.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
+See the [M4 managed-object design](docs/design/m4-managed-object-model.md), [M5 dynamic-shape and cache design](docs/design/m5-dynamic-shape-cache.md), [managed object guide](docs/guides/managed-objects.md), [M5 local validation](docs/validation/m5-local-validation.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
 
 ## License
 

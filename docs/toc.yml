@@ -22,6 +22,8 @@
     href: design/m3-binding-generator.md
   - name: M4 managed objects
     href: design/m4-managed-object-model.md
+  - name: M5 dynamic shapes and cache
+    href: design/m5-dynamic-shape-cache.md
 - name: Validation
   items:
   - name: Overview
@@ -34,6 +36,8 @@
     href: validation/m3-local-validation.md
   - name: M4 local status
     href: validation/m4-local-validation.md
+  - name: M5 local status
+    href: validation/m5-local-validation.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes
@@ -42,3 +46,5 @@
   href: api/index.md
 - name: Engineering article
   href: articles/m4-resource-safe-dotnet.md
+- name: M5 engineering article
+  href: articles/m5-dynamic-shape-cache.md

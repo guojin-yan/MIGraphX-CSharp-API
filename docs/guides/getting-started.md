@@ -1,6 +1,6 @@
 # Getting started
 
-The public surface supports explicit diagnostics, the unchanged M2 single-input/single-output static float32 workflow, and M4 resource-safe synchronous objects. M4 models static tensors with ten mapped scalar types and deterministic parameter/output snapshots. Dynamic shapes, async, streams, device buffers, save/load, and graph editing remain excluded.
+The public surface supports explicit diagnostics, the unchanged M2 single-input/single-output static float32 workflow, M4 resource-safe synchronous objects, and M5 dynamic-shape metadata plus program persistence/cache APIs. Static tensors retain ten mapped scalar types and deterministic parameter/output snapshots. Async, streams, device buffers, and graph editing remain excluded.
 
 ## Prerequisites
 
@@ -14,6 +14,7 @@ The public surface supports explicit diagnostics, the unchanged M2 single-input/
 dotnet tool restore
 .\eng\generate-interop.ps1 -AcquireHeader -Verify
 .\eng\verify-m4-coverage.ps1
+.\eng\verify-m5-coverage.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
@@ -49,8 +50,14 @@ The path must be an absolute file path. Missing files, bad image/architecture, d
 
 Running the smoke command with no path has no native side effects and returns `nativeProbe: not-probed` and `nativeLibrary: not-available`; it never prints `ready`.
 
+## Dynamic shapes and caching
+
+Use `MIGraphXDynamicDimension` and `MIGraphXOnnxOptions` for explicit static or dynamic input overrides. A dynamic `MIGraphXShape` exposes `Rank` and `DynamicDimensions`; `Lengths`, `Strides`, `ElementCount`, and `ByteCount` intentionally throw because no single static value exists.
+
+`MIGraphXProgram.Save` and `Load` accept only an explicit absolute path and `MIGraphXFileOptions("msgpack")`. `MIGraphXModelCache` requires an explicit absolute root and validates the model hash, frozen header/API identity, managed identity, native-library fingerprint, target/options/format, ordered overrides, and saved payload hash before a hit. See the [M5 design](../design/m5-dynamic-shape-cache.md) for the exact contract.
+
 ## Evidence boundary
 
-The local test suite passes `--fake-native` only for the small C test substitute and emits `fake-native-executed`. M4 objects have no new official runtime session. The separate older session used a clean detached checkout of `f1a11cfd1701a041cee29188f7600c85b34ae260`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) for the exact boundary.
+The local test suite passes `--fake-native` only for the small C test substitute and emits `fake-native-executed`. M4/M5 objects have no new official runtime session. The separate older session used a clean detached checkout of `f1a11cfd1701a041cee29188f7600c85b34ae260`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) for the exact boundary.
 
 中文提示：显式路径只接受绝对文件路径。本地 fake-native 仅验证托管边界与 ABI 形状；官方 runtime 结论来自独立的精确 SHA 会话，不能扩展到未测试能力。

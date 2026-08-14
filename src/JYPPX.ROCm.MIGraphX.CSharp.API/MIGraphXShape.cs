@@ -13,6 +13,9 @@ public sealed class MIGraphXShape
 {
     private readonly long[] lengths;
     private readonly long[] strides;
+    private readonly MIGraphXDynamicDimension[] dynamicDimensions;
+    private readonly long? elementCount;
+    private readonly long? byteCount;
 
     /// <summary>
     /// 创建采用标准行主序布局的静态 shape 元数据。
@@ -39,10 +42,32 @@ public sealed class MIGraphXShape
         DataType = dataType;
         this.lengths = copiedLengths;
         strides = copiedStrides;
-        ElementCount = elements;
-        ByteCount = bytes;
+        elementCount = elements;
+        byteCount = bytes;
         IsStandard = true;
         IsPacked = true;
+        dynamicDimensions = Array.Empty<MIGraphXDynamicDimension>();
+    }
+
+    /// <summary>创建动态 shape 值。 Creates dynamic shape values.</summary>
+    /// <param name="dataType">元素类型。 The element type.</param>
+    /// <param name="dimensions">动态维度范围。 The dynamic dimension ranges.</param>
+    public MIGraphXShape(MIGraphXShapeDataType dataType, IReadOnlyList<MIGraphXDynamicDimension> dimensions)
+        : this(dataType, CopyDynamicDimensions(dimensions))
+    {
+    }
+
+    private MIGraphXShape(MIGraphXShapeDataType dataType, MIGraphXDynamicDimension[] dimensions)
+    {
+        DataType = dataType;
+        dynamicDimensions = dimensions;
+        lengths = Array.Empty<long>();
+        strides = Array.Empty<long>();
+        elementCount = null;
+        byteCount = null;
+        IsDynamic = true;
+        IsStandard = false;
+        IsPacked = false;
     }
 
     private MIGraphXShape(
@@ -56,29 +81,65 @@ public sealed class MIGraphXShape
         DataType = dataType;
         this.lengths = lengths;
         this.strides = strides;
-        ElementCount = elementCount;
-        ByteCount = byteCount;
+        this.elementCount = elementCount;
+        this.byteCount = byteCount;
         IsStandard = isStandard;
         IsPacked = ComputePacked(lengths, strides);
+        dynamicDimensions = Array.Empty<MIGraphXDynamicDimension>();
+    }
+
+    /// <summary>创建动态 shape。 Creates a dynamic shape.</summary>
+    /// <param name="dataType">元素类型。 The element type.</param>
+    /// <param name="dimensions">动态维度范围。 The dynamic dimension ranges.</param>
+    public static MIGraphXShape CreateDynamic(MIGraphXShapeDataType dataType, IReadOnlyList<MIGraphXDynamicDimension> dimensions)
+    {
+        if (dimensions is null) { throw new ArgumentNullException(nameof(dimensions)); }
+        ShapeDataTypeMap.ToNative(dataType);
+        var copied = dimensions.ToArray();
+        for (var index = 0; index < copied.Length; index++)
+        {
+            if (copied[index] is null) { throw new ArgumentException("Dynamic dimensions must not contain null values.", nameof(dimensions)); }
+        }
+        return new MIGraphXShape(dataType, copied);
     }
 
     /// <summary>获取已映射的标量元素类型。 Gets the mapped scalar element type.</summary>
     public MIGraphXShapeDataType DataType { get; }
 
     /// <summary>获取不可变维度长度快照。 Gets the immutable dimension-length snapshot.</summary>
-    public IReadOnlyList<long> Lengths => Array.AsReadOnly(lengths);
+    public IReadOnlyList<long> Lengths
+    {
+        get
+        {
+            if (IsDynamic) { throw new InvalidOperationException("Lengths are not defined for a dynamic shape; inspect DynamicDimensions instead."); }
+            return Array.AsReadOnly(lengths);
+        }
+    }
 
     /// <summary>获取不可变 stride 快照。 Gets the immutable stride snapshot.</summary>
-    public IReadOnlyList<long> Strides => Array.AsReadOnly(strides);
+    public IReadOnlyList<long> Strides
+    {
+        get
+        {
+            if (IsDynamic) { throw new InvalidOperationException("Strides are not defined for a dynamic shape."); }
+            return Array.AsReadOnly(strides);
+        }
+    }
+
+    /// <summary>获取是否为动态 shape。 Gets whether this is a dynamic shape.</summary>
+    public bool IsDynamic { get; }
+
+    /// <summary>获取动态维度范围；静态 shape 返回空集合。 Gets dynamic dimension ranges; static shapes return an empty collection.</summary>
+    public IReadOnlyList<MIGraphXDynamicDimension> DynamicDimensions => Array.AsReadOnly(dynamicDimensions);
 
     /// <summary>获取维度数量。 Gets the number of dimensions.</summary>
-    public int Rank => lengths.Length;
+    public int Rank => IsDynamic ? dynamicDimensions.Length : lengths.Length;
 
     /// <summary>获取经过溢出检查的元素数量。 Gets the overflow-checked element count.</summary>
-    public long ElementCount { get; }
+    public long ElementCount => elementCount ?? throw new InvalidOperationException("ElementCount is not defined for a dynamic shape.");
 
     /// <summary>获取经过溢出检查的字节数量。 Gets the overflow-checked byte count.</summary>
-    public long ByteCount { get; }
+    public long ByteCount => byteCount ?? throw new InvalidOperationException("ByteCount is not defined for a dynamic shape.");
 
     /// <summary>获取布局是否为 MIGraphX 标准布局。 Gets whether the layout is MIGraphX-standard.</summary>
     public bool IsStandard { get; }
@@ -86,14 +147,27 @@ public sealed class MIGraphXShape
     /// <summary>获取布局是否无间隙地打包。 Gets whether the layout is packed without gaps.</summary>
     public bool IsPacked { get; }
 
-    internal long[] CopyLengths() => (long[])lengths.Clone();
+    internal long[] CopyLengths()
+    {
+        if (IsDynamic) { throw new InvalidOperationException("A dynamic shape has no concrete lengths."); }
+        return (long[])lengths.Clone();
+    }
 
-    internal static MIGraphXShape FromNative(IntPtr shape, string context)
+    internal static MIGraphXShape FromNative(IntPtr shape, string context, IReadOnlyList<MIGraphXDynamicDimension>? dynamicFallback = null)
     {
         var snapshot = NativeShapeSnapshot.Create(shape, context);
         if (snapshot.Dynamic)
         {
-            throw new NotSupportedException("M4 does not model dynamic tensor shapes.");
+            if (dynamicFallback is null)
+            {
+                throw new NotSupportedException("A native dynamic shape requires an explicit managed override to provide dimension ranges.");
+            }
+            if (dynamicFallback.Count != snapshot.DynamicFixedFlags.Length)
+            {
+                throw new InvalidOperationException("The managed dynamic override rank does not match the native shape.");
+            }
+            var dimensions = dynamicFallback.ToArray();
+            return CreateDynamic(ShapeDataTypeMap.FromNative(snapshot.Type), dimensions);
         }
 
         var dataType = ShapeDataTypeMap.FromNative(snapshot.Type);
@@ -137,6 +211,14 @@ public sealed class MIGraphXShape
             stride = checked(stride * dimensions[index]);
         }
         return result;
+    }
+
+    private static MIGraphXDynamicDimension[] CopyDynamicDimensions(IReadOnlyList<MIGraphXDynamicDimension> dimensions)
+    {
+        if (dimensions is null) { throw new ArgumentNullException(nameof(dimensions)); }
+        var copied = dimensions.ToArray();
+        if (copied.Any(value => value is null)) { throw new ArgumentException("Dynamic dimensions must not contain null values.", nameof(dimensions)); }
+        return copied;
     }
 
     private static long ComputeElementCount(long[] dimensions)

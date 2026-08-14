@@ -1,6 +1,8 @@
 # JYPPX.ROCm.MIGraphX.CSharp.API 0.0.0
 
-This unpublished local engineering candidate contains managed assets for 15 exact target frameworks, XML documentation, the M1 lifecycle foundation, restricted M2 workflow, M3 internal full-header declarations, and M4 resource-safe synchronous objects. It carries no AMD or fake-native binary.
+This unpublished local engineering candidate contains managed assets for 15 exact target frameworks, XML documentation, the M1 lifecycle foundation, restricted M2 workflow, M3 internal full-header declarations, M4 resource-safe synchronous objects, and M5 dynamic-shape/file/cache policy. It carries no AMD or fake-native binary, model, cache payload, or generated inventory.
+
+M5 supports immutable dynamic-dimension metadata, explicit ONNX static/dynamic overrides, and fixed-version `msgpack` Save/Load. `MIGraphXModelCache` requires an explicit root and validates a versioned sidecar and payload hash. Cache entries are not portable across native fingerprints, targets, compile options, or package versions. Evidence is local fake-native only; no new official runtime claim is included.
 
 - Native declarations: 158 matching `LibraryImport`/`DllImport` EntryPoints generated from one normalized model; one C-variadic header function explicitly unsupported
 - M3 evidence: complete 192-item inventory and official ELF parity are static; isolated critical ABI patterns use a fake-native test substitute

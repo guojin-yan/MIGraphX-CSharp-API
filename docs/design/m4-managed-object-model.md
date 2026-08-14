@@ -6,9 +6,9 @@ M4 adds a deliberately small synchronous object layer over the frozen ROCm 7.2.1
 
 `MIGraphXProgram`, `MIGraphXTarget`, `MIGraphXOnnxOptions`, `MIGraphXCompileOptions`, `MIGraphXArgument`, and `MIGraphXParameterMap` own native handles. `MIGraphXArgumentCollection` owns detached output arguments. `MIGraphXShape` is an immutable metadata snapshot and deliberately owns no native handle.
 
-The public scalar mapping is limited to `float`, `double`, and signed/unsigned 8-, 16-, 32-, and 64-bit integers. Tuple, dynamic, bool, half, bfloat16, float8, and packed float4x2 native datatypes remain outside M4. The mapping rejects unknown enum values rather than casting them through.
+The public scalar mapping is limited to `float`, `double`, and signed/unsigned 8-, 16-, 32-, and 64-bit integers. Tuple, bool, half, bfloat16, float8, and packed float4x2 native datatypes remain outside M4. Dynamic ranges are modeled by the M5 `MIGraphXDynamicDimension` value layer; typed arguments still require a concrete static shape. The mapping rejects unknown enum values rather than casting them through.
 
-ONNX options are intentionally default-only. Compile options expose the immutable offload-copy choice already covered by the M2 vertical slice. Dynamic-dimension overrides, external data options, tuning switches, save/load, async, streams, device buffers, and graph editing remain planned.
+ONNX options were default-only in M4. M5 adds explicit static/dynamic input overrides and default dimension setters. External data options, tuning switches, async, streams, device buffers, and graph editing remain planned; Save/Load is limited to the fixed-version M5 file-options path.
 
 ## Ownership table
 

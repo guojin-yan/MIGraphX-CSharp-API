@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace JYPPX.ROCm.MIGraphXSharp.Interop;
 
@@ -88,6 +89,21 @@ internal sealed class NativeProgramHandle : NativeOwnedHandle
     {
         var status = NativeMethods.ParseOnnxBuffer(out var raw, data, size, options);
         return CompleteParsed(status, raw, "migraphx_parse_onnx_buffer");
+    }
+
+    internal static NativeProgramHandle Load(IntPtr path, IntPtr options)
+    {
+        var slot = Marshal.AllocHGlobal(IntPtr.Size);
+        try
+        {
+            Marshal.WriteIntPtr(slot, IntPtr.Zero);
+            var status = NativeMethods.Load(slot, path, options);
+            var raw = Marshal.ReadIntPtr(slot);
+            var owned = new NativeProgramHandle();
+            owned.Initialize(raw);
+            return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_load");
+        }
+        finally { Marshal.FreeHGlobal(slot); }
     }
 
     private static NativeProgramHandle CompleteParsed(NativeMIGraphXStatus status, IntPtr raw, string operation)

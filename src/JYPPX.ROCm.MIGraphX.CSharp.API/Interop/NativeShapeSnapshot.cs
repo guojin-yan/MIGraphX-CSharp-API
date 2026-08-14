@@ -5,7 +5,7 @@ namespace JYPPX.ROCm.MIGraphXSharp.Interop;
 
 internal sealed class NativeShapeSnapshot
 {
-    private NativeShapeSnapshot(NativeMIGraphXShapeDataType type, long[] dimensions, long[] strides, long elements, long bytes, bool standard, bool dynamic)
+    private NativeShapeSnapshot(NativeMIGraphXShapeDataType type, long[] dimensions, long[] strides, long elements, long bytes, bool standard, bool dynamic, bool[] dynamicFixedFlags)
     {
         Type = type;
         Dimensions = dimensions;
@@ -14,6 +14,7 @@ internal sealed class NativeShapeSnapshot
         Bytes = bytes;
         Standard = standard;
         Dynamic = dynamic;
+        DynamicFixedFlags = dynamicFixedFlags;
     }
 
     internal NativeMIGraphXShapeDataType Type { get; }
@@ -23,6 +24,7 @@ internal sealed class NativeShapeSnapshot
     internal long Bytes { get; }
     internal bool Standard { get; }
     internal bool Dynamic { get; }
+    internal bool[] DynamicFixedFlags { get; }
 
     internal static NativeShapeSnapshot Create(IntPtr shape, string context)
     {
@@ -34,7 +36,13 @@ internal sealed class NativeShapeSnapshot
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeBytes(out var bytes, shape), "migraphx_shape_bytes");
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeStandard(out var standard, shape), "migraphx_shape_standard");
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeDynamic(out var dynamic, shape), "migraphx_shape_dynamic");
-        return new NativeShapeSnapshot(type, CopySizeT(lengths, lengthCount, "shape lengths"), CopySizeT(strides, strideCount, "shape strides"), ToLong(elements, "shape elements"), ToLong(bytes, "shape bytes"), standard != 0, dynamic != 0);
+        var isDynamic = dynamic != 0;
+        var fixedFlags = Array.Empty<bool>();
+        if (isDynamic)
+        {
+            using (var dimensions = NativeDynamicDimensionsHandle.FromShape(shape)) { fixedFlags = dimensions.ReadFixedFlags(); }
+        }
+        return new NativeShapeSnapshot(type, CopySizeT(lengths, lengthCount, "shape lengths"), CopySizeT(strides, strideCount, "shape strides"), ToLong(elements, "shape elements"), ToLong(bytes, "shape bytes"), standard != 0, isDynamic, fixedFlags);
     }
 
     internal void RequireFloat32StaticStandard()

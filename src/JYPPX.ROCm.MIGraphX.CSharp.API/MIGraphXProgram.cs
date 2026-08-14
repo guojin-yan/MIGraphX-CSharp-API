@@ -14,6 +14,7 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 public sealed class MIGraphXProgram : IDisposable
 {
     private readonly NativeResourceOwner<NativeProgramHandle> owner;
+    private readonly IReadOnlyDictionary<string, MIGraphXDynamicDimension[]> dynamicOverrides;
     private bool compiled;
 
     /// <summary>
@@ -25,11 +26,13 @@ public sealed class MIGraphXProgram : IDisposable
     {
         var runtime = NativeRuntime.Load(nativeLibraryPath);
         owner = new NativeResourceOwner<NativeProgramHandle>(runtime, NativeProgramHandle.Create());
+        dynamicOverrides = new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
     }
 
-    private MIGraphXProgram(NativeRuntime runtime, NativeProgramHandle handle)
+    private MIGraphXProgram(NativeRuntime runtime, NativeProgramHandle handle, IReadOnlyDictionary<string, MIGraphXDynamicDimension[]>? dynamicOverrides = null)
     {
         owner = new NativeResourceOwner<NativeProgramHandle>(runtime, handle);
+        this.dynamicOverrides = dynamicOverrides ?? new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
     }
 
     /// <summary>获取 program 是否已由此对象成功编译；Dispose 后访问会失败。 Gets whether this object successfully compiled the program; access fails after disposal.</summary>
@@ -53,7 +56,8 @@ public sealed class MIGraphXProgram : IDisposable
         {
             return options.Owner.WithHandle(handle => new MIGraphXProgram(
                 options.Owner.Runtime,
-                NativeProgramHandle.ParseFile(path.Pointer, handle)));
+                NativeProgramHandle.ParseFile(path.Pointer, handle),
+                options.DynamicOverrides));
         }
     }
 
@@ -74,7 +78,8 @@ public sealed class MIGraphXProgram : IDisposable
         {
             return options.Owner.WithHandle(handle => new MIGraphXProgram(
                 options.Owner.Runtime,
-                NativeProgramHandle.ParseBuffer(pinned.AddrOfPinnedObject(), new UIntPtr((uint)model.Length), handle)));
+                NativeProgramHandle.ParseBuffer(pinned.AddrOfPinnedObject(), new UIntPtr((uint)model.Length), handle),
+                options.DynamicOverrides));
         }
         finally
         {
@@ -109,6 +114,38 @@ public sealed class MIGraphXProgram : IDisposable
                 compiled = true;
                 return 0;
             });
+    }
+
+    /// <summary>将 program 保存到固定版本支持的文件格式。 Saves this program using a fixed-version supported file format.</summary>
+    /// <param name="path">绝对输出路径。 The absolute output path.</param>
+    /// <param name="options">文件格式选项。 The file-format options.</param>
+    public void Save(string path, MIGraphXFileOptions options)
+    {
+        if (options is null) { throw new ArgumentNullException(nameof(options)); }
+        var fullPath = ValidateOutputPath(path, nameof(path));
+        owner.Runtime.RequireSame(options.Owner.Runtime, nameof(options));
+        using (var utf8 = new StrictUtf8String(fullPath, nameof(path)))
+        {
+            NativeResourceLock.With(
+                new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(options.Owner.Id, options.Owner.Sync) },
+                () => NativeStatus.ThrowIfFailed(NativeMethods.Save(owner.HandleUnderLock, utf8.Pointer, options.Owner.HandleUnderLock), "migraphx_save"));
+        }
+    }
+
+    /// <summary>从保存文件载入新的 owned program；载入后需按需重新编译。 Loads a new owned program; recompile it as needed after loading.</summary>
+    /// <param name="path">绝对输入路径。 The absolute input path.</param>
+    /// <param name="options">文件格式选项。 The file-format options.</param>
+    public static MIGraphXProgram Load(string path, MIGraphXFileOptions options)
+    {
+        if (options is null) { throw new ArgumentNullException(nameof(options)); }
+        var fullPath = ValidateInputPath(path, nameof(path));
+        var runtime = options.Owner.Runtime;
+        using (var utf8 = new StrictUtf8String(fullPath, nameof(path)))
+        {
+            return NativeResourceLock.With(
+                new[] { NativeResourceLock.Target(options.Owner.Id, options.Owner.Sync) },
+                () => new MIGraphXProgram(runtime, NativeProgramHandle.Load(utf8.Pointer, options.Owner.HandleUnderLock)));
+        }
     }
 
     /// <summary>
@@ -212,7 +249,8 @@ public sealed class MIGraphXProgram : IDisposable
                         NativeStatus.ThrowIfFailed(
                             NativeMethods.ProgramParameterShapesGet(out var shape, nativeShapes.DangerousGetHandle(), utf8.Pointer),
                             "migraphx_program_parameter_shapes_get");
-                        result.Add(new KeyValuePair<string, MIGraphXShape>(name, MIGraphXShape.FromNative(shape, $"parameter '{name}'")));
+                            dynamicOverrides.TryGetValue(name, out var fallback);
+                            result.Add(new KeyValuePair<string, MIGraphXShape>(name, MIGraphXShape.FromNative(shape, $"parameter '{name}'", fallback)));
                     }
                 }
                 return new OrderedReadOnlyDictionary<MIGraphXShape>(result);
@@ -274,5 +312,21 @@ public sealed class MIGraphXProgram : IDisposable
     {
         NativeStatus.ThrowIfFailed(NativeMethods.ArgumentsSize(out var size, arguments), "migraphx_arguments_size");
         return size;
+    }
+
+    private static string ValidateInputPath(string path, string parameterName)
+    {
+        if (path is null) { throw new ArgumentNullException(parameterName); }
+        if (!Path.IsPathRooted(path)) { throw new ArgumentException("The path must be absolute.", parameterName); }
+        var fullPath = Path.GetFullPath(path);
+        if (!File.Exists(fullPath)) { throw new FileNotFoundException("The file does not exist.", fullPath); }
+        return fullPath;
+    }
+
+    private static string ValidateOutputPath(string path, string parameterName)
+    {
+        if (path is null) { throw new ArgumentNullException(parameterName); }
+        if (!Path.IsPathRooted(path)) { throw new ArgumentException("The path must be absolute.", parameterName); }
+        return Path.GetFullPath(path);
     }
 }

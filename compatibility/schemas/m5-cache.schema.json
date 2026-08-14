@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MIGraphXSharp M5 cache envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "modelSha256", "headerSha256", "apiIdentity", "managedIdentity", "nativeFingerprint", "targetName", "compileOptions", "fileFormat", "inputOverrides", "payloadSha256"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "modelSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "headerSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "apiIdentity": { "type": "string", "minLength": 1 },
+    "managedIdentity": { "type": "string", "minLength": 1 },
+    "nativeFingerprint": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "targetName": { "type": "string", "minLength": 1 },
+    "compileOptions": { "type": "string", "minLength": 1 },
+    "fileFormat": { "const": "msgpack" },
+    "inputOverrides": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["inputName", "dimensions"],
+        "oneOf": [
+          { "not": { "required": ["dynamicDimensions"] } },
+          {
+            "required": ["dynamicDimensions"],
+            "properties": { "dimensions": { "maxItems": 0 } }
+          }
+        ],
+        "properties": {
+          "inputName": { "type": "string", "minLength": 1 },
+          "dimensions": { "type": "array", "items": { "type": "integer", "minimum": 0 } },
+          "dynamicDimensions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["minimum", "maximum", "optimals"],
+              "properties": {
+                "minimum": { "type": "integer", "minimum": 0 },
+                "maximum": { "type": "integer", "minimum": 0 },
+                "optimals": { "type": "array", "items": { "type": "integer", "minimum": 0 } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "payloadSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+  }
+}
