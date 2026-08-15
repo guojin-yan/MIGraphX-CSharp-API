@@ -14,7 +14,7 @@ public static class MIGraphXBuildInfo
     /// 获取当前本地工程候选包版本。
     /// Gets the current local engineering candidate package version.
     /// </summary>
-    public const string PackageVersion = "0.0.0";
+    public const string PackageVersion = MIGraphXGeneratedVersion.PackageVersion;
 
     /// <summary>
     /// 获取一个值，指示当前程序集是否包含固定 M1 Direct P/Invoke 声明；这不表示官方 MIGraphX 或 GPU runtime 已执行。

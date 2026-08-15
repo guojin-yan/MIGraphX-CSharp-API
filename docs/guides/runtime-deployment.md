@@ -15,6 +15,8 @@ Let APT resolve the declared ROCm dependencies from the same AMD repository. Do 
 
 The native package is outside the managed NuGet lifecycle. Upgrading MIGraphX/ROCm therefore requires an application compatibility review and a fresh environment probe; a managed package update does not upgrade the native runtime.
 
+Before declaring a native upgrade compatible, repeat frozen-header acquisition, export/ABI checks, M1-M6 system-native positive and negative execution, restart/long-run coverage, and the compatibility matrix review. A matching SONAME or a successful loader probe alone is insufficient.
+
 ## Select the native root
 
 For deterministic selection, pass the absolute installed SONAME path:
@@ -51,5 +53,9 @@ The host supplies Ubuntu system libraries, the `amdgpu`/`amdkfd` kernel drivers,
 | different library already active | The process already loaded a different native root | Restart and select one installation before using the managed API |
 
 Structured diagnostics report candidates, sources, existence, classifications, and the original platform error. They do not turn untested versions, devices, models, M6 async/device buffers, zero-copy, or performance into supported claims.
+
+Diagnostics are returned to the caller and are not logged by the library. Explicit paths and platform-loader messages can still contain host-specific information; redact them before attaching logs to public issues. A different already-loaded root is rejected, and the process must be restarted before selecting another native family.
+
+An authorized release-runtime session must also test missing MIGraphX, wrong architecture, missing dependency/export, explicit wrong path, a second root, mixed ROCm patch files, wrong device/stream/client, disposed objects, and incomplete cache data. These cases are locally modeled with substitutes but are not M8 official-host evidence.
 
 中文摘要：项目只分发托管程序集。请通过 AMD 官方系统仓库安装同一版本族的 MIGraphX/ROCm，优先传入 `/opt/rocm-7.2.1/lib/libmigraphx_c.so.3` 绝对路径；不要从缓存、Debian 解包目录或不同 ROCm 版本拼装应用私有闭包。

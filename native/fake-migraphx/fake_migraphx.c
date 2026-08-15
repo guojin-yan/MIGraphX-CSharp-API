@@ -51,9 +51,12 @@ typedef struct fake_options
     int static_override;
     size_t static_count;
     size_t static_values[8];
+    int64_t default_loop_iterations;
+    int64_t limit_loop_iterations;
+    char external_data_path[512];
 } *migraphx_onnx_options_t;
 typedef struct fake_program { int value; int compiled; int offload_copy; int dynamic; size_t dynamic_count; fake_dynamic_dimension dynamic_values[8]; size_t static_count; size_t static_values[8]; } *migraphx_program_t;
-typedef struct fake_compile_options { uint8_t offload_copy; } *migraphx_compile_options_t;
+typedef struct fake_compile_options { uint8_t offload_copy; uint8_t fast_math; uint8_t exhaustive_tune; } *migraphx_compile_options_t;
 typedef struct fake_shape
 {
     int type;
@@ -114,6 +117,11 @@ static volatile int32_t shape_type_override = -1;
 static volatile int32_t parameter_size_reads;
 static volatile int32_t argument_size_reads;
 static volatile int32_t last_parameter_count;
+static volatile int64_t last_default_loop_iterations;
+static volatile int64_t last_limit_loop_iterations;
+static volatile int32_t last_fast_math;
+static volatile int32_t last_exhaustive_tune;
+static char last_external_data_path[512];
 static char failure_entry[128];
 static volatile int32_t failure_status;
 static char null_entry[128];
@@ -202,6 +210,11 @@ EXPORT void fake_reset(void)
     parameter_size_reads = 0;
     argument_size_reads = 0;
     last_parameter_count = 0;
+    last_default_loop_iterations = 0;
+    last_limit_loop_iterations = 0;
+    last_fast_math = 0;
+    last_exhaustive_tune = 0;
+    last_external_data_path[0] = '\0';
     failure_entry[0] = '\0';
     failure_status = 0;
     null_entry[0] = '\0';
@@ -237,6 +250,11 @@ EXPORT int fake_parse_buffer_count(void) { return parse_buffer_count; }
 EXPORT int fake_compile_count(void) { return compile_count; }
 EXPORT int fake_run_count(void) { return run_count; }
 EXPORT int fake_last_parameter_count(void) { return last_parameter_count; }
+EXPORT int64_t fake_last_default_loop_iterations(void) { return last_default_loop_iterations; }
+EXPORT int64_t fake_last_limit_loop_iterations(void) { return last_limit_loop_iterations; }
+EXPORT int fake_last_fast_math(void) { return last_fast_math; }
+EXPORT int fake_last_exhaustive_tune(void) { return last_exhaustive_tune; }
+EXPORT const char* fake_last_external_data_path(void) { return last_external_data_path; }
 EXPORT int fake_m2_destroy_count(void) { return m2_destroy_count; }
 EXPORT int fake_m2_live_count(void) { return m2_live_count; }
 EXPORT int fake_m5_live_count(void) { return m5_live_count; }
@@ -736,6 +754,8 @@ EXPORT migraphx_status migraphx_compile_options_create(migraphx_compile_options_
     int status; if(out == NULL) return migraphx_status_bad_param; if(take_null_for("migraphx_compile_options_create")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_compile_options_create"); } *out = (migraphx_compile_options_t)create_m2(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; status = take_status_for("migraphx_compile_options_create"); return (migraphx_status)status;
 }
 EXPORT migraphx_status migraphx_compile_options_set_offload_copy(migraphx_compile_options_t value, uint8_t enabled) { if(value == NULL) return migraphx_status_bad_param; value->offload_copy = enabled; return (migraphx_status)take_status_for("migraphx_compile_options_set_offload_copy"); }
+EXPORT migraphx_status migraphx_compile_options_set_fast_math(migraphx_compile_options_t value, uint8_t enabled) { if(value == NULL) return migraphx_status_bad_param; value->fast_math = enabled; last_fast_math = enabled; return (migraphx_status)take_status_for("migraphx_compile_options_set_fast_math"); }
+EXPORT migraphx_status migraphx_compile_options_set_exhaustive_tune_flag(migraphx_compile_options_t value, uint8_t enabled) { if(value == NULL) return migraphx_status_bad_param; value->exhaustive_tune = enabled; last_exhaustive_tune = enabled; return (migraphx_status)take_status_for("migraphx_compile_options_set_exhaustive_tune_flag"); }
 EXPORT migraphx_status migraphx_parse_onnx(migraphx_program_t* out, const char* name, migraphx_onnx_options_t options)
 {
     migraphx_status status;
@@ -885,6 +905,27 @@ EXPORT migraphx_status migraphx_onnx_options_set_default_dim_value(migraphx_onnx
 EXPORT migraphx_status migraphx_onnx_options_set_default_dyn_dim_value(migraphx_onnx_options_t options, migraphx_dynamic_dimension_t value)
 {
     if(options == NULL || value == NULL) return migraphx_status_bad_param; return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_dyn_dim_value");
+}
+EXPORT migraphx_status migraphx_onnx_options_set_default_loop_iterations(migraphx_onnx_options_t options, int64_t value)
+{
+    if(options == NULL || value < 0) return migraphx_status_bad_param;
+    options->default_loop_iterations = value;
+    last_default_loop_iterations = value;
+    return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_loop_iterations");
+}
+EXPORT migraphx_status migraphx_onnx_options_set_limit_loop_iterations(migraphx_onnx_options_t options, int64_t value)
+{
+    if(options == NULL || value < 0) return migraphx_status_bad_param;
+    options->limit_loop_iterations = value;
+    last_limit_loop_iterations = value;
+    return (migraphx_status)take_status_for("migraphx_onnx_options_set_limit_loop_iterations");
+}
+EXPORT migraphx_status migraphx_onnx_options_set_external_data_path(migraphx_onnx_options_t options, const char* path)
+{
+    if(options == NULL || path == NULL) return migraphx_status_bad_param;
+    copy_string(options->external_data_path, sizeof(options->external_data_path), path);
+    copy_string(last_external_data_path, sizeof(last_external_data_path), path);
+    return (migraphx_status)take_status_for("migraphx_onnx_options_set_external_data_path");
 }
 
 EXPORT migraphx_status migraphx_file_options_destroy(migraphx_file_options_t value) { destroy_m5(value); return (migraphx_status)take_status_for("migraphx_file_options_destroy"); }

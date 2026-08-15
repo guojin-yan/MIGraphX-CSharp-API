@@ -99,7 +99,7 @@ internal static class NativeLibraryLoader
         {
             if (loadedHandle != IntPtr.Zero)
             {
-                if (string.Equals(loadedPath, candidate, StringComparison.OrdinalIgnoreCase))
+                if (PathsEqual(loadedPath, candidate))
                 {
                     var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6));
                     if (missingFromActive.Length != 0)
@@ -110,19 +110,6 @@ internal static class NativeLibraryLoader
 
                     diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.Loaded, "The same native library is already loaded and was reused."));
                     return new NativeLoadResult(true, loadedPath, diagnostics);
-                }
-
-                if (!TryLoad(candidate, out var probeHandle, out var probeFailure))
-                {
-                    diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, ClassifyLoadFailure(probeFailure!), probeFailure!));
-                    return new NativeLoadResult(false, null, diagnostics);
-                }
-                var probeMissing = MissingExports(probeHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6));
-                Free(probeHandle);
-                if (probeMissing.Length != 0)
-                {
-                    diagnostics.Add(CreateMissingExportDiagnostic(candidate, source, isFilePath, probeMissing, requireOnnxWorkflow, requireManagedObjects));
-                    return new NativeLoadResult(false, null, diagnostics);
                 }
 
                 diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.LoadFailure, $"A different native library is already active: {loadedPath}"));
@@ -274,6 +261,11 @@ internal static class NativeLibraryLoader
     }
 
     private static bool IsLinux() => Environment.OSVersion.Platform == PlatformID.Unix && !IsMacOS();
+
+    internal static bool PathsEqual(string? left, string right) => string.Equals(
+        left,
+        right,
+        IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
 
     private static bool IsAbsoluteFilePath(string path)
     {

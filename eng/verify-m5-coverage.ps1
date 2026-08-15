@@ -11,7 +11,17 @@ if ($m5Map.counts.inventory -ne 192 -or @($m5Map.supportedM5Capabilities).Count 
 $ownership = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m4-public-ownership.json') | ConvertFrom-Json
 if (@($ownership.types).Count -ne 13) { throw 'M5 ownership closure must contain 13 records.' }
 $baseline = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\managed-public-api.txt')
-foreach ($required in @('MIGraphXDynamicDimension', 'MIGraphXFileOptions', 'MIGraphXModelCache', 'MIGraphXCacheMetadata', 'SetDynamicInputParameterShape', 'CreateDynamic', 'static MIGraphXProgram Load', 'void Save(')) {
+foreach ($required in @(
+    '# schema-version: 2.0.0',
+    'JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension',
+    'JYPPX.ROCm.MIGraphXSharp.MIGraphXFileOptions',
+    'JYPPX.ROCm.MIGraphXSharp.MIGraphXModelCache',
+    'JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata',
+    'JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDynamicInputParameterShape(',
+    'JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.CreateDynamic(',
+    'M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.Load(',
+    'M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.Save('
+)) {
     if (-not $baseline.Contains($required)) { throw "M5 public baseline is missing '$required'." }
 }
 Write-Output 'M5 coverage gate passed: dynamic shape, save/load, cache metadata, and ownership mappings are closed.'

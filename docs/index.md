@@ -1,9 +1,11 @@
 # MIGraphXSharp documentation
 
-MIGraphXSharp `0.0.0` contains M1 lifecycle, the M2 restricted ONNX workflow, the M3 low-level binding pipeline, M4 resource-safe synchronous objects, M5 dynamic-shape/cache policy, the optional M6 HipSharp native-async adapter, and M7 fail-closed Runtime supply-chain infrastructure. The frozen 192-item inventory remains 75 supported, 116 planned, and one unsupported high-level item.
+MIGraphXSharp has an unpublished M8 `0.9.0-rc.1` local-prerelease process while retaining `0.0.0` as the repository default. M8 records a reviewable compatibility baseline while high-level interface coverage continues to expand on the `0.x.x` line. Final `1.0.0` requires completed Windows runtime validation and explicit owner authorization.
 
 Local fake-native execution remains a test substitute. Separately, unified M1/M2 official runtime validation passed at pushed commit `f1a11cfd1701a041cee29188f7600c85b34ae260` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and one gfx1100 GPU. The result covers the official loader, M1 lifecycle, and the restricted M2 Identity file/buffer parse, GPU compile, synchronous run, and reference comparison.
 
-Start with [Getting started](guides/getting-started.md), the [managed object workflow](guides/managed-objects.md), and [Runtime deployment](guides/runtime-deployment.md), then review the [M6 async/HIP design](design/m6-hip-async-interop.md), [M7 Runtime design](design/m7-runtime-packaging.md), [M7 local validation](validation/m7-local-validation.md), [platform evidence](compatibility/platforms.md), and the [official M1/M2 runtime summary](validation/m1-m2-official-runtime.md).
+Start with [Getting started](guides/getting-started.md), [API compatibility and versioning](guides/api-versioning.md), and [Runtime deployment](guides/runtime-deployment.md), then review the [M8 design](design/m8-api-release-readiness.md), [M8 local validation](validation/m8-local-validation.md), [platform evidence](compatibility/platforms.md), [official M1/M2 runtime summary](validation/m1-m2-official-runtime.md), and [M0-M8 retrospective](articles/m0-m8-evidence-driven-wrapper.md).
 
-中文摘要：M7 已冻结 managed-only + AMD 官方 system-native 安装策略，Runtime NuGet 为 `not-applicable`，候选包与 marker loader 已移除。精确 SHA 的四条官方 runtime 结论仍只覆盖 M1/M2 受限工作流。
+The current M9 interface batch adds five ONNX/compile options and moves the aggregate map to 80 supported, 111 planned, and one unsupported item. Its [design](design/m9-inference-options.md), [cloud validation plan](validation/m9-cloud-validation.md), and [article draft](articles/m9-interface-options-cloud-record.md) keep local contract evidence separate from the still-deferred official runtime run.
+
+中文摘要：M8 为 managed API 建立可审查基线，并补齐版本、local-feed、SBOM/provenance 与候选门禁；接口继续在 `0.x.x` 下扩展。M7 的 system-native 策略保持不变，精确 SHA 的官方 runtime 结论仍只覆盖 M1/M2 受限工作流。

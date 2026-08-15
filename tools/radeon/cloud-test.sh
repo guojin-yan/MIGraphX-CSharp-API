@@ -37,4 +37,5 @@ dotnet run --project ./smoke/EnvironmentSmokeRunner/EnvironmentSmokeRunner.cspro
 model_path="${results}/m2-identity-float32.onnx"
 pwsh ./eng/generate-m2-model.ps1 -OutputPath "${model_path}" 2>&1 | tee "${results}/model.txt"
 dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj -c Release --no-build -- --runtime-candidate "${resolved_library}" "${model_path}" 2>&1 | tee "${results}/official-m2-smoke.json"
-printf '{"schemaVersion":"1.1.0","commit":"%s","managedGates":"completed","header":"verified","officialNativeM1":"runtime-executed","officialOnnxM2":"runtime-candidate-executed-review-required","gpuInference":"runtime-candidate-executed-review-required"}\n' "${COMMIT_SHA}" > "${results}/summary.json"
+dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj -c Release --no-build -- --runtime-options-candidate "${resolved_library}" "${model_path}" 2>&1 | tee "${results}/official-m9-options-smoke.json"
+printf '{"schemaVersion":"1.2.0","commit":"%s","managedGates":"completed","header":"verified","officialNativeM1":"runtime-executed","officialOnnxM2":"runtime-candidate-executed-review-required","gpuInference":"runtime-candidate-executed-review-required","m9InferenceOptions":"runtime-candidate-executed-review-required"}\n' "${COMMIT_SHA}" > "${results}/summary.json"

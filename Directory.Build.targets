@@ -1,4 +1,28 @@
 <Project>
+  <Target Name="ValidateMIGraphXBuildIdentity" BeforeTargets="PrepareForBuild" Condition="'$(RepositoryRoot)' != ''">
+    <Error Condition="'$(MIGraphXSharpNumericVersion)' == ''"
+           Text="MIGraphXSharpVersion must start with a three-part numeric semantic version." />
+    <Error Condition="'$(RepositoryCommit)' != '' and '$(MIGraphXSharpRepositoryCommitValid)' != 'True'"
+           Text="RepositoryCommit must be a lowercase 40-character Git SHA when supplied." />
+  </Target>
+
+  <Target Name="GenerateMIGraphXBuildVersion"
+          BeforeTargets="CoreCompile"
+          Condition="'$(MSBuildProjectName)' == 'JYPPX.ROCm.MIGraphX.CSharp.API'">
+    <PropertyGroup>
+      <MIGraphXBuildVersionFile>$(IntermediateOutputPath)MIGraphXBuildVersion.g.cs</MIGraphXBuildVersionFile>
+    </PropertyGroup>
+    <WriteLinesToFile
+      File="$(MIGraphXBuildVersionFile)"
+      Lines="namespace JYPPX.ROCm.MIGraphXSharp%3B internal static class MIGraphXGeneratedVersion { internal const string PackageVersion = &quot;$(MIGraphXSharpVersion)&quot;%3B }"
+      Overwrite="true"
+      WriteOnlyWhenDifferent="true"
+      Encoding="UTF-8" />
+    <ItemGroup>
+      <Compile Include="$(MIGraphXBuildVersionFile)" />
+    </ItemGroup>
+  </Target>
+
   <Target Name="ValidateRepositoryBoundary" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(RepositoryRoot)' != '' and !Exists('$(RepositoryRoot)MIGraphXSharp.sln')"
            Text="The build must run from the MIGraphXSharp source repository." />

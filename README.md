@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, M2 restricted ONNX workflow, M3 reproducible low-level binding pipeline, M4 resource-safe synchronous objects, M5 dynamic-shape/cache policy, an optional M6 HipSharp async adapter, and M7 system-native deployment policy for the official AMD MIGraphX C API. This remains a local engineering candidate, not a published release.
+MIGraphXSharp now has an M8 `0.9.0-rc.1` local-prerelease path over the M1 lifecycle foundation, M2 restricted ONNX workflow, M3 reproducible low-level binding pipeline, M4 resource-safe synchronous objects, M5 dynamic-shape/cache policy, optional M6 HipSharp async adapter, and M7 system-native deployment policy. The repository default remains `0.0.0`; no package is published. Development remains on `0.x.x` until Windows runtime validation is complete and the owner explicitly authorizes `1.0.0`.
 
 ## Status
 
@@ -15,6 +15,8 @@ MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, M2 restricted ON
 - M5 adds immutable dynamic dimensions, strict static/dynamic ONNX overrides, fixed-version `msgpack` Save/Load, and an explicit-root integrity-checked model cache. Its map closes as 74 supported, 117 planned, and 1 unsupported.
 - M6 adds the optional `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` adapter with three public types and eleven members. It submits native `migraphx_program_run_async` using the fixed `hipStream_t` name, retains program/map/input/output/device leases through HipStream completion, and closes the map as 75 supported, 116 planned, and 1 unsupported.
 - M7 pins the signed ROCm 7.2.1 Ubuntu Noble amd64 source metadata and exact MIGraphX root package, then freezes `system-native` as the deployment mode. Users install the coherent native closure from AMD's official repository; this project ships managed assemblies only.
+- M8 records a versioned compatibility baseline for core and adapter across all 15 TFMs. The baseline is intentionally reviewable during `0.x.x` interface expansion; candidate version, assembly/file/informational version, cache identity, exact package dependencies, source commit, product SBOM, and provenance remain one local evidence chain.
+- M9 projects five inference-option entry points for ONNX Loop defaults/limits, external-data roots, fast-math, and exhaustive tuning. The aggregate map is 80 supported, 111 planned, and 1 unsupported; official cloud execution is prepared but still deferred.
 - Static shape metadata includes mapped scalar type, lengths, strides, rank, checked element/byte counts, standard, and packed flags. Typed arguments own copied host memory; parameter maps deep-copy arguments; run outputs are copied before native collections are released.
 - One normalized model emits 158 matching `LibraryImport` and `DllImport` EntryPoints. The C-variadic `migraphx_operation_create` is explicitly unsupported instead of receiving a guessed ABI.
 - All 159 header functions match the hash-verified official ELF; its additional private test export is separately classified. These M3 results are `statically-verified`, not official runtime execution.
@@ -29,7 +31,7 @@ MIGraphXSharp `0.0.0` now contains the M1 lifecycle foundation, M2 restricted ON
 Build the local-only managed candidate package:
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.0.0
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.1
 ```
 
 The frozen NuGet/project/assembly name is `JYPPX.ROCm.MIGraphX.CSharp.API`; the C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Do not publish this engineering candidate.
@@ -78,6 +80,16 @@ The reviewed native closure is too large for a maintainable Runtime nupkg and ov
 
 The loader keeps the established explicit path, application RID directory, application base, and system-loader diagnostics. It does not download libraries or modify `PATH`/`LD_LIBRARY_PATH`. Use an absolute path when deterministic selection matters, and do not assemble a private closure from `.cache`, extracted Debian packages, or mixed ROCm versions. See the [M7 design](docs/design/m7-runtime-packaging.md), [deployment guide](docs/guides/runtime-deployment.md), and [M7 validation status](docs/validation/m7-local-validation.md).
 
+## M8 API baseline and prerelease readiness
+
+Schema 2 snapshots baseline signatures, defaults, generic constraints, nullable metadata, identity, and identical 15-TFM availability. Intentional `0.x.x` API additions update the snapshots through review. The managed SemVer is independent of ROCm/MIGraphX; changing the managed package does not update APT. The prerelease adapter restores exact `[0.9.0-rc.1]` core and `[0.9.1]` HipSharp packages from a mapped local feed.
+
+The candidate gate produces per-file managed SBOM data, local unsigned provenance, NuGet ZIP hashes, and separate normalized content hashes. No new official host was authorized, so M4-M6, M9 options, system-native negatives, restart/long-run work, and performance remain unexecuted beyond their stated historical scope. `release-candidate-local` is not `release-ready` or published.
+
+## M9 inference options and cloud record
+
+`MIGraphXOnnxOptions` now exposes non-negative Loop defaults/limits and an absolute strict-UTF-8 external-data path. `MIGraphXCompileOptions` keeps its existing constructor and adds an explicit fast-math/exhaustive-tune overload. Local tests verify forwarding, path validation, exact native failure attribution, and cleanup. The credential-free cloud script records an official-runtime candidate after high-level parse/compile/run, but the result remains `runtime-deferred` until a newly authorized exact commit is executed and reviewed.
+
 ## Build
 
 Install the .NET 10 SDK selected by `global.json`, PowerShell 7, CMake, and a C compiler, then run:
@@ -89,22 +101,23 @@ dotnet tool restore
 .\eng\verify-m4-coverage.ps1
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
+.\eng\verify-m9-coverage.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.1 -NoBuild
 .\eng\verify-package.ps1 -PackagePath $package
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.0.0 -HipSharpVersion 0.9.1 -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.0.0 -HipSharpVersion 0.9.1
-.\eng\docs.ps1 -Configuration Release -NoBuild
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.1 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.1 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.1 -NoBuild
 ```
 
 Build, static official-ELF evidence, fake-native execution, and official MIGraphX runtime execution remain separate evidence levels. The M1/M2 runtime claim is limited to the exact pushed SHA, environment, model, shape, and synchronous offload-copy path recorded in the [official runtime summary](docs/validation/m1-m2-official-runtime.md).
 
 ## Documentation
 
-See the [M4 managed-object design](docs/design/m4-managed-object-model.md), [M5 dynamic-shape and cache design](docs/design/m5-dynamic-shape-cache.md), [M6 async/HIP design](docs/design/m6-hip-async-interop.md), [M7 Runtime design](docs/design/m7-runtime-packaging.md), [managed object guide](docs/guides/managed-objects.md), [Runtime deployment guide](docs/guides/runtime-deployment.md), [M7 local validation](docs/validation/m7-local-validation.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
+See the [M8 design](docs/design/m8-api-release-readiness.md), [M9 option design](docs/design/m9-inference-options.md), [M9 cloud plan](docs/validation/m9-cloud-validation.md), [API/versioning guide](docs/guides/api-versioning.md), [Runtime deployment guide](docs/guides/runtime-deployment.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
 
 ## License
 
@@ -112,4 +125,4 @@ Copyright 2026 Guojin Yan. This managed project is licensed under the [Apache Li
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), the [M3 normalized model](compatibility/m3-normalized-api.json), and the [M6 high-level map](compatibility/m6-high-level-api-map.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), the [M3 normalized model](compatibility/m3-normalized-api.json), and the [M9 high-level map](compatibility/m9-high-level-api-map.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.

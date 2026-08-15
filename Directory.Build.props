@@ -4,6 +4,7 @@
     <JYPPXManagedTargetFrameworks>net46;net461;net462;net47;net471;net472;net48;net481;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0;net10.0</JYPPXManagedTargetFrameworks>
     <MIGraphXSharpPackageId>JYPPX.ROCm.MIGraphX.CSharp.API</MIGraphXSharpPackageId>
     <MIGraphXSharpVersion Condition="'$(MIGraphXSharpVersion)' == ''">0.0.0</MIGraphXSharpVersion>
+    <MIGraphXSharpNumericVersion>$([System.Text.RegularExpressions.Regex]::Match('$(MIGraphXSharpVersion)', '^\d+\.\d+\.\d+').Value)</MIGraphXSharpNumericVersion>
     <MIGraphXSharpRepositoryUrl>https://github.com/guojin-yan/MIGraphX-CSharp-API</MIGraphXSharpRepositoryUrl>
     <Authors>Guojin Yan</Authors>
     <Company>JYPPX</Company>
@@ -11,8 +12,13 @@
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Version>$(MIGraphXSharpVersion)</Version>
     <PackageVersion>$(MIGraphXSharpVersion)</PackageVersion>
-    <AssemblyVersion>0.0.0.0</AssemblyVersion>
-    <FileVersion>0.0.0.0</FileVersion>
+    <AssemblyVersion>$(MIGraphXSharpNumericVersion).0</AssemblyVersion>
+    <FileVersion>$(MIGraphXSharpNumericVersion).0</FileVersion>
+    <MIGraphXSharpInformationalVersion>$(MIGraphXSharpVersion)</MIGraphXSharpInformationalVersion>
+    <MIGraphXSharpInformationalVersion Condition="'$(RepositoryCommit)' != ''">$(MIGraphXSharpVersion)+$(RepositoryCommit)</MIGraphXSharpInformationalVersion>
+    <MIGraphXSharpRepositoryCommitValid Condition="'$(RepositoryCommit)' != ''">$([System.Text.RegularExpressions.Regex]::IsMatch('$(RepositoryCommit)', '^[a-f0-9]{40}$'))</MIGraphXSharpRepositoryCommitValid>
+    <InformationalVersion>$(MIGraphXSharpInformationalVersion)</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>

@@ -16,6 +16,7 @@ dotnet tool restore
 .\eng\verify-m4-coverage.ps1
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
+.\eng\verify-m9-coverage.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs

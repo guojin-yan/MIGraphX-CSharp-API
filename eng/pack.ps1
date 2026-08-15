@@ -2,7 +2,7 @@
 param(
     [ValidateSet('Debug', 'Release')]
     [string] $Configuration = 'Release',
-    [ValidatePattern('^\d+\.\d+\.\d+([-.][0-9A-Za-z.-]+)?$')]
+    [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')]
     [string] $Version = '0.0.0',
     [switch] $Runtime,
     [switch] $NoBuild
@@ -18,14 +18,17 @@ if ($Runtime) {
 
 Push-Location $root
 try {
-    if (-not $NoBuild) {
-        & (Join-Path $PSScriptRoot 'build.ps1') -Configuration $Configuration
-    }
-    New-Item -ItemType Directory -Force -Path $packageDirectory | Out-Null
     $repositoryCommit = (& git rev-parse HEAD 2>$null)
     if ($LASTEXITCODE -ne 0 -or $repositoryCommit -notmatch '^[a-f0-9]{40}$') {
         throw 'Core packaging requires a committed 40-character Git SHA.'
     }
+    if (-not $NoBuild) {
+        & (Join-Path $PSScriptRoot 'build.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $repositoryCommit | Out-Host
+    }
+    else {
+        & (Join-Path $PSScriptRoot 'verify-public-api.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $repositoryCommit -SkipToolBuild | Out-Host
+    }
+    New-Item -ItemType Directory -Force -Path $packageDirectory | Out-Null
     Invoke-DotNet -Arguments @(
         'pack',
         '.\src\JYPPX.ROCm.MIGraphX.CSharp.API\JYPPX.ROCm.MIGraphX.CSharp.API.csproj',

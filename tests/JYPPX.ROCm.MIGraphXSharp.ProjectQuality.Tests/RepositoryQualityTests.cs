@@ -230,13 +230,18 @@ public sealed class RepositoryQualityTests
     public void ReviewedPublicBaselineMatchesExportedTypesAndM4Shape()
     {
         var assembly = typeof(MIGraphXBuildInfo).Assembly;
-        var baselineTypes = File.ReadAllLines(Path.Combine(RepositoryRoot, "compatibility", "managed-public-api.txt"))
-            .Where(line => line.StartsWith("JYPPX.", StringComparison.Ordinal))
-            .Select(line => line.Split(new[] { " :" }, StringSplitOptions.None)[0].Trim())
+        var baseline = File.ReadAllLines(Path.Combine(RepositoryRoot, "compatibility", "managed-public-api.txt"));
+        Assert.Contains("# schema-version: 2.0.0", baseline);
+        Assert.Contains("# assembly: JYPPX.ROCm.MIGraphX.CSharp.API", baseline);
+        var baselineTypes = baseline
+            .Where(line => line.StartsWith("T|", StringComparison.Ordinal))
+            .Select(line => line.Split('|')[2].Split(';')[0])
             .ToHashSet(StringComparer.Ordinal);
         var exportedTypes = assembly.GetExportedTypes().Select(type => type.FullName!).ToHashSet(StringComparer.Ordinal);
         Assert.True(baselineTypes.SetEquals(exportedTypes),
             $"Public type baseline drift. Missing: {string.Join(", ", exportedTypes.Except(baselineTypes))}; stale: {string.Join(", ", baselineTypes.Except(exportedTypes))}");
+        Assert.Equal(27, baselineTypes.Count);
+        Assert.Equal(157, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
 
         var m5Types = new[]
         {
@@ -255,7 +260,7 @@ public sealed class RepositoryQualityTests
             + type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(field => !field.IsSpecialName)
             + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
-        Assert.Equal(98, classMemberCount);
+        Assert.Equal(104, classMemberCount);
 
         foreach (var type in m5Types)
         {
@@ -279,11 +284,15 @@ public sealed class RepositoryQualityTests
         var types = assembly.GetExportedTypes();
         Assert.Equal(3, types.Length);
         Assert.All(types, type => Assert.StartsWith("JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop", type.Namespace));
-        var baselineTypes = File.ReadAllLines(Path.Combine(RepositoryRoot, "compatibility", "m6-adapter-public-api.txt"))
-            .Where(line => line.StartsWith("JYPPX.", StringComparison.Ordinal))
-            .Select(line => line.Split(new[] { " :" }, StringSplitOptions.None)[0].Trim())
+        var baseline = File.ReadAllLines(Path.Combine(RepositoryRoot, "compatibility", "m6-adapter-public-api.txt"));
+        Assert.Contains("# schema-version: 2.0.0", baseline);
+        Assert.Contains("# assembly: JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop", baseline);
+        var baselineTypes = baseline
+            .Where(line => line.StartsWith("T|", StringComparison.Ordinal))
+            .Select(line => line.Split('|')[2].Split(';')[0])
             .ToHashSet(StringComparer.Ordinal);
         Assert.True(baselineTypes.SetEquals(types.Select(type => type.FullName!)));
+        Assert.Equal(11, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
 
         var memberCount = types.Sum(type =>
             type.GetConstructors(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
@@ -335,6 +344,8 @@ public sealed class RepositoryQualityTests
         foreach (var text in new[] { english, chinese })
         {
             Assert.Contains("0.0.0", text);
+            Assert.Contains("0.9.0-rc.1", text);
+            Assert.Contains("release-candidate-local", text, StringComparison.Ordinal);
             Assert.Contains("M1", text);
             Assert.Contains("AMD", text, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("GPU", text, StringComparison.OrdinalIgnoreCase);
@@ -343,6 +354,26 @@ public sealed class RepositoryQualityTests
             Assert.Contains("gfx1100", text, StringComparison.Ordinal);
             Assert.Contains("system-native", text, StringComparison.OrdinalIgnoreCase);
         }
+    }
+
+    [Fact]
+    public void M8ReleaseCandidatePolicyIsSourceBoundAndFailClosed()
+    {
+        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "compatibility", "runtime-validation-matrix.json")));
+        Assert.Equal("release-candidate-local", matrix.RootElement.GetProperty("m8Status").GetString());
+        var validations = matrix.RootElement.GetProperty("validations").EnumerateArray().ToArray();
+        Assert.Contains(validations, item => item.GetProperty("id").GetString() == "m8-public-api-freeze" && item.GetProperty("status").GetString() == "statically-verified");
+        Assert.Contains(validations, item => item.GetProperty("id").GetString() == "m8-official-system-native-session" && item.GetProperty("status").GetString() == "runtime-deferred");
+
+        var candidate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-release-candidate.ps1"));
+        Assert.Contains("HEAD == origin/main == RepositoryCommit", candidate, StringComparison.Ordinal);
+        Assert.Contains("--vulnerable --include-transitive", candidate, StringComparison.Ordinal);
+        Assert.Contains("publicationAuthorized = $false", File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "new-release-evidence.ps1")), StringComparison.Ordinal);
+
+        var adapterPack = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-adapter.ps1"));
+        Assert.Contains("packageSourceMapping", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("JYPPX.ROCm.HIP.CSharp.API", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2", adapterPack, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -429,6 +460,15 @@ public sealed class RepositoryQualityTests
             "validation/m7-local-validation.md",
             "guides/runtime-deployment.md",
             "guides/managed-objects.md",
+            "guides/api-versioning.md",
+            "design/m8-api-release-readiness.md",
+            "design/m9-inference-options.md",
+            "validation/m8-local-validation.md",
+            "validation/m8-runtime-methodology.md",
+            "validation/m9-cloud-validation.md",
+            "articles/m0-m8-evidence-driven-wrapper.md",
+            "articles/m9-interface-options-cloud-record.md",
+            "releases/0.9.0-rc.1.md",
             "articles/m4-resource-safe-dotnet.md",
             "articles/m5-dynamic-shape-cache.md",
             "articles/m6-hip-async-copy-boundary.md",
@@ -465,7 +505,11 @@ public sealed class RepositoryQualityTests
 
         var docsScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "docs.ps1"));
         Assert.Contains("Join-Path $root 'docfx.json'", docsScript, StringComparison.Ordinal);
+        Assert.Contains("verify-m9-coverage.ps1", docsScript, StringComparison.Ordinal);
         Assert.DoesNotContain(@".\docfx.json", docsScript, StringComparison.Ordinal);
+
+        var interopScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-interop-paths.ps1"));
+        Assert.Contains("if ($NoBuild) { $runArguments += '--no-build' }", interopScript, StringComparison.Ordinal);
     }
 
     private static IEnumerable<string> EnumerateStatuses(JsonElement element)

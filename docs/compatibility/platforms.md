@@ -2,9 +2,10 @@
 
 | Claim | Status | Meaning |
 | --- | --- | --- |
-| Managed build | M1 through M7 local validation | Both the core and optional adapter compile all 15 exact TFMs; M7 adds no public API |
-| Package assets | M1 through M7 local validation | Each core/adapter TFM has a DLL and XML document; neither candidate contains native binaries |
-| Clean managed consumer | M1 through M7 local validation | Core representative consumers and one adapter consumer restore/build from local package-only feeds |
+| Managed build/API | M1 through M8 local validation | Core and adapter compile all 15 exact TFMs; schema 2 freezes 27/151 and 3/11 with no M8 public API addition |
+| Package assets | M1 through M8 local validation | Each core/adapter TFM has a DLL and XML document; neither candidate contains native binaries |
+| Clean managed consumer | M1 through M8 local validation | Core representative consumers and one adapter consumer restore exact JYPPX dependencies from mapped local feeds |
+| M8 managed SBOM/provenance | Statically verified | Product evidence records every managed package entry, exact dependencies/licenses/source commit, ZIP hash, and normalized content identity; provenance is local and unsigned |
 | Frozen header and official ELF | Statically verified | All 159 header functions match the official Linux ELF; 158 have managed EntryPoints and one C-variadic declaration is explicitly unsupported |
 | M3 normalized inventory | Statically verified | 159 functions, 2 enums, 25 handles, and 6 callbacks close over 192 mutually exclusive classifications |
 | M3 critical ABI patterns | Fake-native executed | Callback lifetime/exception boundary, bool, size_t, UTF-8, borrowed/out pointers, array length, and cleanup ran against a minimal test substitute |
@@ -21,4 +22,4 @@
 
 The system-native policy targets the audited Ubuntu 24.04 amd64 metadata and Linux SONAME `libmigraphx_c.so.3`. The historical official record proves one exact system-installed host configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish other distributions, versions, devices, models, dynamic shapes, M6 async/device-buffer, zero-copy, or performance paths.
 
-中文摘要：M7 将 Runtime NuGet 标为 `not-applicable`，冻结 managed-only + AMD 官方系统安装策略，没有新增官方 runtime 结论。精确环境的 M1/M2 已运行，Windows/macOS 仍不因候选字符串存在而获得支持声明。
+中文摘要：M8 本地候选冻结 managed API/包并生成产品证据，但不增加官方 runtime 结论。精确环境的 M1/M2 已运行；M4-M6、Windows/macOS、其他版本/设备/模型、长跑与性能仍未获得支持证据。

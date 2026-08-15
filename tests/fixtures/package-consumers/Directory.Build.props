@@ -3,6 +3,7 @@
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     <RestorePackagesPath>$(MSBuildThisFileDirectory)..\..\..\artifacts\packages\consumers</RestorePackagesPath>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
+    <MIGraphXConsumerVersion Condition="'$(MIGraphXConsumerVersion)' == ''">0.0.0</MIGraphXConsumerVersion>
   </PropertyGroup>
   <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />

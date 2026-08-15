@@ -4,6 +4,8 @@
   href: guides/getting-started.md
 - name: Managed objects
   href: guides/managed-objects.md
+- name: API compatibility and versioning
+  href: guides/api-versioning.md
 - name: Runtime deployment
   href: guides/runtime-deployment.md
 - name: Compatibility
@@ -30,6 +32,10 @@
     href: design/m6-hip-async-interop.md
   - name: M7 system-native deployment
     href: design/m7-runtime-packaging.md
+  - name: M8 API and release readiness
+    href: design/m8-api-release-readiness.md
+  - name: M9 inference options
+    href: design/m9-inference-options.md
 - name: Validation
   items:
   - name: Overview
@@ -48,10 +54,20 @@
     href: validation/m6-local-validation.md
   - name: M7 local deployment status
     href: validation/m7-local-validation.md
+  - name: M8 local release candidate
+    href: validation/m8-local-validation.md
+  - name: M8 runtime and performance methodology
+    href: validation/m8-runtime-methodology.md
+  - name: M9 cloud interface validation
+    href: validation/m9-cloud-validation.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes
-  href: releases/0.0.0.md
+  items:
+  - name: 0.9.0-rc.1 local prerelease
+    href: releases/0.9.0-rc.1.md
+  - name: 0.0.0 engineering candidate
+    href: releases/0.0.0.md
 - name: API reference
   href: api/index.md
 - name: Engineering article
@@ -60,3 +76,7 @@
   href: articles/m5-dynamic-shape-cache.md
 - name: M6 engineering article
   href: articles/m6-hip-async-copy-boundary.md
+- name: M0-M8 retrospective
+  href: articles/m0-m8-evidence-driven-wrapper.md
+- name: M9 cloud evidence article draft
+  href: articles/m9-interface-options-cloud-record.md

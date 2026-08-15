@@ -35,7 +35,7 @@ internal sealed class NativeRuntime
 
     internal void RequireSame(NativeRuntime other, string parameterName)
     {
-        if (!string.Equals(Path, other.Path, StringComparison.OrdinalIgnoreCase))
+        if (!NativeLibraryLoader.PathsEqual(Path, other.Path))
         {
             throw new ArgumentException("The native resource belongs to a different loaded MIGraphX library.", parameterName);
         }

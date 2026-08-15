@@ -13,6 +13,6 @@ MIGraphXSharp is evidence-driven. Keep changes scoped, preserve the repository b
 
 ## Local gates
 
-Run `eng/generate-interop.ps1 -AcquireHeader -Verify`, `eng/verify-m3-abi.ps1 -AcquireInputs`, `eng/build.ps1`, `eng/test.ps1`, `eng/pack.ps1`, `eng/verify-package.ps1`, and `eng/docs.ps1` in Release configuration. A runtime package request must continue to fail until its complete manifest and validation evidence are reviewed.
+Run `eng/generate-interop.ps1 -AcquireHeader -Verify`, all M1-M3 ABI gates, `eng/test.ps1`, core/adapter pack and package audits, `eng/docs.ps1`, and `eng/verify-release-candidate.ps1` in Release configuration. Public API snapshots must match all 15 TFMs. A Runtime NuGet request must continue to fail because the permanent deployment policy is system-native.
 
-The project is licensed under Apache-2.0. Unless explicitly stated otherwise, intentionally submitted contributions are provided under that license. Version `0.0.0` is still an unpublished engineering candidate; do not publish a NuGet package or create a release without explicit owner authorization.
+The project is licensed under Apache-2.0. Unless explicitly stated otherwise, intentionally submitted contributions are provided under that license. The repository default is `0.0.0`; `0.9.0-rc.1` is an unpublished local prerelease candidate. Keep development on the `0.x.x` line. Do not publish a NuGet package, bump final `1.0.0`, tag, deploy Pages, or create a release without explicit owner authorization. Final `1.0.0` additionally requires completed Windows runtime validation.

@@ -94,7 +94,9 @@ public sealed class MIGraphXCacheMetadata
         NativeFingerprint = RequireHash(nativeFingerprint, nameof(nativeFingerprint));
         HeaderSha256 = RequireHash(headerSha256 ?? "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2", nameof(headerSha256));
         ApiIdentity = RequireToken(apiIdentity ?? "MIGraphX-C-API/2.15.0.70201-81~24.04", nameof(apiIdentity));
-        ManagedIdentity = RequireToken(managedIdentity ?? "JYPPX.ROCm.MIGraphX.CSharp.API", nameof(managedIdentity));
+        ManagedIdentity = RequireToken(
+            managedIdentity ?? "JYPPX.ROCm.MIGraphX.CSharp.API/" + MIGraphXBuildInfo.PackageVersion,
+            nameof(managedIdentity));
         var copiedOverrides = (inputOverrides ?? Array.Empty<MIGraphXCacheOverride>()).ToArray();
         if (copiedOverrides.Any(value => value is null)) { throw new ArgumentException("Cache input overrides must not contain null values.", nameof(inputOverrides)); }
         this.inputOverrides = copiedOverrides

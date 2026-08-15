@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guojin-yan.github.io/MIGraphX-CSharp-API/schemas/m9-high-level-api-map.schema.json",
+  "type": "object",
+  "required": ["$schema", "schemaVersion", "stage", "sourceMap", "sourceHeaderSha256", "sourceImplementation", "evidenceBoundary", "counts", "mappings"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M9" },
+    "counts": { "type": "object", "required": ["inventory", "supported", "planned", "unsupported"] },
+    "mappings": { "type": "array", "minItems": 5, "maxItems": 5 }
+  }
+}

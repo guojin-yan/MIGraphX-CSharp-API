@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
 
@@ -16,6 +17,9 @@ public sealed class MIGraphXOnnxOptions : IDisposable
     private readonly Dictionary<string, MIGraphXDynamicDimension[]> dynamicOverrides = new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
     private long? defaultDimension;
     private MIGraphXDynamicDimension? defaultDynamicDimension;
+    private long? defaultLoopIterations;
+    private long? limitLoopIterations;
+    private string? externalDataPath;
 
     /// <summary>
     /// 使用显式原生库创建默认 ONNX 解析选项。
@@ -104,6 +108,44 @@ public sealed class MIGraphXOnnxOptions : IDisposable
     /// <param name="value">默认范围。 The default range.</param>
     public void SetDefaultDynDimValue(MIGraphXDynamicDimension value) => SetDefaultDynamicDimensionValue(value);
 
+    /// <summary>设置 Loop operator 缺少 trip count 时的默认最大迭代数。 Sets the default maximum Loop iterations when no trip count is present.</summary>
+    /// <param name="value">非负最大迭代数。 A non-negative maximum iteration count.</param>
+    public void SetDefaultLoopIterations(long value)
+    {
+        if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Loop iterations must not be negative."); }
+        owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
+            NativeMethods.OnnxOptionsSetDefaultLoopIterations(handle, value),
+            "migraphx_onnx_options_set_default_loop_iterations"));
+        lock (staticOverrides) { defaultLoopIterations = value; }
+    }
+
+    /// <summary>设置 Loop operator 的最大迭代安全上限。 Sets the maximum Loop-operator iteration safety limit.</summary>
+    /// <param name="value">非负迭代上限。 A non-negative iteration limit.</param>
+    public void SetLimitLoopIterations(long value)
+    {
+        if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Loop iteration limits must not be negative."); }
+        owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
+            NativeMethods.OnnxOptionsSetLimitLoopIterations(handle, value),
+            "migraphx_onnx_options_set_limit_loop_iterations"));
+        lock (staticOverrides) { limitLoopIterations = value; }
+    }
+
+    /// <summary>设置 ONNX external-data 文件的绝对根路径。 Sets the absolute root path for ONNX external-data files.</summary>
+    /// <param name="path">绝对 external-data 路径。 The absolute external-data path.</param>
+    public void SetExternalDataPath(string path)
+    {
+        if (path is null) { throw new ArgumentNullException(nameof(path)); }
+        if (!Path.IsPathRooted(path)) { throw new ArgumentException("The ONNX external-data path must be absolute.", nameof(path)); }
+        var fullPath = Path.GetFullPath(path);
+        using (var utf8 = new StrictUtf8String(fullPath, nameof(path)))
+        {
+            owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
+                NativeMethods.OnnxOptionsSetExternalDataPath(handle, utf8.Pointer),
+                "migraphx_onnx_options_set_external_data_path"));
+        }
+        lock (staticOverrides) { externalDataPath = fullPath; }
+    }
+
     internal IReadOnlyDictionary<string, long[]> StaticOverrides
     {
         get { lock (staticOverrides) { return staticOverrides.ToDictionary(pair => pair.Key, pair => (long[])pair.Value.Clone(), StringComparer.Ordinal); } }
@@ -116,6 +158,9 @@ public sealed class MIGraphXOnnxOptions : IDisposable
 
     internal long? DefaultDimension { get { lock (staticOverrides) { return defaultDimension; } } }
     internal MIGraphXDynamicDimension? DefaultDynamicDimension { get { lock (staticOverrides) { return defaultDynamicDimension; } } }
+    internal long? DefaultLoopIterations { get { lock (staticOverrides) { return defaultLoopIterations; } } }
+    internal long? LimitLoopIterations { get { lock (staticOverrides) { return limitLoopIterations; } } }
+    internal string? ExternalDataPath { get { lock (staticOverrides) { return externalDataPath; } } }
 
     /// <summary>确定性释放 owned options handle；重复调用安全。 Deterministically releases the owned options handle; repeated calls are safe.</summary>
     public void Dispose() => owner.Dispose();

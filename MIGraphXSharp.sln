@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "M2OnnxIdentity", "samples\M
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.MIGraphXSharp.BindingGenerator", "tools\BindingGenerator\BindingGenerator.csproj", "{D8839601-EE75-44EF-96B0-04B696EFF96A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiSurface", "tools\ApiSurface\ApiSurface.csproj", "{BC02BDEF-D16E-4A90-B3D6-E277C72CE72A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,5 +70,9 @@ Global
 		{D8839601-EE75-44EF-96B0-04B696EFF96A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8839601-EE75-44EF-96B0-04B696EFF96A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8839601-EE75-44EF-96B0-04B696EFF96A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC02BDEF-D16E-4A90-B3D6-E277C72CE72A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC02BDEF-D16E-4A90-B3D6-E277C72CE72A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC02BDEF-D16E-4A90-B3D6-E277C72CE72A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC02BDEF-D16E-4A90-B3D6-E277C72CE72A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

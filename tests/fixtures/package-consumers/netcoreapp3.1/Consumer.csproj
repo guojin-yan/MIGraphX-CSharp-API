@@ -4,6 +4,6 @@
     <OutputType>Exe</OutputType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JYPPX.ROCm.MIGraphX.CSharp.API" Version="0.0.0" />
+    <PackageReference Include="JYPPX.ROCm.MIGraphX.CSharp.API" Version="$(MIGraphXConsumerVersion)" />
   </ItemGroup>
 </Project>

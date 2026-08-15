@@ -1,14 +1,23 @@
-JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun : System.IDisposable
-  bool IsCompleted { get; }
-  JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection Outputs { get; }
-  bool TryComplete()
-  void Synchronize()
-  void Dispose()
-JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput
-  MIGraphXHipDeviceInput(string name, JYPPX.ROCm.MIGraphXSharp.MIGraphXShape shape, JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory memory)
-  string Name { get; }
-  JYPPX.ROCm.MIGraphXSharp.MIGraphXShape Shape { get; }
-  JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory Memory { get; }
-JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipExecution
-  static MIGraphXHipAsyncRun RunHostAsync(JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram program, JYPPX.ROCm.MIGraphXSharp.MIGraphXParameterMap parameters, JYPPX.ROCm.HipSharp.Streams.HipStream stream)
-  static MIGraphXHipAsyncRun RunDeviceAsync(JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram program, System.Collections.Generic.IReadOnlyList<MIGraphXHipDeviceInput> inputs, JYPPX.ROCm.HipSharp.Streams.HipStream stream)
+# schema-version: 2.0.0
+# package: JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop
+# assembly: JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop
+# target-frameworks: net46;net461;net462;net47;net471;net472;net48;net481;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0;net10.0
+# tfm-availability-policy: identical-on-all-listed-frameworks
+# assembly-version-policy: semantic-core-four-part
+# package-version-constant-policy: must-equal-build-version
+# nullable-contract: compiler-metadata
+# generated-from: exported types and declared public/protected members
+C|public|JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput(System.String name,JYPPX.ROCm.MIGraphXSharp.MIGraphXShape shape,JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory memory)
+M|public static|JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipExecution.RunDeviceAsync(JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram program,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput> inputs,JYPPX.ROCm.HipSharp.Streams.HipStream stream)
+M|public static|JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipExecution.RunHostAsync(JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram program,JYPPX.ROCm.MIGraphXSharp.MIGraphXParameterMap parameters,JYPPX.ROCm.HipSharp.Streams.HipStream stream)
+M|public virtual|System.Void JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun.Dispose()
+M|public|System.Boolean JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun.TryComplete()
+M|public|System.Void JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun.Synchronize()
+P|get:public,set:none|JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput.Memory
+P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun.Outputs
+P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput.Shape
+P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun.IsCompleted
+P|get:public,set:none|System.String JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput.Name
+T|public sealed class|JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipAsyncRun;interfaces=System.IDisposable
+T|public sealed class|JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipDeviceInput;interfaces=
+T|public static class|JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.MIGraphXHipExecution;interfaces=

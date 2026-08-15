@@ -1,3 +1,4 @@
+using System.Reflection;
 using Xunit;
 
 namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
@@ -5,9 +6,12 @@ namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
 public sealed class BuildInfoTests
 {
     [Fact]
-    public void M1ReportsEngineeringVersionAndFrozenBindingAvailability()
+    public void BuildInfoMatchesTheCompiledAssemblyIdentity()
     {
-        Assert.Equal("0.0.0", MIGraphXBuildInfo.PackageVersion);
+        var informationalVersion = typeof(MIGraphXBuildInfo).Assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()!
+            .InformationalVersion;
+        Assert.StartsWith(MIGraphXBuildInfo.PackageVersion, informationalVersion, StringComparison.Ordinal);
         Assert.True(MIGraphXBuildInfo.NativeBindingsAvailable);
     }
 }

@@ -31,7 +31,7 @@ try {
 
     $forbidden = @($entries | Where-Object {
         $_ -match '(^|/)(bin|obj|TestResults|plan|Radeon_Cloud|downloads|models)(/|$)' -or
-        $_ -match '\.(pdb|onnx|so|dylib)$' -or
+        $_ -match '\.(cs|pdb|snupkg|onnx|so|dylib)$' -or
         $_ -match '(?i)(fake[-_]?native|migraphx_c|\.obj$|\.lib$|\.exp$)' -or
         $_ -match '(?i)(BindingGenerator|m3-(normalized|api-inventory|coverage|abi-export))' -or
         $_ -match '(?i)(unit|projectquality|packagetests)\.dll$'
@@ -52,7 +52,7 @@ try {
     if ($metadata.id -ne 'JYPPX.ROCm.MIGraphX.CSharp.API' -or $metadata.version -ne $Version) {
         throw 'Package identity or version is incorrect.'
     }
-    foreach ($field in @('authors', 'description', 'tags', 'projectUrl', 'repository', 'readme')) {
+    foreach ($field in @('authors', 'description', 'tags', 'projectUrl', 'repository', 'readme', 'releaseNotes')) {
         if (-not $metadata.$field) { throw "NuGet metadata is missing '$field'." }
     }
     if ($metadata.repository.commit -notmatch '^[a-f0-9]{40}$') {
@@ -64,6 +64,9 @@ try {
     }
     if ($metadata.authors -ne 'Guojin Yan' -or $metadata.copyright -ne 'Copyright 2026 Guojin Yan') {
         throw 'NuGet authors or copyright metadata is incorrect.'
+    }
+    if (@($metadata.SelectNodes(".//*[local-name()='dependency']")).Count -ne 0) {
+        throw 'The core package must not have runtime NuGet dependencies.'
     }
     foreach ($requiredEntry in @('LICENSE', 'NOTICE')) {
         if ($requiredEntry -notin $entries) {
@@ -105,9 +108,9 @@ if (-not $SkipConsumers) {
     $consumerPackages = Join-Path $root "artifacts\package-audit\$([Guid]::NewGuid().ToString('N'))"
     foreach ($framework in @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')) {
         $project = Join-Path $root "tests\fixtures\package-consumers\$framework\Consumer.csproj"
-        & dotnet restore $project --configfile $consumerConfig --packages $consumerPackages --no-http-cache --force-evaluate
+        & dotnet restore $project --configfile $consumerConfig --packages $consumerPackages --no-http-cache --force-evaluate -p:MIGraphXConsumerVersion=$Version
         if ($LASTEXITCODE -ne 0) { throw "Consumer restore failed for $framework." }
-        & dotnet build $project -c Release --no-restore
+        & dotnet build $project -c Release --no-restore -p:MIGraphXConsumerVersion=$Version
         if ($LASTEXITCODE -ne 0) { throw "Consumer build failed for $framework." }
     }
 }

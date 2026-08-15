@@ -22,7 +22,10 @@ foreach ($framework in @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')) {
         Write-Output 'net46 fake-native execution is Windows-only; compile coverage remains in the 15-TFM build.'
         continue
     }
-    & dotnet run --project $project -c $Configuration -f $framework -- $nativePath $modelPath
+    $runArguments = @('run', '--project', $project, '-c', $Configuration, '-f', $framework)
+    if ($NoBuild) { $runArguments += '--no-build' }
+    $runArguments += @('--', $nativePath, $modelPath)
+    & dotnet @runArguments
     if ($LASTEXITCODE -ne 0) { throw "Direct P/Invoke M1/M2 representative execution failed for $framework." }
 }
 

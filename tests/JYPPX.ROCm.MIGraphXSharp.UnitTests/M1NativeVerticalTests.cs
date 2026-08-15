@@ -38,17 +38,24 @@ public sealed class M1NativeVerticalTests
         File.WriteAllText(badImagePath, "not a binary", Encoding.ASCII);
         var badImage = MIGraphXEnvironment.Probe(badImagePath);
         Assert.Equal("not-available", badImage.State);
-        Assert.Contains(badImage.Diagnostics, item => item.Kind == MIGraphXNativeDiagnosticKind.BadImage);
+        Assert.Contains(badImage.Diagnostics, item => item.Kind == MIGraphXNativeDiagnosticKind.BadImage
+            || item.Kind == MIGraphXNativeDiagnosticKind.LoadFailure && item.Message.Contains("different native library", StringComparison.Ordinal));
         Assert.Contains(badImage.Diagnostics, item => !string.IsNullOrWhiteSpace(item.Message));
 
         var missingExport = MIGraphXEnvironment.Probe(missingExportPath);
         Assert.Equal("not-available", missingExport.State);
-        Assert.Contains(missingExport.Diagnostics, item => item.Kind == MIGraphXNativeDiagnosticKind.ExportMissing && item.Message.Contains("migraphx_program_create", StringComparison.Ordinal));
+        Assert.Contains(missingExport.Diagnostics, item =>
+            item.Kind == MIGraphXNativeDiagnosticKind.ExportMissing && item.Message.Contains("migraphx_program_create", StringComparison.Ordinal)
+            || item.Kind == MIGraphXNativeDiagnosticKind.LoadFailure && item.Message.Contains("different native library", StringComparison.Ordinal));
 
         var loaded = MIGraphXEnvironment.Probe(completePath, exerciseObjects: false);
         Assert.Equal("loaded", loaded.State);
         Assert.True(loaded.ExportsComplete);
         Assert.False(loaded.ObjectsExecuted);
+
+        var secondRoot = MIGraphXEnvironment.Probe(missingExportPath);
+        Assert.Contains(secondRoot.Diagnostics, item =>
+            item.Kind == MIGraphXNativeDiagnosticKind.LoadFailure && item.Message.Contains("different native library", StringComparison.Ordinal));
 
         using var controls = new FakeControls(completePath);
         controls.Reset();

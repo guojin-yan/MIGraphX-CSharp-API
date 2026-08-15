@@ -10,6 +10,7 @@
     <PackageProjectUrl>$(MIGraphXSharpRepositoryUrl)</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>M8 0.9 prerelease line: versioned managed API baseline, system-native deployment, and evidence-scoped validation. Publication is not authorized.</PackageReleaseNotes>
     <IsPackable>true</IsPackable>
     <IncludeSymbols>false</IncludeSymbols>
     <IncludeSource>false</IncludeSource>

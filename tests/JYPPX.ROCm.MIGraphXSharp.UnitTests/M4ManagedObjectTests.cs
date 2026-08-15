@@ -30,6 +30,67 @@ public sealed class M4ManagedObjectTests
     }
 
     [Fact]
+    public void InferenceOptionsForwardValuesValidatePathsAndPreserveEntryPointFailures()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+
+        using (var compile = new MIGraphXCompileOptions(path, offloadCopy: false, fastMath: true, exhaustiveTune: true))
+        {
+            Assert.False(compile.OffloadCopy);
+            Assert.True(compile.FastMath);
+            Assert.True(compile.ExhaustiveTune);
+            Assert.Equal(1, controls.LastFastMath());
+            Assert.Equal(1, controls.LastExhaustiveTune());
+        }
+
+        using (var options = new MIGraphXOnnxOptions(path))
+        {
+            var externalData = Path.GetFullPath(Path.Combine(Path.GetTempPath(), "migraphx-external-data-中文"));
+            options.SetDefaultLoopIterations(17);
+            options.SetLimitLoopIterations(2048);
+            options.SetExternalDataPath(externalData);
+
+            Assert.Equal(17, controls.LastDefaultLoopIterations());
+            Assert.Equal(2048, controls.LastLimitLoopIterations());
+            Assert.Equal(externalData, controls.LastExternalDataPath());
+            Assert.Throws<ArgumentOutOfRangeException>(() => options.SetDefaultLoopIterations(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => options.SetLimitLoopIterations(-1));
+            Assert.Throws<ArgumentException>(() => options.SetExternalDataPath("relative"));
+            Assert.Throws<ArgumentException>(() => options.SetExternalDataPath("\ud800"));
+
+            foreach (var entryPoint in new[]
+            {
+                "migraphx_onnx_options_set_default_loop_iterations",
+                "migraphx_onnx_options_set_limit_loop_iterations",
+                "migraphx_onnx_options_set_external_data_path",
+            })
+            {
+                controls.SetFailure(entryPoint, (int)MIGraphXStatus.UnknownError);
+                var error = entryPoint.EndsWith("default_loop_iterations", StringComparison.Ordinal)
+                    ? Assert.Throws<MIGraphXException>(() => options.SetDefaultLoopIterations(1))
+                    : entryPoint.EndsWith("limit_loop_iterations", StringComparison.Ordinal)
+                        ? Assert.Throws<MIGraphXException>(() => options.SetLimitLoopIterations(1))
+                        : Assert.Throws<MIGraphXException>(() => options.SetExternalDataPath(Path.GetTempPath()));
+                Assert.Equal(entryPoint, error.Operation);
+            }
+        }
+
+        foreach (var entryPoint in new[]
+        {
+            "migraphx_compile_options_set_fast_math",
+            "migraphx_compile_options_set_exhaustive_tune_flag",
+        })
+        {
+            controls.SetFailure(entryPoint, (int)MIGraphXStatus.UnknownError);
+            Assert.Equal(entryPoint, Assert.Throws<MIGraphXException>(() =>
+                new MIGraphXCompileOptions(path, offloadCopy: true, fastMath: true, exhaustiveTune: true)).Operation);
+            AssertNoLeaks(controls);
+        }
+    }
+
+    [Fact]
     public void ManagedObjectsComposeParseCompileTypedRunAndDeterministicDispose()
     {
         var path = FakePath();
@@ -418,6 +479,11 @@ public sealed class M4ManagedObjectTests
         private readonly GetIntDelegate targetLiveCount;
         private readonly GetIntDelegate runCount;
         private readonly GetIntDelegate lastParameterCount;
+        private readonly GetLongDelegate lastDefaultLoopIterations;
+        private readonly GetLongDelegate lastLimitLoopIterations;
+        private readonly GetIntDelegate lastFastMath;
+        private readonly GetIntDelegate lastExhaustiveTune;
+        private readonly GetPointerDelegate lastExternalDataPath;
 
         internal FakeControls(string path)
         {
@@ -432,6 +498,11 @@ public sealed class M4ManagedObjectTests
             targetLiveCount = Get<GetIntDelegate>("fake_target_live_count");
             runCount = Get<GetIntDelegate>("fake_run_count");
             lastParameterCount = Get<GetIntDelegate>("fake_last_parameter_count");
+            lastDefaultLoopIterations = Get<GetLongDelegate>("fake_last_default_loop_iterations");
+            lastLimitLoopIterations = Get<GetLongDelegate>("fake_last_limit_loop_iterations");
+            lastFastMath = Get<GetIntDelegate>("fake_last_fast_math");
+            lastExhaustiveTune = Get<GetIntDelegate>("fake_last_exhaustive_tune");
+            lastExternalDataPath = Get<GetPointerDelegate>("fake_last_external_data_path");
         }
 
         internal void Reset() => reset();
@@ -444,6 +515,11 @@ public sealed class M4ManagedObjectTests
         internal int TargetLiveCount() => targetLiveCount();
         internal int RunCount() => runCount();
         internal int LastParameterCount() => lastParameterCount();
+        internal long LastDefaultLoopIterations() => lastDefaultLoopIterations();
+        internal long LastLimitLoopIterations() => lastLimitLoopIterations();
+        internal int LastFastMath() => lastFastMath();
+        internal int LastExhaustiveTune() => lastExhaustiveTune();
+        internal string LastExternalDataPath() => Marshal.PtrToStringUTF8(lastExternalDataPath())!;
 
         public void Dispose() => NativeLibrary.Free(library);
 
@@ -463,5 +539,11 @@ public sealed class M4ManagedObjectTests
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int GetIntDelegate();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate long GetLongDelegate();
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+        private delegate IntPtr GetPointerDelegate();
     }
 }

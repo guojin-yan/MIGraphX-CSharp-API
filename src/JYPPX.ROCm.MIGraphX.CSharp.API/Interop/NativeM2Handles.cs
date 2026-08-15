@@ -29,7 +29,9 @@ internal sealed class NativeOnnxOptionsHandle : NativeOwnedHandle
 
 internal sealed class NativeCompileOptionsHandle : NativeOwnedHandle
 {
-    internal static NativeCompileOptionsHandle Create(bool offloadCopy)
+    internal static NativeCompileOptionsHandle Create(bool offloadCopy) => Create(offloadCopy, false, false);
+
+    internal static NativeCompileOptionsHandle Create(bool offloadCopy, bool fastMath, bool exhaustiveTune)
     {
         var status = NativeMethods.CompileOptionsCreate(out var raw);
         var owned = new NativeCompileOptionsHandle();
@@ -38,6 +40,8 @@ internal sealed class NativeCompileOptionsHandle : NativeOwnedHandle
         try
         {
             NativeStatus.ThrowIfFailed(NativeMethods.CompileOptionsSetOffloadCopy(owned.DangerousGetHandle(), offloadCopy ? (byte)1 : (byte)0), "migraphx_compile_options_set_offload_copy");
+            NativeStatus.ThrowIfFailed(NativeMethods.CompileOptionsSetFastMath(owned.DangerousGetHandle(), fastMath ? (byte)1 : (byte)0), "migraphx_compile_options_set_fast_math");
+            NativeStatus.ThrowIfFailed(NativeMethods.CompileOptionsSetExhaustiveTuneFlag(owned.DangerousGetHandle(), exhaustiveTune ? (byte)1 : (byte)0), "migraphx_compile_options_set_exhaustive_tune_flag");
             return owned;
         }
         catch

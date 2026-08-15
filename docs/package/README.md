@@ -1,6 +1,6 @@
-# JYPPX.ROCm.MIGraphX.CSharp.API 0.0.0
+# JYPPX.ROCm.MIGraphX.CSharp.API release candidate
 
-This unpublished local engineering candidate contains managed assets for 15 exact target frameworks, XML documentation, the M1 lifecycle foundation, restricted M2 workflow, M3 internal full-header declarations, M4 resource-safe synchronous objects, and M5 dynamic-shape/file/cache policy. It carries no AMD or fake-native binary, model, cache payload, or generated inventory. M6 native async remains in the separate optional `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` candidate so the core has no HipSharp dependency. M7 selects AMD official system installation; its source audit remains repository evidence and is not copied into this managed package.
+This unpublished `0.9.0-rc.1` local prerelease candidate contains managed assets and XML documentation for 15 exact target frameworks. It carries no AMD or fake-native binary, model, cache payload, source, PDB, or generated inventory. M6 native async remains in the separate optional `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` candidate, so the core has no runtime NuGet dependency. M7 selects AMD official system installation; its source audit is not copied into this managed package.
 
 M5 supports immutable dynamic-dimension metadata, explicit ONNX static/dynamic overrides, and fixed-version `msgpack` Save/Load. `MIGraphXModelCache` requires an explicit root and validates a versioned sidecar and payload hash. Cache entries are not portable across native fingerprints, targets, compile options, or package versions. Evidence is local fake-native only; no new official runtime claim is included.
 
@@ -8,10 +8,12 @@ M5 supports immutable dynamic-dimension metadata, explicit ONNX static/dynamic o
 - M3 evidence: complete 192-item inventory and official ELF parity are static; isolated critical ABI patterns use a fake-native test substitute
 - M4/M5 objects: explicit Program/Shape/Argument/Target/options/map/output plus dynamic/cache types with 74 supported low-level mappings and local fake-native ownership tests
 - Optional M6 adapter: separate managed package with 75 supported mappings, fixed `hipStream_t`, stream completion, early-dispose leases, `HipDeviceMemory` input, and explicit D2H output snapshotting
+- M9 inference options: five additional high-level mappings for Loop defaults/limits, external-data paths, fast-math, and exhaustive tuning; aggregate coverage is 80 supported, 111 planned, and 1 unsupported
 - Official native runtime: M1/M2 restricted workflow executed at `f1a11cfd1701a041cee29188f7600c85b34ae260`; M4/M5/M6 have no new official runtime execution and local fake-native remains separate test-substitute evidence
 - ONNX parse/compile/run: generated Identity file/buffer paths executed with matching reference output on the recorded official environment
 - AMD GPU validation: one gfx1100 device executed the restricted synchronous offload-copy workflow; no M6 async/device-buffer, zero-copy, or performance claim
 - Native distribution: `system-native`; Runtime NuGet is `not-applicable`, and users install MIGraphX/ROCm from AMD's official system repository
+- M8 identity: schema 2 reviewable API baseline, source-bound DLL/nuspec/cache version, managed product SBOM/provenance, and distinct ZIP/content hashes
 - License: Apache-2.0; Copyright 2026 Guojin Yan
 
 See the [source repository](https://github.com/guojin-yan/MIGraphX-CSharp-API) for the frozen manifest and validation limits.

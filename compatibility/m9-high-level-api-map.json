@@ -1,0 +1,62 @@
+{
+  "$schema": "./schemas/m9-high-level-api-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M9",
+  "sourceMap": "compatibility/m6-high-level-api-map.json",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "sourceImplementation": "AMDMIGraphX rocm-7.2.1 commit de19b73ad280476e646512b847885eda100ec35e",
+  "evidenceBoundary": "M9 option forwarding and validation is fake-native-executed. The cloud runner is prepared but remains runtime-deferred until a newly authorized exact pushed commit is executed and reviewed.",
+  "counts": { "inventory": 192, "supported": 80, "planned": 111, "unsupported": 1 },
+  "mappings": [
+    {
+      "id": "function:migraphx_onnx_options_set_default_loop_iterations",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_default_loop_iterations",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXOnnxOptions.SetDefaultLoopIterations"],
+      "ownership": "the options owner remains alive and serialized while the signed iteration value is copied by the native call",
+      "validationLevel": "fake-native-executed",
+      "tests": ["M4ManagedObjectTests.InferenceOptionsForwardValuesValidatePathsAndPreserveEntryPointFailures"]
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_limit_loop_iterations",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_limit_loop_iterations",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXOnnxOptions.SetLimitLoopIterations"],
+      "ownership": "the options owner remains alive and serialized while the signed iteration limit is copied by the native call",
+      "validationLevel": "fake-native-executed",
+      "tests": ["M4ManagedObjectTests.InferenceOptionsForwardValuesValidatePathsAndPreserveEntryPointFailures"]
+    },
+    {
+      "id": "function:migraphx_onnx_options_set_external_data_path",
+      "kind": "function",
+      "cName": "migraphx_onnx_options_set_external_data_path",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXOnnxOptions.SetExternalDataPath"],
+      "ownership": "a normalized absolute path is encoded as strict UTF-8 and borrowed only for the setter call",
+      "validationLevel": "fake-native-executed",
+      "tests": ["M4ManagedObjectTests.InferenceOptionsForwardValuesValidatePathsAndPreserveEntryPointFailures"]
+    },
+    {
+      "id": "function:migraphx_compile_options_set_fast_math",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_fast_math",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXCompileOptions.#ctor", "MIGraphXCompileOptions.FastMath"],
+      "ownership": "the compile-options owner copies the boolean during construction and unwinds on setter failure",
+      "validationLevel": "fake-native-executed",
+      "tests": ["M4ManagedObjectTests.InferenceOptionsForwardValuesValidatePathsAndPreserveEntryPointFailures"]
+    },
+    {
+      "id": "function:migraphx_compile_options_set_exhaustive_tune_flag",
+      "kind": "function",
+      "cName": "migraphx_compile_options_set_exhaustive_tune_flag",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXCompileOptions.#ctor", "MIGraphXCompileOptions.ExhaustiveTune"],
+      "ownership": "the compile-options owner copies the boolean during construction and unwinds on setter failure",
+      "validationLevel": "fake-native-executed",
+      "tests": ["M4ManagedObjectTests.InferenceOptionsForwardValuesValidatePathsAndPreserveEntryPointFailures"]
+    }
+  ]
+}
