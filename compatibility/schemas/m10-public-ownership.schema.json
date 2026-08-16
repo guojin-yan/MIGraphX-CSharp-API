@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guojin-yan.github.io/MIGraphX-CSharp-API/schemas/m10-public-ownership.schema.json",
+  "title": "M10 ownership and comparison-lifetime decisions",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "stage", "validationLevel", "records"],
+  "properties": {
+    "$schema": { "const": "./schemas/m10-public-ownership.schema.json" },
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M10" },
+    "validationLevel": { "const": "fake-native-executed" },
+    "records": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["subject", "nativeOwnership", "managedOwnership", "threadSafety", "disposeBehavior", "failureCleanup", "afterOwnerDispose"],
+        "properties": {
+          "subject": { "type": "string", "minLength": 1 },
+          "nativeOwnership": { "type": "string", "minLength": 1 },
+          "managedOwnership": { "type": "string", "minLength": 1 },
+          "threadSafety": { "type": "string", "minLength": 1 },
+          "disposeBehavior": { "type": "string", "minLength": 1 },
+          "failureCleanup": { "type": "string", "minLength": 1 },
+          "afterOwnerDispose": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

@@ -14,6 +14,8 @@ if (-not $NoBuild) {
 
 $extension = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c.dll' } else { 'libmigraphx_c.so' }
 $nativePath = Join-Path $root "artifacts\fake-native\$Configuration\$extension"
+$m10MissingName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c_m10_missing.dll' } else { 'libmigraphx_c_m10_missing.so' }
+$m10MissingPath = Join-Path $root "artifacts\fake-native\$Configuration\$m10MissingName"
 $modelPath = Join-Path $root 'artifacts\models\m2-identity-float32.onnx'
 $project = Join-Path $root 'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\JYPPX.ROCm.MIGraphXSharp.InteropRunner.csproj'
 
@@ -29,4 +31,16 @@ foreach ($framework in @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')) {
     if ($LASTEXITCODE -ne 0) { throw "Direct P/Invoke M1/M2 representative execution failed for $framework." }
 }
 
-Write-Output 'Representative Direct P/Invoke M1/M2 execution passed for net46, netcoreapp3.1, net7.0, and net10.0 against fake-native.'
+$missingRunArguments = @('run', '--project', $project, '-c', $Configuration, '-f', 'net10.0')
+if ($NoBuild) { $missingRunArguments += '--no-build' }
+$missingRunArguments += @('--', '--expect-m10-missing', $m10MissingPath)
+& dotnet @missingRunArguments
+if ($LASTEXITCODE -ne 0) { throw 'M10 missing-export diagnostics failed for net10.0.' }
+
+$missingEqualityRunArguments = @('run', '--project', $project, '-c', $Configuration, '-f', 'net10.0')
+if ($NoBuild) { $missingEqualityRunArguments += '--no-build' }
+$missingEqualityRunArguments += @('--', '--expect-m10-equality-missing', $m10MissingPath)
+& dotnet @missingEqualityRunArguments
+if ($LASTEXITCODE -ne 0) { throw 'M10 equality missing-export diagnostics failed for net10.0.' }
+
+Write-Output 'Representative Direct P/Invoke M1/M2/M10 execution passed for net46, netcoreapp3.1, net7.0, and net10.0; registry and equality missing exports fail closed.'

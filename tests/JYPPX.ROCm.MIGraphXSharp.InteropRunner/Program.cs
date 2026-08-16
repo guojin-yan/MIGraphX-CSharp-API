@@ -3,6 +3,49 @@ using System.Linq;
 using System.Runtime.Versioning;
 using JYPPX.ROCm.MIGraphXSharp;
 
+if (args.Length == 2 && args[0] == "--expect-m10-missing" && System.IO.Path.IsPathRooted(args[1]))
+{
+    try
+    {
+        _ = MIGraphXOnnxWorkflow.GetRegisteredOperators(args[1]);
+        Console.Error.WriteLine("M10 registry unexpectedly accepted a library without the required exports.");
+        return 1;
+    }
+    catch (MIGraphXNativeLoadException exception)
+    {
+        var diagnostic = exception.Diagnostics.Last();
+        var missingPassed = diagnostic.Kind == JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind.ExportMissing
+            && diagnostic.Message.IndexOf("M10 ONNX registry", StringComparison.Ordinal) >= 0
+            && diagnostic.Message.IndexOf("migraphx_get_onnx_operators_size", StringComparison.Ordinal) >= 0
+            && diagnostic.Message.IndexOf("migraphx_get_onnx_operator_name_at_index", StringComparison.Ordinal) >= 0;
+        Console.WriteLine($"m10-missing-exports={(missingPassed ? "rejected" : "misclassified")}");
+        return missingPassed ? 0 : 1;
+    }
+}
+
+if (args.Length == 2 && args[0] == "--expect-m10-equality-missing" && System.IO.Path.IsPathRooted(args[1]))
+{
+    try
+    {
+        var equalityShape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 1 });
+        using var left = MIGraphXArgument.Create(args[1], equalityShape, new[] { 1f });
+        using var right = MIGraphXArgument.Create(args[1], equalityShape, new[] { 1f });
+        _ = left.HasSameNativeContent(right);
+        Console.Error.WriteLine("M10 equality unexpectedly accepted a library without the required exports.");
+        return 1;
+    }
+    catch (MIGraphXNativeLoadException exception)
+    {
+        var diagnostic = exception.Diagnostics.Last();
+        var missingPassed = diagnostic.Kind == JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind.ExportMissing
+            && diagnostic.Message.IndexOf("M10 content-equality", StringComparison.Ordinal) >= 0
+            && diagnostic.Message.IndexOf("migraphx_argument_equal", StringComparison.Ordinal) >= 0
+            && diagnostic.Message.IndexOf("migraphx_program_equal", StringComparison.Ordinal) >= 0;
+        Console.WriteLine($"m10-equality-missing-exports={(missingPassed ? "rejected" : "misclassified")}");
+        return missingPassed ? 0 : 1;
+    }
+}
+
 if (args.Length != 2 || !System.IO.Path.IsPathRooted(args[0]) || !System.IO.Path.IsPathRooted(args[1]))
 {
     Console.Error.WriteLine("Expected absolute fake-native and ONNX model paths.");
@@ -25,9 +68,18 @@ if (report.State != "executed" || !report.ExportsComplete || !report.ObjectsExec
 
 var input = new[] { 1f, -2f, 3.5f, 4f };
 var onnx = MIGraphXOnnxWorkflow.RunBuffer(args[0], System.IO.File.ReadAllBytes(args[1]), input);
+var operators = MIGraphXOnnxWorkflow.GetRegisteredOperators(args[0]);
+var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+using var leftArgument = MIGraphXArgument.Create(args[0], shape, input);
+using var rightArgument = MIGraphXArgument.Create(args[0], shape, input);
+using var leftProgram = new MIGraphXProgram(args[0]);
+using var rightProgram = new MIGraphXProgram(args[0]);
 var passed = report.Diagnostics.Any(item => item.Kind == JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind.Executed)
     && onnx.InputDimensions.SequenceEqual(new long[] { 1, 4 })
     && onnx.OutputDimensions.SequenceEqual(new long[] { 1, 4 })
-    && onnx.Output.SequenceEqual(input);
-Console.WriteLine($"framework={framework};m1={report.State};m2={(passed ? "executed" : "failed")};exports={report.ExportsComplete};objects={report.ObjectsExecuted}");
+    && onnx.Output.SequenceEqual(input)
+    && operators.SequenceEqual(new[] { "Add", "\u52a0", "Relu" })
+    && leftArgument.HasSameNativeContent(rightArgument)
+    && leftProgram.HasSameNativeContent(rightProgram);
+Console.WriteLine($"framework={framework};m1={report.State};m2={(passed ? "executed" : "failed")};m10={(passed ? "executed" : "failed")};exports={report.ExportsComplete};objects={report.ObjectsExecuted}");
 return passed ? 0 : 1;

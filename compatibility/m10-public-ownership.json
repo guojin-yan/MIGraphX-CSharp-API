@@ -1,0 +1,44 @@
+{
+  "$schema": "./schemas/m10-public-ownership.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M10",
+  "validationLevel": "fake-native-executed",
+  "records": [
+    {
+      "subject": "MIGraphXOnnxWorkflow.GetRegisteredOperators",
+      "nativeOwnership": "borrows process-lifetime registry strings only during each C call",
+      "managedOwnership": "owns an Array.AsReadOnly snapshot of independently decoded System.String values",
+      "threadSafety": "the fixed upstream registry is initialized once; managed code detects size drift and does not claim cross-version order stability",
+      "disposeBehavior": "not disposable because no native handle or pointer is retained",
+      "failureCleanup": "partial arrays remain local and are never returned after size, index, null-pointer, UTF-8, or drift failure",
+      "afterOwnerDispose": "not applicable; the returned snapshot is independent of native resource owners"
+    },
+    {
+      "subject": "MIGraphXArgument.HasSameNativeContent",
+      "nativeOwnership": "borrows two owned argument handles under their owner locks for one native comparison",
+      "managedOwnership": "retains both host-backed buffers and transfers no ownership",
+      "threadSafety": "owner ids impose one total lock order, including reverse calls and same-object comparison",
+      "disposeBehavior": "Dispose waits for an active comparison; a comparison starting after disposal throws ObjectDisposedException",
+      "failureCleanup": "the one-byte bool slot is always freed; native status and invalid bool values fail closed",
+      "afterOwnerDispose": "comparison throws ObjectDisposedException for either disposed argument"
+    },
+    {
+      "subject": "MIGraphXProgram.HasSameNativeContent",
+      "nativeOwnership": "borrows two owned program handles under their owner locks for one native comparison",
+      "managedOwnership": "retains both managed program instances and transfers no ownership",
+      "threadSafety": "owner ids impose one total lock order, including reverse calls and same-object comparison",
+      "disposeBehavior": "Dispose waits for an active comparison; a comparison starting after disposal throws ObjectDisposedException",
+      "failureCleanup": "the one-byte bool slot is always freed; native status and invalid bool values fail closed",
+      "afterOwnerDispose": "comparison throws ObjectDisposedException for either disposed program"
+    },
+    {
+      "subject": "MIGraphXShape equality decision",
+      "nativeOwnership": "none; the managed shape retains no migraphx_shape_t",
+      "managedOwnership": "immutable copied static or dynamic metadata remains the complete supported contract",
+      "threadSafety": "immutable managed snapshots remain safe for concurrent reads",
+      "disposeBehavior": "not disposable and unchanged by M10",
+      "failureCleanup": "no temporary native materialization is introduced",
+      "afterOwnerDispose": "shape snapshots remain valid independently of the native collection that produced them"
+    }
+  ]
+}

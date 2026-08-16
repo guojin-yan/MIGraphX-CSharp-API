@@ -6,8 +6,8 @@ Build a candidate with an explicit prerelease version and source commit:
 
 ```powershell
 $commit = git rev-parse HEAD
-.\eng\build.ps1 -Configuration Release -Version 0.9.0-rc.1 -RepositoryCommit $commit
-.\eng\verify-public-api.ps1 -Configuration Release -Version 0.9.0-rc.1 -RepositoryCommit $commit -SkipToolBuild
+.\eng\build.ps1 -Configuration Release -Version 0.9.0-rc.2 -RepositoryCommit $commit
+.\eng\verify-public-api.ps1 -Configuration Release -Version 0.9.0-rc.2 -RepositoryCommit $commit -SkipToolBuild
 ```
 
 Do not edit the default `0.0.0` to `1.0.0` during prerelease work. Development stays on `0.x.x`; intentional interface additions update the compatibility snapshots through review. A final version bump requires completed Windows runtime validation, `release-ready` evidence, and separate Owner approval, followed by a complete rebuild and new package hashes.

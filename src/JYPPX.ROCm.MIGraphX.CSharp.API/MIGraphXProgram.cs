@@ -220,6 +220,35 @@ public sealed class MIGraphXProgram : IDisposable
             });
     }
 
+    /// <summary>
+    /// 使用固定原生 <c>program::operator==</c> 比较 program 的打印结构内容，不改变任一对象的所有权。
+    /// Compares printed structural program content through the fixed native <c>program::operator==</c> without changing ownership of either object.
+    /// </summary>
+    /// <param name="other">由同一已加载 MIGraphX 原生库创建的另一个 program。 Another program created by the same loaded MIGraphX native library.</param>
+    /// <returns>固定原生实现的 program 文本结构比较相同则为 <see langword="true"/>。 <see langword="true"/> when the fixed native implementation reports equal printed program structure.</returns>
+    /// <remarks>
+    /// 该方法不比较模型文件 hash，不证明推理语义、输出或编译结果等价，也不定义 <see cref="object.Equals(object)"/>、hash 或运算符语义。ROCm 7.2.1 的实现比较 program 打印文本；parse、compile、sort 或其他 graph mutation 可能改变结果，未打印的 runtime/context 状态和托管 <see cref="IsCompiled"/> 标志本身不属于比较契约。反向并发比较按稳定资源顺序加锁，Dispose 会等待正在进行的比较。
+    /// This method does not compare model-file hashes, prove equivalent inference semantics, outputs, or compilation results, or define <see cref="object.Equals(object)"/>, hashing, or operator semantics. ROCm 7.2.1 compares printed program text; parse, compile, sort, or other graph mutation can change the result, while unprinted runtime/context state and the managed <see cref="IsCompiled"/> flag itself are outside the comparison contract. Reverse concurrent comparisons use a stable resource lock order, and Dispose waits for an in-progress comparison.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="other"/> 为 null。 <paramref name="other"/> is null.</exception>
+    /// <exception cref="ArgumentException">对象不属于同一原生 library root。 The objects do not belong to the same native library root.</exception>
+    /// <exception cref="ObjectDisposedException">任一对象已释放。 Either object has been disposed.</exception>
+    /// <exception cref="MIGraphXNativeLoadException">原生 equality 导出不可用。 The native equality export is unavailable.</exception>
+    /// <exception cref="MIGraphXException">原生比较失败或返回非法 C bool。 Native comparison fails or returns an invalid C bool.</exception>
+    public bool HasSameNativeContent(MIGraphXProgram other)
+    {
+        if (other is null) { throw new ArgumentNullException(nameof(other)); }
+        owner.Runtime.RequireSame(other.owner.Runtime, nameof(other));
+        owner.Runtime.RequireM10Equality();
+        return NativeResourceLock.With(
+            new[]
+            {
+                NativeResourceLock.Target(owner.Id, owner.Sync),
+                NativeResourceLock.Target(other.owner.Id, other.owner.Sync),
+            },
+            () => NativeM10Methods.ProgramContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock));
+    }
+
     internal NativeRuntime Runtime => owner.Runtime;
 
     internal MIGraphXNativeAsyncRun EnqueueNativeAsync(

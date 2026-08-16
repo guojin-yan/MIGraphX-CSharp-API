@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://guojin-yan.github.io/MIGraphX-CSharp-API/schemas/m10-high-level-api-map.schema.json",
+  "title": "M10 ONNX registry and native content-comparison decisions",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "stage",
+    "sourceMap",
+    "sourceHeaderSha256",
+    "sourceImplementation",
+    "evidenceBoundary",
+    "counts",
+    "mappings"
+  ],
+  "properties": {
+    "$schema": { "const": "./schemas/m10-high-level-api-map.schema.json" },
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M10" },
+    "sourceMap": { "const": "compatibility/m9-high-level-api-map.json" },
+    "sourceHeaderSha256": { "pattern": "^[a-f0-9]{64}$" },
+    "sourceImplementation": { "type": "string", "minLength": 1 },
+    "evidenceBoundary": { "type": "string", "minLength": 1 },
+    "counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["inventory", "supported", "planned", "unsupported"],
+      "properties": {
+        "inventory": { "const": 192 },
+        "supported": { "const": 84 },
+        "planned": { "const": 107 },
+        "unsupported": { "const": 1 }
+      }
+    },
+    "mappings": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "cName",
+          "decision",
+          "supportStatus",
+          "publicMembers",
+          "ownership",
+          "validationLevel",
+          "tests",
+          "decisionRationale",
+          "notAdoptedReason",
+          "upstreamEvidence"
+        ],
+        "properties": {
+          "id": { "pattern": "^function:migraphx_[a-z0-9_]+$" },
+          "kind": { "const": "function" },
+          "cName": { "pattern": "^migraphx_[a-z0-9_]+$" },
+          "decision": { "enum": ["adopted", "retained-planned"] },
+          "supportStatus": { "enum": ["supported", "planned"] },
+          "publicMembers": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "ownership": { "type": "string", "minLength": 1 },
+          "validationLevel": { "enum": ["statically-verified", "fake-native-executed"] },
+          "tests": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "decisionRationale": { "type": "string", "minLength": 1 },
+          "notAdoptedReason": { "type": ["string", "null"] },
+          "upstreamEvidence": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+        }
+      }
+    }
+  }
+}

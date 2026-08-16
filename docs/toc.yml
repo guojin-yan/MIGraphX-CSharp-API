@@ -36,6 +36,8 @@
     href: design/m8-api-release-readiness.md
   - name: M9 inference options
     href: design/m9-inference-options.md
+  - name: M10 registry and native comparison
+    href: design/m10-onnx-registry-native-comparison.md
 - name: Validation
   items:
   - name: Overview
@@ -60,10 +62,16 @@
     href: validation/m8-runtime-methodology.md
   - name: M9 cloud interface validation
     href: validation/m9-cloud-validation.md
+  - name: M10 local validation
+    href: validation/m10-local-validation.md
+  - name: M10 official runtime plan
+    href: validation/m10-runtime-plan.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes
   items:
+  - name: 0.9.0-rc.2 local prerelease
+    href: releases/0.9.0-rc.2.md
   - name: 0.9.0-rc.1 local prerelease
     href: releases/0.9.0-rc.1.md
   - name: 0.0.0 engineering candidate
@@ -80,3 +88,5 @@
   href: articles/m0-m8-evidence-driven-wrapper.md
 - name: M9 cloud evidence article draft
   href: articles/m9-interface-options-cloud-record.md
+- name: M10 explainable introspection article draft
+  href: articles/m10-explainable-c-api-introspection.md

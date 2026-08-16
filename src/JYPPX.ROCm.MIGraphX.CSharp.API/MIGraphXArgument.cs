@@ -107,6 +107,45 @@ public sealed class MIGraphXArgument : IDisposable
         });
     }
 
+    /// <summary>
+    /// 使用固定原生 <c>raw_data::operator==</c> 比较 shape 与逻辑 tensor 内容，不改变任一对象的所有权。
+    /// Compares shape and logical tensor content through the fixed native <c>raw_data::operator==</c> without changing ownership of either object.
+    /// </summary>
+    /// <param name="other">由同一已加载 MIGraphX 原生库创建的另一个 host-backed argument。 Another host-backed argument created by the same loaded MIGraphX native library.</param>
+    /// <returns>原生比较报告 shape 与逻辑 tensor 内容相同则为 <see langword="true"/>。 <see langword="true"/> when native comparison reports equal shape and logical tensor content.</returns>
+    /// <remarks>
+    /// ROCm 7.2.1 对两个原生空值先直接判等；否则先比较完整 shape，再按 shape 的逻辑视图比较可计算元素，非可计算类型按字节视图比较。当前公开 argument 均为独立、非空 host 副本，不公开原生空值；内部 device-borrowed argument 不接受此比较。该方法是显式、版本绑定的原生内容比较，不实现 <see cref="object.Equals(object)"/>、hash 或运算符语义，也不表示跨 runtime、host/device 或数值容差下的 tensor 等价。反向并发比较按稳定资源顺序加锁，Dispose 会等待正在进行的比较。
+    /// ROCm 7.2.1 first treats two native empty values as equal; otherwise it compares the complete shape, then computable elements through the shape's logical view, while non-computable types use a byte view. Current public arguments are independent, non-empty host copies and do not expose the native empty form; internally device-borrowed arguments are rejected. This is explicit, version-bound native content comparison and does not define <see cref="object.Equals(object)"/>, hashing, or operator semantics, or mean tensor equivalence across runtimes, host/device storage, or numeric tolerances. Reverse concurrent comparisons use a stable resource lock order, and Dispose waits for an in-progress comparison.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="other"/> 为 null。 <paramref name="other"/> is null.</exception>
+    /// <exception cref="ArgumentException">对象不属于同一原生 library root。 The objects do not belong to the same native library root.</exception>
+    /// <exception cref="NotSupportedException">任一 argument 借用 device buffer。 Either argument borrows a device buffer.</exception>
+    /// <exception cref="ObjectDisposedException">任一对象已释放。 Either object has been disposed.</exception>
+    /// <exception cref="MIGraphXNativeLoadException">原生 equality 导出不可用。 The native equality export is unavailable.</exception>
+    /// <exception cref="MIGraphXException">原生比较失败或返回非法 C bool。 Native comparison fails or returns an invalid C bool.</exception>
+    public bool HasSameNativeContent(MIGraphXArgument other)
+    {
+        if (other is null) { throw new ArgumentNullException(nameof(other)); }
+        owner.Runtime.RequireSame(other.owner.Runtime, nameof(other));
+        owner.Runtime.RequireM10Equality();
+        return NativeResourceLock.With(
+            new[]
+            {
+                NativeResourceLock.Target(owner.Id, owner.Sync),
+                NativeResourceLock.Target(other.owner.Id, other.owner.Sync),
+            },
+            () =>
+            {
+                _ = owner.HandleUnderLock;
+                _ = other.owner.HandleUnderLock;
+                if (!ownsBuffer || !other.ownsBuffer)
+                {
+                    throw new NotSupportedException("Native content comparison is supported only for host-backed arguments.");
+                }
+                return NativeM10Methods.ArgumentContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock);
+            });
+    }
+
     internal NativeResourceOwner<NativeArgumentHandle> Owner => owner;
 
     internal MIGraphXArgument CloneForMap()

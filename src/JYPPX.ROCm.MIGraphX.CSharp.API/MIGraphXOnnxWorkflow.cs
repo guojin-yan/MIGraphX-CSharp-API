@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
@@ -16,6 +17,40 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 /// </remarks>
 public static class MIGraphXOnnxWorkflow
 {
+    /// <summary>
+    /// 复制当前原生 ONNX parser registry 的 operator 名称，并返回与原生生命周期无关的只读快照。
+    /// Copies operator names from the current native ONNX parser registry into a read-only snapshot independent of native lifetimes.
+    /// </summary>
+    /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径；该调用不搜索网络或修改进程环境。 Absolute MIGraphX C native-library path; this call does not search the network or modify process state.</param>
+    /// <returns>按当前原生索引顺序复制的名称；空 registry 返回空集合。 Names copied in current native index order; an empty registry returns an empty collection.</returns>
+    /// <remarks>
+    /// 名称仅表示固定 MIGraphX 版本注册了 parser，是版本绑定的能力提示；不保证跨版本排序稳定，也不保证任意 opset、模型、target 或设备可以 parse、compile 或 run。名称不会排序、去重或更改大小写。
+    /// Names only indicate parsers registered by the fixed MIGraphX version and are a version-bound capability hint. They do not guarantee stable ordering across versions or that any opset, model, target, or device can parse, compile, or run. Names are not sorted, de-duplicated, or case-normalized by managed code.
+    /// </remarks>
+    /// <exception cref="ArgumentNullException"><paramref name="nativeLibraryPath"/> 为 null。 <paramref name="nativeLibraryPath"/> is null.</exception>
+    /// <exception cref="ArgumentException">路径不是绝对文件路径。 The path is not an absolute file path.</exception>
+    /// <exception cref="MIGraphXNativeLoadException">原生库、ONNX frontend 或 M10 registry 导出无法加载。 The native library, ONNX frontend, or M10 registry exports cannot be loaded.</exception>
+    /// <exception cref="MIGraphXException">原生 size/name 调用失败或成功时返回 null 名称。 A native size/name call fails or succeeds with a null name.</exception>
+    /// <exception cref="OverflowException">原生数量超过托管集合上限。 The native count exceeds the managed collection limit.</exception>
+    /// <exception cref="InvalidDataException">原生名称不是严格 UTF-8。 A native name is not strict UTF-8.</exception>
+    /// <exception cref="InvalidOperationException">创建快照期间 registry 数量发生变化。 The registry count changes while the snapshot is copied.</exception>
+    public static IReadOnlyList<string> GetRegisteredOperators(string nativeLibraryPath)
+    {
+        _ = NativeRuntime.LoadM10Registry(nativeLibraryPath);
+        var count = NativeM10Methods.GetOnnxOperatorCount();
+        var result = new string[count];
+        for (var index = 0; index < count; index++)
+        {
+            result[index] = NativeM10Methods.GetOnnxOperatorName(index);
+        }
+        var stableCount = NativeM10Methods.GetOnnxOperatorCount();
+        if (stableCount != count)
+        {
+            throw new InvalidOperationException($"{NativeM10Methods.RegistrySizeEntryPoint} changed from {count} to {stableCount} while creating the operator registry snapshot.");
+        }
+        return Array.AsReadOnly(result);
+    }
+
     /// <summary>
     /// 从绝对 ONNX 文件路径解析、编译并同步执行受限工作流。
     /// Parses, compiles, and synchronously executes the restricted workflow from an absolute ONNX file path.

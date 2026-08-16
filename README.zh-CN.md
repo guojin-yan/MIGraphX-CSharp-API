@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp 现已在 M1 生命周期基础、M2 受限 ONNX 闭环、M3 可复现低层绑定生产线、M4 资源安全同步对象层、M5 动态 Shape/缓存策略、可选 M6 HipSharp 异步适配器和 M7 system-native 部署策略之上形成 M8 `0.9.0-rc.1` 本地预发布路径。仓库默认版本仍为 `0.0.0`，没有发布任何包。在完成 Windows runtime 验证且 Owner 明确授权 `1.0.0` 之前，开发始终保持在 `0.x.x`。
+MIGraphXSharp 现已在 M1-M9 基础上形成未发布的 M10 `0.9.0-rc.2` 本地候选。M10 新增复制后的 ONNX parser registry 内省，以及 host-backed argument/program 的显式原生内容比较；shape equality 保持 planned。仓库默认版本仍为 `0.0.0`，没有发布任何包。在完成 Windows runtime 验证且 Owner 明确授权 `1.0.0` 之前，开发始终保持在 `0.x.x`。
 
 ## 状态
 
@@ -17,6 +17,7 @@ MIGraphXSharp 现已在 M1 生命周期基础、M2 受限 ONNX 闭环、M3 可�
 - M7 固定了 ROCm 7.2.1 Ubuntu Noble amd64 的签名源元数据和精确 MIGraphX 根包，并将 `system-native` 冻结为部署模式。用户从 AMD 官方仓库安装完整一致的原生闭包；本项目只分发托管程序集。
 - M8 为 core 与 adapter 在全部 15 TFM 上建立版本化兼容基线。`0.x.x` 接口扩展期间可经审查更新该基线，同时候选版本、程序集/file/informational version、缓存 identity、精确包依赖、源码提交、产品 SBOM 与 provenance 继续保持同一证据链。
 - M9 为 ONNX Loop 默认值/上限、external-data 根路径、fast-math 与 exhaustive tuning 封装 5 个推理 option 入口；累计映射为 80 supported、111 planned、1 unsupported。在已推送 SHA `346cdd0b01a7f8039f5deb93058928403fccc7dd` 上，ROCm 7.2.1 已接受 5 个记录值，并完成经复核的 gfx1100 Identity 编译/执行与精确 reference 匹配。
+- M10 封装 4 个入口：严格 UTF-8 深拷贝的 ONNX parser registry 快照，以及显式 argument/program 原生内容比较。shape equality 为保持无 owner 的托管快照契约而继续 planned；累计映射为 84 supported、107 planned、1 unsupported。没有新的官方主机授权，因此 M10 状态为 `runtime-deferred`。
 - 静态 shape 元数据包含已映射标量类型、lengths、strides、rank、溢出检查后的元素/字节数、standard 与 packed 标志。typed argument 拥有复制后的 host 内存；parameter map 深拷贝 argument；run 输出在原生集合释放前复制。
 - 一个 normalized model 同源生成各 158 个 `LibraryImport` 与 `DllImport` EntryPoint。C 可变参数函数 `migraphx_operation_create` 被显式标为 unsupported，不猜测 ABI。
 - 固定头中的 159 个函数全部匹配 hash 校验后的官方 ELF；ELF 额外的私有测试导出单独分类。这些 M3 结论属于 `statically-verified`，不是官方 runtime 执行。
@@ -31,7 +32,7 @@ MIGraphXSharp 现已在 M1 生命周期基础、M2 受限 ONNX 闭环、M3 可�
 构建仅供本地使用的托管候选包：
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.1
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.2
 ```
 
 冻结的 NuGet/项目/程序集名是 `JYPPX.ROCm.MIGraphX.CSharp.API`；C# 命名空间是 `JYPPX.ROCm.MIGraphXSharp`。不得发布此工程候选。
@@ -90,6 +91,12 @@ schema 2 快照记录签名、默认值、泛型约束、nullable metadata、ide
 
 `MIGraphXOnnxOptions` 新增非负 Loop 默认值/上限与绝对 strict-UTF-8 external-data 路径；`MIGraphXCompileOptions` 保留既有构造器，并新增显式 fast-math/exhaustive-tune 重载。local 测试验证值转发、路径校验、精确 native 失败定位与清理。无凭据云端脚本已在 clean pushed `346cdd0...` checkout 上执行；回传哈希和独立 JSON 复核把官方 setter 接受与 Identity 编译/执行提升为 `runtime-executed`。Loop 行为、真实 external payload、开启 exhaustive tuning 和代表性 fast-math 精度仍为 planned。
 
+## M10 registry 与原生内容比较
+
+`MIGraphXOnnxWorkflow.GetRegisteredOperators` 返回已加载版本 ONNX parser 名称的只读托管副本；它是 capability hint，不是模型/opset/device 支持保证。`MIGraphXArgument.HasSameNativeContent` 精确比较 host-backed shape/data 内容；`MIGraphXProgram.HasSameNativeContent` 比较固定版本的 program 打印结构。二者都不改变通用 .NET equality/hash/operator 契约。反向并发比较使用稳定的双 owner 锁顺序，并与 Dispose 串行。
+
+本地 fake-native 已覆盖严格 UTF-8、溢出、缺少 export、中途失败、非法 bool、内容差异、反向并发和 Dispose 竞争，并穿过旧/现代两条 interop 路径。M10 没有获授权执行官方 runtime；详见 [M10 设计](docs/design/m10-onnx-registry-native-comparison.md)与 [runtime 计划](docs/validation/m10-runtime-plan.md)。
+
 ## 构建
 
 安装 `global.json` 选择的 .NET 10 SDK、PowerShell 7、CMake 和 C 编译器，然后执行：
@@ -102,22 +109,23 @@ dotnet tool restore
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
 .\eng\verify-m9-coverage.ps1
+.\eng\verify-m10-coverage.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.1 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.1 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.1 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.1 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.2
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.2 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.2 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
 ```
 
 构建、官方 ELF 静态证据、fake-native 执行与官方 MIGraphX runtime 执行继续是不同证据层级。M1/M2 runtime 结论只适用于[官方验证摘要](docs/validation/m1-m2-official-runtime.md)记录的精确 SHA、环境、模型、shape 和同步 offload-copy 路径。
 
 ## 文档
 
-请阅读 [M8 设计](docs/design/m8-api-release-readiness.md)、[M9 option 设计](docs/design/m9-inference-options.md)、[M9 云端验证](docs/validation/m9-cloud-validation.md)、[API/版本指南](docs/guides/api-versioning.md)、[Runtime 部署指南](docs/guides/runtime-deployment.md)、[平台证据](docs/compatibility/platforms.md)和 [M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
+请阅读 [M8 设计](docs/design/m8-api-release-readiness.md)、[M9 option 设计](docs/design/m9-inference-options.md)、[M10 设计](docs/design/m10-onnx-registry-native-comparison.md)、[M10 本地验证](docs/validation/m10-local-validation.md)、[M10 runtime 计划](docs/validation/m10-runtime-plan.md)、[API/版本指南](docs/guides/api-versioning.md)、[Runtime 部署指南](docs/guides/runtime-deployment.md)和 [M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
 
 ## 许可证
 
@@ -125,4 +133,4 @@ Copyright 2026 Guojin Yan。本托管项目采用 [Apache License 2.0](LICENSE)�
 
 ## 参与贡献
 
-请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md)、[M3 normalized model](compatibility/m3-normalized-api.json) 和 [M9 high-level map](compatibility/m9-high-level-api-map.json)。公开 API 必须提供语义对应的中英文 XML 文档。不得提交 AMD 二进制、fake-native 构建输出、模型、凭据、云端连接信息，或无法由固定输入重现的生成声明。
+请阅读 [CONTRIBUTING.md](CONTRIBUTING.md)、[SECURITY.md](SECURITY.md)、[M3 normalized model](compatibility/m3-normalized-api.json) 和 [M10 high-level map](compatibility/m10-high-level-api-map.json)。公开 API 必须提供语义对应的中英文 XML 文档。不得提交 AMD 二进制、fake-native 构建输出、模型、凭据、云端连接信息，或无法由固定输入重现的生成声明。

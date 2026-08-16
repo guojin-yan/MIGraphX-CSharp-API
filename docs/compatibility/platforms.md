@@ -2,10 +2,10 @@
 
 | Claim | Status | Meaning |
 | --- | --- | --- |
-| Managed build/API | M1 through M8 local validation | Core and adapter compile all 15 exact TFMs; schema 2 freezes 27/151 and 3/11 with no M8 public API addition |
-| Package assets | M1 through M8 local validation | Each core/adapter TFM has a DLL and XML document; neither candidate contains native binaries |
-| Clean managed consumer | M1 through M8 local validation | Core representative consumers and one adapter consumer restore exact JYPPX dependencies from mapped local feeds |
-| M8 managed SBOM/provenance | Statically verified | Product evidence records every managed package entry, exact dependencies/licenses/source commit, ZIP hash, and normalized content identity; provenance is local and unsigned |
+| Managed build/API | M1 through M10 local validation | Core and adapter compile all 15 exact TFMs; the current schema 2 snapshots contain 27/160 and 3/11 records |
+| Package assets | M10 local candidate | Each rc.2 core/adapter TFM has a DLL and XML document; neither candidate contains native binaries |
+| Clean managed consumer | M10 local candidate | Four representative core consumers and one adapter consumer restore exact JYPPX dependencies from mapped local feeds |
+| Managed SBOM/provenance | Statically verified | Source-SHA-specific product evidence records every managed package entry, exact dependencies/licenses/source commit, ZIP hash, and normalized content identity; provenance is local and unsigned |
 | Frozen header and official ELF | Statically verified | All 159 header functions match the official Linux ELF; 158 have managed EntryPoints and one C-variadic declaration is explicitly unsupported |
 | M3 normalized inventory | Statically verified | 159 functions, 2 enums, 25 handles, and 6 callbacks close over 192 mutually exclusive classifications |
 | M3 critical ABI patterns | Fake-native executed | Callback lifetime/exception boundary, bool, size_t, UTF-8, borrowed/out pointers, array length, and cleanup ran against a minimal test substitute |
@@ -19,8 +19,9 @@
 | Official ONNX parse/compile/run | Runtime-executed | Generated Identity file and buffer paths compiled and ran synchronously with matching reference output |
 | AMD GPU | Runtime-executed | One gfx1100 GPU executed the restricted static float32 Identity graph; this is not a general device claim |
 | Official M9 option smoke | Runtime-executed | At `346cdd0...`, the official runtime accepted five recorded option values and the reviewed Identity compile/run exactly matched the reference; dedicated option semantics remain planned |
+| M10 registry and comparisons | Fake-native executed; official runtime deferred | Copied registry strings, strict failures, exact host argument/program comparisons, reverse concurrency, Dispose races, missing exports, and four representative TFM paths ran against the local substitute; shape equality remains planned |
 | Runtime NuGet | Not applicable | Owner selected managed-only distribution and AMD official system installation; no Runtime package project, staging/promotion path, marker loader, or native payload exists |
 
-The system-native policy targets the audited Ubuntu 24.04 amd64 metadata and Linux SONAME `libmigraphx_c.so.3`. The latest reviewed official record proves one exact system-installed host configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish other distributions, versions, devices, models, dynamic shapes, M6 async/device-buffer, zero-copy, dedicated M9 semantics, or performance paths.
+The system-native policy targets the audited Ubuntu 24.04 amd64 metadata and Linux SONAME `libmigraphx_c.so.3`. The latest reviewed official record proves one exact system-installed host configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish other distributions, versions, devices, models, dynamic shapes, M6 async/device-buffer, zero-copy, dedicated M9 semantics, M10 registry/equality runtime behavior, or performance paths.
 
-中文摘要：M8 本地候选冻结 managed API/包并生成产品证据。精确环境的 M1/M2 已重新执行，M9 五项设置的官方 Identity smoke 也已复核；M4-M6、M9 专用语义、Windows/macOS、其他版本/设备/模型、长跑与性能仍未获得支持证据。
+中文摘要：M10 本地候选将 managed 映射推进到 84/107/1，并以 fake-native 验证 registry 与 argument/program comparison。精确环境的 M1/M2 和 M9 bounded smoke 是最新官方记录；M4-M6、M10、Windows/macOS、其他版本/设备/模型、长跑与性能仍未获得新支持证据。

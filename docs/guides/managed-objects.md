@@ -33,4 +33,13 @@ M5 adds `MIGraphXDynamicDimension` ranges and explicit ONNX static/dynamic overr
 
 M6 keeps the synchronous core API unchanged. Native asynchronous execution lives in the optional adapter, where program/map/argument handles are leased until HipStream completion and outputs become owned host snapshots. Device input is limited to validated `HipDeviceMemory` and has an explicit D2H output boundary. See the [M6 design](../design/m6-hip-async-interop.md).
 
-中文摘要：所有原生资源都用显式实例和同一绝对库路径创建。Shape/名称/同步输出在原生集合释放前复制，typed input 与 parameter map 都拥有独立副本。M6 异步能力位于可选适配器中，通过租约保活并显式 D2H 固化 device path 输出，不公开裸指针。
+M10 adds explicit comparison without changing object identity semantics:
+
+```csharp
+bool sameInput = input.HasSameNativeContent(anotherHostBackedArgument);
+bool samePrintedProgram = program.HasSameNativeContent(anotherProgram);
+```
+
+Argument comparison requires the same loaded native root and owned host-backed values; it is exact and has no tolerance. Program comparison follows the fixed native printed-structure implementation. These methods do not override `Equals`, hashing, or operators and do not prove model or inference equivalence. Reverse comparisons acquire owner locks in a stable order and serialize with Dispose. `MIGraphXShape` remains an immutable managed snapshot without a native owner.
+
+中文摘要：所有原生资源都用显式实例和同一绝对库路径创建。Shape/名称/同步输出在原生集合释放前复制，typed input 与 parameter map 都拥有独立副本。M6 异步能力通过租约保活并显式 D2H；M10 的 argument/program 比较使用稳定双 owner 锁序，保持显式、版本绑定语义，不覆写通用 equality。

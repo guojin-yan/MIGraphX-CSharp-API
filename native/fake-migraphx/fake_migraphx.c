@@ -55,7 +55,7 @@ typedef struct fake_options
     int64_t limit_loop_iterations;
     char external_data_path[512];
 } *migraphx_onnx_options_t;
-typedef struct fake_program { int value; int compiled; int offload_copy; int dynamic; size_t dynamic_count; fake_dynamic_dimension dynamic_values[8]; size_t static_count; size_t static_values[8]; } *migraphx_program_t;
+typedef struct fake_program { int value; int parsed; int compiled; int offload_copy; int dynamic; size_t dynamic_count; fake_dynamic_dimension dynamic_values[8]; size_t static_count; size_t static_values[8]; } *migraphx_program_t;
 typedef struct fake_compile_options { uint8_t offload_copy; uint8_t fast_math; uint8_t exhaustive_tune; } *migraphx_compile_options_t;
 typedef struct fake_shape
 {
@@ -125,6 +125,11 @@ static char last_external_data_path[512];
 static char failure_entry[128];
 static volatile int32_t failure_status;
 static char null_entry[128];
+static char invalid_bool_entry[128];
+static volatile int32_t onnx_registry_mode;
+static volatile int32_t onnx_registry_size_reads;
+static volatile int32_t equality_wait;
+static volatile int32_t equality_enter_count;
 static fake_m3_callback m3_callback;
 static void* m3_callback_state;
 static migraphx_arguments_t async_runs[64];
@@ -158,6 +163,26 @@ static int take_null_for(const char* entry)
     }
     return ATOMIC_EXCHANGE(create_null, 0);
 }
+
+#ifndef FAKE_DISABLE_M10
+static uint8_t take_bool_for(const char* entry, int value)
+{
+    if(invalid_bool_entry[0] != '\0' && strcmp(invalid_bool_entry, entry) == 0)
+    {
+        invalid_bool_entry[0] = '\0';
+        return 2;
+    }
+    return value ? 1 : 0;
+}
+
+static void wait_for_equality_release(void)
+{
+    ATOMIC_INCREMENT(equality_enter_count);
+    while(equality_wait != 0)
+    {
+    }
+}
+#endif
 
 static void copy_string(char* destination, size_t capacity, const char* source)
 {
@@ -218,6 +243,11 @@ EXPORT void fake_reset(void)
     failure_entry[0] = '\0';
     failure_status = 0;
     null_entry[0] = '\0';
+    invalid_bool_entry[0] = '\0';
+    onnx_registry_mode = 0;
+    onnx_registry_size_reads = 0;
+    equality_wait = 0;
+    equality_enter_count = 0;
     m3_callback = NULL;
     m3_callback_state = NULL;
     memset(async_runs, 0, sizeof(async_runs));
@@ -292,6 +322,14 @@ EXPORT void fake_set_failure(const char* entry, int status)
     ATOMIC_EXCHANGE(failure_status, status);
 }
 EXPORT void fake_set_null_output(const char* entry) { copy_string(null_entry, sizeof(null_entry), entry); }
+EXPORT void fake_set_invalid_bool(const char* entry) { copy_string(invalid_bool_entry, sizeof(invalid_bool_entry), entry); }
+EXPORT void fake_set_onnx_registry_mode(int value)
+{
+    ATOMIC_EXCHANGE(onnx_registry_mode, value);
+    ATOMIC_EXCHANGE(onnx_registry_size_reads, 0);
+}
+EXPORT void fake_set_equality_wait(int value) { ATOMIC_EXCHANGE(equality_wait, value); }
+EXPORT int fake_equality_enter_count(void) { return equality_enter_count; }
 
 EXPORT migraphx_status fake_m3_store_callback(fake_m3_callback callback, void* state)
 {
@@ -403,7 +441,7 @@ EXPORT migraphx_status migraphx_program_assign_to(migraphx_program_t output, con
     ATOMIC_INCREMENT(program_assign_count);
     if(output == NULL || input == NULL)
         return migraphx_status_bad_param;
-    output->value = input->value;
+    *output = *input;
     program_assign_copied = output->value == input->value;
     return (migraphx_status)take_status_for("migraphx_program_assign_to");
 }
@@ -422,11 +460,8 @@ EXPORT migraphx_status migraphx_program_create(migraphx_program_t* program)
         *program = (migraphx_program_t)malloc(sizeof(**program));
         if(*program == NULL)
             return migraphx_status_unknown_error;
+        memset(*program, 0, sizeof(**program));
         (*program)->value = ATOMIC_INCREMENT(next_value);
-        (*program)->compiled = 0;
-        (*program)->dynamic = 0;
-        (*program)->dynamic_count = 0;
-        (*program)->static_count = 0;
         ATOMIC_INCREMENT(program_live_count);
     }
     status = take_status_for("migraphx_program_create");
@@ -669,6 +704,72 @@ EXPORT migraphx_status migraphx_argument_create(migraphx_argument_t* out, const 
 }
 EXPORT migraphx_status migraphx_argument_shape(const fake_shape** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = &value->shape; return (migraphx_status)take_status_for("migraphx_argument_shape"); }
 EXPORT migraphx_status migraphx_argument_buffer(char** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = value->buffer; return (migraphx_status)take_status_for("migraphx_argument_buffer"); }
+
+#ifndef FAKE_DISABLE_M10
+static int fake_dynamic_dimension_equal_value(const fake_dynamic_dimension* left, const fake_dynamic_dimension* right)
+{
+    size_t index;
+    if(left->minimum != right->minimum || left->maximum != right->maximum || left->optimal_count != right->optimal_count)
+        return 0;
+    for(index = 0; index < left->optimal_count; ++index)
+        if(left->optimals[index] != right->optimals[index]) return 0;
+    return 1;
+}
+
+static int fake_shape_equal_value(const fake_shape* left, const fake_shape* right)
+{
+    size_t index;
+    if(left->type != right->type || left->rank != right->rank || left->elements != right->elements ||
+       left->bytes != right->bytes || left->standard != right->standard || left->dynamic != right->dynamic ||
+       left->dynamic_count != right->dynamic_count)
+        return 0;
+    for(index = 0; index < left->rank; ++index)
+        if(left->lengths[index] != right->lengths[index] || left->strides[index] != right->strides[index]) return 0;
+    for(index = 0; index < left->dynamic_count; ++index)
+        if(!fake_dynamic_dimension_equal_value(&left->dynamic_values[index], &right->dynamic_values[index])) return 0;
+    return 1;
+}
+
+EXPORT migraphx_status migraphx_argument_equal(uint8_t* out, const migraphx_argument_t left, const migraphx_argument_t right)
+{
+    int status;
+    int equal;
+    if(out == NULL || left == NULL || right == NULL) return migraphx_status_bad_param;
+    status = take_status_for("migraphx_argument_equal");
+    if(status != migraphx_status_success) return (migraphx_status)status;
+    wait_for_equality_release();
+    equal = fake_shape_equal_value(&left->shape, &right->shape) &&
+            (left->shape.bytes == 0 || memcmp(left->buffer, right->buffer, left->shape.bytes) == 0);
+    *out = take_bool_for("migraphx_argument_equal", equal);
+    return migraphx_status_success;
+}
+
+static int fake_program_equal_value(const migraphx_program_t left, const migraphx_program_t right)
+{
+    size_t index;
+    if(left->parsed != right->parsed || left->compiled != right->compiled ||
+       left->offload_copy != right->offload_copy || left->dynamic != right->dynamic ||
+       left->dynamic_count != right->dynamic_count || left->static_count != right->static_count)
+        return 0;
+    for(index = 0; index < left->dynamic_count; ++index)
+        if(!fake_dynamic_dimension_equal_value(&left->dynamic_values[index], &right->dynamic_values[index])) return 0;
+    for(index = 0; index < left->static_count; ++index)
+        if(left->static_values[index] != right->static_values[index]) return 0;
+    return 1;
+}
+
+EXPORT migraphx_status migraphx_program_equal(uint8_t* out, const migraphx_program_t left, const migraphx_program_t right)
+{
+    int status;
+    if(out == NULL || left == NULL || right == NULL) return migraphx_status_bad_param;
+    status = take_status_for("migraphx_program_equal");
+    if(status != migraphx_status_success) return (migraphx_status)status;
+    wait_for_equality_release();
+    *out = take_bool_for("migraphx_program_equal", fake_program_equal_value(left, right));
+    return migraphx_status_success;
+}
+#endif
+
 EXPORT migraphx_status migraphx_program_compile(migraphx_program_t program, migraphx_target_t target, migraphx_compile_options_t options)
 {
     if(program == NULL || target == NULL || options == NULL) return migraphx_status_bad_param;
@@ -763,6 +864,7 @@ EXPORT migraphx_status migraphx_parse_onnx(migraphx_program_t* out, const char* 
     status = migraphx_program_create(out);
     if(status == migraphx_status_success && *out != NULL && options != NULL)
     {
+        (*out)->parsed = 1;
         (*out)->dynamic = options->dynamic;
         (*out)->dynamic_count = options->dynamic_count;
         memcpy((*out)->dynamic_values, options->dynamic_values, sizeof(options->dynamic_values));
@@ -782,6 +884,7 @@ EXPORT migraphx_status migraphx_parse_onnx_buffer(migraphx_program_t* out, const
     status = migraphx_program_create(out);
     if(status == migraphx_status_success && *out != NULL && options != NULL)
     {
+        (*out)->parsed = 1;
         (*out)->dynamic = options->dynamic;
         (*out)->dynamic_count = options->dynamic_count;
         memcpy((*out)->dynamic_values, options->dynamic_values, sizeof(options->dynamic_values));
@@ -959,5 +1062,43 @@ EXPORT migraphx_status migraphx_load(migraphx_program_t* out, const char* name, 
     if(out == NULL || name == NULL || options == NULL || strcmp(options->format, "msgpack") != 0) return migraphx_status_bad_param;
     FILE* file = fopen(name, "rb"); if(file == NULL) return migraphx_status_unknown_error; fclose(file);
     if(take_null_for("migraphx_load")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_load"); }
-    *out = (migraphx_program_t)malloc(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; memset(*out, 0, sizeof(**out)); (*out)->value = ATOMIC_INCREMENT(next_value); ATOMIC_INCREMENT(program_live_count); return (migraphx_status)take_status_for("migraphx_load");
+    *out = (migraphx_program_t)malloc(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; memset(*out, 0, sizeof(**out)); (*out)->value = ATOMIC_INCREMENT(next_value); (*out)->parsed = 1; ATOMIC_INCREMENT(program_live_count); return (migraphx_status)take_status_for("migraphx_load");
 }
+
+#ifndef FAKE_DISABLE_M10
+EXPORT migraphx_status migraphx_get_onnx_operators_size(size_t* out)
+{
+    int status;
+    int mode;
+    if(out == NULL) return migraphx_status_bad_param;
+    status = take_status_for("migraphx_get_onnx_operators_size");
+    if(status != migraphx_status_success) return (migraphx_status)status;
+    mode = onnx_registry_mode;
+    if(mode == 1) *out = 0;
+    else if(mode == 2) *out = (size_t)INT32_MAX + 1u;
+    else if(mode == 6) *out = ATOMIC_INCREMENT(onnx_registry_size_reads) == 1 ? 3u : 4u;
+    else *out = 3u;
+    return migraphx_status_success;
+}
+
+EXPORT migraphx_status migraphx_get_onnx_operator_name_at_index(char** out, size_t index)
+{
+    static char ascii_name[] = "Add";
+    static char utf8_name[] = "\xE5\x8A\xA0";
+    static char final_name[] = "Relu";
+    static char invalid_utf8[] = "\xC3\x28";
+    static char* names[] = { ascii_name, utf8_name, final_name };
+    int status;
+    int mode;
+    if(out == NULL) return migraphx_status_bad_param;
+    mode = onnx_registry_mode;
+    if(mode == 1 || index >= 3) return migraphx_status_bad_param;
+    if(mode == 5 && index == 1) return migraphx_status_unknown_error;
+    status = take_status_for("migraphx_get_onnx_operator_name_at_index");
+    if(status != migraphx_status_success) return (migraphx_status)status;
+    if(mode == 3 && index == 1) *out = NULL;
+    else if(mode == 4 && index == 1) *out = invalid_utf8;
+    else *out = names[index];
+    return migraphx_status_success;
+}
+#endif

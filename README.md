@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp now has an M8 `0.9.0-rc.1` local-prerelease path over the M1 lifecycle foundation, M2 restricted ONNX workflow, M3 reproducible low-level binding pipeline, M4 resource-safe synchronous objects, M5 dynamic-shape/cache policy, optional M6 HipSharp async adapter, and M7 system-native deployment policy. The repository default remains `0.0.0`; no package is published. Development remains on `0.x.x` until Windows runtime validation is complete and the owner explicitly authorizes `1.0.0`.
+MIGraphXSharp now has an unpublished M10 `0.9.0-rc.2` local candidate over the M1-M9 foundations. M10 adds copied ONNX parser-registry introspection and explicit native content comparison for host-backed arguments and programs while keeping shape equality planned. The repository default remains `0.0.0`; no package is published. Development remains on `0.x.x` until Windows runtime validation is complete and the owner explicitly authorizes `1.0.0`.
 
 ## Status
 
@@ -17,6 +17,7 @@ MIGraphXSharp now has an M8 `0.9.0-rc.1` local-prerelease path over the M1 lifec
 - M7 pins the signed ROCm 7.2.1 Ubuntu Noble amd64 source metadata and exact MIGraphX root package, then freezes `system-native` as the deployment mode. Users install the coherent native closure from AMD's official repository; this project ships managed assemblies only.
 - M8 records a versioned compatibility baseline for core and adapter across all 15 TFMs. The baseline is intentionally reviewable during `0.x.x` interface expansion; candidate version, assembly/file/informational version, cache identity, exact package dependencies, source commit, product SBOM, and provenance remain one local evidence chain.
 - M9 projects five inference-option entry points for ONNX Loop defaults/limits, external-data roots, fast-math, and exhaustive tuning. The aggregate map is 80 supported, 111 planned, and 1 unsupported. At pushed SHA `346cdd0b01a7f8039f5deb93058928403fccc7dd`, ROCm 7.2.1 accepted the five recorded values and completed a reviewed gfx1100 Identity compile/run with an exact reference match.
+- M10 projects four entry points: a strict-UTF-8 copied ONNX parser-registry snapshot plus explicit argument/program native content comparison. Shape equality remains planned to preserve the owner-free managed snapshot contract. The aggregate map is 84 supported, 107 planned, and 1 unsupported; without a new official host authorization, M10 is `runtime-deferred`.
 - Static shape metadata includes mapped scalar type, lengths, strides, rank, checked element/byte counts, standard, and packed flags. Typed arguments own copied host memory; parameter maps deep-copy arguments; run outputs are copied before native collections are released.
 - One normalized model emits 158 matching `LibraryImport` and `DllImport` EntryPoints. The C-variadic `migraphx_operation_create` is explicitly unsupported instead of receiving a guessed ABI.
 - All 159 header functions match the hash-verified official ELF; its additional private test export is separately classified. These M3 results are `statically-verified`, not official runtime execution.
@@ -31,7 +32,7 @@ MIGraphXSharp now has an M8 `0.9.0-rc.1` local-prerelease path over the M1 lifec
 Build the local-only managed candidate package:
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.1
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.2
 ```
 
 The frozen NuGet/project/assembly name is `JYPPX.ROCm.MIGraphX.CSharp.API`; the C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Do not publish this engineering candidate.
@@ -90,6 +91,12 @@ The candidate gate produces per-file managed SBOM data, local unsigned provenanc
 
 `MIGraphXOnnxOptions` now exposes non-negative Loop defaults/limits and an absolute strict-UTF-8 external-data path. `MIGraphXCompileOptions` keeps its existing constructor and adds an explicit fast-math/exhaustive-tune overload. Local tests verify forwarding, path validation, exact native failure attribution, and cleanup. The credential-free cloud script ran on the clean pushed `346cdd0...` checkout; transferred hashes and independent JSON review promoted official setter acceptance plus the Identity compile/run to `runtime-executed`. Loop behavior, real external payloads, exhaustive tuning enabled, and representative fast-math accuracy remain planned.
 
+## M10 registry and native content comparison
+
+`MIGraphXOnnxWorkflow.GetRegisteredOperators` returns a read-only managed copy of the loaded version's ONNX parser names. It is a capability hint, not a model/opset/device support guarantee. `MIGraphXArgument.HasSameNativeContent` compares exact host-backed shape/data content; `MIGraphXProgram.HasSameNativeContent` compares the fixed version's printed program structure. Neither method changes general .NET equality/hash/operator semantics. Reverse concurrent comparisons use a stable two-owner lock order and serialize with Dispose.
+
+Local fake-native tests cover strict UTF-8, overflow, missing exports, mid-copy failure, invalid bool, comparison differences, reverse concurrency, and Dispose races through legacy and modern interop paths. No M10 official runtime call was authorized; see the [M10 design](docs/design/m10-onnx-registry-native-comparison.md) and [runtime plan](docs/validation/m10-runtime-plan.md).
+
 ## Build
 
 Install the .NET 10 SDK selected by `global.json`, PowerShell 7, CMake, and a C compiler, then run:
@@ -102,22 +109,23 @@ dotnet tool restore
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
 .\eng\verify-m9-coverage.ps1
+.\eng\verify-m10-coverage.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.1 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.1 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.1 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.1 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.2
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.2 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.2 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
 ```
 
 Build, static official-ELF evidence, fake-native execution, and official MIGraphX runtime execution remain separate evidence levels. The M1/M2 runtime claim is limited to the exact pushed SHA, environment, model, shape, and synchronous offload-copy path recorded in the [official runtime summary](docs/validation/m1-m2-official-runtime.md).
 
 ## Documentation
 
-See the [M8 design](docs/design/m8-api-release-readiness.md), [M9 option design](docs/design/m9-inference-options.md), [M9 cloud validation](docs/validation/m9-cloud-validation.md), [API/versioning guide](docs/guides/api-versioning.md), [Runtime deployment guide](docs/guides/runtime-deployment.md), [platform evidence](docs/compatibility/platforms.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
+See the [M8 design](docs/design/m8-api-release-readiness.md), [M9 option design](docs/design/m9-inference-options.md), [M10 design](docs/design/m10-onnx-registry-native-comparison.md), [M10 local validation](docs/validation/m10-local-validation.md), [M10 runtime plan](docs/validation/m10-runtime-plan.md), [API/versioning guide](docs/guides/api-versioning.md), [Runtime deployment guide](docs/guides/runtime-deployment.md), and [official M1/M2 runtime summary](docs/validation/m1-m2-official-runtime.md).
 
 ## License
 
@@ -125,4 +133,4 @@ Copyright 2026 Guojin Yan. This managed project is licensed under the [Apache Li
 
 ## Contributing
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), the [M3 normalized model](compatibility/m3-normalized-api.json), and the [M9 high-level map](compatibility/m9-high-level-api-map.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.
+Read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), the [M3 normalized model](compatibility/m3-normalized-api.json), and the [M10 high-level map](compatibility/m10-high-level-api-map.json). Public APIs require equivalent Chinese and English XML documentation. Never commit AMD binaries, fake-native build output, models, credentials, cloud connection data, or generated declarations that cannot be reproduced from the fixed input.

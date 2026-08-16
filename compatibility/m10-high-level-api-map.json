@@ -1,0 +1,116 @@
+{
+  "$schema": "./schemas/m10-high-level-api-map.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M10",
+  "sourceMap": "compatibility/m9-high-level-api-map.json",
+  "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+  "sourceImplementation": "AMDMIGraphX rocm-7.2.1 commit de19b73ad280476e646512b847885eda100ec35e",
+  "evidenceBoundary": "The two ONNX registry calls and adopted argument/program comparisons are fake-native-executed and statically tied to the fixed upstream implementation. No new official host was authorized, so M10 remains runtime-deferred. Shape equality remains planned and has no fake-native execution claim.",
+  "counts": {
+    "inventory": 192,
+    "supported": 84,
+    "planned": 107,
+    "unsupported": 1
+  },
+  "mappings": [
+    {
+      "id": "function:migraphx_get_onnx_operators_size",
+      "kind": "function",
+      "cName": "migraphx_get_onnx_operators_size",
+      "decision": "adopted",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXOnnxWorkflow.GetRegisteredOperators"],
+      "ownership": "the native size is copied by value; no native pointer or registry lifetime escapes the call",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M10CapabilityEqualityTests.OnnxRegistryCopiesStableUtf8AndFailsClosedForEveryInjectedFault",
+        "InteropRunner --expect-m10-missing"
+      ],
+      "decisionRationale": "A bounded managed count is required to allocate an independent read-only parser-name snapshot and can fail closed on size_t overflow or count drift.",
+      "notAdoptedReason": null,
+      "upstreamEvidence": [
+        "src/onnx/onnx.cpp:get_onnx_operators static vector",
+        "tools/api/api.cpp:get_onnx_operators_size",
+        "src/api/api.cpp:migraphx_get_onnx_operators_size"
+      ]
+    },
+    {
+      "id": "function:migraphx_get_onnx_operator_name_at_index",
+      "kind": "function",
+      "cName": "migraphx_get_onnx_operator_name_at_index",
+      "decision": "adopted",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXOnnxWorkflow.GetRegisteredOperators"],
+      "ownership": "each borrowed const-backed char pointer is decoded with strict UTF-8 and deep-copied before the native call scope ends",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M10CapabilityEqualityTests.OnnxRegistryCopiesStableUtf8AndFailsClosedForEveryInjectedFault",
+        "InteropRunner --expect-m10-missing"
+      ],
+      "decisionRationale": "The fixed implementation indexes a process-lifetime sorted vector and returns c_str(); immediate copying provides a safe managed capability hint without exposing borrowed memory.",
+      "notAdoptedReason": null,
+      "upstreamEvidence": [
+        "src/onnx/op_parser.cpp:get_op_parsers sorts registered names",
+        "tools/api/api.cpp:get_onnx_operator_name_at_index uses vector::at and borrowed c_str",
+        "src/api/api.cpp:migraphx_get_onnx_operator_name_at_index"
+      ]
+    },
+    {
+      "id": "function:migraphx_shape_equal",
+      "kind": "function",
+      "cName": "migraphx_shape_equal",
+      "decision": "retained-planned",
+      "supportStatus": "planned",
+      "publicMembers": [],
+      "ownership": "MIGraphXShape remains an immutable managed snapshot with no retained native owner or disposal contract",
+      "validationLevel": "statically-verified",
+      "tests": [],
+      "decisionRationale": "The native comparison covers type, static lengths/strides or dynamic ranges, and tuple sub-shapes, but the current managed value already exposes its supported snapshot fields.",
+      "notAdoptedReason": "Calling the C entry point would require temporary native materialization or a new retained handle with no additional supported value, and would weaken the existing owner-free value-object contract.",
+      "upstreamEvidence": [
+        "src/shape.cpp:shape operator==",
+        "src/api/api.cpp:migraphx_shape_equal"
+      ]
+    },
+    {
+      "id": "function:migraphx_argument_equal",
+      "kind": "function",
+      "cName": "migraphx_argument_equal",
+      "decision": "adopted",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXArgument.HasSameNativeContent"],
+      "ownership": "two host-backed owned arguments remain alive under a stable owner-id lock order; no buffer or handle ownership transfers",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M10CapabilityEqualityTests.ArgumentContentComparisonHandlesIndependentValuesFailuresConcurrencyAndDispose",
+        "InteropRunner --expect-m10-equality-missing"
+      ],
+      "decisionRationale": "The fixed raw_data comparison treats two native empty values as equal; otherwise it compares shape, then logical computable tensor views or non-computable byte views. Public arguments are owned non-empty host copies, so this provides an explicit exact content comparison without exposing the native empty form.",
+      "notAdoptedReason": null,
+      "upstreamEvidence": [
+        "src/include/migraphx/raw_data.hpp:raw_data operator==",
+        "src/api/api.cpp:migraphx_argument_equal"
+      ]
+    },
+    {
+      "id": "function:migraphx_program_equal",
+      "kind": "function",
+      "cName": "migraphx_program_equal",
+      "decision": "adopted",
+      "supportStatus": "supported",
+      "publicMembers": ["MIGraphXProgram.HasSameNativeContent"],
+      "ownership": "two owned programs remain alive under a stable owner-id lock order; comparison neither mutates nor transfers either handle",
+      "validationLevel": "fake-native-executed",
+      "tests": [
+        "M10CapabilityEqualityTests.ProgramContentComparisonUsesOrderedLocksAndKeepsHandlesAliveAgainstDispose",
+        "InteropRunner --expect-m10-equality-missing"
+      ],
+      "decisionRationale": "ROCm 7.2.1 compares program print strings; an explicitly named version-bound structural comparison is useful when documented as narrower than model hash or semantic equivalence.",
+      "notAdoptedReason": null,
+      "upstreamEvidence": [
+        "src/program.cpp:program operator== compares to_string",
+        "src/api/api.cpp:migraphx_program_equal"
+      ]
+    }
+  ]
+}

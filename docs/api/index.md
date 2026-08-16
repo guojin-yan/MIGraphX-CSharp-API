@@ -8,6 +8,8 @@ M4 adds `MIGraphXProgram`, immutable `MIGraphXShape`, `MIGraphXArgument`, `MIGra
 
 The optional M6 adapter adds `MIGraphXHipAsyncRun`, `MIGraphXHipDeviceInput`, and `MIGraphXHipExecution`. Host and device-input submissions use `RunHostAsync` and `RunDeviceAsync`; completion is explicit through `TryComplete` or `Synchronize`. The adapter exposes no raw pointer, SafeHandle, generated delegate, backend-name string, or internal HIP API type.
 
+M10 adds `MIGraphXOnnxWorkflow.GetRegisteredOperators`, `MIGraphXArgument.HasSameNativeContent`, and `MIGraphXProgram.HasSameNativeContent`. Registry names are strict-UTF-8 managed copies and only indicate parsers registered by the loaded native version. Argument comparison is exact and host-backed; program comparison is the fixed version's printed structural comparison. Neither method defines general .NET equality, hashing, operators, model compatibility, or inference equivalence. `MIGraphXShape` remains an owner-free snapshot and does not project native equality.
+
 Every native resource accepts an explicit absolute library path and has deterministic Dispose semantics. Shape and collection results are copied snapshots. Dynamic shapes expose ranges rather than fabricated lengths or strides. Typed argument methods require exact unmanaged scalar mappings and never expose borrowed arrays or pointers.
 
 Generated API pages are built from the core and adapter assemblies and their bilingual XML documentation.

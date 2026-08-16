@@ -228,6 +228,28 @@ public sealed class RepositoryQualityTests
     }
 
     [Fact]
+    public void M10DecisionsAggregateCountsAndOwnershipAreClosed()
+    {
+        var compatibility = Path.Combine(RepositoryRoot, "compatibility");
+        using var map = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m10-high-level-api-map.json")));
+        using var ownership = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m10-public-ownership.json")));
+        var root = map.RootElement;
+        Assert.Equal("M10", root.GetProperty("stage").GetString());
+        Assert.Equal(84, root.GetProperty("counts").GetProperty("supported").GetInt32());
+        Assert.Equal(107, root.GetProperty("counts").GetProperty("planned").GetInt32());
+        Assert.Equal(1, root.GetProperty("counts").GetProperty("unsupported").GetInt32());
+
+        var mappings = root.GetProperty("mappings").EnumerateArray().ToArray();
+        Assert.Equal(5, mappings.Length);
+        Assert.Equal(4, mappings.Count(item => item.GetProperty("decision").GetString() == "adopted"));
+        var shape = mappings.Single(item => item.GetProperty("id").GetString() == "function:migraphx_shape_equal");
+        Assert.Equal("retained-planned", shape.GetProperty("decision").GetString());
+        Assert.Equal("statically-verified", shape.GetProperty("validationLevel").GetString());
+        Assert.False(string.IsNullOrWhiteSpace(shape.GetProperty("notAdoptedReason").GetString()));
+        Assert.Equal(4, ownership.RootElement.GetProperty("records").GetArrayLength());
+    }
+
+    [Fact]
     public void ReviewedPublicBaselineMatchesExportedTypesAndM4Shape()
     {
         var assembly = typeof(MIGraphXBuildInfo).Assembly;
@@ -242,7 +264,7 @@ public sealed class RepositoryQualityTests
         Assert.True(baselineTypes.SetEquals(exportedTypes),
             $"Public type baseline drift. Missing: {string.Join(", ", exportedTypes.Except(baselineTypes))}; stale: {string.Join(", ", baselineTypes.Except(exportedTypes))}");
         Assert.Equal(27, baselineTypes.Count);
-        Assert.Equal(157, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
+        Assert.Equal(160, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
 
         var m5Types = new[]
         {
@@ -261,7 +283,7 @@ public sealed class RepositoryQualityTests
             + type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(field => !field.IsSpecialName)
             + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
-        Assert.Equal(104, classMemberCount);
+        Assert.Equal(106, classMemberCount);
 
         foreach (var type in m5Types)
         {
@@ -346,6 +368,7 @@ public sealed class RepositoryQualityTests
         {
             Assert.Contains("0.0.0", text);
             Assert.Contains("0.9.0-rc.1", text);
+            Assert.Contains("0.9.0-rc.2", text);
             Assert.Contains("release-candidate-local", text, StringComparison.Ordinal);
             Assert.Contains("M1", text);
             Assert.Contains("AMD", text, StringComparison.OrdinalIgnoreCase);
@@ -354,6 +377,8 @@ public sealed class RepositoryQualityTests
             Assert.Contains("346cdd0b01a7f8039f5deb93058928403fccc7dd", text, StringComparison.Ordinal);
             Assert.Contains("gfx1100", text, StringComparison.Ordinal);
             Assert.Contains("system-native", text, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains("84", text, StringComparison.Ordinal);
+            Assert.Contains("runtime-deferred", text, StringComparison.Ordinal);
         }
     }
 
@@ -477,11 +502,16 @@ public sealed class RepositoryQualityTests
             "guides/api-versioning.md",
             "design/m8-api-release-readiness.md",
             "design/m9-inference-options.md",
+            "design/m10-onnx-registry-native-comparison.md",
             "validation/m8-local-validation.md",
             "validation/m8-runtime-methodology.md",
             "validation/m9-cloud-validation.md",
+            "validation/m10-local-validation.md",
+            "validation/m10-runtime-plan.md",
             "articles/m0-m8-evidence-driven-wrapper.md",
             "articles/m9-interface-options-cloud-record.md",
+            "articles/m10-explainable-c-api-introspection.md",
+            "releases/0.9.0-rc.2.md",
             "releases/0.9.0-rc.1.md",
             "articles/m4-resource-safe-dotnet.md",
             "articles/m5-dynamic-shape-cache.md",
@@ -502,6 +532,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("eng/verify-m2-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m3-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m4-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("eng/verify-m10-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);
@@ -520,6 +551,7 @@ public sealed class RepositoryQualityTests
         var docsScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "docs.ps1"));
         Assert.Contains("Join-Path $root 'docfx.json'", docsScript, StringComparison.Ordinal);
         Assert.Contains("verify-m9-coverage.ps1", docsScript, StringComparison.Ordinal);
+        Assert.Contains("verify-m10-coverage.ps1", docsScript, StringComparison.Ordinal);
         Assert.DoesNotContain(@".\docfx.json", docsScript, StringComparison.Ordinal);
 
         var interopScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-interop-paths.ps1"));

@@ -1,6 +1,6 @@
 # Getting started
 
-The core public surface supports explicit diagnostics, the unchanged M2 single-input/single-output static float32 workflow, M4 resource-safe synchronous objects, and M5 dynamic-shape metadata plus program persistence/cache APIs. The optional M6 adapter adds native asynchronous submission with HipSharp streams and `HipDeviceMemory` inputs. Graph editing/capture interop and arbitrary device pointers remain excluded.
+The core public surface supports explicit diagnostics, the unchanged M2 single-input/single-output static float32 workflow, M4 resource-safe synchronous objects, M5 dynamic-shape metadata plus program persistence/cache APIs, M9 inference options, and M10 copied ONNX parser-registry introspection plus explicit host argument/program comparison. The optional M6 adapter adds native asynchronous submission with HipSharp streams and `HipDeviceMemory` inputs. Graph editing/capture interop and arbitrary device pointers remain excluded.
 
 ## Prerequisites
 
@@ -17,15 +17,16 @@ dotnet tool restore
 .\eng\verify-m5-coverage.ps1
 .\eng\verify-m6-coverage.ps1
 .\eng\verify-m9-coverage.ps1
+.\eng\verify-m10-coverage.ps1
 .\eng\build.ps1 -Configuration Release
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.0.0 -HipSharpVersion 0.9.1 -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.0.0 -HipSharpVersion 0.9.1
-.\eng\docs.ps1 -Configuration Release -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.2
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.2 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.2 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
 ```
 
 `generate-interop.ps1` stops before generation if the header SHA-256 differs from the frozen value and verify mode never writes tracked outputs. `verify-m2-abi.ps1` preserves the 41-function workflow gate and deterministic Identity model. `verify-m3-abi.ps1` closes the complete 159-function header against 158 managed EntryPoints, one explicit variadic unsupported item, and 159 official public ELF exports.
@@ -63,6 +64,15 @@ var result = MIGraphXOnnxWorkflow.RunFile(
 
 Both paths must be absolute. `RunBuffer` accepts a non-empty `byte[]` instead of a model path. The model must expose exactly one static, standard float32 input and output, and input length must match the shape. M2 enables offload-copy, pins input through the synchronous run only, and returns read-only managed snapshots.
 
+Inspect the loaded ONNX parser registry without retaining a native pointer:
+
+```csharp
+IReadOnlyList<string> names = MIGraphXOnnxWorkflow.GetRegisteredOperators(
+    "/absolute/path/to/libmigraphx_c.so.3");
+```
+
+The list is a version-bound parser capability hint, not a guarantee that a model, opset, target, or device is supported.
+
 ## Probe an explicit library
 
 ```powershell
@@ -82,6 +92,6 @@ Use `MIGraphXDynamicDimension` and `MIGraphXOnnxOptions` for explicit static or 
 
 ## Evidence boundary
 
-The local test suite passes `--fake-native` only for the small C substitutes and emits `fake-native-executed`. M4/M5/M6 objects have no official runtime evidence. The latest reviewed session used a clean detached checkout of `346cdd0b01a7f8039f5deb93058928403fccc7dd`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths and the bounded M9 option smoke on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) and [M9 cloud validation](../validation/m9-cloud-validation.md) for the exact boundaries.
+The local test suite passes `--fake-native` only for the small C substitutes and emits `fake-native-executed`. M4/M5/M6 and M10 objects have no new official runtime evidence. The latest reviewed session used a clean detached checkout of `346cdd0b01a7f8039f5deb93058928403fccc7dd`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths and the bounded M9 option smoke on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md), [M9 cloud validation](../validation/m9-cloud-validation.md), and [M10 runtime plan](../validation/m10-runtime-plan.md) for the exact boundaries.
 
 中文提示：显式路径只接受绝对文件路径。本地 fake-native 仅验证托管边界与 ABI 形状；官方 runtime 结论来自独立的精确 SHA 会话，不能扩展到未测试能力。

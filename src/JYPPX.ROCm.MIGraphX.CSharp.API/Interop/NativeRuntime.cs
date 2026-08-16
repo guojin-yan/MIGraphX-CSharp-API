@@ -33,6 +33,16 @@ internal sealed class NativeRuntime
         return new NativeRuntime(System.IO.Path.GetFullPath(result.LoadedPath!));
     }
 
+    internal static NativeRuntime LoadM10Registry(string nativeLibraryPath)
+    {
+        var result = NativeLibraryLoader.LoadExplicit(nativeLibraryPath, requireOnnxWorkflow: true, requireM10Registry: true);
+        if (!result.Success)
+        {
+            throw new MIGraphXNativeLoadException(result.Diagnostics);
+        }
+        return new NativeRuntime(System.IO.Path.GetFullPath(result.LoadedPath!));
+    }
+
     internal void RequireSame(NativeRuntime other, string parameterName)
     {
         if (!NativeLibraryLoader.PathsEqual(Path, other.Path))
@@ -44,6 +54,12 @@ internal sealed class NativeRuntime
     internal void RequireM6()
     {
         var result = NativeLibraryLoader.LoadExplicit(Path, requireOnnxWorkflow: true, requireManagedObjects: true, requireM6: true);
+        if (!result.Success) throw new MIGraphXNativeLoadException(result.Diagnostics);
+    }
+
+    internal void RequireM10Equality()
+    {
+        var result = NativeLibraryLoader.LoadExplicit(Path, requireOnnxWorkflow: true, requireManagedObjects: true, requireM10Equality: true);
         if (!result.Success) throw new MIGraphXNativeLoadException(result.Diagnostics);
     }
 }
