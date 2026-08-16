@@ -84,7 +84,7 @@ loader 保留既有显式路径、应用 RID 目录、应用基目录和系统 l
 
 ## M8 API 基线与预发布就绪
 
-schema 2 快照记录签名、默认值、泛型约束、nullable metadata、identity 和完全一致的 15 TFM 可用性；`0.x.x` 的有意 API 新增经审查后更新快照。managed SemVer 与 ROCm/MIGraphX 独立；升级 managed 包不会更新 APT。历史 `0.9.0-rc.1` 至 `0.9.0-rc.3` identity 保持不可变；rc.4 adapter 精确恢复 `[0.9.0-rc.4]` core 与 `[0.9.1]` HipSharp。
+schema 2 快照记录签名、默认值、泛型约束、nullable metadata、identity 和完全一致的 15 TFM 可用性；`0.x.x` 的有意 API 新增经审查后更新快照。managed SemVer 与 ROCm/MIGraphX 独立；升级 managed 包不会更新 APT。历史 `0.9.0-rc.1`、`0.9.0-rc.2` 与 `0.9.0-rc.3` identity 保持不可变；rc.4 adapter 精确恢复 `[0.9.0-rc.4]` core 与 `[0.9.1]` HipSharp。
 
 候选门禁生成逐文件 managed SBOM、本地未签名 provenance、NuGet ZIP hash 与独立的规范化内容 hash。已授权的 `346cdd0...` 会话重新验证了 M1/M2 并执行了 M9 option smoke；M4-M6、system-native 负向、重启/长跑和性能仍未超出既有证据范围。`release-candidate-local` 不等于 `release-ready` 或已发布。
 

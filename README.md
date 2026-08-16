@@ -84,7 +84,7 @@ The loader keeps the established explicit path, application RID directory, appli
 
 ## M8 API baseline and prerelease readiness
 
-Schema 2 snapshots baseline signatures, defaults, generic constraints, nullable metadata, identity, and identical 15-TFM availability. Intentional `0.x.x` API additions update the snapshots through review. The managed SemVer is independent of ROCm/MIGraphX; changing the managed package does not update APT. Historical `0.9.0-rc.1` through `0.9.0-rc.3` identities remain immutable; the rc.4 adapter restores exact `[0.9.0-rc.4]` core and `[0.9.1]` HipSharp packages from a mapped local feed.
+Schema 2 snapshots baseline signatures, defaults, generic constraints, nullable metadata, identity, and identical 15-TFM availability. Intentional `0.x.x` API additions update the snapshots through review. The managed SemVer is independent of ROCm/MIGraphX; changing the managed package does not update APT. Historical `0.9.0-rc.1`, `0.9.0-rc.2`, and `0.9.0-rc.3` identities remain immutable; the rc.4 adapter restores exact `[0.9.0-rc.4]` core and `[0.9.1]` HipSharp packages from a mapped local feed.
 
 The candidate gate produces per-file managed SBOM data, local unsigned provenance, NuGet ZIP hashes, and separate normalized content hashes. The authorized `346cdd0...` session revalidated M1/M2 and executed the M9 option smoke; M4-M6, system-native negatives, restart/long-run work, and performance remain unexecuted beyond their stated historical scope. `release-candidate-local` is not `release-ready` or published.
 
