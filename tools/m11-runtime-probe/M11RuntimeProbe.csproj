@@ -7,7 +7,7 @@
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-    <M11PackageVersion Condition="'$(M11PackageVersion)' == ''">0.9.0-rc.4</M11PackageVersion>
+    <M11PackageVersion Condition="'$(M11PackageVersion)' == ''">0.9.0-rc.5</M11PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JYPPX.ROCm.MIGraphX.CSharp.API" Version="[$(M11PackageVersion)]" />

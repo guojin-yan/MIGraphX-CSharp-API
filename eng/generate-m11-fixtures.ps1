@@ -149,11 +149,13 @@ $multiOutput = New-Model `
     -Outputs ([byte[][]]@((New-ValueInfo 'identity_output' $fixedDimensions), (New-ValueInfo 'neg_output' $fixedDimensions)))
 
 $dynamicDimensions = [byte[][]]@((New-FixedDimension 1), (New-FixedDimension 4))
+$dynamicNode = New-Node 'input' 'output' 'Identity'
+$dynamicOutput = New-ValueInfo 'output' $dynamicDimensions
 $dynamicIdentity = New-Model `
     -GraphName 'm11_dynamic_identity_float32' `
-    -Nodes ([byte[][]]@((New-Node 'input' 'output' 'Identity'))) `
+    -Nodes (,$dynamicNode) `
     -ModelInput (New-ValueInfo 'input' $dynamicDimensions) `
-    -Outputs ([byte[][]]@((New-ValueInfo 'output' $dynamicDimensions)))
+    -Outputs (,$dynamicOutput)
 
 $identityPath = Join-Path $OutputDirectory 'm2-identity-float32.onnx'
 & (Join-Path $PSScriptRoot 'generate-m2-model.ps1') -OutputPath $identityPath | Out-Null

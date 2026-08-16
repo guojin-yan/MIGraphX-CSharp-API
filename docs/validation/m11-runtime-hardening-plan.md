@@ -1,6 +1,6 @@
 # M11 official-runtime hardening plan
 
-M11 is `runtime-deferred`. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.4` candidate requires a fresh authorization naming its final source and package identities before any official host execution, long-run, timing, publication, tag, release, Pages deployment, or Actions run.
+M11 is `runtime-deferred`. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.5` candidate requires a fresh authorization naming its final source and package identities before any official host execution, long-run, timing, publication, tag, release, Pages deployment, or Actions run.
 
 ## Evidence starting point
 
@@ -10,7 +10,7 @@ M11 does not adopt any C API item or change the public surface. The expected bas
 
 ## Candidate and fixtures
 
-Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.4` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
+Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.5` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
 
 `eng/generate-m11-fixtures.ps1` creates three deterministic, project-owned Apache-2.0 ONNX fixtures:
 
@@ -18,7 +18,7 @@ Any tracked M11 change creates a new managed candidate. The package-only probe u
 | --- | --- | --- |
 | Identity float32 `[1,4]` | `0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9` | exact identity |
 | Identity + Neg float32 `[2,2]`, two ordered outputs | `0c703e1455a35c103496ff8173a1c7f2738c878cb394aba83e2934e06008bb9a` | exact identity and negation arrays |
-| Dynamic override Identity float32 `[1,4]` | `6856f3da340b053cace6042544f03c8bb75812eafb82f7cc8ee2a41d0327981d` | runtime static and dynamic batch 1/2 overrides preserve values |
+| Dynamic override Identity float32 `[1,4]` | `83fbdfae497dd5a03620be5c16f05642a5d367295816ee5e448fd1731ff2993b` | runtime static and dynamic batch 1/2 overrides preserve values |
 
 The binaries are generated into `artifacts/`, never tracked or packed. Registry count/hash may be sampled before and after the probe only as an environment-drift signal. It is not a fixture capability promise and the full registry remains restricted.
 

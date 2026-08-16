@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.4` 本地候选。M11 不新增公开 API；它同步 M10 post-build 官方证据，并新增确定性 M4-M6 fixture、package-only probe、独立复核、冻结的功能/长跑/计时阈值与明确 Windows 策略。仓库默认版本仍为 `0.0.0`，没有发布任何包。
+MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.5` 本地候选。M11 不新增公开 API；它同步 M10 post-build 官方证据，并新增确定性 M4-M6 fixture、package-only probe、独立复核、冻结的功能/长跑/计时阈值与明确 Windows 策略。仓库默认版本仍为 `0.0.0`，没有发布任何包。
 
 ## 状态
 
@@ -13,12 +13,12 @@ MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.4` 本地候选。M11 不�
 - M3 盘点 159 个函数、2 个 enum、25 个 opaque handle 和 6 个 callback。192 个实体按 generated/handwritten-policy/unsupported/configuration-unavailable 闭合为 144/47/1/0；函数分类为 117/41/1/0。
 - M4 公开显式 `MIGraphXProgram`、`MIGraphXShape`、`MIGraphXArgument`、`MIGraphXTarget`、ONNX/compile options、parameter map 与复制输出集合。独立的 192 项高层映射闭合为 52 supported、139 planned、1 unsupported。
 - M5 新增不可变动态维度、严格的静态/动态 ONNX override、固定版本 `msgpack` Save/Load 和显式根目录的完整性校验模型缓存；映射闭合为 74 supported、117 planned、1 unsupported。
-- M6 新增可选 `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` 适配器，包含 3 个公开类型和 11 个成员。它使用固定名称 `hipStream_t` 提交原生 `migraphx_program_run_async`，并将 program/map/input/output/device 租约保活到 HipStream 完成；映射闭合为 75 supported、116 planned、1 unsupported。
+- M6 新增可选 `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` 适配器，包含 3 个公开类型和 11 个成员。它使用固定 C ABI 名称 `ihipStream_t` 提交原生 `migraphx_program_run_async`，并将 program/map/input/output/device 租约保活到 HipStream 完成；映射闭合为 75 supported、116 planned、1 unsupported。
 - M7 固定了 ROCm 7.2.1 Ubuntu Noble amd64 的签名源元数据和精确 MIGraphX 根包，并将 `system-native` 冻结为部署模式。用户从 AMD 官方仓库安装完整一致的原生闭包；本项目只分发托管程序集。
 - M8 为 core 与 adapter 在全部 15 TFM 上建立版本化兼容基线。`0.x.x` 接口扩展期间可经审查更新该基线，同时候选版本、程序集/file/informational version、缓存 identity、精确包依赖、源码提交、产品 SBOM 与 provenance 继续保持同一证据链。
 - M9 为 ONNX Loop 默认值/上限、external-data 根路径、fast-math 与 exhaustive tuning 封装 5 个推理 option 入口；累计映射为 80 supported、111 planned、1 unsupported。在已推送 SHA `346cdd0b01a7f8039f5deb93058928403fccc7dd` 上，ROCm 7.2.1 已接受 5 个记录值，并完成经复核的 gfx1100 Identity 编译/执行与精确 reference 匹配。
 - M10 封装 4 个入口：严格 UTF-8 深拷贝的 ONNX parser registry 快照，以及显式 argument/program 原生内容比较。shape equality 继续 planned。随后 `e2386dc69e7640f8ff12d95284e56c3f02c87938` 的 post-build 外部记录独立复核四个 adopted 入口，并在该精确主机/构建上提升为 `runtime-executed`。
-- M11 保持 core `27 types / 160 members`、adapter `3 / 11` 与累计 `84/107/1`。M4-M6 bounded functional、隔离负向、长跑与计时仍因没有 rc.3 新授权而 `runtime-deferred`。AMD 将 MIGraphX 2.15.0 文档限定为 Linux 且 Windows 组件表标明 AI libraries 不可用，因此固定版本 Windows runtime 为 `not-applicable`。
+- M11 保持 core `27 types / 160 members`、adapter `3 / 11` 与累计 `84/107/1`。rc.4 bounded functional 诊断记录通过了 M4/M6，但发现单节点 dynamic fixture 编码错误；rc.5 尚无官方 runtime promotion。隔离负向、长跑与计时仍为 `runtime-deferred`。AMD 将 MIGraphX 2.15.0 文档限定为 Linux 且 Windows 组件表标明 AI libraries 不可用，因此固定版本 Windows runtime 为 `not-applicable`。
 - 静态 shape 元数据包含已映射标量类型、lengths、strides、rank、溢出检查后的元素/字节数、standard 与 packed 标志。typed argument 拥有复制后的 host 内存；parameter map 深拷贝 argument；run 输出在原生集合释放前复制。
 - 一个 normalized model 同源生成各 158 个 `LibraryImport` 与 `DllImport` EntryPoint。C 可变参数函数 `migraphx_operation_create` 被显式标为 unsupported，不猜测 ABI。
 - 固定头中的 159 个函数全部匹配 hash 校验后的官方 ELF；ELF 额外的私有测试导出单独分类。这些 M3 结论属于 `statically-verified`，不是官方 runtime 执行。
@@ -33,7 +33,7 @@ MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.4` 本地候选。M11 不�
 构建仅供本地使用的托管候选包：
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.4
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.5
 ```
 
 冻结的 NuGet/项目/程序集名是 `JYPPX.ROCm.MIGraphX.CSharp.API`；C# 命名空间是 `JYPPX.ROCm.MIGraphXSharp`。不得发布此工程候选。
@@ -84,7 +84,7 @@ loader 保留既有显式路径、应用 RID 目录、应用基目录和系统 l
 
 ## M8 API 基线与预发布就绪
 
-schema 2 快照记录签名、默认值、泛型约束、nullable metadata、identity 和完全一致的 15 TFM 可用性；`0.x.x` 的有意 API 新增经审查后更新快照。managed SemVer 与 ROCm/MIGraphX 独立；升级 managed 包不会更新 APT。历史 `0.9.0-rc.1`、`0.9.0-rc.2` 与 `0.9.0-rc.3` identity 保持不可变；rc.4 adapter 精确恢复 `[0.9.0-rc.4]` core 与 `[0.9.1]` HipSharp。
+schema 2 快照记录签名、默认值、泛型约束、nullable metadata、identity 和完全一致的 15 TFM 可用性；`0.x.x` 的有意 API 新增经审查后更新快照。managed SemVer 与 ROCm/MIGraphX 独立；升级 managed 包不会更新 APT。历史 `0.9.0-rc.1`、`0.9.0-rc.2`、`0.9.0-rc.3` 与 `0.9.0-rc.4` identity 保持不可变；rc.5 adapter 精确恢复 `[0.9.0-rc.5]` core 与 `[0.9.1]` HipSharp。
 
 候选门禁生成逐文件 managed SBOM、本地未签名 provenance、NuGet ZIP hash 与独立的规范化内容 hash。已授权的 `346cdd0...` 会话重新验证了 M1/M2 并执行了 M9 option smoke；M4-M6、system-native 负向、重启/长跑和性能仍未超出既有证据范围。`release-candidate-local` 不等于 `release-ready` 或已发布。
 
@@ -102,7 +102,7 @@ schema 2 快照记录签名、默认值、泛型约束、nullable metadata、ide
 
 M11 生成项目自有、hash 冻结的 Identity、有序 Identity+Neg multi-output 与 dynamic Identity ONNX fixture。`compatibility/m11-runtime-cases.json` 记录每个 M4-M6 正向/拒绝边界、同步/copy 边界、ownership、迭代、超时、前置、证据等级和未覆盖声明。`tools/m11-runtime-probe` 只恢复精确 core/adapter/HipSharp 包，runner 只能写 `runtime-candidate-executed-review-required`，独立 reviewer 再重新计算 identity 与 case 结果。
 
-当前没有 rc.3 官方主机/时间窗授权。bounded functional 与 fresh-process cache、官方隔离负向、约五小时长跑层和 timing sample 均未执行。enqueue 不是 inference timing，device pointer 不是 zero-copy 结论，也不允许性能比较。详见 [M11 hardening 计划](docs/validation/m11-runtime-hardening-plan.md)。
+rc.4 bounded functional 记录仅为诊断证据；rc.5 尚无官方主机/时间窗执行。fresh-process cache、官方隔离负向、约五小时长跑层和 timing sample 仍未针对新候选执行。enqueue 不是 inference timing，device pointer 不是 zero-copy 结论，也不允许性能比较。详见 [M11 hardening 计划](docs/validation/m11-runtime-hardening-plan.md)。
 
 ## 构建
 
@@ -122,11 +122,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.4 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.4
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.4 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.4 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.4 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.5 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.5
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.5 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.5 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.5 -NoBuild
 ```
 
 构建、官方 ELF 静态证据、fake-native 执行与官方 MIGraphX runtime 执行继续是不同证据层级。M1/M2 runtime 结论只适用于[官方验证摘要](docs/validation/m1-m2-official-runtime.md)记录的精确 SHA、环境、模型、shape 和同步 offload-copy 路径。

@@ -1,6 +1,6 @@
 # MIGraphXSharp documentation
 
-MIGraphXSharp has an unpublished M11 `0.9.0-rc.4` local candidate while retaining `0.0.0` as the repository default. M11 adds no public API: core remains 27/160, adapter 3/11, and the aggregate map 84/107/1. Final publication still requires explicit Owner authorization and closed release-readiness evidence.
+MIGraphXSharp has an unpublished M11 `0.9.0-rc.5` local candidate while retaining `0.0.0` as the repository default. M11 adds no public API: core remains 27/160, adapter 3/11, and the aggregate map 84/107/1. Final publication still requires explicit Owner authorization and closed release-readiness evidence.
 
 Local fake-native execution remains a test substitute. Separately, unified M1/M2 official runtime validation was revalidated at pushed commit `346cdd0b01a7f8039f5deb93058928403fccc7dd` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and one gfx1100 GPU. The result covers the official loader, M1 lifecycle, and the restricted M2 Identity file/buffer parse, GPU compile, synchronous run, and reference comparison.
 
@@ -12,4 +12,4 @@ M10 adds a copied ONNX parser-registry snapshot and explicit host-argument/progr
 
 M11 synchronizes that external promotion and freezes deterministic M4-M6 fixtures, cases, thresholds, package-only probe, cache restart, review, and Windows policy. No rc.3 official session is authorized, so M11 remains `runtime-deferred` and M8 remains `release-candidate-local`. See the [M11 runtime hardening plan](validation/m11-runtime-hardening-plan.md).
 
-中文摘要：M11 `0.9.0-rc.4` 不新增公开 API，新增 M10 外部证据同步和 M4-M6 package-only 鲁棒性方案。没有新的官方授权，M11 为 `runtime-deferred`，M8 仍为 `release-candidate-local`。
+中文摘要：M11 `0.9.0-rc.5` 不新增公开 API，新增 M10 外部证据同步和 M4-M6 package-only 鲁棒性方案。没有新的官方授权，M11 为 `runtime-deferred`，M8 仍为 `release-candidate-local`。
