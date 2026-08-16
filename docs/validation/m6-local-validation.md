@@ -18,7 +18,7 @@ The local fake MIGraphX implementation queues work and leaves output buffers pen
 
 The M6 tests execute:
 
-- fixed `hipStream_t` and non-null stream identity at native enqueue;
+- fixed `ihipStream_t` and non-null stream identity at native enqueue;
 - output access rejection before completion and passive `IsCompleted`;
 - NotReady to completed transitions and idempotent result disposal;
 - early caller disposal of program, map, host argument, and device memory while leases remain alive;

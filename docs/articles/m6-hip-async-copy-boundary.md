@@ -2,7 +2,7 @@
 
 The honest M6 answer is not yet. The new adapter can submit MIGraphX work to an owned HipSharp stream and can borrow a `HipDeviceMemory` input safely, but the evidence does not support a zero-copy or performance claim.
 
-The important result is a lifecycle contract. MIGraphX's fixed `rocm-7.2.1` wrapper sends a HIP stream pointer together with the compiler-derived name `hipStream_t`. Its asynchronous execution environment orders work against that stream. The managed adapter therefore treats the native return as enqueue success, not output readiness. `TryComplete` uses `HipStream.Query`; `Synchronize` and unfinished result disposal use `HipStream.Synchronize`.
+The important result is a lifecycle contract. MIGraphX's fixed `rocm-7.2.1` C ABI consumes a HIP stream pointer together with the underlying `ihipStream_t` name. Its asynchronous execution environment orders work against that stream. The managed adapter therefore treats the native return as enqueue success, not output readiness. `TryComplete` uses `HipStream.Query`; `Synchronize` and unfinished result disposal use `HipStream.Synchronize`.
 
 That creates a difficult ownership interval. The caller may dispose the program, parameter map, input argument, device allocation, or result immediately after enqueue. None of those actions may invalidate memory still reachable by native work. M6 holds SafeHandle references for the MIGraphX program/map/arguments, keeps the native output collection alive, and registers one HipSharp pending callback under the stream lock. Device memory uses HipSharp's existing pointer reference count, so early disposal is deferred until completion.
 

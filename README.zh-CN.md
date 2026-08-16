@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.3` 本地候选。M11 不新增公开 API；它同步 M10 post-build 官方证据，并新增确定性 M4-M6 fixture、package-only probe、独立复核、冻结的功能/长跑/计时阈值与明确 Windows 策略。仓库默认版本仍为 `0.0.0`，没有发布任何包。
+MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.4` 本地候选。M11 不新增公开 API；它同步 M10 post-build 官方证据，并新增确定性 M4-M6 fixture、package-only probe、独立复核、冻结的功能/长跑/计时阈值与明确 Windows 策略。仓库默认版本仍为 `0.0.0`，没有发布任何包。
 
 ## 状态
 
@@ -33,7 +33,7 @@ MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.3` 本地候选。M11 不�
 构建仅供本地使用的托管候选包：
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.3
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.4
 ```
 
 冻结的 NuGet/项目/程序集名是 `JYPPX.ROCm.MIGraphX.CSharp.API`；C# 命名空间是 `JYPPX.ROCm.MIGraphXSharp`。不得发布此工程候选。
@@ -84,7 +84,7 @@ loader 保留既有显式路径、应用 RID 目录、应用基目录和系统 l
 
 ## M8 API 基线与预发布就绪
 
-schema 2 快照记录签名、默认值、泛型约束、nullable metadata、identity 和完全一致的 15 TFM 可用性；`0.x.x` 的有意 API 新增经审查后更新快照。managed SemVer 与 ROCm/MIGraphX 独立；升级 managed 包不会更新 APT。历史 `0.9.0-rc.1` 与 `0.9.0-rc.2` identity 保持不可变；rc.3 adapter 精确恢复 `[0.9.0-rc.3]` core 与 `[0.9.1]` HipSharp。
+schema 2 快照记录签名、默认值、泛型约束、nullable metadata、identity 和完全一致的 15 TFM 可用性；`0.x.x` 的有意 API 新增经审查后更新快照。managed SemVer 与 ROCm/MIGraphX 独立；升级 managed 包不会更新 APT。历史 `0.9.0-rc.1` 至 `0.9.0-rc.3` identity 保持不可变；rc.4 adapter 精确恢复 `[0.9.0-rc.4]` core 与 `[0.9.1]` HipSharp。
 
 候选门禁生成逐文件 managed SBOM、本地未签名 provenance、NuGet ZIP hash 与独立的规范化内容 hash。已授权的 `346cdd0...` 会话重新验证了 M1/M2 并执行了 M9 option smoke；M4-M6、system-native 负向、重启/长跑和性能仍未超出既有证据范围。`release-candidate-local` 不等于 `release-ready` 或已发布。
 
@@ -122,11 +122,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.3 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.3
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.3 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.3 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.3 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.4 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.4
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.4 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.4 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.4 -NoBuild
 ```
 
 构建、官方 ELF 静态证据、fake-native 执行与官方 MIGraphX runtime 执行继续是不同证据层级。M1/M2 runtime 结论只适用于[官方验证摘要](docs/validation/m1-m2-official-runtime.md)记录的精确 SHA、环境、模型、shape 和同步 offload-copy 路径。

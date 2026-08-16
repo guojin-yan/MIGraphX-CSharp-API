@@ -2,7 +2,7 @@
   "$schema": "./schemas/m11-runtime-cases.schema.json",
   "schemaVersion": "1.0.0",
   "stage": "M11",
-  "candidateVersion": "0.9.0-rc.3",
+  "candidateVersion": "0.9.0-rc.4",
   "authorization": {
     "officialFunctionalAuthorized": false,
     "longRunAuthorized": false,
@@ -27,9 +27,9 @@
     {
       "id": "dynamic-identity-float32-batchx4",
       "fileName": "m11-dynamic-identity-float32.onnx",
-      "sha256": "a7827d6978e04c6d7ce5bc9660391fbe8f16cdc7dce1425922b67b9822e17691",
+      "sha256": "6856f3da340b053cace6042544f03c8bb75812eafb82f7cc8ee2a41d0327981d",
       "license": "Apache-2.0 project-generated fixture",
-      "reference": "accepted concrete batch values 1 and 2 preserve all input values exactly"
+      "reference": "declared [1,4] source shape accepts runtime static and dynamic overrides for concrete batch values 1 and 2, preserving all input values exactly"
     }
   ],
   "thresholds": {

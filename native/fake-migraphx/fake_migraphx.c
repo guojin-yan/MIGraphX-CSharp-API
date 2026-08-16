@@ -817,7 +817,7 @@ EXPORT migraphx_status migraphx_program_run_async(
     size_t slot;
     int status;
     if(out == NULL || program == NULL || parameters == NULL || stream == NULL || name == NULL ||
-       strcmp(name, "hipStream_t") != 0 || !program->compiled || parameters->count == 0)
+       strcmp(name, "ihipStream_t") != 0 || !program->compiled || parameters->count == 0)
         return migraphx_status_bad_param;
     if(take_null_for("migraphx_program_run_async")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_program_run_async"); }
     *out = (migraphx_arguments_t)create_m2(sizeof(**out));

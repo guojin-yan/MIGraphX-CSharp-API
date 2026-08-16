@@ -289,7 +289,7 @@ public sealed class MIGraphXProgram : IDisposable
                         owner.HandleUnderLock,
                         parameters.Owner.HandleUnderLock,
                         stream,
-                        "hipStream_t");
+                        "ihipStream_t");
                     return new MIGraphXNativeAsyncRun(owner.Runtime, nativeOutputs, new NativeLeaseSet(leases));
                 }
                 catch

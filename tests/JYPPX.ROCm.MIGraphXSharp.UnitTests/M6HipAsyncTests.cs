@@ -30,7 +30,7 @@ public sealed class M6HipAsyncTests
 
         Assert.False(run.IsCompleted);
         Assert.Throws<InvalidOperationException>(() => run.Outputs);
-        Assert.Equal("hipStream_t", migraphx.LastAsyncName());
+        Assert.Equal("ihipStream_t", migraphx.LastAsyncName());
         Assert.NotEqual(IntPtr.Zero, migraphx.LastAsyncStream());
         argument.Dispose();
         parameters.Dispose();

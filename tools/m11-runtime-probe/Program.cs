@@ -118,7 +118,7 @@ internal sealed class ProbeRunner
         this.report = report;
         identityPath = Fixture("m2-identity-float32.onnx", "0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9");
         multiOutputPath = Fixture("m11-multi-output-float32.onnx", "0c703e1455a35c103496ff8173a1c7f2738c878cb394aba83e2934e06008bb9a");
-        dynamicIdentityPath = Fixture("m11-dynamic-identity-float32.onnx", "a7827d6978e04c6d7ce5bc9660391fbe8f16cdc7dce1425922b67b9822e17691");
+        dynamicIdentityPath = Fixture("m11-dynamic-identity-float32.onnx", "6856f3da340b053cace6042544f03c8bb75812eafb82f7cc8ee2a41d0327981d");
         identityModel = File.ReadAllBytes(identityPath);
         multiOutputModel = File.ReadAllBytes(multiOutputPath);
         dynamicIdentityModel = File.ReadAllBytes(dynamicIdentityPath);

@@ -4,7 +4,7 @@
 
 The adapter exposes three public types: `MIGraphXHipExecution`, `MIGraphXHipAsyncRun`, and `MIGraphXHipDeviceInput`. `RunHostAsync` requires `offloadCopy=true`. `RunDeviceAsync` accepts validated `HipDeviceMemory` inputs and requires `offloadCopy=false`.
 
-Native submission always uses the fixed `hipStream_t` backend name. The result remains pending until `HipStream.Query`, `Synchronize`, or disposal establishes stream completion. Program, parameter map, arguments, native outputs, device pointers, and the stream callback remain leased during that interval. Outputs are independent owned host arguments after completion.
+Native submission always uses the fixed `ihipStream_t` backend name required by the ROCm 7.2.1 MIGraphX C ABI. The result remains pending until `HipStream.Query`, `Synchronize`, or disposal establishes stream completion. Program, parameter map, arguments, native outputs, device pointers, and the stream callback remain leased during that interval. Outputs are independent owned host arguments after completion.
 
 Device input does not imply zero-copy. Completion performs an explicit device-to-host output copy; the adapter does not use `Marshal.Copy` on device addresses and exposes no raw stream or memory pointer. Graph capture, arbitrary external pointers, pooled/async allocations, and runtime binaries are not supported by this candidate.
 

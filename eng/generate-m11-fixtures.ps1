@@ -148,7 +148,7 @@ $multiOutput = New-Model `
     -ModelInput (New-ValueInfo 'input' $fixedDimensions) `
     -Outputs ([byte[][]]@((New-ValueInfo 'identity_output' $fixedDimensions), (New-ValueInfo 'neg_output' $fixedDimensions)))
 
-$dynamicDimensions = [byte[][]]@((New-SymbolicDimension 'batch'), (New-FixedDimension 4))
+$dynamicDimensions = [byte[][]]@((New-FixedDimension 1), (New-FixedDimension 4))
 $dynamicIdentity = New-Model `
     -GraphName 'm11_dynamic_identity_float32' `
     -Nodes ([byte[][]]@((New-Node 'input' 'output' 'Identity'))) `
@@ -160,7 +160,7 @@ $identityPath = Join-Path $OutputDirectory 'm2-identity-float32.onnx'
 $fixtures = @(
     [ordered]@{ Name = 'identity'; FileName = 'm2-identity-float32.onnx'; Graph = 'Identity(float32[1,4])'; Bytes = [IO.File]::ReadAllBytes($identityPath) },
     [ordered]@{ Name = 'multi-output'; FileName = 'm11-multi-output-float32.onnx'; Graph = 'Identity+Neg(float32[2,2], ordered outputs)'; Bytes = $multiOutput },
-    [ordered]@{ Name = 'dynamic-identity'; FileName = 'm11-dynamic-identity-float32.onnx'; Graph = 'Identity(float32[batch,4])'; Bytes = $dynamicIdentity }
+    [ordered]@{ Name = 'dynamic-identity'; FileName = 'm11-dynamic-identity-float32.onnx'; Graph = 'Identity(float32[1,4], runtime shape overrides)'; Bytes = $dynamicIdentity }
 )
 
 $result = foreach ($fixture in $fixtures) {

@@ -12,11 +12,11 @@ The adapter package is an unpublished `0.0.0` candidate. It contains managed DLL
 
 ## Fixed upstream behavior
 
-The implementation evidence is the official AMDMIGraphX `rocm-7.2.1` tag at commit `de19b73ad280476e646512b847885eda100ec35e`. The C++ API template passes `get_type_name<Stream>()` to `migraphx_program_run_async`; for a HIP stream the fixed name is exactly `hipStream_t`. The C entry point constructs an asynchronous `execution_environment`, while `program::eval` uses `wait_for` before evaluation and `finish_on` afterward. The returned arguments can therefore be obtained at enqueue time but their buffers are not treated as ready until the supplied HIP stream completes.
+The implementation evidence is the official AMDMIGraphX `rocm-7.2.1` tag at commit `de19b73ad280476e646512b847885eda100ec35e`. The C++ API template accepts a HIP stream alias, while the fixed C ABI runtime identifies its underlying stream object as `ihipStream_t`; the adapter passes that ABI spelling to `migraphx_program_run_async`. The C entry point constructs an asynchronous `execution_environment`, while `program::eval` uses `wait_for` before evaluation and `finish_on` afterward. The returned arguments can therefore be obtained at enqueue time but their buffers are not treated as ready until the supplied HIP stream completes.
 
 Sources: [C API implementation](https://github.com/ROCm/AMDMIGraphX/blob/de19b73ad280476e646512b847885eda100ec35e/src/api/api.cpp), [C++ type-name wrapper](https://github.com/ROCm/AMDMIGraphX/blob/de19b73ad280476e646512b847885eda100ec35e/src/api/include/migraphx/migraphx.hpp), [program async environment](https://github.com/ROCm/AMDMIGraphX/blob/de19b73ad280476e646512b847885eda100ec35e/src/program.cpp), and [upstream HIP async test](https://github.com/ROCm/AMDMIGraphX/blob/de19b73ad280476e646512b847885eda100ec35e/test/api/test_gpu.cpp).
 
-The adapter exposes no free-form backend name. It always supplies the internal constant `hipStream_t`, rejects null/disposed/capturing streams before enqueue, and does not expose `migraphx_context_finish`, the experimental context getter, or the borrowed queue pointer. `HipStream.Query` and `HipStream.Synchronize` are the completion boundaries.
+The adapter exposes no free-form backend name. It always supplies the internal constant `ihipStream_t`, rejects null/disposed/capturing streams before enqueue, and does not expose `migraphx_context_finish`, the experimental context getter, or the borrowed queue pointer. `HipStream.Query` and `HipStream.Synchronize` are the completion boundaries.
 
 ## State and failure model
 

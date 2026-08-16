@@ -8,7 +8,7 @@ M3 converted the frozen header into a normalized inventory and generated both in
 
 M4 introduced resource-safe objects only where ownership could be explained. Owned SafeHandles, borrowed values, copied shapes, parameter maps, and output collections were tested through failure and disposal. M5 then made dynamic dimensions, serialization, and cache identity explicit. Cache keys bind the model, header/API, managed version, native fingerprint, target, options, format, and ordered overrides; corruption becomes a visible rebuild rather than an invisible hit.
 
-M6 crossed into HipSharp without merging the two cores. Its small adapter owns the coupling: fixed `hipStream_t`, enqueue/completion separation, stream callback lifetime, device-memory leases, and explicit D2H output. Device input is not zero-copy, enqueue is not completion, and local substitutes do not prove GPU overlap or speed.
+M6 crossed into HipSharp without merging the two cores. Its small adapter owns the coupling: fixed `ihipStream_t`, enqueue/completion separation, stream callback lifetime, device-memory leases, and explicit D2H output. Device input is not zero-copy, enqueue is not completion, and local substitutes do not prove GPU overlap or speed.
 
 M7 rejected a Runtime NuGet after auditing the actual ROCm closure. Managed-only plus system-native installation was the more honest ownership boundary: AMD's signed package repository owns dependency resolution, file placement, provider licenses, and native upgrades. Historical feasibility manifests remain evidence for that decision, not product SBOMs or dormant package inputs.
 

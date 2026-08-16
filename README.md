@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp now has an unpublished M11 `0.9.0-rc.3` local candidate. M11 adds no public API: it synchronizes reviewed M10 post-build evidence and adds deterministic M4-M6 fixtures, a package-only probe, independent review, frozen functional/long-run/timing thresholds, and an explicit Windows policy. The repository default remains `0.0.0`; no package is published.
+MIGraphXSharp now has an unpublished M11 `0.9.0-rc.4` local candidate. M11 adds no public API: it synchronizes reviewed M10 post-build evidence and adds deterministic M4-M6 fixtures, a package-only probe, independent review, frozen functional/long-run/timing thresholds, and an explicit Windows policy. The repository default remains `0.0.0`; no package is published.
 
 ## Status
 
@@ -33,7 +33,7 @@ MIGraphXSharp now has an unpublished M11 `0.9.0-rc.3` local candidate. M11 adds 
 Build the local-only managed candidate package:
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.3
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.4
 ```
 
 The frozen NuGet/project/assembly name is `JYPPX.ROCm.MIGraphX.CSharp.API`; the C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Do not publish this engineering candidate.
@@ -84,7 +84,7 @@ The loader keeps the established explicit path, application RID directory, appli
 
 ## M8 API baseline and prerelease readiness
 
-Schema 2 snapshots baseline signatures, defaults, generic constraints, nullable metadata, identity, and identical 15-TFM availability. Intentional `0.x.x` API additions update the snapshots through review. The managed SemVer is independent of ROCm/MIGraphX; changing the managed package does not update APT. Historical `0.9.0-rc.1` and `0.9.0-rc.2` identities remain immutable; the rc.3 adapter restores exact `[0.9.0-rc.3]` core and `[0.9.1]` HipSharp packages from a mapped local feed.
+Schema 2 snapshots baseline signatures, defaults, generic constraints, nullable metadata, identity, and identical 15-TFM availability. Intentional `0.x.x` API additions update the snapshots through review. The managed SemVer is independent of ROCm/MIGraphX; changing the managed package does not update APT. Historical `0.9.0-rc.1` through `0.9.0-rc.3` identities remain immutable; the rc.4 adapter restores exact `[0.9.0-rc.4]` core and `[0.9.1]` HipSharp packages from a mapped local feed.
 
 The candidate gate produces per-file managed SBOM data, local unsigned provenance, NuGet ZIP hashes, and separate normalized content hashes. The authorized `346cdd0...` session revalidated M1/M2 and executed the M9 option smoke; M4-M6, system-native negatives, restart/long-run work, and performance remain unexecuted beyond their stated historical scope. `release-candidate-local` is not `release-ready` or published.
 
@@ -122,11 +122,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.3 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.3
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.3 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.3 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.3 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.4 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.4
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.4 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.4 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.4 -NoBuild
 ```
 
 Build, static official-ELF evidence, fake-native execution, and official MIGraphX runtime execution remain separate evidence levels. The M1/M2 runtime claim is limited to the exact pushed SHA, environment, model, shape, and synchronous offload-copy path recorded in the [official runtime summary](docs/validation/m1-m2-official-runtime.md).

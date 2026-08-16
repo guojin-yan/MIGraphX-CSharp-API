@@ -1,6 +1,6 @@
 # M11 package-only runtime probe
 
-This probe is source for a separately authorized official session. Its project has only exact package references to core/adapter `0.9.0-rc.3` and HipSharp `0.9.1`; it has no project reference or native payload.
+This probe is source for a separately authorized official session. Its project has only exact package references to core/adapter `0.9.0-rc.4` and HipSharp `0.9.1`; it has no project reference or native payload.
 
 `run.sh` requires a clean detached exact source SHA, transferred package hashes, fixed header, explicit MIGraphX/HIP paths, deterministic fixtures, a new evidence-record directory, and a local-only NuGet feed. It enforces the frozen 1,800-second session and 120-second case boundaries, runs each repeated positive case three times, and uses a second process for the cache-restart hit. Candidate JSON is always `runtime-candidate-executed-review-required`.
 

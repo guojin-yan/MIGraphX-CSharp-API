@@ -7,7 +7,7 @@ M5 supports immutable dynamic-dimension metadata, explicit ONNX static/dynamic o
 - Native declarations: 158 matching `LibraryImport`/`DllImport` EntryPoints generated from one normalized model; one C-variadic header function explicitly unsupported
 - M3 evidence: complete 192-item inventory and official ELF parity are static; isolated critical ABI patterns use a fake-native test substitute
 - M4/M5 objects: explicit Program/Shape/Argument/Target/options/map/output plus dynamic/cache types with 74 supported low-level mappings and local fake-native ownership tests
-- Optional M6 adapter: separate managed package with 75 supported mappings, fixed `hipStream_t`, stream completion, early-dispose leases, `HipDeviceMemory` input, and explicit D2H output snapshotting
+- Optional M6 adapter: separate managed package with 75 supported mappings, fixed `ihipStream_t`, stream completion, early-dispose leases, `HipDeviceMemory` input, and explicit D2H output snapshotting
 - M9 inference options: five additional high-level mappings for Loop defaults/limits, external-data paths, fast-math, and exhaustive tuning; aggregate coverage is 80 supported, 111 planned, and 1 unsupported
 - M10 introspection/comparison: copied ONNX parser-registry names and explicit host argument/program comparison; shape equality remains planned and aggregate coverage is 84 supported, 107 planned, and 1 unsupported
 - Official native runtime: M1/M2 restricted workflow revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd`; the separate M9 option smoke is bounded to setter acceptance and Identity integration, while M4/M5/M6 remain local test-substitute evidence
