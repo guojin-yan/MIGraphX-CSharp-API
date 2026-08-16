@@ -57,5 +57,5 @@
     ],
     "evidence": "statically-verified by eng/verify-m3-abi.ps1; no new runtime execution"
   },
-  "runtimeBoundary": "Only the bounded M1/M2 workflow at f1a11cfd1701a041cee29188f7600c85b34ae260 is runtime-executed; M3 additions are static ABI declarations."
+  "runtimeBoundary": "Reviewed official execution is bounded to the M1/M2 workflow plus five M9 option setters at 346cdd0b01a7f8039f5deb93058928403fccc7dd; the rest of the M3 inventory remains static ABI evidence."
 }

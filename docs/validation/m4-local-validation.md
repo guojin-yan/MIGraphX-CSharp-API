@@ -26,6 +26,6 @@ $package = ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
 
 The package gate checks DLL/XML assets for all 15 TFMs, forbids generated inventories, tests, symbols, native binaries, models, and machine paths, and compiles isolated `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0` consumers against the package. Each consumer constructs and inspects M4 shape metadata.
 
-The older official results remain unchanged: exactly four `runtime-executed` entries refer to `f1a11cfd1701a041cee29188f7600c85b34ae260`. They are background evidence for the lower-level M1/M2 calls, not execution evidence for M4 objects.
+The current official results contain the revalidated M1/M2 entries and a separate M9 option smoke at `346cdd0b01a7f8039f5deb93058928403fccc7dd`. They are not execution evidence for the broader M4 object model.
 
 中文摘要：M4 本地门禁覆盖 192 项高低层映射、8 个 ownership 记录、15 TFM、typed host buffer、集合快照、同步 run、失败清理与包审计。没有新增官方会话，因此 M4 只能标为 `fake-native-executed`。

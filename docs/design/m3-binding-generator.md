@@ -40,6 +40,6 @@ The machine-readable sources are `compatibility/m3-normalized-api.json`, `compat
 
 The hash-verified official ELF SHA-256 is `3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff`. It exports all 159 header functions plus one separately classified private test symbol. The two 158-EntryPoint managed paths and the ABI probe are `statically-verified`. The minimal callback/bool/size_t/UTF-8/pointer substitute is `fake-native-executed`.
 
-No M3 declaration was executed against official MIGraphX. The only `runtime-executed` evidence remains the bounded M1/M2 workflow at `f1a11cfd1701a041cee29188f7600c85b34ae260`.
+Official execution remains declaration-specific: at `346cdd0b01a7f8039f5deb93058928403fccc7dd`, the reviewed M1/M2 paths and five later M9 setters ran. This does not promote the rest of the generated M3 inventory.
 
 中文摘要：M3 用结构化解析器把固定头归一化为 192 项闭合 inventory，再同源生成 158 个双路径 EntryPoint。唯一 C 可变参数函数显式 unsupported；新增低层声明只有静态或 fake-native 证据，不扩大 M1/M2 官方 runtime 结论。

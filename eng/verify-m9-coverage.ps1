@@ -39,4 +39,13 @@ if (-not $abiGate.Contains('compatibility\m9-high-level-api-map.json', [StringCo
     -not $abiGate.Contains('$allowedM9FakeExports', [StringComparison]::Ordinal)) {
     throw 'M9 fake-native exports are not wired into the strict ABI export review.'
 }
-Write-Output 'M9 coverage gate passed: five inference-option entry points, 80/111/1 aggregate mapping, local contracts, and deferred cloud runner are closed.'
+$runtimeMatrix = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\runtime-validation-matrix.json') | ConvertFrom-Json
+$officialOptionSmoke = @($runtimeMatrix.validations | Where-Object id -eq 'm9-official-option-smoke')
+$reviewedCommit = '346cdd0b01a7f8039f5deb93058928403fccc7dd'
+if ($runtimeMatrix.m9Status -ne 'runtime-executed' -or
+    $officialOptionSmoke.Count -ne 1 -or
+    $officialOptionSmoke[0].status -ne 'runtime-executed' -or
+    -not $officialOptionSmoke[0].evidence.Contains($reviewedCommit, [StringComparison]::Ordinal)) {
+    throw 'M9 official option smoke is not bound to the independently reviewed runtime record.'
+}
+Write-Output 'M9 coverage gate passed: five inference-option entry points, 80/111/1 aggregate mapping, local contracts, and the reviewed official runtime record are closed.'

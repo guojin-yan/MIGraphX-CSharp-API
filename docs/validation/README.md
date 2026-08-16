@@ -7,7 +7,7 @@ M1 through M9 evidence is recorded in `compatibility/runtime-validation-matrix.j
 - `runtime-executed`: reserved for a real native call in a redacted, authorized environment record.
 - `not-applicable`: the capability is deliberately outside the product boundary, as with the rejected Runtime NuGet distribution.
 
-The local fake library is never committed, packed, or described as a real MIGraphX result. Separately, the redacted official session at `f1a11cfd1701a041cee29188f7600c85b34ae260` executed the fixed official library, M1 target/program lifecycle, and the restricted M2 ONNX/GPU workflow.
+The local fake library is never committed, packed, or described as a real MIGraphX result. Separately, the redacted official session at `346cdd0b01a7f8039f5deb93058928403fccc7dd` revalidated the fixed official library, M1 target/program lifecycle, and restricted M2 ONNX/GPU workflow while completing the independently reviewed M9 option smoke.
 
 See [M1 local validation status](m1-local-validation.md), [M2 local validation status](m2-local-validation.md), [M3 local validation status](m3-local-validation.md), [M4 local validation status](m4-local-validation.md), [M5 local validation status](m5-local-validation.md), [M6 local validation status](m6-local-validation.md), [M7 local deployment status](m7-local-validation.md), [M8 local candidate status](m8-local-validation.md), [M9 cloud interface plan](m9-cloud-validation.md), and the [M1/M2 official runtime summary](m1-m2-official-runtime.md).
 

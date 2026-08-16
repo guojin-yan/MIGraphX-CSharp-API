@@ -14,12 +14,13 @@
 | M5 dynamic shape and cache | Fake-native executed | Dynamic ranges, overrides, Save/Load, cache integrity/corruption recovery, and concurrency ran against the local substitute |
 | M6 async and HipSharp adapter | Fake-native executed | Native enqueue state, stream completion, early disposal, pointer leases, stream isolation, explicit D2H, and completion failures ran against local substitutes |
 | M7 signed source/root ELF | Statically verified | AMD key, signed repository metadata, exact root package, six canonical ELF files plus aliases, dependency edges, one license, SBOM, and provenance are pinned |
-| Official M1/M2 runtime | Runtime-executed | Passed at `f1a11cfd1701a041cee29188f7600c85b34ae260` on the single recorded Ubuntu/ROCm/MIGraphX/gfx1100 environment |
+| Official M1/M2 runtime | Runtime-executed | Revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd` on the single recorded Ubuntu/ROCm/MIGraphX/gfx1100 environment |
 | Windows/macOS native runtime | Unverified diagnostic candidates | Candidates are honest loader diagnostics, not an official MIGraphX build/support claim |
 | Official ONNX parse/compile/run | Runtime-executed | Generated Identity file and buffer paths compiled and ran synchronously with matching reference output |
 | AMD GPU | Runtime-executed | One gfx1100 GPU executed the restricted static float32 Identity graph; this is not a general device claim |
+| Official M9 option smoke | Runtime-executed | At `346cdd0...`, the official runtime accepted five recorded option values and the reviewed Identity compile/run exactly matched the reference; dedicated option semantics remain planned |
 | Runtime NuGet | Not applicable | Owner selected managed-only distribution and AMD official system installation; no Runtime package project, staging/promotion path, marker loader, or native payload exists |
 
-The system-native policy targets the audited Ubuntu 24.04 amd64 metadata and Linux SONAME `libmigraphx_c.so.3`. The historical official record proves one exact system-installed host configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish other distributions, versions, devices, models, dynamic shapes, M6 async/device-buffer, zero-copy, or performance paths.
+The system-native policy targets the audited Ubuntu 24.04 amd64 metadata and Linux SONAME `libmigraphx_c.so.3`. The latest reviewed official record proves one exact system-installed host configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish other distributions, versions, devices, models, dynamic shapes, M6 async/device-buffer, zero-copy, dedicated M9 semantics, or performance paths.
 
-中文摘要：M8 本地候选冻结 managed API/包并生成产品证据，但不增加官方 runtime 结论。精确环境的 M1/M2 已运行；M4-M6、Windows/macOS、其他版本/设备/模型、长跑与性能仍未获得支持证据。
+中文摘要：M8 本地候选冻结 managed API/包并生成产品证据。精确环境的 M1/M2 已重新执行，M9 五项设置的官方 Identity smoke 也已复核；M4-M6、M9 专用语义、Windows/macOS、其他版本/设备/模型、长跑与性能仍未获得支持证据。

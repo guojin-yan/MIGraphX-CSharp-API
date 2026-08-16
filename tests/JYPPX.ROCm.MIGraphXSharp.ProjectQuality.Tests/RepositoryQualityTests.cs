@@ -175,14 +175,15 @@ public sealed class RepositoryQualityTests
             "official-target-program-lifecycle",
             "official-onnx-parse-compile-run",
             "amd-gpu-execution",
+            "m9-official-option-smoke",
         };
 
         Assert.True(
             expectedRuntimeIds.SetEquals(runtimeExecuted.Select(item => item.GetProperty("id").GetString()!)),
-            "Only the independently reviewed M1/M2 official runtime entries may be runtime-executed.");
+            "Only the independently reviewed M1/M2/M9 official runtime entries may be runtime-executed.");
         Assert.All(runtimeExecuted, item =>
             Assert.Contains(
-                "f1a11cfd1701a041cee29188f7600c85b34ae260",
+                "346cdd0b01a7f8039f5deb93058928403fccc7dd",
                 item.GetProperty("evidence").GetString(),
                 StringComparison.Ordinal));
         Assert.Equal(
@@ -350,7 +351,7 @@ public sealed class RepositoryQualityTests
             Assert.Contains("AMD", text, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("GPU", text, StringComparison.OrdinalIgnoreCase);
             Assert.Contains("runtime", text, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("f1a11cfd1701a041cee29188f7600c85b34ae260", text, StringComparison.Ordinal);
+            Assert.Contains("346cdd0b01a7f8039f5deb93058928403fccc7dd", text, StringComparison.Ordinal);
             Assert.Contains("gfx1100", text, StringComparison.Ordinal);
             Assert.Contains("system-native", text, StringComparison.OrdinalIgnoreCase);
         }

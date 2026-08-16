@@ -9,7 +9,7 @@ M5 supports immutable dynamic-dimension metadata, explicit ONNX static/dynamic o
 - M4/M5 objects: explicit Program/Shape/Argument/Target/options/map/output plus dynamic/cache types with 74 supported low-level mappings and local fake-native ownership tests
 - Optional M6 adapter: separate managed package with 75 supported mappings, fixed `hipStream_t`, stream completion, early-dispose leases, `HipDeviceMemory` input, and explicit D2H output snapshotting
 - M9 inference options: five additional high-level mappings for Loop defaults/limits, external-data paths, fast-math, and exhaustive tuning; aggregate coverage is 80 supported, 111 planned, and 1 unsupported
-- Official native runtime: M1/M2 restricted workflow executed at `f1a11cfd1701a041cee29188f7600c85b34ae260`; M4/M5/M6 have no new official runtime execution and local fake-native remains separate test-substitute evidence
+- Official native runtime: M1/M2 restricted workflow revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd`; the separate M9 option smoke is bounded to setter acceptance and Identity integration, while M4/M5/M6 remain local test-substitute evidence
 - ONNX parse/compile/run: generated Identity file/buffer paths executed with matching reference output on the recorded official environment
 - AMD GPU validation: one gfx1100 device executed the restricted synchronous offload-copy workflow; no M6 async/device-buffer, zero-copy, or performance claim
 - Native distribution: `system-native`; Runtime NuGet is `not-applicable`, and users install MIGraphX/ROCm from AMD's official system repository

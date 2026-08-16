@@ -6,7 +6,7 @@ The M1 Direct P/Invoke subset has passed local managed, ABI, fake-native, packag
 | --- | --- | --- |
 | `statically-verified` | passed locally | Frozen header and official ELF hashes, six-symbol subset parity, C ABI declarations, generated interop source, and no exported fake-native binaries in the package. |
 | `fake-native-executed` | passed locally | Loader behavior, error classification, strict UTF-8, status propagation, ownership cleanup, repeated disposal, assignment copy behavior, and parallel target/program lifecycles. |
-| `runtime-executed` | passed separately | At `f1a11cfd1701a041cee29188f7600c85b34ae260`, the official library loaded and valid `gpu` target/program create, assign, and destroy executed. |
+| `runtime-executed` | passed separately | Revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd`: the official library loaded and valid `gpu` target/program create, assign, and destroy executed. |
 
 The fake library is a test substitute built outside source control. It can prove the managed binding contract and failure paths, but cannot prove the ROCm installation, real MIGraphX behavior, ONNX execution, or GPU behavior.
 

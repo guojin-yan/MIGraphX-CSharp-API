@@ -81,6 +81,17 @@ public sealed class BindingGeneratorTests
     }
 
     [Fact]
+    public void GeneratedJsonUsesTheRepositoryLfPolicy()
+    {
+        foreach (var name in new[] { "m3-normalized-api.json", "m3-api-inventory.json", "m3-coverage-summary.json" })
+        {
+            var bytes = File.ReadAllBytes(Path.Combine(FindRepositoryRoot(), "compatibility", name));
+            Assert.DoesNotContain((byte)'\r', bytes);
+            Assert.Equal((byte)'\n', bytes[^1]);
+        }
+    }
+
+    [Fact]
     public void GeneratedCSharpUsesTheRepositoryCrlfPolicy()
     {
         var generatedDirectory = Path.Combine(

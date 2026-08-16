@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | `statically-verified` | passed locally | Frozen header/official ELF parity for 41 cumulative exports, generated declarations, ownership manifest, C ABI widths, and deterministic model hash. |
 | `fake-native-executed` | passed locally | File/buffer parse, shape validation, compile options, parameter map, pinned input, synchronous run, copied Identity output, frontend-missing diagnostics, injected failures, cleanup, and concurrency. |
-| `runtime-executed` | passed separately | At `f1a11cfd1701a041cee29188f7600c85b34ae260`, both parse paths, GPU compile, synchronous run, and Identity reference comparison executed. |
+| `runtime-executed` | passed separately | Revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd`: both parse paths, GPU compile, synchronous run, and Identity reference comparison executed. |
 
 Representative fake execution covers `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0`, spanning generated `DllImport` and `LibraryImport` paths. The 128-byte Identity model is script-generated and never tracked or packed.
 

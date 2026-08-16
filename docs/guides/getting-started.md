@@ -82,6 +82,6 @@ Use `MIGraphXDynamicDimension` and `MIGraphXOnnxOptions` for explicit static or 
 
 ## Evidence boundary
 
-The local test suite passes `--fake-native` only for the small C substitutes and emits `fake-native-executed`. M4/M5/M6 objects have no new official runtime session. The separate older session used a clean detached checkout of `f1a11cfd1701a041cee29188f7600c85b34ae260`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) for the exact boundary.
+The local test suite passes `--fake-native` only for the small C substitutes and emits `fake-native-executed`. M4/M5/M6 objects have no official runtime evidence. The latest reviewed session used a clean detached checkout of `346cdd0b01a7f8039f5deb93058928403fccc7dd`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths and the bounded M9 option smoke on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md) and [M9 cloud validation](../validation/m9-cloud-validation.md) for the exact boundaries.
 
 中文提示：显式路径只接受绝对文件路径。本地 fake-native 仅验证托管边界与 ABI 形状；官方 runtime 结论来自独立的精确 SHA 会话，不能扩展到未测试能力。

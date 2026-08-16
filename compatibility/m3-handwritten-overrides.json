@@ -7,7 +7,7 @@
     "sourceManifest": "compatibility/m2-binding-subset.json",
     "expectedCount": 41,
     "reason": "Preserve the runtime-validated M1/M2 managed projection, direction, UTF-8, bool, and ownership semantics while declarations remain generated from the normalized model.",
-    "risk": "Changing these projections could regress the exact M1/M2 workflow validated at f1a11cfd1701a041cee29188f7600c85b34ae260.",
+    "risk": "Changing these projections could regress the exact M1/M2 workflow revalidated at 346cdd0b01a7f8039f5deb93058928403fccc7dd.",
     "plannedStage": "Retain through M3; reconsider public object semantics only in M4.",
     "coverage": "M1/M2 unit, fake-native, representative TFM, ABI/export, and bounded official runtime evidence."
   },

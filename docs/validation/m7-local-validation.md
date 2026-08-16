@@ -27,7 +27,7 @@ It verifies the exact AMD source URLs and key fingerprint, signed `InRelease`, s
 - Audited source: Ubuntu 24.04 Noble amd64, ROCm 7.2.1.
 - MIGraphX root: `migraphx-rpath7.2.1` `2.15.0.70201-81~24.04`, 68,651,368 bytes.
 - Root C ELF: SHA-256 `581582270fe1a8bb323eba04fb23f2969bbcdcff4a2a92d501eba7adf6a349ac`, SONAME `libmigraphx_c.so.3`, ELF64 x86-64.
-- Historical official execution remains bound to `f1a11cfd1701a041cee29188f7600c85b34ae260` and the restricted M1/M2 workflow.
+- Official M1/M2 execution was revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd`; this remains separate from the M7 package/source audit.
 
 ## Not claimed
 

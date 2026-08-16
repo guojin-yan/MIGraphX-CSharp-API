@@ -16,12 +16,12 @@ MIGraphXSharp 现已在 M1 生命周期基础、M2 受限 ONNX 闭环、M3 可�
 - M6 新增可选 `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` 适配器，包含 3 个公开类型和 11 个成员。它使用固定名称 `hipStream_t` 提交原生 `migraphx_program_run_async`，并将 program/map/input/output/device 租约保活到 HipStream 完成；映射闭合为 75 supported、116 planned、1 unsupported。
 - M7 固定了 ROCm 7.2.1 Ubuntu Noble amd64 的签名源元数据和精确 MIGraphX 根包，并将 `system-native` 冻结为部署模式。用户从 AMD 官方仓库安装完整一致的原生闭包；本项目只分发托管程序集。
 - M8 为 core 与 adapter 在全部 15 TFM 上建立版本化兼容基线。`0.x.x` 接口扩展期间可经审查更新该基线，同时候选版本、程序集/file/informational version、缓存 identity、精确包依赖、源码提交、产品 SBOM 与 provenance 继续保持同一证据链。
-- M9 为 ONNX Loop 默认值/上限、external-data 根路径、fast-math 与 exhaustive tuning 封装 5 个推理 option 入口；累计映射为 80 supported、111 planned、1 unsupported。官方云端执行已准备但仍为 deferred。
+- M9 为 ONNX Loop 默认值/上限、external-data 根路径、fast-math 与 exhaustive tuning 封装 5 个推理 option 入口；累计映射为 80 supported、111 planned、1 unsupported。在已推送 SHA `346cdd0b01a7f8039f5deb93058928403fccc7dd` 上，ROCm 7.2.1 已接受 5 个记录值，并完成经复核的 gfx1100 Identity 编译/执行与精确 reference 匹配。
 - 静态 shape 元数据包含已映射标量类型、lengths、strides、rank、溢出检查后的元素/字节数、standard 与 packed 标志。typed argument 拥有复制后的 host 内存；parameter map 深拷贝 argument；run 输出在原生集合释放前复制。
 - 一个 normalized model 同源生成各 158 个 `LibraryImport` 与 `DllImport` EntryPoint。C 可变参数函数 `migraphx_operation_create` 被显式标为 unsupported，不猜测 ABI。
 - 固定头中的 159 个函数全部匹配 hash 校验后的官方 ELF；ELF 额外的私有测试导出单独分类。这些 M3 结论属于 `statically-verified`，不是官方 runtime 执行。
 - 本地 fake-native 测试实际执行 loader、frontend/export 分类、对象构造、parse、不可变 shape 快照、typed host copy、多项集合、compile、同步 run、定向失败清理及并发/Dispose 边界。它继续作为测试替身证据，与官方 runtime 证据分开记录。
-- M1/M2 官方 runtime 已在 `f1a11cfd1701a041cee29188f7600c85b34ae260` 通过：环境为 Ubuntu 24.04 x86-64、ROCm 7.2.1、固定 MIGraphX 包和一张 gfx1100 GPU；实际执行了官方 loader、target/program 生命周期、ONNX file/buffer parse、GPU compile、同步 run 和 Identity reference 对比。
+- M1/M2 官方 runtime 已在 `346cdd0b01a7f8039f5deb93058928403fccc7dd` 重新验证：环境为 Ubuntu 24.04 x86-64、ROCm 7.2.1、固定 MIGraphX 包和一张 gfx1100 GPU；实际执行了官方 loader、target/program 生命周期、ONNX file/buffer parse、GPU compile、同步 run 和 Identity reference 对比。
 - M6 host 路径要求 `offloadCopy=true`；device input 路径只接受 `HipDeviceMemory`、要求 `offloadCopy=false`，并在 stream 完成后显式 D2H 复制输出。custom op、图编辑/capture 互操作、任意设备指针和 Runtime NuGet 打包仍不在范围内。
 - M4/M5/M6 行为只有本地 `statically-verified` 与 `fake-native-executed` 证据；M6 没有官方 GPU、zero-copy、重叠或性能结论。
 - core 与 adapter 包均不含 AMD 或 fake-native 二进制。项目不会生成或规划 `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.*` 包；`eng/pack.ps1 -Runtime` 会报告 `MIGRAPHX1001` 并指向 AMD 官方系统仓库。
@@ -84,11 +84,11 @@ loader 保留既有显式路径、应用 RID 目录、应用基目录和系统 l
 
 schema 2 快照记录签名、默认值、泛型约束、nullable metadata、identity 和完全一致的 15 TFM 可用性；`0.x.x` 的有意 API 新增经审查后更新快照。managed SemVer 与 ROCm/MIGraphX 独立；升级 managed 包不会更新 APT。预发布 adapter 通过映射后的 local feed 精确恢复 `[0.9.0-rc.1]` core 与 `[0.9.1]` HipSharp。
 
-候选门禁生成逐文件 managed SBOM、本地未签名 provenance、NuGet ZIP hash 与独立的规范化内容 hash。没有新的官方主机授权，因此 M4-M6、M9 options、system-native 负向、重启/长跑和性能都没有超出既有证据范围；`release-candidate-local` 不等于 `release-ready` 或已发布。
+候选门禁生成逐文件 managed SBOM、本地未签名 provenance、NuGet ZIP hash 与独立的规范化内容 hash。已授权的 `346cdd0...` 会话重新验证了 M1/M2 并执行了 M9 option smoke；M4-M6、system-native 负向、重启/长跑和性能仍未超出既有证据范围。`release-candidate-local` 不等于 `release-ready` 或已发布。
 
 ## M9 推理选项与云端记录
 
-`MIGraphXOnnxOptions` 新增非负 Loop 默认值/上限与绝对 strict-UTF-8 external-data 路径；`MIGraphXCompileOptions` 保留既有构造器，并新增显式 fast-math/exhaustive-tune 重载。local 测试验证值转发、路径校验、精确 native 失败定位与清理。无凭据云端脚本会在高层 parse/compile/run 后记录官方 runtime candidate，但只有新授权的精确提交实际执行并复核后才能升级证据。
+`MIGraphXOnnxOptions` 新增非负 Loop 默认值/上限与绝对 strict-UTF-8 external-data 路径；`MIGraphXCompileOptions` 保留既有构造器，并新增显式 fast-math/exhaustive-tune 重载。local 测试验证值转发、路径校验、精确 native 失败定位与清理。无凭据云端脚本已在 clean pushed `346cdd0...` checkout 上执行；回传哈希和独立 JSON 复核把官方 setter 接受与 Identity 编译/执行提升为 `runtime-executed`。Loop 行为、真实 external payload、开启 exhaustive tuning 和代表性 fast-math 精度仍为 planned。
 
 ## 构建
 
@@ -117,7 +117,7 @@ $adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.1 -Hi
 
 ## 文档
 
-请阅读 [M8 设计](docs/design/m8-api-release-readiness.md)、[M9 option 设计](docs/design/m9-inference-options.md)、[M9 云端计划](docs/validation/m9-cloud-validation.md)、[API/版本指南](docs/guides/api-versioning.md)、[Runtime 部署指南](docs/guides/runtime-deployment.md)、[平台证据](docs/compatibility/platforms.md)和 [M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
+请阅读 [M8 设计](docs/design/m8-api-release-readiness.md)、[M9 option 设计](docs/design/m9-inference-options.md)、[M9 云端验证](docs/validation/m9-cloud-validation.md)、[API/版本指南](docs/guides/api-versioning.md)、[Runtime 部署指南](docs/guides/runtime-deployment.md)、[平台证据](docs/compatibility/platforms.md)和 [M1/M2 官方验证摘要](docs/validation/m1-m2-official-runtime.md)。
 
 ## 许可证
 

@@ -26,9 +26,9 @@ The final command requires clean `main` with `HEAD == origin/main == $commit`. I
 - Adapter public API: 3 types and 11 members on all 15 TFMs.
 - Managed inventory: 192 items; 75 supported, 116 planned, 1 unsupported.
 - Native baseline: Ubuntu 24.04 amd64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`.
-- Historical M1/M2 runtime evidence remains bound to `f1a11cfd1701a041cee29188f7600c85b34ae260`, one gfx1100 device, and static float32 Identity `[1,4]`.
+- M1/M2 runtime evidence was revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd`, one gfx1100 device, and static float32 Identity `[1,4]`; the same session's M9 option smoke is tracked separately.
 - M4/M5/M6 remain `statically-verified` and `fake-native-executed`; local RC work does not promote them.
 
-No new official host was authorized. Therefore system-native M1-M6 positive/negative/restart/long-run execution, performance samples, process maps, installed ELF/SONAME/`ldd`, and model/environment hashes are not executed for M8. The [runtime/long-run/performance methodology](m8-runtime-methodology.md) is frozen for a future authorized session, but no speed, overlap, zero-copy, or leak claim is made.
+The later `346cdd0...` official session revalidated M1/M2 and M9 option integration only. System-native M4-M6 positive/negative/restart/long-run execution and performance methodology remain unexecuted for M8. The [runtime/long-run/performance methodology](m8-runtime-methodology.md) stays frozen for a future scoped session, and no speed, overlap, zero-copy, or leak claim is made.
 
 中文摘要：M8 本地候选证明 15 TFM、API 冻结、managed 包、clean consumer、SBOM/provenance 与文档门禁；没有新官方主机授权，因此 M4-M6、长跑和性能都不升级为真实运行证据。

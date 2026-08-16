@@ -135,7 +135,7 @@ $evidence = [ordered]@{
     officialNonFunctionSymbols = $nonFunctionSymbols
     abiProbe = $probe
     runtimeExecuted = $false
-    runtimeBoundary = 'Only the previously reviewed M1/M2 workflow at f1a11cfd1701a041cee29188f7600c85b34ae260 is runtime-executed.'
+    runtimeBoundary = 'Reviewed official execution is bounded to the M1/M2 workflow plus five M9 option setters at 346cdd0b01a7f8039f5deb93058928403fccc7dd; the rest of the M3 inventory remains static ABI evidence.'
 }
 $evidencePath = Join-Path $probeDirectory 'm3-abi-evidence.json'
 [IO.File]::WriteAllText($evidencePath, ($evidence | ConvertTo-Json -Depth 8) + "`n", [Text.UTF8Encoding]::new($false))

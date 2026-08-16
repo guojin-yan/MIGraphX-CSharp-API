@@ -5,7 +5,7 @@
   "sourceMap": "compatibility/m6-high-level-api-map.json",
   "sourceHeaderSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
   "sourceImplementation": "AMDMIGraphX rocm-7.2.1 commit de19b73ad280476e646512b847885eda100ec35e",
-  "evidenceBoundary": "M9 option forwarding and validation is fake-native-executed. The cloud runner is prepared but remains runtime-deferred until a newly authorized exact pushed commit is executed and reviewed.",
+  "evidenceBoundary": "M9 option forwarding, validation, failures, and cleanup remain fake-native-executed per mapping. At pushed SHA 346cdd0b01a7f8039f5deb93058928403fccc7dd, the official ROCm 7.2.1 runtime accepted all five recorded option values and completed a reviewed gfx1100 Identity compile/run with an exact reference match. Loop behavior, real external payloads, exhaustive-tune enabled, and representative fast-math accuracy remain planned.",
   "counts": { "inventory": 192, "supported": 80, "planned": 111, "unsupported": 1 },
   "mappings": [
     {

@@ -12,6 +12,6 @@ Fast-math permits approximate implementations and therefore needs workload-speci
 
 ## Evidence boundary
 
-The fake-native substitute verifies value forwarding, strict path validation, exact EntryPoint failures, and partial-construction cleanup. `smoke/OnnxWorkflowSmokeRunner --runtime-options-candidate` is wired into the credential-free Radeon script for a future authorized official-host run. The generated Identity model can prove that the official runtime accepts these setters and that fast-math compilation still matches its exact reference. It cannot exercise Loop semantics, actual external tensors, exhaustive-tune enabled behavior, or representative-model accuracy.
+The fake-native substitute verifies value forwarding, strict path validation, exact EntryPoint failures, and partial-construction cleanup. `smoke/OnnxWorkflowSmokeRunner --runtime-options-candidate` ran through the credential-free Radeon script at pushed SHA `346cdd0b01a7f8039f5deb93058928403fccc7dd`. ROCm 7.2.1 accepted the five recorded values, and the generated Identity model compiled and ran on gfx1100 with an exact reference match; transfer hashes and independent JSON review passed. This still cannot exercise Loop semantics, actual external tensors, exhaustive-tune enabled behavior, or representative-model accuracy.
 
-中文摘要：M9 在 `0.x.x` 下新增 5 个推理 option 高层入口，累计映射为 80/111/1。local fake-native 只验证转发、校验和清理；真实接口/功能结论必须由精确提交上的新云端记录给出。Identity 只能验证官方 runtime 接受设置并完成推理，不能替代 Loop、external-data、exhaustive-tune 和代表性精度测试。
+中文摘要：M9 在 `0.x.x` 下新增 5 个推理 option 高层入口，累计映射为 80/111/1。local fake-native 验证转发、校验和清理；精确提交 `346cdd0...` 的云端记录证明官方 runtime 接受设置并完成 Identity 推理。该结果不能替代 Loop、external-data、exhaustive-tune 和代表性精度测试。

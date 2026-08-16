@@ -5,7 +5,7 @@
 | `statically-verified` | passed locally | Fixed header hash/length; 159 functions, 2 enums, 25 handles, 6 callbacks; 192 mutually exclusive classifications; 158 matching managed EntryPoints per path. |
 | `statically-verified` | passed locally | Official ELF contains all 159 header functions, plus one separately classified private test export; enum values, one-byte C `bool`, 64-bit `size_t`, handle pointers, and callback pointers passed the x64 C probe. |
 | `fake-native-executed` | passed locally | Cdecl callback retention and exception containment, bool, size_t, explicit UTF-8 length, borrowed pointer identity, out handle cleanup, and array-length behavior executed against the minimal test substitute. |
-| `runtime-executed` | not added by M3 | No M3-only declaration ran against official MIGraphX; the four existing M1/M2 records remain bounded to `f1a11cfd1701a041cee29188f7600c85b34ae260`. |
+| `runtime-executed` | bounded later records | The reviewed M1/M2 paths and five M9 setters ran at `346cdd0b01a7f8039f5deb93058928403fccc7dd`; this does not promote the rest of the M3 declaration inventory. |
 
 Run the local gates with:
 

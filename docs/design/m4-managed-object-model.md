@@ -43,6 +43,6 @@ Native status failures remain `MIGraphXException` and preserve the C EntryPoint 
 
 M4 object construction, snapshots, typed buffers, synchronous run, multi-parameter map validation, multi-output copying, malformed collections, targeted status injection, null outputs, and cleanup execute against the local fake-native substitute. This is `fake-native-executed`, not official runtime evidence.
 
-The four official M1/M2 runtime records remain tied to `f1a11cfd1701a041cee29188f7600c85b34ae260`, one Ubuntu 24.04 x86-64 ROCm 7.2.1 installation, gfx1100, and the static float32 Identity workflow. They do not prove the M4 implementation.
+The official M1/M2 records were revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd` on one Ubuntu 24.04 x86-64 ROCm 7.2.1 installation, gfx1100, and the static float32 Identity workflow. The same session's separate M9 option smoke does not prove the broader M4 implementation.
 
 中文摘要：M4 公开小型同步资源对象层。Shape 是不可变复制快照；其余资源通过 owned SafeHandle 和对象自有 host buffer 管理。动态 shape、未映射 dtype、异步、设备 buffer、缓存和图编辑仍不公开。M4 证据仅为本地 fake-native，旧四条官方 runtime 记录不变。

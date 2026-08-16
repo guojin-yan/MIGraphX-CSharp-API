@@ -569,7 +569,7 @@ public static class CHeaderParser
 internal static class BindingGenerator
 {
     private const string FrozenStamp = "2026-08-14T00:00:00Z";
-    private const string RuntimeSha = "f1a11cfd1701a041cee29188f7600c85b34ae260";
+    private const string RuntimeSha = "346cdd0b01a7f8039f5deb93058928403fccc7dd";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -773,7 +773,7 @@ internal static class BindingGenerator
                 knownPrivateExtras = new[] { "migraphx_test_private_disable_exception_catch" },
                 evidence = "statically-verified by eng/verify-m3-abi.ps1; no new runtime execution",
             },
-            runtimeBoundary = $"Only the bounded M1/M2 workflow at {RuntimeSha} is runtime-executed; M3 additions are static ABI declarations.",
+            runtimeBoundary = $"Reviewed official execution is bounded to the M1/M2 workflow plus five M9 option setters at {RuntimeSha}; the rest of the M3 inventory remains static ABI evidence.",
         };
 
         var files = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -1033,6 +1033,9 @@ internal static class BindingGenerator
             json = string.Concat(json.AsSpan(0, schemaIndex), "\"$schema\":", json.AsSpan(schemaIndex + schemaProperty.Length));
         }
 
+        json = json
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\r", "\n", StringComparison.Ordinal);
         return json + "\n";
     }
 

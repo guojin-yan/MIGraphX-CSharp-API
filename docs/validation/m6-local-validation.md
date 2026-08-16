@@ -40,6 +40,6 @@ The unpublished adapter candidate is audited for all 15 DLL/XML asset pairs, roo
 
 ## Evidence boundary
 
-The fake libraries are test substitutes and cannot establish official MIGraphX execution, GPU overlap, performance, or zero-copy behavior. The four older `runtime-executed` entries remain bound to `f1a11cfd1701a041cee29188f7600c85b34ae260` and the synchronous M1/M2 Identity path. M6 adds no runtime-executed row.
+The fake libraries are test substitutes and cannot establish official MIGraphX execution, GPU overlap, performance, or zero-copy behavior. The latest reviewed session at `346cdd0b01a7f8039f5deb93058928403fccc7dd` covers synchronous M1/M2 Identity plus the separate M9 option smoke. M6 still adds no runtime-executed row.
 
 中文摘要：M6 本地测试证明托管状态机、stream 回调、early-dispose、指针租约、显式 D2H 和故障清理，但没有执行官方 MIGraphX/GPU，也没有 zero-copy 或性能结论。
