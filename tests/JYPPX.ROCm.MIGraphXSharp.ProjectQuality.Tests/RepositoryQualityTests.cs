@@ -435,6 +435,19 @@ public sealed class RepositoryQualityTests
     }
 
     [Fact]
+    public void NativeTestSourcesAvoidGccMisleadingIndentationPattern()
+    {
+        var violations = Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "native"), "*.c", SearchOption.AllDirectories)
+            .SelectMany(path => File.ReadLines(path)
+                .Select((line, index) => (Path: path, Line: line, Number: index + 1))
+                .Where(item => Regex.IsMatch(item.Line, @"^\s*if\s*\([^\r\n]*\)\s+[^\{\r\n]+;\s+\S")))
+            .Select(item => $"{Path.GetRelativePath(RepositoryRoot, item.Path)}:{item.Number}")
+            .ToArray();
+
+        Assert.Empty(violations);
+    }
+
+    [Fact]
     public void DocumentationNavigationAndWorkflowsArePresent()
     {
         var toc = File.ReadAllText(Path.Combine(RepositoryRoot, "docs", "toc.yml"));

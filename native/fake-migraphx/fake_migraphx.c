@@ -837,7 +837,10 @@ EXPORT migraphx_status migraphx_dynamic_dimension_create_min_max_optimals(migrap
 }
 EXPORT migraphx_status migraphx_dynamic_dimension_is_fixed(uint8_t* out, const_migraphx_dynamic_dimension_t value)
 {
-    if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = value->minimum == value->maximum ? 1 : 0; return (migraphx_status)take_status_for("migraphx_dynamic_dimension_is_fixed");
+    if(out == NULL || value == NULL)
+        return migraphx_status_bad_param;
+    *out = value->minimum == value->maximum ? 1 : 0;
+    return (migraphx_status)take_status_for("migraphx_dynamic_dimension_is_fixed");
 }
 EXPORT migraphx_status migraphx_dynamic_dimension_equal(uint8_t* out, const_migraphx_dynamic_dimension_t left, const_migraphx_dynamic_dimension_t right)
 {
@@ -900,11 +903,15 @@ EXPORT migraphx_status migraphx_onnx_options_set_dyn_input_parameter_shape(migra
 EXPORT migraphx_status migraphx_onnx_options_set_default_dim_value(migraphx_onnx_options_t options, size_t value)
 {
     (void)value;
-    if(options == NULL) return migraphx_status_bad_param; return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_dim_value");
+    if(options == NULL)
+        return migraphx_status_bad_param;
+    return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_dim_value");
 }
 EXPORT migraphx_status migraphx_onnx_options_set_default_dyn_dim_value(migraphx_onnx_options_t options, migraphx_dynamic_dimension_t value)
 {
-    if(options == NULL || value == NULL) return migraphx_status_bad_param; return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_dyn_dim_value");
+    if(options == NULL || value == NULL)
+        return migraphx_status_bad_param;
+    return (migraphx_status)take_status_for("migraphx_onnx_options_set_default_dyn_dim_value");
 }
 EXPORT migraphx_status migraphx_onnx_options_set_default_loop_iterations(migraphx_onnx_options_t options, int64_t value)
 {
@@ -937,7 +944,10 @@ EXPORT migraphx_status migraphx_file_options_create(migraphx_file_options_t* out
 }
 EXPORT migraphx_status migraphx_file_options_set_file_format(migraphx_file_options_t options, const char* format)
 {
-    if(options == NULL || format == NULL || strcmp(format, "msgpack") != 0) return migraphx_status_bad_param; copy_string(options->format, sizeof(options->format), format); return (migraphx_status)take_status_for("migraphx_file_options_set_file_format");
+    if(options == NULL || format == NULL || strcmp(format, "msgpack") != 0)
+        return migraphx_status_bad_param;
+    copy_string(options->format, sizeof(options->format), format);
+    return (migraphx_status)take_status_for("migraphx_file_options_set_file_format");
 }
 EXPORT migraphx_status migraphx_save(migraphx_program_t program, const char* name, migraphx_file_options_t options)
 {
