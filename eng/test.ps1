@@ -21,6 +21,7 @@ try {
     & (Join-Path $PSScriptRoot 'verify-m6-coverage.ps1') | Out-Host
     & (Join-Path $PSScriptRoot 'verify-m9-coverage.ps1') | Out-Host
     & (Join-Path $PSScriptRoot 'verify-m10-coverage.ps1') | Out-Host
+    & (Join-Path $PSScriptRoot 'verify-m11-coverage.ps1') | Out-Host
     if (-not $NoBuild) {
         & (Join-Path $PSScriptRoot 'build.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $RepositoryCommit -HipSharpRepositoryRoot $HipSharpRepositoryRoot
     }

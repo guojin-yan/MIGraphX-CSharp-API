@@ -176,16 +176,21 @@ public sealed class RepositoryQualityTests
             "official-onnx-parse-compile-run",
             "amd-gpu-execution",
             "m9-official-option-smoke",
+            "m10-official-onnx-registry",
+            "m10-official-argument-comparison",
+            "m10-official-program-comparison",
         };
 
         Assert.True(
             expectedRuntimeIds.SetEquals(runtimeExecuted.Select(item => item.GetProperty("id").GetString()!)),
-            "Only the independently reviewed M1/M2/M9 official runtime entries may be runtime-executed.");
+            "Only the independently reviewed M1/M2/M9/M10 official runtime entries may be runtime-executed.");
         Assert.All(runtimeExecuted, item =>
-            Assert.Contains(
-                "346cdd0b01a7f8039f5deb93058928403fccc7dd",
-                item.GetProperty("evidence").GetString(),
-                StringComparison.Ordinal));
+        {
+            var expectedCommit = item.GetProperty("id").GetString()!.StartsWith("m10-", StringComparison.Ordinal)
+                ? "e2386dc69e7640f8ff12d95284e56c3f02c87938"
+                : "346cdd0b01a7f8039f5deb93058928403fccc7dd";
+            Assert.Contains(expectedCommit, item.GetProperty("evidence").GetString(), StringComparison.Ordinal);
+        });
         Assert.Equal(
             "not-applicable",
             runtimeMatrix.RootElement.GetProperty("validations")
@@ -247,6 +252,40 @@ public sealed class RepositoryQualityTests
         Assert.Equal("statically-verified", shape.GetProperty("validationLevel").GetString());
         Assert.False(string.IsNullOrWhiteSpace(shape.GetProperty("notAdoptedReason").GetString()));
         Assert.Equal(4, ownership.RootElement.GetProperty("records").GetArrayLength());
+    }
+
+    [Fact]
+    public void M11RuntimePlanIsPackageOnlyReviewRequiredAndUnauthorized()
+    {
+        var compatibility = Path.Combine(RepositoryRoot, "compatibility");
+        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m11-runtime-cases.json")));
+        var root = matrix.RootElement;
+        Assert.Equal("M11", root.GetProperty("stage").GetString());
+        Assert.Equal("0.9.0-rc.3", root.GetProperty("candidateVersion").GetString());
+        Assert.False(root.GetProperty("authorization").GetProperty("officialFunctionalAuthorized").GetBoolean());
+        Assert.False(root.GetProperty("authorization").GetProperty("longRunAuthorized").GetBoolean());
+        Assert.False(root.GetProperty("authorization").GetProperty("timingAuthorized").GetBoolean());
+        var cases = root.GetProperty("cases").EnumerateArray().ToArray();
+        Assert.True(cases.Length >= 20);
+        Assert.All(cases, item => Assert.Contains(item.GetProperty("officialEvidence").GetString(), new[] { "runtime-deferred", "not-applicable" }));
+        Assert.Equal(
+            "not-applicable",
+            cases.Single(item => item.GetProperty("id").GetString() == "m11-windows-native-policy").GetProperty("officialEvidence").GetString());
+
+        using var promotion = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m10-post-build-runtime-evidence.json")));
+        Assert.Equal("e2386dc69e7640f8ff12d95284e56c3f02c87938", promotion.RootElement.GetProperty("sourceSha").GetString());
+        Assert.Equal(4, promotion.RootElement.GetProperty("promotions").GetArrayLength());
+        Assert.True(promotion.RootElement.GetProperty("historicalCandidateImmutable").GetBoolean());
+
+        var probeRoot = Path.Combine(RepositoryRoot, "tools", "m11-runtime-probe");
+        var project = File.ReadAllText(Path.Combine(probeRoot, "M11RuntimeProbe.csproj"));
+        var runner = File.ReadAllText(Path.Combine(probeRoot, "Program.cs"));
+        var review = File.ReadAllText(Path.Combine(probeRoot, "review.ps1"));
+        Assert.DoesNotContain("ProjectReference", project, StringComparison.Ordinal);
+        Assert.Contains("PackageReference", project, StringComparison.Ordinal);
+        Assert.Contains("runtime-candidate-executed-review-required", runner, StringComparison.Ordinal);
+        Assert.DoesNotContain("runtime-executed", runner, StringComparison.Ordinal);
+        Assert.Contains("reviewedEvidence = 'runtime-executed'", review, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -508,10 +547,12 @@ public sealed class RepositoryQualityTests
             "validation/m9-cloud-validation.md",
             "validation/m10-local-validation.md",
             "validation/m10-runtime-plan.md",
+            "validation/m11-runtime-hardening-plan.md",
             "articles/m0-m8-evidence-driven-wrapper.md",
             "articles/m9-interface-options-cloud-record.md",
             "articles/m10-explainable-c-api-introspection.md",
             "releases/0.9.0-rc.2.md",
+            "releases/0.9.0-rc.3.md",
             "releases/0.9.0-rc.1.md",
             "articles/m4-resource-safe-dotnet.md",
             "articles/m5-dynamic-shape-cache.md",
@@ -533,6 +574,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("eng/verify-m3-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m4-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m10-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("eng/verify-m11-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);
@@ -552,6 +594,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("Join-Path $root 'docfx.json'", docsScript, StringComparison.Ordinal);
         Assert.Contains("verify-m9-coverage.ps1", docsScript, StringComparison.Ordinal);
         Assert.Contains("verify-m10-coverage.ps1", docsScript, StringComparison.Ordinal);
+        Assert.Contains("verify-m11-coverage.ps1", docsScript, StringComparison.Ordinal);
         Assert.DoesNotContain(@".\docfx.json", docsScript, StringComparison.Ordinal);
 
         var interopScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-interop-paths.ps1"));

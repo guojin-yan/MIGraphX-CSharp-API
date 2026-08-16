@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jyppx.dev/schemas/m11-runtime-cases.schema.json",
+  "title": "M11 runtime hardening cases and frozen thresholds",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "stage", "candidateVersion", "authorization", "fixtures", "thresholds", "cases"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M11" },
+    "candidateVersion": { "const": "0.9.0-rc.3" },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["officialFunctionalAuthorized", "longRunAuthorized", "timingAuthorized", "environmentChangesAuthorized"],
+      "properties": {
+        "officialFunctionalAuthorized": { "const": false },
+        "longRunAuthorized": { "const": false },
+        "timingAuthorized": { "const": false },
+        "environmentChangesAuthorized": { "const": false }
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "fileName", "sha256", "license", "reference"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "fileName": { "type": "string", "pattern": "^[a-z0-9.-]+\\.onnx$" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "license": { "const": "Apache-2.0 project-generated fixture" },
+          "reference": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["functional", "longRun", "timing", "resourceRecovery"],
+      "properties": {
+        "functional": { "$ref": "#/$defs/functionalThresholds" },
+        "longRun": { "$ref": "#/$defs/longRunThresholds" },
+        "timing": { "$ref": "#/$defs/timingThresholds" },
+        "resourceRecovery": { "$ref": "#/$defs/resourceThresholds" }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "functionalThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionTimeoutSeconds", "defaultCaseTimeoutSeconds", "iterations", "allowedUnexpectedErrors", "allowedOutputMismatches", "allowedTemporaryCacheFiles"],
+      "properties": {
+        "sessionTimeoutSeconds": { "const": 1800 },
+        "defaultCaseTimeoutSeconds": { "const": 120 },
+        "iterations": { "const": 3 },
+        "allowedUnexpectedErrors": { "const": 0 },
+        "allowedOutputMismatches": { "const": 0 },
+        "allowedTemporaryCacheFiles": { "const": 0 }
+      }
+    },
+    "longRunThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ownerAuthorizationRequired", "hostReservationMinutes", "preflightMinutes", "phaseMinutes", "finalMixedMinutes", "processRestartMinutes", "hostRestartRequired"],
+      "properties": {
+        "ownerAuthorizationRequired": { "const": true },
+        "hostReservationMinutes": { "const": 300 },
+        "preflightMinutes": { "const": 10 },
+        "phaseMinutes": { "type": "array", "prefixItems": [{ "const": 60 }, { "const": 60 }, { "const": 60 }], "items": false },
+        "finalMixedMinutes": { "const": 30 },
+        "processRestartMinutes": { "const": 10 },
+        "hostRestartRequired": { "const": true }
+      }
+    },
+    "timingThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ownerAuthorizationRequired", "warmups", "measuredIterations", "freshProcesses", "requiredStatistics", "comparativeClaimsAllowed"],
+      "properties": {
+        "ownerAuthorizationRequired": { "const": true },
+        "warmups": { "const": 20 },
+        "measuredIterations": { "const": 200 },
+        "freshProcesses": { "const": 5 },
+        "requiredStatistics": { "type": "array", "prefixItems": [{ "const": "count" }, { "const": "failures" }, { "const": "median" }, { "const": "p95" }, { "const": "minimum" }, { "const": "maximum" }, { "const": "mad" }], "items": false },
+        "comparativeClaimsAllowed": { "const": false }
+      }
+    },
+    "resourceThresholds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unexpectedErrorCount", "rssRecoveryBytes", "rssRecoveryPercent", "gpuMemoryRecoveryBytes", "gpuMemoryRecoveryPercent", "requiredObservations"],
+      "properties": {
+        "unexpectedErrorCount": { "const": 0 },
+        "rssRecoveryBytes": { "const": 134217728 },
+        "rssRecoveryPercent": { "const": 15 },
+        "gpuMemoryRecoveryBytes": { "const": 67108864 },
+        "gpuMemoryRecoveryPercent": { "const": 10 },
+        "requiredObservations": { "type": "array", "minItems": 6, "items": { "type": "string" }, "uniqueItems": true }
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "area", "fixtureIds", "apiPath", "expectation", "synchronizationBoundary", "copyBoundary", "resourceOwnership", "iterations", "timeoutSeconds", "prerequisites", "environmentChangeRequired", "localEvidence", "officialEvidence", "uncoveredBoundary"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^m(4|5|6|11)-[a-z0-9-]+$" },
+        "area": { "enum": ["M4", "M5", "M6", "negative", "restart", "long-run", "timing", "platform"] },
+        "fixtureIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "apiPath": { "type": "string", "minLength": 1 },
+        "expectation": { "enum": ["success", "managed-rejection", "official-runtime-rejection", "test-substitute-rejection", "policy-decision"] },
+        "synchronizationBoundary": { "type": "string", "minLength": 1 },
+        "copyBoundary": { "type": "string", "minLength": 1 },
+        "resourceOwnership": { "type": "string", "minLength": 1 },
+        "iterations": { "type": "integer", "minimum": 0 },
+        "timeoutSeconds": { "type": "integer", "minimum": 0 },
+        "prerequisites": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "environmentChangeRequired": { "type": "boolean" },
+        "localEvidence": { "enum": ["planned", "statically-verified", "fake-native-executed", "not-applicable"] },
+        "officialEvidence": { "enum": ["runtime-deferred", "runtime-executed", "not-applicable"] },
+        "uncoveredBoundary": { "type": "string" }
+      }
+    }
+  }
+}

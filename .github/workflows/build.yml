@@ -35,6 +35,7 @@ jobs:
           ./eng/verify-m6-coverage.ps1
           ./eng/verify-m9-coverage.ps1
           ./eng/verify-m10-coverage.ps1
+          ./eng/verify-m11-coverage.ps1
       - name: Test and smoke
         shell: pwsh
         run: ./eng/test.ps1 -Configuration Release -NoBuild

@@ -66,10 +66,14 @@
     href: validation/m10-local-validation.md
   - name: M10 official runtime plan
     href: validation/m10-runtime-plan.md
+  - name: M11 runtime hardening plan
+    href: validation/m11-runtime-hardening-plan.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes
   items:
+  - name: 0.9.0-rc.3 local prerelease
+    href: releases/0.9.0-rc.3.md
   - name: 0.9.0-rc.2 local prerelease
     href: releases/0.9.0-rc.2.md
   - name: 0.9.0-rc.1 local prerelease

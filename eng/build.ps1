@@ -33,6 +33,7 @@ try {
     & (Join-Path $PSScriptRoot 'verify-m6-coverage.ps1') | Out-Host
     & (Join-Path $PSScriptRoot 'verify-m9-coverage.ps1') | Out-Host
     & (Join-Path $PSScriptRoot 'verify-m10-coverage.ps1') | Out-Host
+    & (Join-Path $PSScriptRoot 'verify-m11-coverage.ps1') | Out-Host
     if (-not $NoRestore) {
         Invoke-DotNet -Arguments (@('restore', '.\MIGraphXSharp.sln') + $properties)
     }

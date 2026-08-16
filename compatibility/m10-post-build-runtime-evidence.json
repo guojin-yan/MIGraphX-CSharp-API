@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "1.0.0",
+  "stage": "M10",
+  "evidenceKind": "post-build-external-runtime-promotion",
+  "sourceSha": "e2386dc69e7640f8ff12d95284e56c3f02c87938",
+  "candidateVersion": "0.9.0-rc.2",
+  "externalRecord": "Radeon_Cloud/records/20260816-1827-e2386dc-m10-runtime",
+  "reviewState": "passed",
+  "reviewedEvidence": "runtime-executed",
+  "resultSha256": "99fd5f4b0ae29ef4b13564821371f9cf28726e7415bddd9844c680ad35740ff1",
+  "reviewSha256": "5af970f3f3865e5408f5d5d74c4656fab2c4b39aeda8284d46b82ece1b511a52",
+  "registry": {
+    "count": 184,
+    "orderedJsonSha256": "705dbb1ee4393c0110c8f4ca54dab32e906ffbab4fbcc802242aa5343dc2ee4a",
+    "stabilityObservationOnly": true,
+    "fullListDisclosed": false
+  },
+  "promotions": [
+    { "id": "function:migraphx_get_onnx_operators_size", "status": "runtime-executed" },
+    { "id": "function:migraphx_get_onnx_operator_name_at_index", "status": "runtime-executed" },
+    { "id": "function:migraphx_argument_equal", "status": "runtime-executed" },
+    { "id": "function:migraphx_program_equal", "status": "runtime-executed" }
+  ],
+  "retained": [
+    { "id": "function:migraphx_shape_equal", "status": "statically-verified", "decision": "retained-planned" }
+  ],
+  "historicalCandidateImmutable": true,
+  "boundary": "This file records independently reviewed post-build evidence. It does not rewrite the rc.2 package or claim M4-M6 execution."
+}
