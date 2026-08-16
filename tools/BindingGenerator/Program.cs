@@ -1188,7 +1188,9 @@ internal static class BindingGenerator
             return $"{(modifier is null ? string.Empty : modifier + " ")}{parameter.managedType} {name}";
         }));
 
-        private static string Normalize(StringBuilder builder) => builder.ToString().Replace("\r\n", "\n", StringComparison.Ordinal);
+        private static string Normalize(StringBuilder builder) => builder.ToString()
+            .Replace("\r\n", "\n", StringComparison.Ordinal)
+            .Replace("\n", "\r\n", StringComparison.Ordinal);
 
         private static readonly HashSet<string> CSharpKeywords = new(StringComparer.Ordinal)
         {

@@ -81,6 +81,28 @@ public sealed class BindingGeneratorTests
     }
 
     [Fact]
+    public void GeneratedCSharpUsesTheRepositoryCrlfPolicy()
+    {
+        var generatedDirectory = Path.Combine(
+            FindRepositoryRoot(),
+            "src",
+            "JYPPX.ROCm.MIGraphX.CSharp.API",
+            "Generated");
+
+        foreach (var name in new[]
+        {
+            "NativeMethods.g.cs",
+            "NativeMethods.LibraryImport.g.cs",
+            "NativeMethods.DllImport.g.cs",
+        })
+        {
+            var text = File.ReadAllText(Path.Combine(generatedDirectory, name));
+            Assert.Contains("\r\n", text, StringComparison.Ordinal);
+            Assert.DoesNotMatch("(?<!\\r)\\n", text);
+        }
+    }
+
+    [Fact]
     public void VerifyModeDetectsByteDriftAndGenerationUsesTransactionalStaging()
     {
         var script = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "eng", "generate-interop.ps1"));
