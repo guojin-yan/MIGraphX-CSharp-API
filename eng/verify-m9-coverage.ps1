@@ -34,4 +34,9 @@ $cloud = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\radeon\cloud-test
 if (-not $smoke.Contains('--runtime-options-candidate', [StringComparison]::Ordinal) -or -not $cloud.Contains('--runtime-options-candidate', [StringComparison]::Ordinal)) {
     throw 'M9 cloud option runner is not wired into the credential-free cloud script.'
 }
+$abiGate = Get-Content -Raw -LiteralPath (Join-Path $root 'eng\verify-m2-abi.ps1')
+if (-not $abiGate.Contains('compatibility\m9-high-level-api-map.json', [StringComparison]::Ordinal) -or
+    -not $abiGate.Contains('$allowedM9FakeExports', [StringComparison]::Ordinal)) {
+    throw 'M9 fake-native exports are not wired into the strict ABI export review.'
+}
 Write-Output 'M9 coverage gate passed: five inference-option entry points, 80/111/1 aggregate mapping, local contracts, and deferred cloud runner are closed.'

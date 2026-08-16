@@ -10,6 +10,7 @@ param(
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
 $manifest = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m2-binding-subset.json') | ConvertFrom-Json
+$m9Map = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m9-high-level-api-map.json') | ConvertFrom-Json
 $cache = Join-Path $root '.cache\m1'
 
 if ($AcquireInputs) {
@@ -84,9 +85,17 @@ $allowedManagedObjectFakeExports = @(
     'migraphx_save', 'migraphx_load',
     'migraphx_program_run_async'
 )
-$unexpectedFakeExports = @($fake | Where-Object { $_ -notin $expected -and $_ -notin $allowedManagedObjectFakeExports })
+$allowedM9FakeExports = @($m9Map.mappings |
+    Where-Object { $_.supportStatus -eq 'supported' -and $_.validationLevel -eq 'fake-native-executed' } |
+    ForEach-Object { $_.cName } |
+    Sort-Object -Unique)
+if ($allowedM9FakeExports.Count -ne 5 -or @($allowedM9FakeExports | Where-Object { $_ -notmatch '^migraphx_[a-z0-9_]+$' }).Count -ne 0) {
+    throw 'M9 fake-native export review must resolve to exactly five valid C entry points.'
+}
+$allowedFakeExports = @($allowedManagedObjectFakeExports + $allowedM9FakeExports)
+$unexpectedFakeExports = @($fake | Where-Object { $_ -notin $expected -and $_ -notin $allowedFakeExports })
 if ($unexpectedFakeExports.Count -ne 0) {
-    throw "fake-native contains exports outside the M2 subset and reviewed M4/M5/M6 test additions: $($unexpectedFakeExports -join ', ')"
+    throw "fake-native contains exports outside the M2 subset and reviewed M4/M5/M6/M9 test additions: $($unexpectedFakeExports -join ', ')"
 }
 
 $officialAll = @(& dotnet run --project (Join-Path $root 'tools\ElfExportReader\ElfExportReader.csproj') -c Release -- $OfficialElfPath)
