@@ -72,6 +72,22 @@ public sealed class M5DynamicShapeCacheTests
     }
 
     [Fact]
+    public void DynamicShapeSnapshotSkipsStaticOnlyNativeAccessors()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        var dimensions = new[] { new MIGraphXDynamicDimension(1, 8, new long[] { 4 }), MIGraphXDynamicDimension.Fixed(4) };
+
+        using var native = NativeShapeHandle.CreateDynamic(MIGraphXShape.CreateDynamic(MIGraphXShapeDataType.Float32, dimensions));
+        var snapshot = MIGraphXShape.FromNative(native.DangerousGetHandle(), "dynamic shape", dimensions);
+
+        Assert.True(snapshot.IsDynamic);
+        Assert.Equal(2, snapshot.Rank);
+        Assert.Equal(new[] { false, true }, snapshot.DynamicDimensions.Select(value => value.IsFixed));
+    }
+
+    [Fact]
     public void DynamicCollectionNullAndDriftFailuresReleaseOwnedTemporaries()
     {
         var path = FakePath();

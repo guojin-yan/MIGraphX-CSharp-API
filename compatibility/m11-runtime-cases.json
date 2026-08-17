@@ -2,7 +2,7 @@
   "$schema": "./schemas/m11-runtime-cases.schema.json",
   "schemaVersion": "1.0.0",
   "stage": "M11",
-  "candidateVersion": "0.9.0-rc.6",
+  "candidateVersion": "0.9.0-rc.7",
   "authorization": {
     "officialFunctionalAuthorized": false,
     "longRunAuthorized": false,
@@ -84,7 +84,7 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "uncoveredBoundary": "The rc.5 session passed this case but failed before a complete reviewed functional result; rc.6 has no official execution."
+      "uncoveredBoundary": "The rc.6 session passed this case but failed overall; no individual case was promoted, and rc.7 has no official execution."
     },
     {
       "id": "m4-file-buffer-reference",
@@ -101,7 +101,7 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "uncoveredBoundary": "The rc.5 session timed out in this sequence without localizing the blocking native stage; rc.6 records durable per-stage start/completion markers."
+      "uncoveredBoundary": "The rc.6 session completed this case and its 294 stage markers but failed overall; no individual case was promoted, and rc.7 has no official execution."
     },
     {
       "id": "m4-multi-output-order-lifetime",
@@ -169,7 +169,7 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "uncoveredBoundary": "Accepted-shape reference outputs are not official rc.6 evidence yet."
+      "uncoveredBoundary": "The rc.6 session passed the accepted static shapes but failed overall; rc.7 has no official execution."
     },
     {
       "id": "m5-dynamic-overrides",

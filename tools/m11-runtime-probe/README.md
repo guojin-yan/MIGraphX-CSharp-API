@@ -1,6 +1,6 @@
 # M11 package-only runtime probe
 
-This probe is source for a separately authorized official session. Its project has only exact package references to core/adapter `0.9.0-rc.6` and HipSharp `0.9.1`; it has no project reference or native payload.
+This probe is source for a separately authorized official session. Its project has only exact package references to core/adapter `0.9.0-rc.7` and HipSharp `0.9.1`; it has no project reference or native payload.
 
 `run.sh` requires a clean detached exact source SHA, transferred package hashes, fixed header, explicit MIGraphX/HIP paths, deterministic fixtures, a new evidence-record directory, and a local-only NuGet feed. It enforces the frozen 1,800-second session, a process-group-wide 10-second TERM-to-KILL escalation, and 120-second case boundaries, runs each repeated positive case three times, and uses a second process for the cache-restart hit. It never invokes GPU runtime inventory utilities; those belong to the separately bounded preflight. Candidate JSON is always `runtime-candidate-executed-review-required`.
 

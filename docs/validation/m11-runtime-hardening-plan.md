@@ -1,6 +1,6 @@
 # M11 official-runtime hardening plan
 
-M11 is `runtime-deferred`. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.6` candidate requires a fresh authorization naming its final source and package identities before any official host execution, long-run, timing, publication, tag, release, Pages deployment, or Actions run.
+M11 is `runtime-deferred`. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.7` candidate requires a fresh authorization naming its final source and package identities before any official host execution, long-run, timing, publication, tag, release, Pages deployment, or Actions run.
 
 ## Evidence starting point
 
@@ -8,9 +8,11 @@ The source evidence model now records the independently reviewed M10 post-build 
 
 M11 does not adopt any C API item or change the public surface. The expected baseline remains core `27 types / 160 members`, adapter `3 / 11`, and aggregate map `84 supported / 107 planned / 1 unsupported`.
 
+The immutable rc.6 official functional record completed all 20 attempted cases: 18 passed and two dynamic-shape cases failed before their intended boundaries because `NativeShapeSnapshot.Create` called `migraphx_shape_lengths` before `migraphx_shape_dynamic`. MIGraphX 2.15.0 rejected `lens()` on a dynamic shape with status 4. Cache restart and independent promotion review were correctly blocked, so no individual rc.6 case is promoted. Rc.7 queries type and dynamic state first, reads native dynamic dimensions only on the dynamic branch, and reserves lengths, strides, elements, bytes, and standard-layout accessors for the static branch. Fake-native now enforces the same constraint.
+
 ## Candidate and fixtures
 
-Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.6` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
+Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.7` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
 
 `eng/generate-m11-fixtures.ps1` creates three deterministic, project-owned Apache-2.0 ONNX fixtures:
 
@@ -63,4 +65,4 @@ An authorized session must bind the final pushed 40-character SHA, clean detache
 
 Until bounded M4-M6 official functional evidence and the separately decided long-run/timing layer are reviewed, M11 remains `runtime-deferred` and M8 remains `release-candidate-local` rather than `release-ready`.
 
-中文摘要：M11 已冻结 package-only 的 M4-M6 功能、负向、cache restart、长跑、计时和资源阈值方案，并依据 AMD 官方资料把固定版本 Windows MIGraphX provider 标为 `not-applicable`。当前没有新官方授权，所有 M4-M6 官方 case 仍为 `runtime-deferred`，M8 状态不提升。
+中文摘要：M11 已冻结 package-only 的 M4-M6 功能、负向、cache restart、长跑、计时和资源阈值方案，并依据 AMD 官方资料把固定版本 Windows MIGraphX provider 标为 `not-applicable`。rc.6 官方功能会话以 18/20 失败闭合；rc.7 修复动态 shape 快照访问顺序，但当前没有新官方授权，所有 M4-M6 官方 case 仍为 `runtime-deferred`，M8 状态不提升。
