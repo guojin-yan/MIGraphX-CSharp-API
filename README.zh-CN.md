@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.6` 本地候选。M11 不新增公开 API；它同步 M10 post-build 官方证据，并新增确定性 M4-M6 fixture、package-only probe、独立复核、冻结的功能/长跑/计时阈值与明确 Windows 策略。仓库默认版本仍为 `0.0.0`，没有发布任何包。
+MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选。M11 不新增公开 API；它同步 M10 post-build 官方证据，并新增确定性 M4-M6 fixture、package-only probe、独立复核、冻结的功能/长跑/计时阈值与明确 Windows 策略。仓库默认版本仍为 `0.0.0`，没有发布任何包。
 
 ## 状态
 
@@ -33,7 +33,7 @@ MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.6` 本地候选。M11 不�
 构建仅供本地使用的托管候选包：
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.6
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.8
 ```
 
 冻结的 NuGet/项目/程序集名是 `JYPPX.ROCm.MIGraphX.CSharp.API`；C# 命名空间是 `JYPPX.ROCm.MIGraphXSharp`。不得发布此工程候选。
@@ -122,11 +122,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.6 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.6
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.6 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.6 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.6 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.8 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.8
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.8 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.8 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.8 -NoBuild
 ```
 
 构建、官方 ELF 静态证据、fake-native 执行与官方 MIGraphX runtime 执行继续是不同证据层级。M1/M2 runtime 结论只适用于[官方验证摘要](docs/validation/m1-m2-official-runtime.md)记录的精确 SHA、环境、模型、shape 和同步 offload-copy 路径。

@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp now has an unpublished M11 `0.9.0-rc.6` local candidate. M11 adds no public API: it synchronizes reviewed M10 post-build evidence and adds deterministic M4-M6 fixtures, a package-only probe, independent review, frozen functional/long-run/timing thresholds, and an explicit Windows policy. The repository default remains `0.0.0`; no package is published.
+MIGraphXSharp now has an unpublished M11 `0.9.0-rc.8` local candidate. M11 adds no public API: it synchronizes reviewed M10 post-build evidence and adds deterministic M4-M6 fixtures, a package-only probe, independent review, frozen functional/long-run/timing thresholds, and an explicit Windows policy. The repository default remains `0.0.0`; no package is published.
 
 ## Status
 
@@ -33,7 +33,7 @@ MIGraphXSharp now has an unpublished M11 `0.9.0-rc.6` local candidate. M11 adds 
 Build the local-only managed candidate package:
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.6
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.8
 ```
 
 The frozen NuGet/project/assembly name is `JYPPX.ROCm.MIGraphX.CSharp.API`; the C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Do not publish this engineering candidate.
@@ -122,11 +122,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.6 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.6
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.6 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.6 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.6 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.8 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.8
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.8 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.8 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.8 -NoBuild
 ```
 
 Build, static official-ELF evidence, fake-native execution, and official MIGraphX runtime execution remain separate evidence levels. The M1/M2 runtime claim is limited to the exact pushed SHA, environment, model, shape, and synchronous offload-copy path recorded in the [official runtime summary](docs/validation/m1-m2-official-runtime.md).

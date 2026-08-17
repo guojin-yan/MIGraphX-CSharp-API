@@ -10,7 +10,7 @@ $schemaPath = Join-Path $root 'compatibility\schemas\m11-runtime-cases.schema.js
 $matrixText = Get-Content -Raw -LiteralPath $matrixPath
 if (-not ($matrixText | Test-Json -SchemaFile $schemaPath)) { throw 'M11 runtime cases do not match their JSON schema.' }
 $matrix = $matrixText | ConvertFrom-Json
-if ($matrix.stage -ne 'M11' -or $matrix.candidateVersion -ne '0.9.0-rc.7') { throw 'M11 candidate identity drifted.' }
+if ($matrix.stage -ne 'M11' -or $matrix.candidateVersion -ne '0.9.0-rc.8') { throw 'M11 candidate identity drifted.' }
 if ($matrix.authorization.officialFunctionalAuthorized -ne $false -or
     $matrix.authorization.longRunAuthorized -ne $false -or
     $matrix.authorization.timingAuthorized -ne $false -or
@@ -105,6 +105,7 @@ foreach ($path in @(
     'tools\m11-runtime-probe\run.sh',
     'tools\m11-runtime-probe\review.ps1',
     'tools\m11-runtime-probe\README.md',
+    'docs\releases\0.9.0-rc.8.md',
     'docs\releases\0.9.0-rc.7.md'
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $root $path) -PathType Leaf)) { throw "M11 deliverable is missing: $path" }

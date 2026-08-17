@@ -40,11 +40,11 @@ public sealed class M11RuntimeHardeningTests
     {
         const string zero = "0000000000000000000000000000000000000000000000000000000000000000";
         const string one = "1111111111111111111111111111111111111111111111111111111111111111";
-        var baseline = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=true", "msgpack", one, managedIdentity: "core/0.9.0-rc.7+source-a");
-        var model = new MIGraphXCacheMetadata(one, "gpu", "offloadCopy=true", "msgpack", one, managedIdentity: "core/0.9.0-rc.7+source-a");
-        var options = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=false", "msgpack", one, managedIdentity: "core/0.9.0-rc.7+source-a");
-        var native = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=true", "msgpack", zero, managedIdentity: "core/0.9.0-rc.7+source-a");
-        var package = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=true", "msgpack", one, managedIdentity: "core/0.9.0-rc.7+source-b");
+        var baseline = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=true", "msgpack", one, managedIdentity: "core/0.9.0-rc.8+source-a");
+        var model = new MIGraphXCacheMetadata(one, "gpu", "offloadCopy=true", "msgpack", one, managedIdentity: "core/0.9.0-rc.8+source-a");
+        var options = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=false", "msgpack", one, managedIdentity: "core/0.9.0-rc.8+source-a");
+        var native = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=true", "msgpack", zero, managedIdentity: "core/0.9.0-rc.8+source-a");
+        var package = new MIGraphXCacheMetadata(zero, "gpu", "offloadCopy=true", "msgpack", one, managedIdentity: "core/0.9.0-rc.8+source-b");
 
         Assert.Equal(5, new[] { baseline, model, options, native, package }.Select(value => value.ComputeKey()).Distinct(StringComparer.Ordinal).Count());
         Assert.Throws<ArgumentException>(() => new MIGraphXModelCache("relative-cache"));
