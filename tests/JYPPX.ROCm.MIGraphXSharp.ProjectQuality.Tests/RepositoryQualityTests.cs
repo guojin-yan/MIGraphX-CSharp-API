@@ -261,7 +261,7 @@ public sealed class RepositoryQualityTests
         using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m11-runtime-cases.json")));
         var root = matrix.RootElement;
         Assert.Equal("M11", root.GetProperty("stage").GetString());
-        Assert.Equal("0.9.0-rc.5", root.GetProperty("candidateVersion").GetString());
+        Assert.Equal("0.9.0-rc.6", root.GetProperty("candidateVersion").GetString());
         Assert.False(root.GetProperty("authorization").GetProperty("officialFunctionalAuthorized").GetBoolean());
         Assert.False(root.GetProperty("authorization").GetProperty("longRunAuthorized").GetBoolean());
         Assert.False(root.GetProperty("authorization").GetProperty("timingAuthorized").GetBoolean());
@@ -552,6 +552,7 @@ public sealed class RepositoryQualityTests
             "articles/m9-interface-options-cloud-record.md",
             "articles/m10-explainable-c-api-introspection.md",
             "releases/0.9.0-rc.2.md",
+            "releases/0.9.0-rc.6.md",
             "releases/0.9.0-rc.5.md",
             "releases/0.9.0-rc.4.md",
             "releases/0.9.0-rc.3.md",

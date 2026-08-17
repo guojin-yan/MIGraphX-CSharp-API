@@ -89,7 +89,7 @@ EOF
   free -b
   dotnet --info
   if [[ -f /proc/self/cgroup ]]; then cat /proc/self/cgroup; fi
-  if command -v rocminfo >/dev/null 2>&1; then rocminfo | grep -E '^[[:space:]]*(Name|Marketing Name):' || true; fi
+  echo 'gpuRuntimeQuery=not-invoked-by-runner'
 } > "$record/raw/environment.txt"
 
 resolved_native="$(realpath "$native")"
@@ -126,8 +126,10 @@ dotnet build "$project" -c Release --no-restore -p:M11PackageVersion="$version" 
 set +e
 functional_session_timeout=1800
 case_timeout=120
+session_kill_after=10
 session_started_epoch="$(date +%s)"
-timeout --foreground "${functional_session_timeout}s" dotnet run --project "$project" -c Release --no-build -p:M11PackageVersion="$version" -- \
+# Preserve timeout's process group so TERM and KILL reach the native probe worker.
+timeout --kill-after="${session_kill_after}s" "${functional_session_timeout}s" dotnet run --project "$project" -c Release --no-build -p:M11PackageVersion="$version" -- \
   --native "$resolved_native" --hip "$resolved_hip" --fixtures "$fixtures" --record "$record" \
   --output "$record/raw/m11-functional.json" --phase functional --source-sha "$source_sha" --expected-version "$version" \
   > "$record/raw/functional-stdout.log" 2> "$record/raw/functional-stderr.log"
@@ -138,7 +140,7 @@ if [[ $functional_exit -eq 0 ]]; then
   remaining_seconds=$(( functional_session_timeout - elapsed_seconds ))
   restart_timeout=$(( remaining_seconds < case_timeout ? remaining_seconds : case_timeout ))
   if [[ $restart_timeout -gt 0 ]]; then
-    timeout --foreground "${restart_timeout}s" dotnet run --project "$project" -c Release --no-build -p:M11PackageVersion="$version" -- \
+    timeout --kill-after="${session_kill_after}s" "${restart_timeout}s" dotnet run --project "$project" -c Release --no-build -p:M11PackageVersion="$version" -- \
       --native "$resolved_native" --hip "$resolved_hip" --fixtures "$fixtures" --record "$record" \
       --output "$record/raw/m11-cache-restart.json" --phase cache-restart --source-sha "$source_sha" --expected-version "$version" \
       > "$record/raw/cache-restart-stdout.log" 2> "$record/raw/cache-restart-stderr.log"
@@ -162,6 +164,9 @@ cat > "$record/raw/run-metadata.json" <<EOF
   "cacheRestartExitCode": $restart_exit,
   "functionalSessionTimeoutSeconds": $functional_session_timeout,
   "caseTimeoutSeconds": $case_timeout,
+  "sessionKillAfterSeconds": $session_kill_after,
+  "gpuRuntimeQueryExecuted": false,
+  "caseStageTraceFile": "raw/case-stages.jsonl",
   "longRunExecuted": false,
   "timingExecuted": false,
   "environmentChanged": false

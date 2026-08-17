@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp now has an unpublished M11 `0.9.0-rc.5` local candidate. M11 adds no public API: it synchronizes reviewed M10 post-build evidence and adds deterministic M4-M6 fixtures, a package-only probe, independent review, frozen functional/long-run/timing thresholds, and an explicit Windows policy. The repository default remains `0.0.0`; no package is published.
+MIGraphXSharp now has an unpublished M11 `0.9.0-rc.6` local candidate. M11 adds no public API: it synchronizes reviewed M10 post-build evidence and adds deterministic M4-M6 fixtures, a package-only probe, independent review, frozen functional/long-run/timing thresholds, and an explicit Windows policy. The repository default remains `0.0.0`; no package is published.
 
 ## Status
 
@@ -18,7 +18,7 @@ MIGraphXSharp now has an unpublished M11 `0.9.0-rc.5` local candidate. M11 adds 
 - M8 records a versioned compatibility baseline for core and adapter across all 15 TFMs. The baseline is intentionally reviewable during `0.x.x` interface expansion; candidate version, assembly/file/informational version, cache identity, exact package dependencies, source commit, product SBOM, and provenance remain one local evidence chain.
 - M9 projects five inference-option entry points for ONNX Loop defaults/limits, external-data roots, fast-math, and exhaustive tuning. The aggregate map is 80 supported, 111 planned, and 1 unsupported. At pushed SHA `346cdd0b01a7f8039f5deb93058928403fccc7dd`, ROCm 7.2.1 accepted the five recorded values and completed a reviewed gfx1100 Identity compile/run with an exact reference match.
 - M10 projects four entry points: a strict-UTF-8 copied ONNX parser-registry snapshot plus explicit argument/program native content comparison. Shape equality remains planned. Its post-build external record at pushed `e2386dc69e7640f8ff12d95284e56c3f02c87938` independently promoted the four adopted entry points to `runtime-executed` for one exact host/build.
-- M11 keeps core `27 types / 160 members`, adapter `3 / 11`, and aggregate `84/107/1`. The rc.4 bounded functional diagnostic record passed M4/M6 but exposed a malformed single-node dynamic fixture; rc.5 has no official runtime promotion. Isolation negatives, long-run, and timing remain `runtime-deferred`. Fixed MIGraphX 2.15.0 Windows runtime is `not-applicable` because AMD documents MIGraphX for Linux and marks Windows AI libraries unavailable.
+- M11 keeps core `27 types / 160 members`, adapter `3 / 11`, and aggregate `84/107/1`. The rc.5 official diagnostic session passed registry/lifecycle checks, then timed out in the first file/buffer iteration and exposed a missing TERM-to-KILL escalation. rc.6 adds durable per-stage tracing and a fixed 10-second kill escalation, but has no official runtime promotion. Isolation negatives, long-run, and timing remain `runtime-deferred`. Fixed MIGraphX 2.15.0 Windows runtime is `not-applicable` because AMD documents MIGraphX for Linux and marks Windows AI libraries unavailable.
 - Static shape metadata includes mapped scalar type, lengths, strides, rank, checked element/byte counts, standard, and packed flags. Typed arguments own copied host memory; parameter maps deep-copy arguments; run outputs are copied before native collections are released.
 - One normalized model emits 158 matching `LibraryImport` and `DllImport` EntryPoints. The C-variadic `migraphx_operation_create` is explicitly unsupported instead of receiving a guessed ABI.
 - All 159 header functions match the hash-verified official ELF; its additional private test export is separately classified. These M3 results are `statically-verified`, not official runtime execution.
@@ -33,7 +33,7 @@ MIGraphXSharp now has an unpublished M11 `0.9.0-rc.5` local candidate. M11 adds 
 Build the local-only managed candidate package:
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.5
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.6
 ```
 
 The frozen NuGet/project/assembly name is `JYPPX.ROCm.MIGraphX.CSharp.API`; the C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Do not publish this engineering candidate.
@@ -84,7 +84,7 @@ The loader keeps the established explicit path, application RID directory, appli
 
 ## M8 API baseline and prerelease readiness
 
-Schema 2 snapshots baseline signatures, defaults, generic constraints, nullable metadata, identity, and identical 15-TFM availability. Intentional `0.x.x` API additions update the snapshots through review. The managed SemVer is independent of ROCm/MIGraphX; changing the managed package does not update APT. Historical `0.9.0-rc.1`, `0.9.0-rc.2`, `0.9.0-rc.3`, and `0.9.0-rc.4` identities remain immutable; the rc.5 adapter restores exact `[0.9.0-rc.5]` core and `[0.9.1]` HipSharp packages from a mapped local feed.
+Schema 2 snapshots baseline signatures, defaults, generic constraints, nullable metadata, identity, and identical 15-TFM availability. Intentional `0.x.x` API additions update the snapshots through review. The managed SemVer is independent of ROCm/MIGraphX; changing the managed package does not update APT. Historical `0.9.0-rc.1`, `0.9.0-rc.2`, `0.9.0-rc.3`, `0.9.0-rc.4`, and `0.9.0-rc.5` identities remain immutable; the rc.6 adapter restores exact `[0.9.0-rc.6]` core and `[0.9.1]` HipSharp packages from a mapped local feed.
 
 The candidate gate produces per-file managed SBOM data, local unsigned provenance, NuGet ZIP hashes, and separate normalized content hashes. The authorized `346cdd0...` session revalidated M1/M2 and executed the M9 option smoke; M4-M6, system-native negatives, restart/long-run work, and performance remain unexecuted beyond their stated historical scope. `release-candidate-local` is not `release-ready` or published.
 
@@ -102,7 +102,7 @@ Local fake-native tests cover strict UTF-8, overflow, missing exports, mid-copy 
 
 M11 generates project-owned Identity, ordered Identity+Neg multi-output, and dynamic Identity ONNX fixtures with frozen hashes. `compatibility/m11-runtime-cases.json` records each M4-M6 success/rejection boundary, synchronization/copy boundary, ownership, iteration, timeout, prerequisite, evidence level, and uncovered claim. `tools/m11-runtime-probe` restores only exact core/adapter/HipSharp packages and can write only `runtime-candidate-executed-review-required`; a separate reviewer recomputes identities and case results.
 
-The rc.4 bounded functional record is diagnostic only; rc.5 has no official host/time-window execution. Fresh-process cache cases, official isolation negatives, the five-hour long-run layer, and timing samples remain unexecuted for the new candidate. Enqueue is not inference timing, device pointers are not a zero-copy claim, and no performance comparison is permitted. See the [M11 hardening plan](docs/validation/m11-runtime-hardening-plan.md).
+The rc.5 failed bounded functional record is diagnostic only; rc.6 has no official host/time-window execution. Fresh-process cache cases, official isolation negatives, the five-hour long-run layer, and timing samples remain unexecuted for the new candidate. Enqueue is not inference timing, device pointers are not a zero-copy claim, and no performance comparison is permitted. See the [M11 hardening plan](docs/validation/m11-runtime-hardening-plan.md).
 
 ## Build
 
@@ -122,11 +122,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.5 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.5
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.5 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.5 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.5 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.6 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.6
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.6 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.6 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.6 -NoBuild
 ```
 
 Build, static official-ELF evidence, fake-native execution, and official MIGraphX runtime execution remain separate evidence levels. The M1/M2 runtime claim is limited to the exact pushed SHA, environment, model, shape, and synchronous offload-copy path recorded in the [official runtime summary](docs/validation/m1-m2-official-runtime.md).

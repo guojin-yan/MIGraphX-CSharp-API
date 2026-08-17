@@ -1,6 +1,6 @@
 # M11 official-runtime hardening plan
 
-M11 is `runtime-deferred`. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.5` candidate requires a fresh authorization naming its final source and package identities before any official host execution, long-run, timing, publication, tag, release, Pages deployment, or Actions run.
+M11 is `runtime-deferred`. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.6` candidate requires a fresh authorization naming its final source and package identities before any official host execution, long-run, timing, publication, tag, release, Pages deployment, or Actions run.
 
 ## Evidence starting point
 
@@ -10,7 +10,7 @@ M11 does not adopt any C API item or change the public surface. The expected bas
 
 ## Candidate and fixtures
 
-Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.5` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
+Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.6` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
 
 `eng/generate-m11-fixtures.ps1` creates three deterministic, project-owned Apache-2.0 ONNX fixtures:
 
@@ -24,7 +24,9 @@ The binaries are generated into `artifacts/`, never tracked or packed. Registry 
 
 ## Bounded functional layer
 
-The functional layer has a frozen 1,800-second session timeout, 120-second default case timeout, three iterations for repeated positive cases, zero unexpected errors, zero output mismatches, and zero remaining cache temporary files. Its case matrix records fixture identity, public API path, expected boundary, synchronization and copy boundaries, ownership, prerequisites, environment-change requirement, evidence level, and every uncovered boundary.
+The functional layer has a frozen 1,800-second session timeout, a process-group-wide 10-second TERM-to-KILL escalation, a 120-second default case timeout, three iterations for repeated positive cases, zero unexpected errors, zero output mismatches, and zero remaining cache temporary files. The file/buffer path writes durable JSONL markers around parse, shape, compile, argument/map, run, readback, content comparison, and each resource teardown so a killed native worker still leaves a precise last-stage boundary. Its case matrix records fixture identity, public API path, expected boundary, synchronization and copy boundaries, ownership, prerequisites, environment-change requirement, evidence level, and every uncovered boundary.
+
+The runner does not invoke `rocminfo`, `rocm-smi`, or another GPU runtime inventory utility. Those observations belong to a separately bounded preflight because the rc.5 environment demonstrated that a passive inventory process can enter uninterruptible kernel state. The functional probe continues to load only the explicitly hash-verified MIGraphX and HIP ELF paths.
 
 M4 covers explicit lifecycle and Dispose, file/buffer parsing, parameter/output snapshots, typed owned arguments, exact maps, compile/run/deep copy, and the two-output Identity+Neg order and independent lifetime. Safe negatives are post-Dispose access, wrong input names, value-count mismatch, and uncompiled Run. A second official native root remains deferred.
 

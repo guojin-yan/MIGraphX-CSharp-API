@@ -2,7 +2,7 @@
   "$schema": "./schemas/m11-runtime-cases.schema.json",
   "schemaVersion": "1.0.0",
   "stage": "M11",
-  "candidateVersion": "0.9.0-rc.5",
+  "candidateVersion": "0.9.0-rc.6",
   "authorization": {
     "officialFunctionalAuthorized": false,
     "longRunAuthorized": false,
@@ -35,6 +35,7 @@
   "thresholds": {
     "functional": {
       "sessionTimeoutSeconds": 1800,
+      "killAfterSeconds": 10,
       "defaultCaseTimeoutSeconds": 120,
       "iterations": 3,
       "allowedUnexpectedErrors": 0,
@@ -83,7 +84,7 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "uncoveredBoundary": "No rc.3 official host authorization."
+      "uncoveredBoundary": "The rc.5 session passed this case but failed before a complete reviewed functional result; rc.6 has no official execution."
     },
     {
       "id": "m4-file-buffer-reference",
@@ -100,7 +101,7 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "uncoveredBoundary": "The M10 Identity run did not exercise the complete M4 object sequence."
+      "uncoveredBoundary": "The rc.5 session timed out in this sequence without localizing the blocking native stage; rc.6 records durable per-stage start/completion markers."
     },
     {
       "id": "m4-multi-output-order-lifetime",
@@ -168,7 +169,7 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "uncoveredBoundary": "Accepted-shape reference outputs are not official rc.3 evidence yet."
+      "uncoveredBoundary": "Accepted-shape reference outputs are not official rc.6 evidence yet."
     },
     {
       "id": "m5-dynamic-overrides",

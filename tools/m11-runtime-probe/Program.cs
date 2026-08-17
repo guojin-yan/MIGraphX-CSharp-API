@@ -111,6 +111,7 @@ internal sealed class ProbeRunner
     private readonly byte[] identityModel;
     private readonly byte[] multiOutputModel;
     private readonly byte[] dynamicIdentityModel;
+    private readonly CaseStageTrace stageTrace;
 
     internal ProbeRunner(ProbeOptions options, ProbeReport report)
     {
@@ -122,6 +123,7 @@ internal sealed class ProbeRunner
         identityModel = File.ReadAllBytes(identityPath);
         multiOutputModel = File.ReadAllBytes(multiOutputPath);
         dynamicIdentityModel = File.ReadAllBytes(dynamicIdentityPath);
+        stageTrace = new CaseStageTrace(Path.Combine(options.RecordDirectory, "raw", "case-stages.jsonl"));
         cacheRoot = Path.GetFullPath(Path.Combine(options.RecordDirectory, "cache"));
         var recordPrefix = options.RecordDirectory.EndsWith(Path.DirectorySeparatorChar)
             ? options.RecordDirectory
@@ -135,6 +137,7 @@ internal sealed class ProbeRunner
     internal async Task RunFunctionalAsync()
     {
         Directory.CreateDirectory(cacheRoot);
+        stageTrace.Initialize();
         await Run("m11-registry-before", () =>
         {
             var names = MIGraphXOnnxWorkflow.GetRegisteredOperators(options.NativePath);
@@ -150,17 +153,26 @@ internal sealed class ProbeRunner
             Require(!program.IsCompiled, "A new program must be uncompiled.");
             return Detail(("disposedDeterministically", true));
         });
-        await Run("m4-file-buffer-reference", 3, _ =>
+        await Run("m4-file-buffer-reference", 3, iteration =>
         {
-            var fromFile = RunIdentity(identityPath, null, IdentityInput);
-            var fromBuffer = RunIdentity(null, identityModel, IdentityInput);
-            Require(fromFile.Output.SequenceEqual(IdentityInput), "File Identity reference mismatch.");
-            Require(fromBuffer.Output.SequenceEqual(IdentityInput), "Buffer Identity reference mismatch.");
-            using var firstOptions = new MIGraphXOnnxOptions(options.NativePath);
-            using var secondOptions = new MIGraphXOnnxOptions(options.NativePath);
-            using var first = MIGraphXProgram.ParseOnnxFile(identityPath, firstOptions);
-            using var second = MIGraphXProgram.ParseOnnxBuffer(identityModel, secondOptions);
-            Require(first.HasSameNativeContent(second), "Independent file/buffer parses differ in native program content.");
+            var traceIteration = iteration + 1;
+            stageTrace.Write("m4-file-buffer-reference", traceIteration, "iteration", "started");
+            var fromFile = RunIdentityWithTrace(traceIteration, "file", identityPath, null, IdentityInput);
+            var fromBuffer = RunIdentityWithTrace(traceIteration, "buffer", null, identityModel, IdentityInput);
+            stageTrace.Run("m4-file-buffer-reference", traceIteration, "reference-check", () =>
+            {
+                Require(fromFile.Output.SequenceEqual(IdentityInput), "File Identity reference mismatch.");
+                Require(fromBuffer.Output.SequenceEqual(IdentityInput), "Buffer Identity reference mismatch.");
+            });
+            {
+                using var firstOptions = stageTrace.Own("m4-file-buffer-reference", traceIteration, "equivalence.file-options", () => new MIGraphXOnnxOptions(options.NativePath));
+                using var secondOptions = stageTrace.Own("m4-file-buffer-reference", traceIteration, "equivalence.buffer-options", () => new MIGraphXOnnxOptions(options.NativePath));
+                using var first = stageTrace.Own("m4-file-buffer-reference", traceIteration, "equivalence.file-parse", () => MIGraphXProgram.ParseOnnxFile(identityPath, firstOptions.Value));
+                using var second = stageTrace.Own("m4-file-buffer-reference", traceIteration, "equivalence.buffer-parse", () => MIGraphXProgram.ParseOnnxBuffer(identityModel, secondOptions.Value));
+                stageTrace.Run("m4-file-buffer-reference", traceIteration, "equivalence.compare", () =>
+                    Require(first.Value.HasSameNativeContent(second.Value), "Independent file/buffer parses differ in native program content."));
+            }
+            stageTrace.Write("m4-file-buffer-reference", traceIteration, "iteration", "completed");
             return Detail(("inputName", fromFile.InputName), ("shape", fromFile.Shape), ("file", fromFile.Output), ("buffer", fromBuffer.Output));
         });
         await Run("m4-multi-output-order-lifetime", 3, _ =>
@@ -528,6 +540,29 @@ internal sealed class ProbeRunner
         return new IdentityResult(parameter.Key, parameter.Value.Lengths.ToArray(), outputs.Single().ToArray<float>());
     }
 
+    private IdentityResult RunIdentityWithTrace(int iteration, string source, string? filePath, byte[]? model, float[] input)
+    {
+        const string caseId = "m4-file-buffer-reference";
+        using var onnxOptions = stageTrace.Own(caseId, iteration, $"{source}.options", () => new MIGraphXOnnxOptions(options.NativePath));
+        using var program = stageTrace.Own(caseId, iteration, $"{source}.parse", () => filePath is not null
+            ? MIGraphXProgram.ParseOnnxFile(filePath, onnxOptions.Value)
+            : MIGraphXProgram.ParseOnnxBuffer(model!, onnxOptions.Value));
+        var parameter = stageTrace.Run(caseId, iteration, $"{source}.shape", () => program.Value.GetParameterShapes().Single());
+        Require(parameter.Value.Lengths.SequenceEqual(new long[] { 1, 4 }), "Identity input shape mismatch.");
+        using (var target = stageTrace.Own(caseId, iteration, $"{source}.target", () => new MIGraphXTarget(options.NativePath)))
+        using (var compileOptions = stageTrace.Own(caseId, iteration, $"{source}.compile-options", () => new MIGraphXCompileOptions(options.NativePath, offloadCopy: true)))
+        {
+            stageTrace.Run(caseId, iteration, $"{source}.compile", () => program.Value.Compile(target.Value, compileOptions.Value));
+        }
+        using var argument = stageTrace.Own(caseId, iteration, $"{source}.argument", () => MIGraphXArgument.Create(options.NativePath, parameter.Value, input));
+        using var map = stageTrace.Own(caseId, iteration, $"{source}.parameter-map", () => new MIGraphXParameterMap(options.NativePath));
+        stageTrace.Run(caseId, iteration, $"{source}.parameter-map-add", () => map.Value.Add(parameter.Key, argument.Value));
+        using var outputs = stageTrace.Own(caseId, iteration, $"{source}.run", () => program.Value.Run(map.Value));
+        stageTrace.Run(caseId, iteration, $"{source}.output-count", () => Require(outputs.Value.Count == 1, "Identity output count mismatch."));
+        var output = stageTrace.Run(caseId, iteration, $"{source}.readback", () => outputs.Value.Single().ToArray<float>());
+        return new IdentityResult(parameter.Key, parameter.Value.Lengths.ToArray(), output);
+    }
+
     private float[] RunStaticOverride(long[] dimensions, float[] input)
     {
         using var onnxOptions = new MIGraphXOnnxOptions(options.NativePath);
@@ -661,6 +696,111 @@ internal sealed class ProbeRunner
         => value as Dictionary<string, object?> ?? (value is null ? null : Detail(("value", value)));
 
     private sealed record IdentityResult(string InputName, long[] Shape, float[] Output);
+}
+
+internal sealed class CaseStageTrace
+{
+    private static readonly JsonSerializerOptions JsonOptions = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    private readonly object sync = new();
+    private readonly string path;
+    private long sequence;
+
+    internal CaseStageTrace(string path) => this.path = path;
+
+    internal void Initialize()
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+        stream.Flush(true);
+    }
+
+    internal void Write(string caseId, int iteration, string stage, string state, string? exception = null)
+    {
+        var entry = new CaseStageEntry(
+            "1.0.0",
+            caseId,
+            iteration,
+            Interlocked.Increment(ref sequence),
+            stage,
+            state,
+            DateTimeOffset.UtcNow,
+            exception);
+        var line = JsonSerializer.Serialize(entry, JsonOptions) + Environment.NewLine;
+        lock (sync)
+        {
+            using var stream = new FileStream(path, FileMode.Append, FileAccess.Write, FileShare.Read);
+            using var writer = new StreamWriter(stream, new UTF8Encoding(false), leaveOpen: true);
+            writer.Write(line);
+            writer.Flush();
+            stream.Flush(true);
+        }
+    }
+
+    internal T Run<T>(string caseId, int iteration, string stage, Func<T> action)
+    {
+        Write(caseId, iteration, stage, "started");
+        try
+        {
+            var value = action();
+            Write(caseId, iteration, stage, "completed");
+            return value;
+        }
+        catch (Exception exception)
+        {
+            Write(caseId, iteration, stage, "failed", exception.GetType().FullName);
+            throw;
+        }
+    }
+
+    internal void Run(string caseId, int iteration, string stage, Action action)
+        => Run<object?>(caseId, iteration, stage, () =>
+        {
+            action();
+            return null;
+        });
+
+    internal TracedResource<T> Own<T>(string caseId, int iteration, string stage, Func<T> factory) where T : class, IDisposable
+        => new(this, caseId, iteration, stage, Run(caseId, iteration, stage, factory));
+
+    internal sealed class TracedResource<T> : IDisposable where T : class, IDisposable
+    {
+        private readonly CaseStageTrace trace;
+        private readonly string caseId;
+        private readonly int iteration;
+        private readonly string stage;
+        private T? value;
+
+        internal TracedResource(CaseStageTrace trace, string caseId, int iteration, string stage, T value)
+        {
+            this.trace = trace;
+            this.caseId = caseId;
+            this.iteration = iteration;
+            this.stage = stage;
+            this.value = value;
+        }
+
+        internal T Value => value ?? throw new ObjectDisposedException(stage);
+
+        public void Dispose()
+        {
+            var owned = value;
+            value = default;
+            if (owned is not null)
+            {
+                trace.Run(caseId, iteration, $"{stage}.dispose", owned.Dispose);
+            }
+        }
+    }
+
+    private sealed record CaseStageEntry(
+        string SchemaVersion,
+        string CaseId,
+        int Iteration,
+        long Sequence,
+        string Stage,
+        string State,
+        DateTimeOffset TimestampUtc,
+        string? Exception);
 }
 
 internal sealed record ProbeOptions(

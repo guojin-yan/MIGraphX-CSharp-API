@@ -10,7 +10,7 @@ $schemaPath = Join-Path $root 'compatibility\schemas\m11-runtime-cases.schema.js
 $matrixText = Get-Content -Raw -LiteralPath $matrixPath
 if (-not ($matrixText | Test-Json -SchemaFile $schemaPath)) { throw 'M11 runtime cases do not match their JSON schema.' }
 $matrix = $matrixText | ConvertFrom-Json
-if ($matrix.stage -ne 'M11' -or $matrix.candidateVersion -ne '0.9.0-rc.5') { throw 'M11 candidate identity drifted.' }
+if ($matrix.stage -ne 'M11' -or $matrix.candidateVersion -ne '0.9.0-rc.6') { throw 'M11 candidate identity drifted.' }
 if ($matrix.authorization.officialFunctionalAuthorized -ne $false -or
     $matrix.authorization.longRunAuthorized -ne $false -or
     $matrix.authorization.timingAuthorized -ne $false -or
@@ -18,6 +18,7 @@ if ($matrix.authorization.officialFunctionalAuthorized -ne $false -or
     throw 'M11 must remain unauthorized until a new Owner decision is recorded.'
 }
 if ($matrix.thresholds.functional.sessionTimeoutSeconds -ne 1800 -or
+    $matrix.thresholds.functional.killAfterSeconds -ne 10 -or
     $matrix.thresholds.functional.iterations -ne 3 -or
     $matrix.thresholds.longRun.hostReservationMinutes -ne 300 -or
     $matrix.thresholds.timing.warmups -ne 20 -or
@@ -81,16 +82,20 @@ if ($probeProject.Contains('ProjectReference', [StringComparison]::Ordinal)) { t
 $probeSource = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\Program.cs')
 if ($probeSource.Contains('runtime-executed', [StringComparison]::Ordinal) -or
     -not $probeSource.Contains('runtime-candidate-executed-review-required', [StringComparison]::Ordinal) -or
+    -not $probeSource.Contains('case-stages.jsonl', [StringComparison]::Ordinal) -or
+    -not $probeSource.Contains('equivalence.compare', [StringComparison]::Ordinal) -or
     -not $probeSource.Contains('m5-cache-fresh-process-hit', [StringComparison]::Ordinal) -or
     -not $probeSource.Contains('m6-device-input-reference', [StringComparison]::Ordinal)) {
     throw 'M11 runner evidence label or required cases are incomplete.'
 }
 $runScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\run.sh')
-foreach ($required in @('source checkout is not detached', 'sha256sum', 'timeout --foreground', 'functional_session_timeout=1800', 'case_timeout=120', 'runtime-candidate-executed-review-required', 'functionalExitCode', 'cacheRestartExitCode')) {
+foreach ($required in @('source checkout is not detached', 'sha256sum', 'timeout --kill-after=', 'functional_session_timeout=1800', 'case_timeout=120', 'session_kill_after=10', 'gpuRuntimeQuery=not-invoked-by-runner', 'runtime-candidate-executed-review-required', 'functionalExitCode', 'cacheRestartExitCode', 'caseStageTraceFile')) {
     if (-not $runScript.Contains($required, [StringComparison]::Ordinal)) { throw "M11 runner identity gate is missing: $required" }
 }
+if ($runScript.Contains('timeout --foreground', [StringComparison]::Ordinal)) { throw 'M11 runner must time out the entire probe process group.' }
+if ($runScript.Contains('rocminfo', [StringComparison]::Ordinal)) { throw 'M11 runner must not invoke a GPU runtime inventory utility.' }
 $reviewScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\review.ps1')
-foreach ($required in @('normalizedContentSha256', 'functionalSessionTimeoutSeconds', 'iterationDurationMilliseconds', 'artifactHashesRecomputed', 'sensitiveScanPassed', "reviewedEvidence = 'runtime-executed'")) {
+foreach ($required in @('normalizedContentSha256', 'functionalSessionTimeoutSeconds', 'sessionKillAfterSeconds', 'iterationDurationMilliseconds', 'caseStageTraceValidated', 'artifactHashesRecomputed', 'sensitiveScanPassed', "reviewedEvidence = 'runtime-executed'")) {
     if (-not $reviewScript.Contains($required, [StringComparison]::Ordinal)) { throw "M11 independent review is missing: $required" }
 }
 foreach ($path in @(
@@ -99,7 +104,8 @@ foreach ($path in @(
     'tools\m11-runtime-probe\Program.cs',
     'tools\m11-runtime-probe\run.sh',
     'tools\m11-runtime-probe\review.ps1',
-    'tools\m11-runtime-probe\README.md'
+    'tools\m11-runtime-probe\README.md',
+    'docs\releases\0.9.0-rc.6.md'
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $root $path) -PathType Leaf)) { throw "M11 deliverable is missing: $path" }
 }
