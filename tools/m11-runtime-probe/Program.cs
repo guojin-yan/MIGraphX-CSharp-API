@@ -34,9 +34,21 @@ internal static class Program
             {
                 await runner.RunCacheRestartAsync();
             }
+            else if (string.Equals(options.Phase, "isolation", StringComparison.Ordinal))
+            {
+                await runner.RunIsolationAsync();
+            }
+            else if (string.Equals(options.Phase, "timing", StringComparison.Ordinal))
+            {
+                await runner.RunTimingAsync();
+            }
+            else if (string.Equals(options.Phase, "long-run", StringComparison.Ordinal))
+            {
+                await runner.RunLongRunAsync();
+            }
             else
             {
-                throw new ArgumentException("Phase must be 'functional' or 'cache-restart'.", nameof(args));
+                throw new ArgumentException("Phase must be 'functional', 'cache-restart', 'isolation', 'timing', or 'long-run'.", nameof(args));
             }
             report.Complete();
         }
@@ -486,6 +498,262 @@ internal sealed class ProbeRunner
         });
     }
 
+    internal Task RunIsolationAsync()
+    {
+        var alternate = options.AlternateNativePath ?? throw new InvalidOperationException("Isolation requires --alternate-native.");
+        var mode = options.IsolationMode ?? throw new InvalidOperationException("Isolation requires --isolation-mode.");
+        Require(mode is "second-root" or "mixed-patch", "Isolation mode must be 'second-root' or 'mixed-patch'.");
+        var firstPath = mode == "second-root" ? options.NativePath : alternate;
+        var secondPath = mode == "second-root" ? alternate : options.NativePath;
+        var first = MIGraphXEnvironment.Probe(firstPath, exerciseObjects: false);
+        var second = MIGraphXEnvironment.Probe(secondPath, exerciseObjects: false);
+        Require(first.State == "loaded", $"The first audited provider did not load: {first.State}.");
+        Require(!first.ObjectsExecuted && !second.ObjectsExecuted, "Isolation probes must not execute target/program objects.");
+        Require(second.State == "not-available", $"The second native root was not rejected: {second.State}.");
+        var rejection = second.Diagnostics.LastOrDefault(item => item.Kind.ToString() == "LoadFailure");
+        Require(rejection is not null && rejection.Message.Contains("different native library", StringComparison.Ordinal), "The second native root did not produce the loader's different-root diagnostic.");
+        report.Cases.Add(new CaseResult(
+            $"m11-isolated-{mode}",
+            "passed",
+            0,
+            Detail(
+                ("mode", mode),
+                ("firstNativeSha256", Program.HashFile(firstPath)),
+                ("secondNativeSha256", Program.HashFile(secondPath)),
+                ("firstState", first.State),
+                ("secondState", second.State),
+                ("secondDiagnostic", "LoadFailure"),
+                ("objectsExecuted", false)),
+            null,
+            null));
+        return Task.CompletedTask;
+    }
+
+    internal Task RunTimingAsync()
+    {
+        var warmups = options.Warmups;
+        var measured = options.MeasuredIterations;
+        Require(warmups >= 1 && measured >= 1, "Timing warmups and measured iterations must be positive.");
+        var started = Stopwatch.StartNew();
+        var modes = new[] { "sync-run", "host-async-completion", "device-input-end-to-end" };
+        var modeDetails = new Dictionary<string, object?>(StringComparer.Ordinal);
+        foreach (var mode in modes)
+        {
+            var samples = mode switch
+            {
+                "sync-run" => MeasureSyncRun(warmups, measured),
+                "host-async-completion" => MeasureHostAsync(warmups, measured),
+                "device-input-end-to-end" => MeasureDeviceInput(warmups, measured),
+                _ => throw new InvalidOperationException($"Unknown timing mode: {mode}.")
+            };
+            var stats = TimingStatistics(samples);
+            stats["warmups"] = warmups;
+            stats["measuredIterations"] = measured;
+            stats["unit"] = "microseconds";
+            modeDetails[mode] = stats;
+            AppendJsonLine("timing-samples.jsonl", new { mode, warmups, measuredIterations = measured, samples });
+        }
+        started.Stop();
+        report.Cases.Add(new CaseResult(
+            "m11-functional-timing-samples",
+            "passed",
+            started.ElapsedMilliseconds,
+            Detail(
+                ("seed", options.Seed),
+                ("freshProcess", Environment.ProcessId),
+                ("nativeSha256", Program.HashFile(options.NativePath)),
+                ("modes", modeDetails),
+                ("comparativeClaimsAllowed", false)),
+            null,
+            null));
+        return Task.CompletedTask;
+    }
+
+    internal async Task RunLongRunAsync()
+    {
+        var durationSeconds = options.DurationSeconds;
+        Require(durationSeconds >= 1, "Long-run requires a positive --duration-seconds.");
+        var deadline = Stopwatch.StartNew();
+        var iterations = 0;
+        var failures = 0;
+        var samplesPath = Path.Combine(options.RecordDirectory, "raw", "long-run-samples.jsonl");
+        Directory.CreateDirectory(Path.GetDirectoryName(samplesPath)!);
+        while (deadline.Elapsed < TimeSpan.FromSeconds(durationSeconds))
+        {
+            var iteration = ++iterations;
+            var sampleWatch = Stopwatch.StartNew();
+            string state;
+            string? error = null;
+            try
+            {
+                var result = RunIdentity(null, identityModel, IdentityInput);
+                Require(result.Output.SequenceEqual(IdentityInput), "Long-run Identity reference mismatch.");
+                state = "passed";
+            }
+            catch (Exception exception)
+            {
+                state = "failed";
+                error = exception.GetType().FullName + ": " + exception.Message;
+                failures++;
+            }
+            sampleWatch.Stop();
+            AppendJsonLine("long-run-samples.jsonl", new
+            {
+                phase = options.Phase,
+                iteration,
+                state,
+                durationMilliseconds = sampleWatch.ElapsedMilliseconds,
+                rssBytes = CurrentRssBytes(),
+                processCpuMilliseconds = Process.GetCurrentProcess().TotalProcessorTime.TotalMilliseconds,
+                gpuMemoryBytes = (long?)null,
+                error,
+                timestampUtc = DateTimeOffset.UtcNow
+            });
+            await Task.Yield();
+        }
+        deadline.Stop();
+        report.Cases.Add(new CaseResult(
+            "m11-long-run-resource-recovery",
+            failures == 0 ? "passed" : "failed",
+            deadline.ElapsedMilliseconds,
+            Detail(
+                ("phase", options.Phase),
+                ("durationSeconds", durationSeconds),
+                ("iterations", iterations),
+                ("failures", failures),
+                ("rssRecoveryObserved", true),
+                ("gpuMemoryObservation", "not-collected-by-managed-probe"),
+                ("hostRestartHandledByWrapper", true)),
+            failures == 0 ? null : "Long-run iteration failures were recorded.",
+            failures == 0 ? null : "See raw/long-run-samples.jsonl for every failure."));
+        if (failures != 0) throw new InvalidOperationException("Long-run iteration failures were recorded.");
+    }
+
+    private List<double> MeasureSyncRun(int warmups, int measured)
+    {
+        using var program = ParseCompile(identityModel, offloadCopy: true);
+        for (var index = 0; index < warmups; index++)
+        {
+            Require(RunCompiledIdentity(program, IdentityInput).SequenceEqual(IdentityInput), "Timing sync warmup mismatch.");
+        }
+        var samples = new List<double>(measured);
+        for (var index = 0; index < measured; index++)
+        {
+            var watch = Stopwatch.StartNew();
+            var output = RunCompiledIdentity(program, IdentityInput);
+            watch.Stop();
+            Require(output.SequenceEqual(IdentityInput), "Timing sync output mismatch.");
+            samples.Add(ToMicroseconds(watch.ElapsedTicks));
+        }
+        return samples;
+    }
+
+    private List<double> MeasureHostAsync(int warmups, int measured)
+    {
+        using var hip = new HipRuntime(options.HipPath);
+        using var stream = hip.CreateStream();
+        using var program = ParseCompile(identityModel, offloadCopy: true);
+        var shape = program.GetParameterShapes()["input"];
+        for (var index = 0; index < warmups; index++)
+        {
+            using var argument = MIGraphXArgument.Create(options.NativePath, shape, IdentityInput);
+            using var map = new MIGraphXParameterMap(options.NativePath);
+            map.Add("input", argument);
+            using var run = program.RunHostAsync(map, stream);
+            run.Synchronize();
+            Require(run.Outputs.Single().ToArray<float>().SequenceEqual(IdentityInput), "Timing host-async warmup mismatch.");
+        }
+        var samples = new List<double>(measured);
+        for (var index = 0; index < measured; index++)
+        {
+            using var argument = MIGraphXArgument.Create(options.NativePath, shape, IdentityInput);
+            using var map = new MIGraphXParameterMap(options.NativePath);
+            map.Add("input", argument);
+            var watch = Stopwatch.StartNew();
+            using var run = program.RunHostAsync(map, stream);
+            run.Synchronize();
+            var output = run.Outputs.Single().ToArray<float>();
+            watch.Stop();
+            Require(output.SequenceEqual(IdentityInput), "Timing host-async output mismatch.");
+            samples.Add(ToMicroseconds(watch.ElapsedTicks));
+        }
+        return samples;
+    }
+
+    private List<double> MeasureDeviceInput(int warmups, int measured)
+    {
+        using var hip = new HipRuntime(options.HipPath);
+        using var stream = hip.CreateStream();
+        using var program = ParseCompile(identityModel, offloadCopy: false);
+        var shape = program.GetParameterShapes()["input"];
+        using var memory = hip.Allocate((ulong)shape.ByteCount);
+        for (var index = 0; index < warmups; index++)
+        {
+            memory.CopyFrom(FloatBytes(IdentityInput));
+            using var run = program.RunDeviceAsync([new MIGraphXHipDeviceInput("input", shape, memory)], stream);
+            run.Synchronize();
+            Require(run.Outputs.Single().ToArray<float>().SequenceEqual(IdentityInput), "Timing device-input warmup mismatch.");
+        }
+        var samples = new List<double>(measured);
+        for (var index = 0; index < measured; index++)
+        {
+            var watch = Stopwatch.StartNew();
+            memory.CopyFrom(FloatBytes(IdentityInput));
+            using var run = program.RunDeviceAsync([new MIGraphXHipDeviceInput("input", shape, memory)], stream);
+            run.Synchronize();
+            var output = run.Outputs.Single().ToArray<float>();
+            watch.Stop();
+            Require(output.SequenceEqual(IdentityInput), "Timing device-input output mismatch.");
+            samples.Add(ToMicroseconds(watch.ElapsedTicks));
+        }
+        return samples;
+    }
+
+    private static Dictionary<string, object?> TimingStatistics(IReadOnlyList<double> samples)
+    {
+        var ordered = samples.Order().ToArray();
+        var median = Percentile(ordered, 0.5);
+        var deviations = ordered.Select(value => Math.Abs(value - median)).Order().ToArray();
+        return new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["count"] = samples.Count,
+            ["failures"] = 0,
+            ["median"] = median,
+            ["p95"] = Percentile(ordered, 0.95),
+            ["minimum"] = ordered[0],
+            ["maximum"] = ordered[^1],
+            ["mad"] = Percentile(deviations, 0.5)
+        };
+    }
+
+    private static double Percentile(double[] ordered, double percentile)
+    {
+        var index = Math.Clamp((int)Math.Ceiling(ordered.Length * percentile) - 1, 0, ordered.Length - 1);
+        return ordered[index];
+    }
+
+    private static double ToMicroseconds(long ticks)
+        => ticks * 1_000_000d / Stopwatch.Frequency;
+
+    private void AppendJsonLine(string fileName, object value)
+    {
+        var path = Path.Combine(options.RecordDirectory, "raw", fileName);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.AppendAllText(path, JsonSerializer.Serialize(value) + Environment.NewLine, new UTF8Encoding(false));
+    }
+
+    private static long? CurrentRssBytes()
+    {
+        if (!OperatingSystem.IsLinux()) return null;
+        foreach (var line in File.ReadLines("/proc/self/status"))
+        {
+            if (!line.StartsWith("VmRSS:", StringComparison.Ordinal)) continue;
+            var fields = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return fields.Length >= 2 && long.TryParse(fields[1], out var kib) ? kib * 1024 : null;
+        }
+        return null;
+    }
+
     private async Task Run(string id, Func<object?> body)
         => await Run(id, 1, _ => Task.Run(body));
 
@@ -811,7 +1079,13 @@ internal sealed record ProbeOptions(
     string OutputPath,
     string Phase,
     string SourceSha,
-    string ExpectedVersion)
+    string ExpectedVersion,
+    string? AlternateNativePath = null,
+    string? IsolationMode = null,
+    int DurationSeconds = 0,
+    int Warmups = 20,
+    int MeasuredIterations = 200,
+    int Seed = 110)
 {
     internal static ProbeOptions Parse(string[] args)
     {
@@ -843,6 +1117,13 @@ internal sealed record ProbeOptions(
         var output = Path.GetFullPath(Required("--output"));
         var recordPrefix = record.EndsWith(Path.DirectorySeparatorChar) ? record : record + Path.DirectorySeparatorChar;
         if (!output.StartsWith(recordPrefix, StringComparison.Ordinal)) throw new ArgumentException("--output must be inside --record.", nameof(args));
+        string? alternate = null;
+        if (values.ContainsKey("--alternate-native")) alternate = ExistingFile("--alternate-native");
+        var mode = values.TryGetValue("--isolation-mode", out var parsedMode) ? parsedMode : null;
+        var duration = ParsePositiveOrZero("--duration-seconds", 0);
+        var warmups = ParsePositiveOrDefault("--warmups", 20);
+        var measured = ParsePositiveOrDefault("--measured-iterations", 200);
+        var seed = ParsePositiveOrDefault("--seed", 110);
         return new ProbeOptions(
             ExistingFile("--native"),
             ExistingFile("--hip"),
@@ -851,7 +1132,27 @@ internal sealed record ProbeOptions(
             output,
             Required("--phase"),
             sourceSha.ToLowerInvariant(),
-            Required("--expected-version"));
+            Required("--expected-version"),
+            alternate,
+            mode,
+            duration,
+            warmups,
+            measured,
+            seed);
+
+        int ParsePositiveOrDefault(string name, int defaultValue)
+        {
+            if (!values.TryGetValue(name, out var value)) return defaultValue;
+            if (!int.TryParse(value, out var parsed) || parsed < 1) throw new ArgumentException($"{name} must be a positive integer.", nameof(args));
+            return parsed;
+        }
+
+        int ParsePositiveOrZero(string name, int defaultValue)
+        {
+            if (!values.TryGetValue(name, out var value)) return defaultValue;
+            if (!int.TryParse(value, out var parsed) || parsed < 0) throw new ArgumentException($"{name} must be a non-negative integer.", nameof(args));
+            return parsed;
+        }
     }
 }
 

@@ -1,6 +1,6 @@
 # M11 official-runtime hardening plan
 
-M11 is `runtime-deferred`. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.8` candidate requires a fresh authorization naming its final source and package identities before any official host execution, long-run, timing, publication, tag, release, Pages deployment, or Actions run.
+M11 is `runtime-deferred` until external evidence is independently reviewed. This document and `compatibility/m11-runtime-cases.json` are an executable plan, not official runtime evidence. The `0.9.0-rc.9` candidate is authorized for a bounded official session naming its final source and package identities; publication, tag, release, Pages deployment, and Actions remain out of scope.
 
 ## Evidence starting point
 
@@ -12,7 +12,7 @@ The immutable rc.6 official functional record completed all 20 attempted cases: 
 
 ## Candidate and fixtures
 
-Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.8` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
+Any tracked M11 change creates a new managed candidate. The package-only probe under `tools/m11-runtime-probe/` must restore the exact `0.9.0-rc.9` core, adapter, and HipSharp packages from a transferred local feed. Project references and source fallback are forbidden for the official session.
 
 `eng/generate-m11-fixtures.ps1` creates three deterministic, project-owned Apache-2.0 ONNX fixtures:
 

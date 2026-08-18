@@ -255,16 +255,16 @@ public sealed class RepositoryQualityTests
     }
 
     [Fact]
-    public void M11RuntimePlanIsPackageOnlyReviewRequiredAndUnauthorized()
+    public void M11RuntimePlanIsPackageOnlyReviewRequiredAndAuthorized()
     {
         var compatibility = Path.Combine(RepositoryRoot, "compatibility");
         using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m11-runtime-cases.json")));
         var root = matrix.RootElement;
         Assert.Equal("M11", root.GetProperty("stage").GetString());
-        Assert.Equal("0.9.0-rc.8", root.GetProperty("candidateVersion").GetString());
-        Assert.False(root.GetProperty("authorization").GetProperty("officialFunctionalAuthorized").GetBoolean());
-        Assert.False(root.GetProperty("authorization").GetProperty("longRunAuthorized").GetBoolean());
-        Assert.False(root.GetProperty("authorization").GetProperty("timingAuthorized").GetBoolean());
+        Assert.Equal("0.9.0-rc.9", root.GetProperty("candidateVersion").GetString());
+        Assert.True(root.GetProperty("authorization").GetProperty("officialFunctionalAuthorized").GetBoolean());
+        Assert.True(root.GetProperty("authorization").GetProperty("longRunAuthorized").GetBoolean());
+        Assert.True(root.GetProperty("authorization").GetProperty("timingAuthorized").GetBoolean());
         var cases = root.GetProperty("cases").EnumerateArray().ToArray();
         Assert.True(cases.Length >= 20);
         Assert.All(cases, item => Assert.Contains(item.GetProperty("officialEvidence").GetString(), new[] { "runtime-deferred", "not-applicable" }));

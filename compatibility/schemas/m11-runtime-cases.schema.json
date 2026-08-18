@@ -9,16 +9,16 @@
     "$schema": { "type": "string" },
     "schemaVersion": { "const": "1.0.0" },
     "stage": { "const": "M11" },
-    "candidateVersion": { "const": "0.9.0-rc.8" },
+    "candidateVersion": { "const": "0.9.0-rc.9" },
     "authorization": {
       "type": "object",
       "additionalProperties": false,
       "required": ["officialFunctionalAuthorized", "longRunAuthorized", "timingAuthorized", "environmentChangesAuthorized"],
       "properties": {
-        "officialFunctionalAuthorized": { "const": false },
-        "longRunAuthorized": { "const": false },
-        "timingAuthorized": { "const": false },
-        "environmentChangesAuthorized": { "const": false }
+        "officialFunctionalAuthorized": { "const": true },
+        "longRunAuthorized": { "const": true },
+        "timingAuthorized": { "const": true },
+        "environmentChangesAuthorized": { "const": true }
       }
     },
     "fixtures": {
