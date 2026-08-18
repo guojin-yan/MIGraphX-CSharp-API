@@ -6,14 +6,14 @@ usage() {
   exit 2
 }
 
-repo=''; feed=''; record=''; fixtures=''; native=''; alternate_native=''; hip=''; source_sha=''; version=''; core_sha=''; adapter_sha=''; hipsharp_sha=''; phase=''
+repo=''; feed=''; record=''; fixtures=''; native=''; alternate_native=''; hip=''; source_sha=''; version=''; core_sha=''; adapter_sha=''; hipsharp_sha=''; phase=''; long_run_phase=''
 while [[ $# -gt 0 ]]; do
   [[ $# -ge 2 ]] || usage
   case "$1" in
     --repo) repo="$2" ;; --feed) feed="$2" ;; --record) record="$2" ;; --fixtures) fixtures="$2" ;;
     --native) native="$2" ;; --alternate-native) alternate_native="$2" ;; --hip) hip="$2" ;;
     --source-sha) source_sha="$2" ;; --version) version="$2" ;; --core-sha) core_sha="$2" ;;
-    --adapter-sha) adapter_sha="$2" ;; --hipsharp-sha) hipsharp_sha="$2" ;; --phase) phase="$2" ;;
+    --adapter-sha) adapter_sha="$2" ;; --hipsharp-sha) hipsharp_sha="$2" ;; --phase) phase="$2" ;; --long-run-phase) long_run_phase="$2" ;;
     *) usage ;;
   esac
   shift 2
@@ -28,6 +28,9 @@ done
 [[ "$source_sha" =~ ^[a-f0-9]{40}$ ]] || usage
 [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+-rc\.[0-9]+$ ]] || usage
 [[ "$phase" = isolation || "$phase" = timing || "$phase" = long-run ]] || usage
+if [[ "$phase" = long-run && "$long_run_phase" != preflight && "$long_run_phase" != managed && "$long_run_phase" != host-async && "$long_run_phase" != device-input && "$long_run_phase" != mixed ]]; then
+  usage
+fi
 for hash in "$core_sha" "$adapter_sha" "$hipsharp_sha"; do
   [[ "$hash" =~ ^[a-f0-9]{64}$ ]] || usage
 done
@@ -84,9 +87,13 @@ case "$phase" in
     done
     ;;
   long-run)
-    for phase_name in managed host-async device-input mixed; do
-      run_probe "long-run-$phase_name" 3900 --duration-seconds 3600 || exit 1
-    done
+    case "$long_run_phase" in
+      preflight) run_probe long-run-preflight 720 --duration-seconds 600 --phase-label preflight ;;
+      managed) run_probe long-run-managed 3900 --duration-seconds 3600 --phase-label managed ;;
+      host-async) run_probe long-run-host-async 3900 --duration-seconds 3600 --phase-label host-async ;;
+      device-input) run_probe long-run-device-input 3900 --duration-seconds 3600 --phase-label device-input ;;
+      mixed) run_probe long-run-mixed 2100 --duration-seconds 1800 --phase-label mixed ;;
+    esac
     ;;
 esac
 

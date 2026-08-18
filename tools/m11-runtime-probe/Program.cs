@@ -586,8 +586,7 @@ internal sealed class ProbeRunner
             string? error = null;
             try
             {
-                var result = RunIdentity(null, identityModel, IdentityInput);
-                Require(result.Output.SequenceEqual(IdentityInput), "Long-run Identity reference mismatch.");
+                RunLongRunIteration();
                 state = "passed";
             }
             catch (Exception exception)
@@ -599,7 +598,7 @@ internal sealed class ProbeRunner
             sampleWatch.Stop();
             AppendJsonLine("long-run-samples.jsonl", new
             {
-                phase = options.Phase,
+                phase = options.PhaseLabel,
                 iteration,
                 state,
                 durationMilliseconds = sampleWatch.ElapsedMilliseconds,
@@ -617,7 +616,7 @@ internal sealed class ProbeRunner
             failures == 0 ? "passed" : "failed",
             deadline.ElapsedMilliseconds,
             Detail(
-                ("phase", options.Phase),
+                ("phase", options.PhaseLabel),
                 ("durationSeconds", durationSeconds),
                 ("iterations", iterations),
                 ("failures", failures),
@@ -627,6 +626,62 @@ internal sealed class ProbeRunner
             failures == 0 ? null : "Long-run iteration failures were recorded.",
             failures == 0 ? null : "See raw/long-run-samples.jsonl for every failure."));
         if (failures != 0) throw new InvalidOperationException("Long-run iteration failures were recorded.");
+    }
+
+    private void RunLongRunIteration()
+    {
+        switch (options.PhaseLabel)
+        {
+            case "preflight":
+            case "managed":
+                Require(RunIdentity(null, identityModel, IdentityInput).Output.SequenceEqual(IdentityInput), "Long-run managed Identity reference mismatch.");
+                return;
+            case "host-async":
+                using (var hip = new HipRuntime(options.HipPath))
+                using (var stream = hip.CreateStream())
+                using (var program = ParseCompile(identityModel, offloadCopy: true))
+                using (var argument = MIGraphXArgument.Create(options.NativePath, program.GetParameterShapes()["input"], IdentityInput))
+                using (var map = new MIGraphXParameterMap(options.NativePath))
+                {
+                    map.Add("input", argument);
+                    using var run = program.RunHostAsync(map, stream);
+                    run.Synchronize();
+                    Require(run.Outputs.Single().ToArray<float>().SequenceEqual(IdentityInput), "Long-run host-async Identity reference mismatch.");
+                    return;
+                }
+            case "device-input":
+                using (var hip = new HipRuntime(options.HipPath))
+                using (var stream = hip.CreateStream())
+                using (var program = ParseCompile(identityModel, offloadCopy: false))
+                using (var memory = hip.Allocate((ulong)program.GetParameterShapes()["input"].ByteCount))
+                {
+                    var shape = program.GetParameterShapes()["input"];
+                    memory.CopyFrom(FloatBytes(IdentityInput));
+                    using var run = program.RunDeviceAsync([new MIGraphXHipDeviceInput("input", shape, memory)], stream);
+                    run.Synchronize();
+                    Require(run.Outputs.Single().ToArray<float>().SequenceEqual(IdentityInput), "Long-run device-input Identity reference mismatch.");
+                    return;
+                }
+            case "mixed":
+                Require(RunIdentity(null, identityModel, IdentityInput).Output.SequenceEqual(IdentityInput), "Long-run mixed managed Identity reference mismatch.");
+                RunLongRunHostAsyncIteration();
+                return;
+            default:
+                throw new InvalidOperationException($"Unsupported long-run phase '{options.PhaseLabel}'.");
+        }
+    }
+
+    private void RunLongRunHostAsyncIteration()
+    {
+        using var hip = new HipRuntime(options.HipPath);
+        using var stream = hip.CreateStream();
+        using var program = ParseCompile(identityModel, offloadCopy: true);
+        using var argument = MIGraphXArgument.Create(options.NativePath, program.GetParameterShapes()["input"], IdentityInput);
+        using var map = new MIGraphXParameterMap(options.NativePath);
+        map.Add("input", argument);
+        using var run = program.RunHostAsync(map, stream);
+        run.Synchronize();
+        Require(run.Outputs.Single().ToArray<float>().SequenceEqual(IdentityInput), "Long-run mixed host-async Identity reference mismatch.");
     }
 
     private List<double> MeasureSyncRun(int warmups, int measured)
@@ -1085,7 +1140,8 @@ internal sealed record ProbeOptions(
     int DurationSeconds = 0,
     int Warmups = 20,
     int MeasuredIterations = 200,
-    int Seed = 110)
+    int Seed = 110,
+    string PhaseLabel = "long-run")
 {
     internal static ProbeOptions Parse(string[] args)
     {
@@ -1124,6 +1180,10 @@ internal sealed record ProbeOptions(
         var warmups = ParsePositiveOrDefault("--warmups", 20);
         var measured = ParsePositiveOrDefault("--measured-iterations", 200);
         var seed = ParsePositiveOrDefault("--seed", 110);
+        var phaseLabel = values.TryGetValue("--phase-label", out var parsedPhaseLabel) ? parsedPhaseLabel : Required("--phase");
+        if (phaseLabel is not ("preflight" or "managed" or "host-async" or "device-input" or "mixed" or "functional" or "cache-restart" or "isolation" or "timing")) {
+            throw new ArgumentException("--phase-label is not recognized.", nameof(args));
+        }
         return new ProbeOptions(
             ExistingFile("--native"),
             ExistingFile("--hip"),
@@ -1138,7 +1198,8 @@ internal sealed record ProbeOptions(
             duration,
             warmups,
             measured,
-            seed);
+            seed,
+            phaseLabel);
 
         int ParsePositiveOrDefault(string name, int defaultValue)
         {
