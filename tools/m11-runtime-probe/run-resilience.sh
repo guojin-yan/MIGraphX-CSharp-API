@@ -55,6 +55,7 @@ cat > "$record/build/NuGet.Config" <<EOF
 <configuration><packageSources><clear /><add key="m11-feed" value="$feed" /></packageSources></configuration>
 EOF
 project="$repo/tools/m11-runtime-probe/M11RuntimeProbe.csproj"
+aggregate_long_run="$repo/tools/m11-runtime-probe/aggregate-long-run.py"
 dotnet restore "$project" --configfile "$record/build/NuGet.Config" --packages "$record/packages" -p:M11PackageVersion="$version" > "$record/raw/restore.log" 2>&1
 dotnet build "$project" -c Release --no-restore -p:M11PackageVersion="$version" > "$record/raw/build.log" 2>&1
 
@@ -70,6 +71,33 @@ run_probe() {
   set -e
   echo "$exit_code" > "$record/raw/${label}.exit-code"
   return "$exit_code"
+}
+
+run_long_run_restarted() {
+  local label="$1"; shift
+  local total_seconds="$1"; shift
+  local phase_label="$1"; shift
+  local interval_seconds=600
+  local remaining="$total_seconds"
+  local process=1
+  local process_path
+  local process_paths=()
+  local slice
+  local timeout_seconds
+
+  while [[ $remaining -gt 0 ]]; do
+    slice=$interval_seconds
+    [[ $slice -gt $remaining ]] && slice=$remaining
+    timeout_seconds=$((slice + 120))
+    process_path="$record/raw/${label}-process-${process}.json"
+    run_probe "${label}-process-${process}" "$timeout_seconds" --duration-seconds "$slice" --phase-label "$phase_label" || return 1
+    process_paths+=("$process_path")
+    remaining=$((remaining - slice))
+    process=$((process + 1))
+  done
+
+  printf '%s\n' "$interval_seconds" > "$record/raw/${label}-process-restart-interval-seconds.txt"
+  python3 "$aggregate_long_run" "$record/raw/${label}.json" "$source_sha" "$version" "$phase_label" "$total_seconds" "$interval_seconds" "${process_paths[@]}"
 }
 
 echo "nativeSha256=$(sha256sum "$native" | awk '{print $1}')" > "$record/raw/provider-identities.txt"
@@ -88,11 +116,11 @@ case "$phase" in
     ;;
   long-run)
     case "$long_run_phase" in
-      preflight) run_probe long-run-preflight 720 --duration-seconds 600 --phase-label preflight ;;
-      managed) run_probe long-run-managed 3900 --duration-seconds 3600 --phase-label managed ;;
-      host-async) run_probe long-run-host-async 3900 --duration-seconds 3600 --phase-label host-async ;;
-      device-input) run_probe long-run-device-input 3900 --duration-seconds 3600 --phase-label device-input ;;
-      mixed) run_probe long-run-mixed 2100 --duration-seconds 1800 --phase-label mixed ;;
+      preflight) run_long_run_restarted long-run-preflight 600 preflight ;;
+      managed) run_long_run_restarted long-run-managed 3600 managed ;;
+      host-async) run_long_run_restarted long-run-host-async 3600 host-async ;;
+      device-input) run_long_run_restarted long-run-device-input 3600 device-input ;;
+      mixed) run_long_run_restarted long-run-mixed 1800 mixed ;;
     esac
     ;;
 esac
