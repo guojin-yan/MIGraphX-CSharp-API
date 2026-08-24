@@ -33,6 +33,7 @@ The following local checks pass for this batch:
 - The managed API and solution build successfully for all 15 exact target frameworks, with zero warnings and errors; ProjectQuality also builds successfully for `net10.0`.
 - `M12LocalInterfaceTests` passes all six focused tests, covering shape/argument factories, graph/context views, assign-to clones, TensorFlow/quantization paths, custom-op cloning, negative construction boundaries, and concurrent disposal races across module, argument, compile-option, context, custom-op, and quantization-option owners.
 - ProjectQuality tests pass all 24 tests, including the current core API snapshot of 44 types and 282 members, bilingual XML documentation, generated binding traceability, and ownership/audit checks.
+- `eng/generate-m12-fixtures.ps1` deterministically produces the minimal TensorFlow GraphDef and calibration-map fixtures; the M12 coverage gate verifies their SHA-256 identities and the calibration-map schema.
 
 These results are local compile and test-substitute evidence. They do not promote M12 declarations in the historical compatibility maps or establish behavior against a real MIGraphX installation.
 
@@ -42,7 +43,7 @@ The following items still need a separate design or an authorized validation fix
 
 - `migraphx_operation_create` remains unsupported because the frozen C declaration is variadic. `MIGraphXOperation` has no public constructor or clone until a safe native graph path can supply an owned operation handle.
 - `migraphx_module_create` remains outside the public owner surface because the frozen declaration has no matching module-destroy operation; exposing it would require inventing an ownership contract.
-- Native semantic coverage for loop iteration behavior, real external-data payloads, enabled exhaustive tuning, representative fast-math accuracy, quantization numerical results, TensorFlow model variants, custom-op callback execution, and context queue behavior is not established.
+- Native semantic coverage for loop iteration behavior, real external-data payloads, enabled exhaustive tuning, representative fast-math accuracy, quantization numerical results, TensorFlow model variants, custom-op callback execution, and context queue behavior is not established. The new TensorFlow and calibration artifacts are identity-checked fixtures only; they do not promote parser or quantization behavior.
 - Low-level borrowed collection readback and dynamic-dimension native getter coverage remain represented by immutable managed snapshots rather than exposing dangling pointers.
 - The M11 official functional, restart, long-run, timing, and Windows policy records are unchanged and remain validation-deferred.
 

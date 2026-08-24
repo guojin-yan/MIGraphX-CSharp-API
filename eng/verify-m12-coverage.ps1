@@ -86,6 +86,25 @@ foreach ($pair in @(@('m12-identity-float32-1x4', 'identity-float32-1x4'), @('m1
     }
 }
 
+$fixtureOutput = Join-Path $root 'artifacts\models\m12-coverage'
+$generatedFixtures = @(& (Join-Path $PSScriptRoot 'generate-m12-fixtures.ps1') -OutputDirectory $fixtureOutput)
+if ($generatedFixtures.Count -ne 2) { throw 'M12 fixture generator must produce exactly two new fixtures.' }
+foreach ($fixture in @($fixtures | Where-Object { $_.id -in @('m12-tensorflow-minimal', 'm12-quantization-calibration') })) {
+    $actual = @($generatedFixtures | Where-Object FileName -eq $fixture.fileName)
+    if ($actual.Count -ne 1 -or $actual[0].Sha256 -ne $fixture.sha256 -or $actual[0].License -ne $fixture.license) {
+        throw "M12 fixture identity drifted: $($fixture.id)"
+    }
+}
+$calibrationPath = Join-Path $fixtureOutput 'm12-calibration-map.json'
+$calibrationText = Get-Content -Raw -LiteralPath $calibrationPath
+if (-not ($calibrationText | Test-Json -SchemaFile (Join-Path $root 'compatibility\schemas\m12-calibration-map.schema.json'))) {
+    throw 'M12 calibration map fixture does not match its schema.'
+}
+$tensorflow = @($generatedFixtures | Where-Object FileName -eq 'm12-tensorflow-minimal.pb')
+if ($tensorflow.Count -ne 1 -or $tensorflow[0].Format -ne 'tensorflow-graphdef' -or $tensorflow[0].NodeCount -ne 2) {
+    throw 'M12 TensorFlow fixture metadata is incomplete.'
+}
+
 $baseline = Get-Content -LiteralPath (Join-Path $root 'compatibility\managed-public-api.txt')
 $coreTypes = @($baseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count
 $coreMembers = @($baseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count
@@ -106,6 +125,8 @@ $sourceChecks = @{
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXContext.cs' = @('GetQueue', 'Finish')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXExperimentalCustomOp.cs' = @('SetCompute', 'Register', 'CopyState')
     'native\fake-migraphx\fake_m12.inc' = @('m12_live_count', 'migraphx_experimental_custom_op_register')
+    'eng\generate-m12-fixtures.ps1' = @('m12-tensorflow-minimal.pb', 'm12-calibration-map.json', 'tensorflow-graphdef')
+    'compatibility\schemas\m12-calibration-map.schema.json' = @('migraphx-calibration-map', 'float32', 'zeroPoint')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs' = @('ShapeAndArgumentFactories', 'GraphEditingAndContextViews', 'TensorFlowAndQuantization', 'CustomOpClone', 'DeferredNegativeBoundariesAndConcurrentDispose')
     'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\Program.cs' = @('m12-cross-target', 'm12Passed')
     'tools\m12-runtime-probe\M12RuntimeProbe.csproj' = @('PackageReference', 'M12PackageVersion')

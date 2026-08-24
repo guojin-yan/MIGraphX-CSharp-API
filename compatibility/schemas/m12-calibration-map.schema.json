@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jyppx.dev/schemas/m12-calibration-map.schema.json",
+  "title": "M12 calibration map fixture",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "format", "modelId", "generatedBy", "license", "inputs", "outputs"],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "format": { "const": "migraphx-calibration-map" },
+    "modelId": { "const": "m12-identity-float32-1x4" },
+    "generatedBy": { "const": "MIGraphX-CSharp-API/eng/generate-m12-fixtures.ps1" },
+    "license": { "const": "Apache-2.0 project-generated fixture" },
+    "inputs": { "$ref": "#/$defs/entries", "minItems": 1 },
+    "outputs": { "$ref": "#/$defs/entries", "minItems": 1 }
+  },
+  "$defs": {
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "dataType", "scale", "zeroPoint"],
+        "properties": {
+          "name": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_.-]*$" },
+          "dataType": { "const": "float32" },
+          "scale": { "type": "number", "exclusiveMinimum": 0 },
+          "zeroPoint": { "type": "integer" }
+        }
+      }
+    }
+  }
+}
