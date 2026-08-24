@@ -195,7 +195,7 @@
     {
       "id": "m12-context-lifetime",
       "area": "context",
-      "publicSurface": "MIGraphXProgram.AcquireContext and MIGraphXContext Finish/GetQueue",
+      "publicSurface": "MIGraphXProgram.GetExperimentalContext and MIGraphXContext Finish/GetQueue",
       "fixtureIds": ["m12-no-artifact"],
       "expectation": "success",
       "synchronizationBoundary": "context operation and lease release are serialized",
@@ -203,7 +203,7 @@
       "resourceOwnership": "context retains the parent program lease and releases it deterministically",
       "iterations": 3,
       "timeoutSeconds": 120,
-      "prerequisites": ["exact core package", "program with context support", "verified native root"],
+      "prerequisites": ["exact core package", "compiled program with context support", "verified native root"],
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",

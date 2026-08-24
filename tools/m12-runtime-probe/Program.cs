@@ -151,26 +151,26 @@ internal sealed class ProbeRunner
         const string id = "m12-graph-parent-lease";
         WriteStage(id, "parse", "entered");
         var program = ParseIdentity(new MIGraphXOnnxOptions(options.NativePath));
-        WriteStage(id, "main-module", "entered");
-        using var main = program.GetMainModule();
+        WriteStage(id, "target", "entered");
+        using (var target = new MIGraphXTarget(options.NativePath))
+        using (var compileOptions = new MIGraphXCompileOptions(options.NativePath))
+        {
+            WriteStage(id, "compile", "entered");
+            program.Compile(target, compileOptions);
+        }
         WriteStage(id, "child-module", "entered");
         using var child = program.CreateModule("m12-child");
-        WriteStage(id, "context", "entered");
-        using var context = program.GetExperimentalContext();
+        WriteStage(id, "main-module", "entered");
+        using var main = program.GetMainModule();
         WriteStage(id, "program-dispose", "entered");
         program.Dispose();
         WriteStage(id, "main-print", "entered");
         main.Print();
         WriteStage(id, "child-print", "entered");
         child.Print();
-        WriteStage(id, "context-finish", "entered");
-        context.Finish();
-        WriteStage(id, "context-queue", "entered");
-        Require(context.Queue != IntPtr.Zero, "Context queue was null after parent program disposal.");
         WriteStage(id, "teardown", "entered");
         main.Dispose();
         child.Dispose();
-        context.Dispose();
     }
 
     private void RunGraphEditing()
@@ -187,11 +187,25 @@ internal sealed class ProbeRunner
 
     private void RunContextLifetime()
     {
+        const string id = "m12-context-lifetime";
+        WriteStage(id, "parse", "entered");
         var program = ParseIdentity(new MIGraphXOnnxOptions(options.NativePath));
+        WriteStage(id, "target", "entered");
+        using (var target = new MIGraphXTarget(options.NativePath))
+        using (var compileOptions = new MIGraphXCompileOptions(options.NativePath))
+        {
+            WriteStage(id, "compile", "entered");
+            program.Compile(target, compileOptions);
+        }
+        WriteStage(id, "context", "entered");
         using var context = program.GetExperimentalContext();
+        WriteStage(id, "program-dispose", "entered");
         program.Dispose();
+        WriteStage(id, "context-finish", "entered");
         context.Finish();
+        WriteStage(id, "context-queue", "entered");
         Require(context.Queue != IntPtr.Zero, "Context queue was null.");
+        WriteStage(id, "teardown", "entered");
     }
 
     private MIGraphXProgram ParseIdentity(MIGraphXOnnxOptions onnx)

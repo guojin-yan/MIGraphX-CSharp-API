@@ -141,9 +141,13 @@ public sealed class M12LocalInterfaceTests
         controls.Reset();
 
         var program = new MIGraphXProgram(nativePath);
+        var contextError = Assert.Throws<InvalidOperationException>(() => program.GetExperimentalContext());
+        Assert.Contains("must be compiled", contextError.Message, StringComparison.Ordinal);
+        using var target = new MIGraphXTarget(nativePath);
+        using var compileOptions = new MIGraphXCompileOptions(nativePath);
+        program.Compile(target, compileOptions);
         using (var main = program.GetMainModule())
         using (var branch = program.CreateModule("branch"))
-        using (var context = program.GetExperimentalContext())
         {
             var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
             using var literalValue = MIGraphXArgument.Create(nativePath, shape, new[] { 1f, 2f, 3f, 4f });
@@ -160,23 +164,30 @@ public sealed class M12LocalInterfaceTests
             Assert.Equal(3, inputClone.Count);
             Assert.Equal(2, modules.Count);
             Assert.Equal(2, moduleClone.Count);
-            Assert.NotEqual(IntPtr.Zero, context.Queue);
-
             main.Print();
             program.Print();
             program.Sort();
-            context.Finish();
             Assert.Equal(1, controls.ProgramPrintCount());
             Assert.Equal(1, controls.ProgramSortCount());
-            Assert.Equal(1, controls.ContextFinishCount());
 
             program.Dispose();
             Assert.Equal(1, controls.ProgramLiveCount());
             main.Print();
-            context.Finish();
-            Assert.Equal(2, controls.ContextFinishCount());
         }
         program.Dispose();
+
+        var contextProgram = new MIGraphXProgram(nativePath);
+        contextProgram.Compile(target, compileOptions);
+        using (var context = contextProgram.GetExperimentalContext())
+        {
+            Assert.NotEqual(IntPtr.Zero, context.Queue);
+            contextProgram.Dispose();
+            context.Finish();
+            Assert.Equal(1, controls.ContextFinishCount());
+        }
+        contextProgram.Dispose();
+        target.Dispose();
+        compileOptions.Dispose();
 
         AssertNoNativeLeaks(controls);
     }

@@ -476,11 +476,13 @@ public sealed class MIGraphXProgram : IDisposable
         });
     }
 
-    /// <summary>获取由 program 所有且由返回对象保持存活的实验 context。 Gets a program-owned experimental context kept alive by the returned object.</summary>
+    /// <summary>获取由已编译 program 所有且由返回对象保持存活的实验 context。 Gets an experimental context owned by a compiled program and kept alive by the returned object.</summary>
+    /// <exception cref="InvalidOperationException">program 尚未编译或编译状态已因 graph 变更失效。 The program has not been compiled or graph mutation invalidated its compiled state.</exception>
     public MIGraphXContext GetExperimentalContext()
     {
         return owner.WithHandle(program =>
         {
+            if (!compiled) throw new InvalidOperationException("The program must be compiled before acquiring its experimental context.");
             var slot = Marshal.AllocHGlobal(IntPtr.Size);
             try
             {
