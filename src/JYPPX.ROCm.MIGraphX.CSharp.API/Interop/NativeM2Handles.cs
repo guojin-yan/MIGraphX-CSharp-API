@@ -24,6 +24,21 @@ internal sealed class NativeOnnxOptionsHandle : NativeOwnedHandle
         return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_onnx_options_create");
     }
 
+    internal static NativeOnnxOptionsHandle CloneFrom(IntPtr source)
+    {
+        var owned = Create();
+        try
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.OnnxOptionsAssignTo(owned.DangerousGetHandle(), source), "migraphx_onnx_options_assign_to");
+            return owned;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
     protected override bool ReleaseHandle() { NativeMethods.OnnxOptionsDestroy(handle); return true; }
 }
 
@@ -42,6 +57,21 @@ internal sealed class NativeCompileOptionsHandle : NativeOwnedHandle
             NativeStatus.ThrowIfFailed(NativeMethods.CompileOptionsSetOffloadCopy(owned.DangerousGetHandle(), offloadCopy ? (byte)1 : (byte)0), "migraphx_compile_options_set_offload_copy");
             NativeStatus.ThrowIfFailed(NativeMethods.CompileOptionsSetFastMath(owned.DangerousGetHandle(), fastMath ? (byte)1 : (byte)0), "migraphx_compile_options_set_fast_math");
             NativeStatus.ThrowIfFailed(NativeMethods.CompileOptionsSetExhaustiveTuneFlag(owned.DangerousGetHandle(), exhaustiveTune ? (byte)1 : (byte)0), "migraphx_compile_options_set_exhaustive_tune_flag");
+            return owned;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeCompileOptionsHandle CloneFrom(IntPtr source)
+    {
+        var owned = Create(false, false, false);
+        try
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.CompileOptionsAssignTo(owned.DangerousGetHandle(), source), "migraphx_compile_options_assign_to");
             return owned;
         }
         catch
@@ -106,6 +136,54 @@ internal sealed class NativeArgumentHandle : NativeOwnedHandle
         return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_argument_create");
     }
 
+    internal static NativeArgumentHandle CreateEmpty(IntPtr shape)
+    {
+        if (shape == IntPtr.Zero) { throw new ArgumentException("The native shape handle must not be null.", nameof(shape)); }
+        var owned = OutHandle<NativeArgumentHandle>.Create("migraphx_argument_create_empty");
+        try
+        {
+            owned.Complete(NativeMethods.ArgumentCreateEmpty(owned.OutSlot, shape));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeArgumentHandle Generate(IntPtr shape, UIntPtr seed)
+    {
+        if (shape == IntPtr.Zero) { throw new ArgumentException("The native shape handle must not be null.", nameof(shape)); }
+        var owned = OutHandle<NativeArgumentHandle>.Create("migraphx_argument_generate");
+        try
+        {
+            owned.Complete(NativeMethods.ArgumentGenerate(owned.OutSlot, shape, seed));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeArgumentHandle Load(IntPtr filename)
+    {
+        if (filename == IntPtr.Zero) { throw new ArgumentException("The filename pointer must not be null.", nameof(filename)); }
+        var owned = OutHandle<NativeArgumentHandle>.Create("migraphx_argument_load");
+        try
+        {
+            owned.Complete(NativeMethods.ArgumentLoad(owned.OutSlot, filename));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
     protected override bool ReleaseHandle() { NativeMethods.ArgumentDestroy(handle); return true; }
 }
 
@@ -113,6 +191,8 @@ internal sealed class NativeShapeHandle : NativeOwnedHandle
 {
     internal static NativeShapeHandle Create(MIGraphXShape shape)
     {
+        if (shape is null) { throw new ArgumentNullException(nameof(shape)); }
+        if (!shape.IsDynamic && shape.Rank == 0) { return CreateScalar(shape.DataType); }
         var lengths = shape.CopyLengths();
         var bytes = checked(lengths.Length * UIntPtr.Size);
         var buffer = bytes == 0 ? IntPtr.Zero : Marshal.AllocHGlobal(bytes);
@@ -162,6 +242,48 @@ internal sealed class NativeShapeHandle : NativeOwnedHandle
             {
                 var status = NativeMethods.ShapeCreateDynamic(owned.OutSlot, ShapeDataTypeMap.ToNative(shape.DataType), dimensions.DangerousGetHandle());
                 owned.Complete(status);
+                return owned.Handle;
+            }
+            catch
+            {
+                owned.Dispose();
+                throw;
+            }
+        }
+    }
+
+    internal static NativeShapeHandle CreateScalar(MIGraphXShapeDataType dataType)
+    {
+        var owned = OutHandle<NativeShapeHandle>.Create("migraphx_shape_create_scalar");
+        try
+        {
+            owned.Complete(NativeMethods.ShapeCreateScalar(owned.OutSlot, ShapeDataTypeMap.ToNative(dataType)));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeShapeHandle CreateWithStrides(MIGraphXShape shape)
+    {
+        if (shape is null) { throw new ArgumentNullException(nameof(shape)); }
+        if (shape.IsDynamic) { throw new NotSupportedException("Native explicit-stride shape creation requires a static shape."); }
+        using (var lengths = NativeSizeTArray.Alloc(shape.Lengths, nameof(shape)))
+        using (var strides = NativeSizeTArray.Alloc(shape.Strides, nameof(shape)))
+        {
+            var owned = OutHandle<NativeShapeHandle>.Create("migraphx_shape_create_with_strides");
+            try
+            {
+                owned.Complete(NativeMethods.ShapeCreateWithStrides(
+                    owned.OutSlot,
+                    ShapeDataTypeMap.ToNative(shape.DataType),
+                    lengths.Pointer,
+                    NativeSizeTArray.Count(shape.Lengths.Count),
+                    strides.Pointer,
+                    NativeSizeTArray.Count(shape.Strides.Count)));
                 return owned.Handle;
             }
             catch

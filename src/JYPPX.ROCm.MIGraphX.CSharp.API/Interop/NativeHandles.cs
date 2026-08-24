@@ -33,6 +33,21 @@ internal sealed class NativeTargetHandle : NativeOwnedHandle
         }
     }
 
+    internal static NativeTargetHandle CloneFrom(IntPtr source, string name)
+    {
+        var owned = Create(name);
+        try
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.TargetAssignTo(owned.DangerousGetHandle(), source), "migraphx_target_assign_to");
+            return owned;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
     protected override bool ReleaseHandle()
     {
         NativeMethods.TargetDestroy(handle);
@@ -67,6 +82,21 @@ internal sealed class NativeProgramHandle : NativeOwnedHandle
         }
     }
 
+    internal static NativeProgramHandle CloneFrom(IntPtr source)
+    {
+        var owned = Create();
+        try
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.ProgramAssignTo(owned.DangerousGetHandle(), source), "migraphx_program_assign_to");
+            return owned;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
     internal static NativeProgramHandle ParseFile(IntPtr path, NativeOnnxOptionsHandle options)
     {
         var status = NativeMethods.ParseOnnx(out var raw, path, options.DangerousGetHandle());
@@ -89,6 +119,66 @@ internal sealed class NativeProgramHandle : NativeOwnedHandle
     {
         var status = NativeMethods.ParseOnnxBuffer(out var raw, data, size, options);
         return CompleteParsed(status, raw, "migraphx_parse_onnx_buffer");
+    }
+
+    internal static NativeProgramHandle ParseTfFile(IntPtr path, NativeTfOptionsHandle options)
+    {
+        var owned = OutHandle<NativeProgramHandle>.Create("migraphx_parse_tf");
+        try
+        {
+            owned.Complete(NativeMethods.ParseTf(owned.OutSlot, path, options.DangerousGetHandle()));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeProgramHandle ParseTfFile(IntPtr path, IntPtr options)
+    {
+        var owned = OutHandle<NativeProgramHandle>.Create("migraphx_parse_tf");
+        try
+        {
+            owned.Complete(NativeMethods.ParseTf(owned.OutSlot, path, options));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeProgramHandle ParseTfBuffer(IntPtr data, UIntPtr size, NativeTfOptionsHandle options)
+    {
+        var owned = OutHandle<NativeProgramHandle>.Create("migraphx_parse_tf_buffer");
+        try
+        {
+            owned.Complete(NativeMethods.ParseTfBuffer(owned.OutSlot, data, size, options.DangerousGetHandle()));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeProgramHandle ParseTfBuffer(IntPtr data, UIntPtr size, IntPtr options)
+    {
+        var owned = OutHandle<NativeProgramHandle>.Create("migraphx_parse_tf_buffer");
+        try
+        {
+            owned.Complete(NativeMethods.ParseTfBuffer(owned.OutSlot, data, size, options));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
     }
 
     internal static NativeProgramHandle Load(IntPtr path, IntPtr options)

@@ -105,6 +105,14 @@ public sealed class MIGraphXDynamicDimension : IEquatable<MIGraphXDynamicDimensi
         }
     }
 
+    /// <summary>复制动态维度值；对应 native assign-to 的托管值语义。 Copies this dynamic-dimension value.</summary>
+    public MIGraphXDynamicDimension Clone() => new MIGraphXDynamicDimension(Minimum, Maximum, optimals);
+
+    /// <summary>比较完整动态维度值；对应 native dynamic-dimension equality 的托管快照语义。</summary>
+    /// <param name="other">待比较的动态维度。 Dynamic dimension to compare.</param>
+    public bool HasSameNativeContent(MIGraphXDynamicDimension other)
+        => other is not null && Equals(other);
+
     /// <summary>获取范围文本。 Gets a range representation.</summary>
     public override string ToString() => IsFixed ? Minimum.ToString() : $"{Minimum}..{Maximum}";
 

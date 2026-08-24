@@ -96,6 +96,22 @@ internal sealed class NativeHandleLease : IDisposable
 
     internal IntPtr Pointer { get; }
 
+    internal NativeHandleLease Duplicate()
+    {
+        var owned = handle ?? throw new ObjectDisposedException(nameof(NativeHandleLease));
+        var addedReference = false;
+        try
+        {
+            owned.DangerousAddRef(ref addedReference);
+            return new NativeHandleLease(owned, owned.DangerousGetHandle(), addedReference);
+        }
+        catch
+        {
+            if (addedReference) owned.DangerousRelease();
+            throw;
+        }
+    }
+
     public void Dispose()
     {
         Interlocked.Exchange(ref handle, null)?.DangerousRelease();

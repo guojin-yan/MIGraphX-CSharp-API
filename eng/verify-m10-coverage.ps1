@@ -111,8 +111,9 @@ $baseline = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\manage
 foreach ($member in @('MIGraphXOnnxWorkflow.GetRegisteredOperators', 'MIGraphXArgument.HasSameNativeContent', 'MIGraphXProgram.HasSameNativeContent')) {
     if (-not $baseline.Contains($member, [StringComparison]::Ordinal)) { throw "M10 public baseline is missing '$member'." }
 }
-if ($baseline.Contains('MIGraphXShape.HasSameNativeContent', [StringComparison]::Ordinal)) {
-    throw 'MIGraphXShape must remain an owner-free managed snapshot without native equality projection.'
+$shapeSource = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXShape.cs')
+if ($shapeSource.Contains('NativeMethods.ShapeEqual', [StringComparison]::Ordinal)) {
+    throw 'MIGraphXShape must remain an owner-free managed snapshot without a native equality call.'
 }
 $publicSources = @{
     'MIGraphXOnnxWorkflow.GetRegisteredOperators' = Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOnnxWorkflow.cs'

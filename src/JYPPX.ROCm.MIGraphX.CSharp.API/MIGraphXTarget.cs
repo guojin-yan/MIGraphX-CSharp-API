@@ -24,10 +24,20 @@ public sealed class MIGraphXTarget : IDisposable
         Name = name;
     }
 
+    private MIGraphXTarget(NativeRuntime runtime, NativeTargetHandle handle, string name)
+    {
+        owner = new NativeResourceOwner<NativeTargetHandle>(runtime, handle);
+        Name = name;
+    }
+
     /// <summary>获取创建时使用的目标名称。 Gets the target name used at creation.</summary>
     public string Name { get; }
 
     internal NativeResourceOwner<NativeTargetHandle> Owner => owner;
+
+    /// <summary>使用 native assign-to 创建独立 target 副本。 Creates an independent target clone through native assign-to.</summary>
+    public MIGraphXTarget Clone()
+        => owner.WithHandle(handle => new MIGraphXTarget(owner.Runtime, NativeTargetHandle.CloneFrom(handle, Name), Name));
 
     /// <summary>确定性释放 owned target handle；重复调用安全。 Deterministically releases the owned target handle; repeated calls are safe.</summary>
     public void Dispose() => owner.Dispose();

@@ -67,11 +67,11 @@ if ($map.counts.supported -ne 84 -or $map.counts.planned -ne 107 -or $map.counts
 }
 $coreBaseline = Get-Content -LiteralPath (Join-Path $root 'compatibility\managed-public-api.txt')
 $adapterBaseline = Get-Content -LiteralPath (Join-Path $root 'compatibility\m6-adapter-public-api.txt')
-if (@($coreBaseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count -ne 27 -or
-    @($coreBaseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count -ne 160 -or
+if (@($coreBaseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count -ne 44 -or
+    @($coreBaseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count -ne 282 -or
     @($adapterBaseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count -ne 3 -or
     @($adapterBaseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count -ne 11) {
-    throw 'M11 public API baseline must remain core 27/160 and adapter 3/11.'
+    throw 'Current core public API baseline must remain 44/282 and adapter 3/11.'
 }
 
 $probeProject = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\M11RuntimeProbe.csproj')
@@ -98,6 +98,22 @@ $reviewScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtim
 foreach ($required in @('normalizedContentSha256', 'functionalSessionTimeoutSeconds', 'sessionKillAfterSeconds', 'iterationDurationMilliseconds', 'caseStageTraceValidated', 'artifactHashesRecomputed', 'sensitiveScanPassed', "reviewedEvidence = 'runtime-executed'")) {
     if (-not $reviewScript.Contains($required, [StringComparison]::Ordinal)) { throw "M11 independent review is missing: $required" }
 }
+$resilienceScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\run-resilience.sh')
+foreach ($required in @('--defer-artifact-manifest', 'defer_artifact_manifest=false', 'defer_artifact_manifest=true', 'find "$record" -type f ! -name artifact-hashes.txt')) {
+    if (-not $resilienceScript.Contains($required, [StringComparison]::Ordinal)) { throw "M11 resilience runner is missing: $required" }
+}
+$supervisorScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\run-long-run-supervisor.sh')
+foreach ($required in @('setsid timeout', '--showmeminfo vram --showuse', 'capture_snapshot pre', 'capture_snapshot post', '--defer-artifact-manifest', 'hostRestartHandledBySupervisor', 'write_final_manifest', "find . -type f ! -path './raw/artifact-hashes.txt'")) {
+    if (-not $supervisorScript.Contains($required, [StringComparison]::Ordinal)) { throw "M11 long-run supervisor is missing: $required" }
+}
+if ($supervisorScript.Contains('systemctl reboot', [StringComparison]::Ordinal) -or
+    $supervisorScript.Contains('shutdown -r', [StringComparison]::Ordinal)) {
+    throw 'M11 long-run supervisor must not perform a host restart.'
+}
+$supervisorVerifier = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\verify-supervisor-record.py')
+foreach ($required in @('malformed final artifact manifest entry', 'unsafe path', 'durationSeconds', 'hostRestartProofValidated', 'hashlib.sha256')) {
+    if (-not $supervisorVerifier.Contains($required, [StringComparison]::Ordinal)) { throw "M11 supervisor verifier is missing: $required" }
+}
 foreach ($path in @(
     'docs\validation\m11-runtime-hardening-plan.md',
     'tools\m11-runtime-probe\M11RuntimeProbe.csproj',
@@ -105,6 +121,10 @@ foreach ($path in @(
     'tools\m11-runtime-probe\run.sh',
     'tools\m11-runtime-probe\review.ps1',
     'tools\m11-runtime-probe\README.md',
+    'tools\m11-runtime-probe\run-resilience.sh',
+    'tools\m11-runtime-probe\run-long-run-supervisor.sh',
+    'tools\m11-runtime-probe\verify-restart-proof.py',
+    'tools\m11-runtime-probe\verify-supervisor-record.py',
     'docs\releases\0.9.0-rc.9.md',
     'docs\releases\0.9.0-rc.7.md'
 )) {

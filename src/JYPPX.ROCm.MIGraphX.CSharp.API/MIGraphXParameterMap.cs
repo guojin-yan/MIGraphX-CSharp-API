@@ -71,6 +71,25 @@ public sealed class MIGraphXParameterMap : IDisposable
         }
     }
 
+    /// <summary>复制参数 map 与所有 argument；对应 native assign-to 的托管值语义。 Creates an independent parameter-map snapshot with cloned arguments.</summary>
+    public MIGraphXParameterMap Clone()
+    {
+        return owner.WithHandle(_ =>
+        {
+            var result = new MIGraphXParameterMap(owner.Runtime);
+            try
+            {
+                foreach (var entry in entries) result.Add(entry.Key, entry.Value);
+                return result;
+            }
+            catch
+            {
+                result.Dispose();
+                throw;
+            }
+        });
+    }
+
     internal NativeResourceOwner<NativeProgramParametersHandle> Owner => owner;
 
     internal void AddExternal(string name, MIGraphXShape shape, IntPtr pointer)

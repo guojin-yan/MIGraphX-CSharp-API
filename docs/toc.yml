@@ -38,6 +38,8 @@
     href: design/m9-inference-options.md
   - name: M10 registry and native comparison
     href: design/m10-onnx-registry-native-comparison.md
+  - name: M12 local interface expansion
+    href: design/m12-local-interface-expansion.md
 - name: Validation
   items:
   - name: Overview
@@ -68,6 +70,8 @@
     href: validation/m10-runtime-plan.md
   - name: M11 runtime hardening plan
     href: validation/m11-runtime-hardening-plan.md
+  - name: M12 real-runtime validation plan
+    href: validation/m12-runtime-validation-plan.md
   - name: M1/M2 official runtime
     href: validation/m1-m2-official-runtime.md
 - name: Release notes

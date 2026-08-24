@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jyppx.dev/schemas/m12-runtime-cases.schema.json",
+  "title": "M12 real MIGraphX runtime validation cases",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "schemaVersion", "stage", "candidateVersion", "validationStatus", "authorization", "environment", "fixtures", "review", "cases"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M12" },
+    "candidateVersion": { "const": "0.0.0" },
+    "validationStatus": { "const": "runtime-deferred" },
+    "authorization": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["realRuntimeAuthorized", "packageProbeAuthorized", "environmentChangesAuthorized"],
+      "properties": {
+        "realRuntimeAuthorized": { "const": false },
+        "packageProbeAuthorized": { "const": false },
+        "environmentChangesAuthorized": { "const": false }
+      }
+    },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requiredOs", "requiredNativeProvider", "localOs", "localNativeProviderAvailable", "localFakeNativeAvailable", "managedTargetFrameworks"],
+      "properties": {
+        "requiredOs": { "const": "Linux" },
+        "requiredNativeProvider": { "const": "MIGraphX 2.15.0 with ROCm 7.2.1" },
+        "localOs": { "const": "Windows" },
+        "localNativeProviderAvailable": { "const": false },
+        "localFakeNativeAvailable": { "const": true },
+        "managedTargetFrameworks": {
+          "type": "array",
+          "const": ["net46", "net461", "net462", "net47", "net471", "net472", "net48", "net481", "netcoreapp3.1", "net5.0", "net6.0", "net7.0", "net8.0", "net9.0", "net10.0"]
+        }
+      }
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "artifactStatus", "license", "reference"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^m12-[a-z0-9-]+$" },
+          "kind": { "enum": ["onnx", "tensorflow", "calibration-map", "none"] },
+          "artifactStatus": { "enum": ["available", "planned", "not-required"] },
+          "fileName": { "type": "string", "pattern": "^[a-z0-9.-]+\\.(onnx|pb|json)$" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "license": { "type": "string", "minLength": 1 },
+          "reference": { "type": "string", "minLength": 1 }
+        },
+        "allOf": [
+          {
+            "if": { "required": ["artifactStatus"], "properties": { "artifactStatus": { "const": "available" } } },
+            "then": { "required": ["fileName", "sha256"] }
+          },
+          {
+            "if": { "required": ["artifactStatus"], "properties": { "artifactStatus": { "const": "planned" } } },
+            "then": { "required": ["fileName"] }
+          }
+        ]
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["candidateResultLabel", "promotionRule", "historicalMapsRemainUnchanged"],
+      "properties": {
+        "candidateResultLabel": { "const": "runtime-candidate-executed-review-required" },
+        "promotionRule": { "const": "Only an independent review of a clean, authorized, source/package-bound record may promote a case to runtime-executed." },
+        "historicalMapsRemainUnchanged": { "const": true }
+      }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 14,
+      "items": { "$ref": "#/$defs/case" }
+    }
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "area", "publicSurface", "fixtureIds", "expectation", "synchronizationBoundary", "copyBoundary", "resourceOwnership", "iterations", "timeoutSeconds", "prerequisites", "environmentChangeRequired", "localEvidence", "officialEvidence", "resultCriteria", "deferredBoundary"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^m12-[a-z0-9-]+$" },
+        "area": { "enum": ["shape-argument", "graph", "tensorflow", "quantization", "context", "custom-op", "lifecycle", "negative"] },
+        "publicSurface": { "type": "string", "minLength": 1 },
+        "fixtureIds": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "expectation": { "enum": ["success", "managed-rejection", "official-runtime-rejection"] },
+        "synchronizationBoundary": { "type": "string", "minLength": 1 },
+        "copyBoundary": { "type": "string", "minLength": 1 },
+        "resourceOwnership": { "type": "string", "minLength": 1 },
+        "iterations": { "type": "integer", "minimum": 1 },
+        "timeoutSeconds": { "type": "integer", "minimum": 1 },
+        "prerequisites": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+        "environmentChangeRequired": { "type": "boolean" },
+        "localEvidence": { "enum": ["statically-verified", "fake-native-executed", "planned", "not-applicable"] },
+        "officialEvidence": { "const": "runtime-deferred" },
+        "resultCriteria": { "type": "string", "minLength": 1 },
+        "deferredBoundary": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

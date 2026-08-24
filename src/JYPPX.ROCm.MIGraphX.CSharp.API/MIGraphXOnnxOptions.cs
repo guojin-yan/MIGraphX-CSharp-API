@@ -32,7 +32,49 @@ public sealed class MIGraphXOnnxOptions : IDisposable
         owner = new NativeResourceOwner<NativeOnnxOptionsHandle>(runtime, NativeOnnxOptionsHandle.Create());
     }
 
+    private MIGraphXOnnxOptions(
+        NativeRuntime runtime,
+        NativeOnnxOptionsHandle handle,
+        Dictionary<string, long[]> staticValues,
+        Dictionary<string, MIGraphXDynamicDimension[]> dynamicValues,
+        long? defaultDimension,
+        MIGraphXDynamicDimension? defaultDynamicDimension,
+        long? defaultLoopIterations,
+        long? limitLoopIterations,
+        string? externalDataPath)
+    {
+        owner = new NativeResourceOwner<NativeOnnxOptionsHandle>(runtime, handle);
+        foreach (var pair in staticValues) staticOverrides[pair.Key] = (long[])pair.Value.Clone();
+        foreach (var pair in dynamicValues) dynamicOverrides[pair.Key] = pair.Value.ToArray();
+        this.defaultDimension = defaultDimension;
+        this.defaultDynamicDimension = defaultDynamicDimension;
+        this.defaultLoopIterations = defaultLoopIterations;
+        this.limitLoopIterations = limitLoopIterations;
+        this.externalDataPath = externalDataPath;
+    }
+
     internal NativeResourceOwner<NativeOnnxOptionsHandle> Owner => owner;
+
+    /// <summary>使用 native assign-to 创建独立 ONNX options 副本。 Creates an independent ONNX-options clone through native assign-to.</summary>
+    public MIGraphXOnnxOptions Clone()
+    {
+        return owner.WithHandle(handle =>
+        {
+            lock (staticOverrides)
+            {
+                return new MIGraphXOnnxOptions(
+                    owner.Runtime,
+                    NativeOnnxOptionsHandle.CloneFrom(handle),
+                    staticOverrides.ToDictionary(pair => pair.Key, pair => (long[])pair.Value.Clone(), StringComparer.Ordinal),
+                    dynamicOverrides.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal),
+                    defaultDimension,
+                    defaultDynamicDimension,
+                    defaultLoopIterations,
+                    limitLoopIterations,
+                    externalDataPath);
+            }
+        });
+    }
 
     /// <summary>设置输入参数的静态 shape override。 Sets a static shape override for an input parameter.</summary>
     /// <param name="name">输入参数名。 The input parameter name.</param>
@@ -49,11 +91,14 @@ public sealed class MIGraphXOnnxOptions : IDisposable
         using (var utf8 = new StrictUtf8String(name, nameof(name)))
         using (var values = NativeSizeTArray.Alloc(copied, nameof(dimensions)))
         {
-            owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
-                NativeMethods.OnnxOptionsSetInputParameterShape(handle, utf8.Pointer, values.Pointer, NativeSizeTArray.Count(copied.Length)),
-                "migraphx_onnx_options_set_input_parameter_shape"));
+            owner.WithHandle(handle =>
+            {
+                NativeStatus.ThrowIfFailed(
+                    NativeMethods.OnnxOptionsSetInputParameterShape(handle, utf8.Pointer, values.Pointer, NativeSizeTArray.Count(copied.Length)),
+                    "migraphx_onnx_options_set_input_parameter_shape");
+                lock (staticOverrides) { staticOverrides[name] = copied; dynamicOverrides.Remove(name); }
+            });
         }
-        lock (staticOverrides) { staticOverrides[name] = copied; dynamicOverrides.Remove(name); }
     }
 
     /// <summary>设置输入参数的动态 shape override。 Sets a dynamic shape override for an input parameter.</summary>
@@ -67,11 +112,14 @@ public sealed class MIGraphXOnnxOptions : IDisposable
         using (var utf8 = new StrictUtf8String(name, nameof(name)))
         using (var nativeDimensions = NativeDynamicDimensionsHandle.Create(copied))
         {
-            owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
-                NativeMethods.OnnxOptionsSetDynInputParameterShape(handle, utf8.Pointer, nativeDimensions.DangerousGetHandle()),
-                "migraphx_onnx_options_set_dyn_input_parameter_shape"));
+            owner.WithHandle(handle =>
+            {
+                NativeStatus.ThrowIfFailed(
+                    NativeMethods.OnnxOptionsSetDynInputParameterShape(handle, utf8.Pointer, nativeDimensions.DangerousGetHandle()),
+                    "migraphx_onnx_options_set_dyn_input_parameter_shape");
+                lock (staticOverrides) { dynamicOverrides[name] = copied; staticOverrides.Remove(name); }
+            });
         }
-        lock (staticOverrides) { dynamicOverrides[name] = copied; staticOverrides.Remove(name); }
     }
 
     /// <summary>设置动态输入 shape 的兼容别名。 Compatibility alias for the dynamic input-shape setter.</summary>
@@ -84,10 +132,13 @@ public sealed class MIGraphXOnnxOptions : IDisposable
     public void SetDefaultDimensionValue(long value)
     {
         MIGraphXDynamicDimension.ValidateSizeT(value, nameof(value));
-        owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
-            NativeMethods.OnnxOptionsSetDefaultDimValue(handle, MIGraphXDynamicDimension.ToNativeSizeT(value, nameof(value))),
-            "migraphx_onnx_options_set_default_dim_value"));
-        lock (staticOverrides) { defaultDimension = value; defaultDynamicDimension = null; }
+        owner.WithHandle(handle =>
+        {
+            NativeStatus.ThrowIfFailed(
+                NativeMethods.OnnxOptionsSetDefaultDimValue(handle, MIGraphXDynamicDimension.ToNativeSizeT(value, nameof(value))),
+                "migraphx_onnx_options_set_default_dim_value");
+            lock (staticOverrides) { defaultDimension = value; defaultDynamicDimension = null; }
+        });
     }
 
     /// <summary>设置默认动态维度值。 Sets the default dynamic dimension value.</summary>
@@ -97,11 +148,14 @@ public sealed class MIGraphXOnnxOptions : IDisposable
         if (value is null) { throw new ArgumentNullException(nameof(value)); }
         using (var native = NativeDynamicDimensionHandle.Create(value))
         {
-            owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
-                NativeMethods.OnnxOptionsSetDefaultDynDimValue(handle, native.DangerousGetHandle()),
-                "migraphx_onnx_options_set_default_dyn_dim_value"));
+            owner.WithHandle(handle =>
+            {
+                NativeStatus.ThrowIfFailed(
+                    NativeMethods.OnnxOptionsSetDefaultDynDimValue(handle, native.DangerousGetHandle()),
+                    "migraphx_onnx_options_set_default_dyn_dim_value");
+                lock (staticOverrides) { defaultDynamicDimension = value; defaultDimension = null; }
+            });
         }
-        lock (staticOverrides) { defaultDynamicDimension = value; defaultDimension = null; }
     }
 
     /// <summary>设置默认动态维度的兼容别名。 Compatibility alias for the default dynamic-dimension setter.</summary>
@@ -113,10 +167,13 @@ public sealed class MIGraphXOnnxOptions : IDisposable
     public void SetDefaultLoopIterations(long value)
     {
         if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Loop iterations must not be negative."); }
-        owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
-            NativeMethods.OnnxOptionsSetDefaultLoopIterations(handle, value),
-            "migraphx_onnx_options_set_default_loop_iterations"));
-        lock (staticOverrides) { defaultLoopIterations = value; }
+        owner.WithHandle(handle =>
+        {
+            NativeStatus.ThrowIfFailed(
+                NativeMethods.OnnxOptionsSetDefaultLoopIterations(handle, value),
+                "migraphx_onnx_options_set_default_loop_iterations");
+            lock (staticOverrides) { defaultLoopIterations = value; }
+        });
     }
 
     /// <summary>设置 Loop operator 的最大迭代安全上限。 Sets the maximum Loop-operator iteration safety limit.</summary>
@@ -124,10 +181,13 @@ public sealed class MIGraphXOnnxOptions : IDisposable
     public void SetLimitLoopIterations(long value)
     {
         if (value < 0) { throw new ArgumentOutOfRangeException(nameof(value), "Loop iteration limits must not be negative."); }
-        owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
-            NativeMethods.OnnxOptionsSetLimitLoopIterations(handle, value),
-            "migraphx_onnx_options_set_limit_loop_iterations"));
-        lock (staticOverrides) { limitLoopIterations = value; }
+        owner.WithHandle(handle =>
+        {
+            NativeStatus.ThrowIfFailed(
+                NativeMethods.OnnxOptionsSetLimitLoopIterations(handle, value),
+                "migraphx_onnx_options_set_limit_loop_iterations");
+            lock (staticOverrides) { limitLoopIterations = value; }
+        });
     }
 
     /// <summary>设置 ONNX external-data 文件的绝对根路径。 Sets the absolute root path for ONNX external-data files.</summary>
@@ -139,11 +199,14 @@ public sealed class MIGraphXOnnxOptions : IDisposable
         var fullPath = Path.GetFullPath(path);
         using (var utf8 = new StrictUtf8String(fullPath, nameof(path)))
         {
-            owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
-                NativeMethods.OnnxOptionsSetExternalDataPath(handle, utf8.Pointer),
-                "migraphx_onnx_options_set_external_data_path"));
+            owner.WithHandle(handle =>
+            {
+                NativeStatus.ThrowIfFailed(
+                    NativeMethods.OnnxOptionsSetExternalDataPath(handle, utf8.Pointer),
+                    "migraphx_onnx_options_set_external_data_path");
+                lock (staticOverrides) { externalDataPath = fullPath; }
+            });
         }
-        lock (staticOverrides) { externalDataPath = fullPath; }
     }
 
     internal IReadOnlyDictionary<string, long[]> StaticOverrides

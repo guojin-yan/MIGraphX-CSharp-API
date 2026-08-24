@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
 
@@ -85,6 +86,81 @@ public sealed class MIGraphXArgument : IDisposable
         var bytes = new byte[checked((int)shape.ByteCount)];
         Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
         return new MIGraphXArgument(NativeRuntime.Load(nativeLibraryPath), shape, bytes);
+    }
+
+    /// <summary>创建由 native 分配并立即复制为 host-backed 的空 argument。 Creates an empty native allocation and copies it into a host-backed argument.</summary>
+    /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute path to the MIGraphX C native library.</param>
+    /// <param name="shape">静态、standard、packed shape。 Static standard packed shape.</param>
+    public static MIGraphXArgument CreateEmpty(string nativeLibraryPath, MIGraphXShape shape)
+    {
+        if (shape is null) { throw new ArgumentNullException(nameof(shape)); }
+        ValidateDetachedShape(shape);
+        var runtime = NativeRuntime.Load(nativeLibraryPath);
+        using (var nativeShape = NativeShapeHandle.Create(shape))
+        using (var nativeArgument = NativeArgumentHandle.CreateEmpty(nativeShape.DangerousGetHandle()))
+        {
+            return CopyFromNative(runtime, nativeArgument.DangerousGetHandle(), "migraphx_argument_create_empty");
+        }
+    }
+
+    /// <summary>使用固定 seed 生成随机值并复制为 host-backed argument。 Generates deterministic random values and copies them into a host-backed argument.</summary>
+    /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute path to the MIGraphX C native library.</param>
+    /// <param name="shape">静态、standard、packed shape。 Static standard packed shape.</param>
+    /// <param name="seed">传给 native <c>size_t</c> 的随机种子。 Random seed passed as native <c>size_t</c>.</param>
+    public static MIGraphXArgument Generate(string nativeLibraryPath, MIGraphXShape shape, ulong seed)
+    {
+        if (shape is null) { throw new ArgumentNullException(nameof(shape)); }
+        ValidateDetachedShape(shape);
+        if (UIntPtr.Size == 4 && seed > uint.MaxValue)
+        {
+            throw new OverflowException("The seed does not fit the current native size_t range.");
+        }
+        var runtime = NativeRuntime.Load(nativeLibraryPath);
+        using (var nativeShape = NativeShapeHandle.Create(shape))
+        using (var nativeArgument = NativeArgumentHandle.Generate(nativeShape.DangerousGetHandle(), UIntPtr.Size == 4 ? new UIntPtr((uint)seed) : new UIntPtr(seed)))
+        {
+            return CopyFromNative(runtime, nativeArgument.DangerousGetHandle(), "migraphx_argument_generate");
+        }
+    }
+
+    /// <summary>从绝对 MIGraphX argument 文件载入并复制为 host-backed argument。 Loads an argument file and copies it into a host-backed argument.</summary>
+    /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute path to the native library.</param>
+    /// <param name="path">绝对 argument 文件路径。 Absolute argument-file path.</param>
+    public static MIGraphXArgument Load(string nativeLibraryPath, string path)
+    {
+        var fullPath = ValidateInputPath(path, nameof(path));
+        var runtime = NativeRuntime.Load(nativeLibraryPath);
+        using (var utf8 = new StrictUtf8String(fullPath, nameof(path)))
+        using (var nativeArgument = NativeArgumentHandle.Load(utf8.Pointer))
+        {
+            return CopyFromNative(runtime, nativeArgument.DangerousGetHandle(), "migraphx_argument_load");
+        }
+    }
+
+    /// <summary>将 argument 保存到绝对路径。 Saves this argument to an absolute path.</summary>
+    /// <param name="path">绝对输出路径。 Absolute output path.</param>
+    public void Save(string path)
+    {
+        var fullPath = ValidateOutputPath(path, nameof(path));
+        using (var utf8 = new StrictUtf8String(fullPath, nameof(path)))
+        {
+            owner.WithHandle(handle => NativeStatus.ThrowIfFailed(
+                NativeMethods.ArgumentSave(handle, utf8.Pointer),
+                "migraphx_argument_save"));
+        }
+    }
+
+    /// <summary>复制为具有独立 host buffer 的新 argument；borrowed device argument 不支持此操作。 Creates a new argument with an independent host buffer; borrowed device arguments are not supported.</summary>
+    public MIGraphXArgument Clone()
+    {
+        return owner.WithHandle(_ =>
+        {
+            if (!ownsBuffer)
+            {
+                throw new NotSupportedException("A borrowed device argument cannot be cloned into an independent host buffer.");
+            }
+            return new MIGraphXArgument(owner.Runtime, Shape, CopyBytesUnderLock());
+        });
     }
 
     /// <summary>
@@ -258,6 +334,30 @@ public sealed class MIGraphXArgument : IDisposable
         {
             throw new ArgumentException($"Managed element type '{typeof(T).FullName}' maps to {mapped}, not shape type {shape.DataType}.", nameof(T));
         }
+    }
+
+    private static void ValidateDetachedShape(MIGraphXShape shape)
+    {
+        if (shape.IsDynamic || !shape.IsStandard || !shape.IsPacked)
+        {
+            throw new NotSupportedException("Public detached arguments require static standard packed shapes.");
+        }
+    }
+
+    private static string ValidateInputPath(string path, string parameterName)
+    {
+        if (path is null) { throw new ArgumentNullException(parameterName); }
+        if (!Path.IsPathRooted(path)) { throw new ArgumentException("The path must be absolute.", parameterName); }
+        var fullPath = Path.GetFullPath(path);
+        if (!File.Exists(fullPath)) { throw new FileNotFoundException("The argument file does not exist.", fullPath); }
+        return fullPath;
+    }
+
+    private static string ValidateOutputPath(string path, string parameterName)
+    {
+        if (path is null) { throw new ArgumentNullException(parameterName); }
+        if (!Path.IsPathRooted(path)) { throw new ArgumentException("The path must be absolute.", parameterName); }
+        return Path.GetFullPath(path);
     }
 
     private sealed class ArgumentAsyncLease : IDisposable

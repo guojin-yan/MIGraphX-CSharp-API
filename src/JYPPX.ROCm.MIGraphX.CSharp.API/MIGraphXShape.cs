@@ -34,6 +34,7 @@ public sealed class MIGraphXShape
             {
                 throw new ArgumentOutOfRangeException(nameof(lengths), "Static M4 shape lengths must be positive.");
             }
+            MIGraphXDynamicDimension.ValidateSizeT(copiedLengths[index], nameof(lengths));
         }
 
         var copiedStrides = CreateStandardStrides(copiedLengths);
@@ -59,6 +60,11 @@ public sealed class MIGraphXShape
 
     private MIGraphXShape(MIGraphXShapeDataType dataType, MIGraphXDynamicDimension[] dimensions)
     {
+        // Keep the public dynamic-shape constructor on the same mapped scalar
+        // boundary as the static/scalar constructors.  CreateDynamic already
+        // validates this value, but the overload taking IReadOnlyList also
+        // reaches this private constructor directly.
+        ShapeDataTypeMap.ToNative(dataType);
         DataType = dataType;
         dynamicDimensions = dimensions;
         lengths = Array.Empty<long>();
@@ -103,6 +109,50 @@ public sealed class MIGraphXShape
         return new MIGraphXShape(dataType, copied);
     }
 
+    /// <summary>创建标量 shape。 Creates a scalar shape.</summary>
+    /// <param name="dataType">标量元素类型。 The scalar element type.</param>
+    public static MIGraphXShape CreateScalar(MIGraphXShapeDataType dataType)
+        => new MIGraphXShape(dataType, Array.Empty<long>());
+
+    /// <summary>创建显式 stride 的静态 shape。 Creates a static shape with explicit strides.</summary>
+    /// <param name="dataType">元素类型。 The element type.</param>
+    /// <param name="lengths">每一维正长度；空集合表示标量。 Positive dimension lengths; an empty collection denotes a scalar.</param>
+    /// <param name="strides">按元素计的非负 stride。 Non-negative element strides.</param>
+    public static MIGraphXShape CreateWithStrides(
+        MIGraphXShapeDataType dataType,
+        IReadOnlyList<long> lengths,
+        IReadOnlyList<long> strides)
+    {
+        if (lengths is null) { throw new ArgumentNullException(nameof(lengths)); }
+        if (strides is null) { throw new ArgumentNullException(nameof(strides)); }
+        if (lengths.Count != strides.Count)
+        {
+            throw new ArgumentException("Shape lengths and strides must have the same rank.", nameof(strides));
+        }
+
+        ShapeDataTypeMap.ToNative(dataType);
+        var copiedLengths = lengths.ToArray();
+        var copiedStrides = strides.ToArray();
+        for (var index = 0; index < copiedLengths.Length; index++)
+        {
+            if (copiedLengths[index] <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(lengths), "Static shape lengths must be positive.");
+            }
+            MIGraphXDynamicDimension.ValidateSizeT(copiedLengths[index], nameof(lengths));
+            if (copiedStrides[index] < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(strides), "Shape strides must not be negative.");
+            }
+            MIGraphXDynamicDimension.ValidateSizeT(copiedStrides[index], nameof(strides));
+        }
+
+        var elements = ComputeElementCount(copiedLengths);
+        var bytes = checked(elements * ShapeDataTypeMap.ElementSize(dataType));
+        var standard = copiedStrides.SequenceEqual(CreateStandardStrides(copiedLengths));
+        return new MIGraphXShape(dataType, copiedLengths, copiedStrides, elements, bytes, standard);
+    }
+
     /// <summary>获取已映射的标量元素类型。 Gets the mapped scalar element type.</summary>
     public MIGraphXShapeDataType DataType { get; }
 
@@ -132,8 +182,27 @@ public sealed class MIGraphXShape
     /// <summary>获取动态维度范围；静态 shape 返回空集合。 Gets dynamic dimension ranges; static shapes return an empty collection.</summary>
     public IReadOnlyList<MIGraphXDynamicDimension> DynamicDimensions => Array.AsReadOnly(dynamicDimensions);
 
+    /// <summary>复制动态维度为独立集合对象。 Creates an independent dynamic-dimension collection snapshot.</summary>
+    public MIGraphXDynamicDimensionCollection GetDynamicDimensionCollection() => new MIGraphXDynamicDimensionCollection(dynamicDimensions);
+
     /// <summary>获取维度数量。 Gets the number of dimensions.</summary>
     public int Rank => IsDynamic ? dynamicDimensions.Length : lengths.Length;
+
+    /// <summary>获取 native <c>migraphx_shape_ndim</c> 的托管别名。 Managed alias for native <c>migraphx_shape_ndim</c>.</summary>
+    public int Ndim => Rank;
+
+    /// <summary>获取指定维度长度；对应 native <c>migraphx_shape_index</c> 的值语义。 Gets a dimension length; this is the value semantics of native <c>migraphx_shape_index</c>.</summary>
+    /// <param name="index">从零开始的维度索引。 Zero-based dimension index.</param>
+    public long GetDimensionLength(int index)
+    {
+        if (IsDynamic) { throw new InvalidOperationException("A dynamic shape has no concrete dimension lengths."); }
+        if ((uint)index >= (uint)lengths.Length) { throw new ArgumentOutOfRangeException(nameof(index)); }
+        return lengths[index];
+    }
+
+    /// <summary>获取指定维度长度的兼容别名。 Compatibility alias for <see cref="GetDimensionLength"/>.</summary>
+    /// <param name="index">维度索引。 Zero-based dimension index.</param>
+    public long Index(int index) => GetDimensionLength(index);
 
     /// <summary>获取经过溢出检查的元素数量。 Gets the overflow-checked element count.</summary>
     public long ElementCount => elementCount ?? throw new InvalidOperationException("ElementCount is not defined for a dynamic shape.");
@@ -146,6 +215,23 @@ public sealed class MIGraphXShape
 
     /// <summary>获取布局是否无间隙地打包。 Gets whether the layout is packed without gaps.</summary>
     public bool IsPacked { get; }
+
+    /// <summary>复制 shape 元数据；对应 native <c>migraphx_shape_assign_to</c> 的值语义。 Creates an independent shape metadata snapshot.</summary>
+    public MIGraphXShape Clone()
+    {
+        if (IsDynamic) return CreateDynamic(DataType, dynamicDimensions);
+        return new MIGraphXShape(DataType, (long[])lengths.Clone(), (long[])strides.Clone(), ElementCount, ByteCount, IsStandard);
+    }
+
+    /// <summary>比较完整 shape 元数据；对应 native <c>migraphx_shape_equal</c> 的托管快照语义。 Compares all shape metadata using snapshot value semantics.</summary>
+    /// <param name="other">待比较的 shape。 Shape to compare.</param>
+    public bool HasSameNativeContent(MIGraphXShape other)
+    {
+        if (other is null) { throw new ArgumentNullException(nameof(other)); }
+        if (DataType != other.DataType || IsDynamic != other.IsDynamic) return false;
+        if (IsDynamic) return dynamicDimensions.SequenceEqual(other.dynamicDimensions);
+        return lengths.SequenceEqual(other.lengths) && strides.SequenceEqual(other.strides);
+    }
 
     internal long[] CopyLengths()
     {

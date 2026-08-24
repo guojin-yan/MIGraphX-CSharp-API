@@ -24,10 +24,20 @@ public sealed class MIGraphXFileOptions : IDisposable
         FileFormat = fileFormat;
     }
 
+    private MIGraphXFileOptions(NativeRuntime runtime, NativeFileOptionsHandle handle, string fileFormat)
+    {
+        owner = new NativeResourceOwner<NativeFileOptionsHandle>(runtime, handle);
+        FileFormat = fileFormat;
+    }
+
     /// <summary>获取固定文件格式名称。 Gets the fixed file-format name.</summary>
     public string FileFormat { get; }
 
     internal NativeResourceOwner<NativeFileOptionsHandle> Owner => owner;
+
+    /// <summary>使用 native assign-to 创建独立文件选项副本。 Creates an independent file-options clone through native assign-to.</summary>
+    public MIGraphXFileOptions Clone()
+        => owner.WithHandle(handle => new MIGraphXFileOptions(owner.Runtime, NativeFileOptionsHandle.CloneFrom(handle, FileFormat), FileFormat));
 
     /// <summary>释放 owned file-options handle。 Releases the owned file-options handle.</summary>
     public void Dispose() => owner.Dispose();

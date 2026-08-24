@@ -55,8 +55,62 @@ typedef struct fake_options
     int64_t limit_loop_iterations;
     char external_data_path[512];
 } *migraphx_onnx_options_t;
-typedef struct fake_program { int value; int parsed; int compiled; int offload_copy; int dynamic; size_t dynamic_count; fake_dynamic_dimension dynamic_values[8]; size_t static_count; size_t static_values[8]; } *migraphx_program_t;
+typedef struct fake_module { int value; char name[64]; } fake_module;
+typedef fake_module* migraphx_module_t;
+typedef struct fake_instruction { int value; } *migraphx_instruction_t;
+typedef struct fake_instructions { size_t count; migraphx_instruction_t values[16]; } *migraphx_instructions_t;
+typedef struct fake_modules { size_t count; migraphx_module_t values[16]; } *migraphx_modules_t;
+typedef struct fake_operation { char name[64]; } *migraphx_operation_t;
+typedef struct fake_program
+{
+    int value;
+    int parsed;
+    int compiled;
+    int offload_copy;
+    int dynamic;
+    size_t dynamic_count;
+    fake_dynamic_dimension dynamic_values[8];
+    size_t static_count;
+    size_t static_values[8];
+    fake_module main_module;
+    size_t module_count;
+    fake_module modules[8];
+    int quantization;
+} *migraphx_program_t;
 typedef struct fake_compile_options { uint8_t offload_copy; uint8_t fast_math; uint8_t exhaustive_tune; } *migraphx_compile_options_t;
+typedef struct fake_tf_options
+{
+    uint8_t nhwc;
+    size_t static_count;
+    size_t static_values[8];
+    size_t default_dim;
+    size_t output_count;
+    char output_names[8][64];
+} *migraphx_tf_options_t;
+typedef struct fake_quantize_op_names { size_t count; char names[16][64]; } *migraphx_quantize_op_names_t;
+typedef struct fake_quantize_int8_options
+{
+    size_t count;
+    char names[16][64];
+    size_t calibration_count;
+} *migraphx_quantize_int8_options_t;
+typedef struct fake_quantize_fp8_options { size_t calibration_count; } *migraphx_quantize_fp8_options_t;
+typedef void* migraphx_context_t;
+typedef migraphx_status (*fake_custom_copy)(void** out, void* input);
+typedef migraphx_status (*fake_custom_delete)(void* input);
+typedef struct fake_experimental_custom_op
+{
+    void* object;
+    fake_custom_copy copy;
+    fake_custom_delete delete_object;
+    void* compute;
+    void* compute_shape;
+    void* output_alias;
+    void* runs_on_offload_target;
+    char object_type_name[64];
+    char name[64];
+    int registered;
+} *migraphx_experimental_custom_op_t;
 typedef struct fake_shape
 {
     int type;
@@ -138,6 +192,13 @@ static volatile int32_t async_complete_count;
 static void* last_async_stream;
 static void* last_async_input;
 static char last_async_name[64];
+static volatile int32_t m12_live_count;
+static volatile int32_t m12_destroy_count;
+static volatile int32_t last_quantization;
+static volatile int32_t context_finish_count;
+static volatile int32_t custom_register_count;
+static volatile int32_t program_print_count;
+static volatile int32_t program_sort_count;
 
 static int take_status(void)
 {
@@ -256,6 +317,13 @@ EXPORT void fake_reset(void)
     last_async_stream = NULL;
     last_async_input = NULL;
     last_async_name[0] = '\0';
+    m12_live_count = 0;
+    m12_destroy_count = 0;
+    last_quantization = 0;
+    context_finish_count = 0;
+    custom_register_count = 0;
+    program_print_count = 0;
+    program_sort_count = 0;
 }
 
 EXPORT void fake_set_next_status(int status) { ATOMIC_EXCHANGE(next_status, status); }
@@ -330,6 +398,13 @@ EXPORT void fake_set_onnx_registry_mode(int value)
 }
 EXPORT void fake_set_equality_wait(int value) { ATOMIC_EXCHANGE(equality_wait, value); }
 EXPORT int fake_equality_enter_count(void) { return equality_enter_count; }
+EXPORT int fake_m12_live_count(void) { return m12_live_count; }
+EXPORT int fake_m12_destroy_count(void) { return m12_destroy_count; }
+EXPORT int fake_last_quantization(void) { return last_quantization; }
+EXPORT int fake_context_finish_count(void) { return context_finish_count; }
+EXPORT int fake_custom_register_count(void) { return custom_register_count; }
+EXPORT int fake_program_print_count(void) { return program_print_count; }
+EXPORT int fake_program_sort_count(void) { return program_sort_count; }
 
 EXPORT migraphx_status fake_m3_store_callback(fake_m3_callback callback, void* state)
 {
@@ -446,6 +521,12 @@ EXPORT migraphx_status migraphx_program_assign_to(migraphx_program_t output, con
     return (migraphx_status)take_status_for("migraphx_program_assign_to");
 }
 
+static void initialize_program_graph(migraphx_program_t program)
+{
+    program->main_module.value = program->value;
+    copy_string(program->main_module.name, sizeof(program->main_module.name), "main");
+}
+
 EXPORT migraphx_status migraphx_program_create(migraphx_program_t* program)
 {
     int status;
@@ -462,6 +543,7 @@ EXPORT migraphx_status migraphx_program_create(migraphx_program_t* program)
             return migraphx_status_unknown_error;
         memset(*program, 0, sizeof(**program));
         (*program)->value = ATOMIC_INCREMENT(next_value);
+        initialize_program_graph(*program);
         ATOMIC_INCREMENT(program_live_count);
     }
     status = take_status_for("migraphx_program_create");
@@ -692,7 +774,12 @@ EXPORT migraphx_status migraphx_shape_bytes(size_t* out, const fake_shape* shape
 EXPORT migraphx_status migraphx_shape_elements(size_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; if(shape->dynamic) return migraphx_status_unknown_error; *out = shape->elements; return (migraphx_status)take_status_for("migraphx_shape_elements"); }
 EXPORT migraphx_status migraphx_shape_standard(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; if(shape->dynamic) return migraphx_status_unknown_error; *out = shape->standard; return (migraphx_status)take_status_for("migraphx_shape_standard"); }
 EXPORT migraphx_status migraphx_shape_dynamic(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = shape->dynamic; return (migraphx_status)take_status_for("migraphx_shape_dynamic"); }
-EXPORT migraphx_status migraphx_argument_destroy(migraphx_argument_t value) { destroy_m2(value); return (migraphx_status)take_status_for("migraphx_argument_destroy"); }
+EXPORT migraphx_status migraphx_argument_destroy(migraphx_argument_t value)
+{
+    if(value != NULL && value->owns_buffer) free(value->buffer);
+    destroy_m2(value);
+    return (migraphx_status)take_status_for("migraphx_argument_destroy");
+}
 EXPORT migraphx_status migraphx_argument_create(migraphx_argument_t* out, const fake_shape* shape, void* buffer)
 {
     int status;
@@ -1064,7 +1151,7 @@ EXPORT migraphx_status migraphx_load(migraphx_program_t* out, const char* name, 
     if(out == NULL || name == NULL || options == NULL || strcmp(options->format, "msgpack") != 0) return migraphx_status_bad_param;
     FILE* file = fopen(name, "rb"); if(file == NULL) return migraphx_status_unknown_error; fclose(file);
     if(take_null_for("migraphx_load")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_load"); }
-    *out = (migraphx_program_t)malloc(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; memset(*out, 0, sizeof(**out)); (*out)->value = ATOMIC_INCREMENT(next_value); (*out)->parsed = 1; ATOMIC_INCREMENT(program_live_count); return (migraphx_status)take_status_for("migraphx_load");
+    *out = (migraphx_program_t)malloc(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; memset(*out, 0, sizeof(**out)); (*out)->value = ATOMIC_INCREMENT(next_value); (*out)->parsed = 1; initialize_program_graph(*out); ATOMIC_INCREMENT(program_live_count); return (migraphx_status)take_status_for("migraphx_load");
 }
 
 #ifndef FAKE_DISABLE_M10
@@ -1104,3 +1191,5 @@ EXPORT migraphx_status migraphx_get_onnx_operator_name_at_index(char** out, size
     return migraphx_status_success;
 }
 #endif
+
+#include "fake_m12.inc"

@@ -221,6 +221,21 @@ internal sealed class NativeFileOptionsHandle : NativeOwnedHandle
         }
     }
 
+    internal static NativeFileOptionsHandle CloneFrom(IntPtr source, string format)
+    {
+        var owned = Create(format);
+        try
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.FileOptionsAssignTo(owned.DangerousGetHandle(), source), "migraphx_file_options_assign_to");
+            return owned;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
     protected override bool ReleaseHandle() { NativeMethods.FileOptionsDestroy(handle); return true; }
 }
 

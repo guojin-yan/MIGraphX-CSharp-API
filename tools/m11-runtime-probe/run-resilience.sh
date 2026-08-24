@@ -2,21 +2,26 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: run-resilience.sh --repo DIR --feed DIR --record DIR --fixtures DIR --native FILE --alternate-native FILE --hip FILE --source-sha SHA --version VERSION --core-sha SHA256 --adapter-sha SHA256 --hipsharp-sha SHA256 --phase isolation|timing|long-run" >&2
+  echo "Usage: run-resilience.sh --repo DIR --feed DIR --record DIR --fixtures DIR --native FILE --alternate-native FILE --hip FILE --source-sha SHA --version VERSION --core-sha SHA256 --adapter-sha SHA256 --hipsharp-sha SHA256 --phase isolation|timing|long-run [--long-run-phase PHASE] [--defer-artifact-manifest]" >&2
   exit 2
 }
 
-repo=''; feed=''; record=''; fixtures=''; native=''; alternate_native=''; hip=''; source_sha=''; version=''; core_sha=''; adapter_sha=''; hipsharp_sha=''; phase=''; long_run_phase=''
+repo=''; feed=''; record=''; fixtures=''; native=''; alternate_native=''; hip=''; source_sha=''; version=''; core_sha=''; adapter_sha=''; hipsharp_sha=''; phase=''; long_run_phase=''; defer_artifact_manifest=false
 while [[ $# -gt 0 ]]; do
-  [[ $# -ge 2 ]] || usage
   case "$1" in
+    --defer-artifact-manifest) defer_artifact_manifest=true; shift ;;
+    *)
+      [[ $# -ge 2 ]] || usage
+      case "$1" in
     --repo) repo="$2" ;; --feed) feed="$2" ;; --record) record="$2" ;; --fixtures) fixtures="$2" ;;
     --native) native="$2" ;; --alternate-native) alternate_native="$2" ;; --hip) hip="$2" ;;
     --source-sha) source_sha="$2" ;; --version) version="$2" ;; --core-sha) core_sha="$2" ;;
     --adapter-sha) adapter_sha="$2" ;; --hipsharp-sha) hipsharp_sha="$2" ;; --phase) phase="$2" ;; --long-run-phase) long_run_phase="$2" ;;
     *) usage ;;
+      esac
+      shift 2
+      ;;
   esac
-  shift 2
 done
 
 for directory in "$repo" "$feed" "$record" "$fixtures"; do
@@ -126,4 +131,6 @@ case "$phase" in
 esac
 
 date -u +%Y-%m-%dT%H:%M:%SZ > "$record/raw/completed-utc.txt"
-find "$record" -type f ! -name artifact-hashes.txt -print0 | sort -z | xargs -0 sha256sum > "$record/raw/artifact-hashes.txt"
+if [[ "$defer_artifact_manifest" = false ]]; then
+  find "$record" -type f ! -name artifact-hashes.txt -print0 | sort -z | xargs -0 sha256sum > "$record/raw/artifact-hashes.txt"
+fi

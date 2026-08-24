@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选。M11 不新增公开 API；它同步 M10 post-build 官方证据，并新增确定性 M4-M6 fixture、package-only probe、独立复核、冻结的功能/长跑/计时阈值与明确 Windows 策略。仓库默认版本仍为 `0.0.0`，没有发布任何包。
+MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选，并加入 M12 本地接口开发批次。M12 为剩余的 shape/argument、图编辑、TensorFlow、量化、context 和 experimental custom-op 声明增加托管 wrapper；该批次已通过本地托管编译、fake-native 夹具编译、M12 focused tests 和项目质量测试，但尚未进行远程或真实 MIGraphX runtime 验证。仓库默认版本仍为 `0.0.0`，没有发布任何包。
 
 ## 状态
 
@@ -19,12 +19,13 @@ MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选。M11 不�
 - M9 为 ONNX Loop 默认值/上限、external-data 根路径、fast-math 与 exhaustive tuning 封装 5 个推理 option 入口；累计映射为 80 supported、111 planned、1 unsupported。在已推送 SHA `346cdd0b01a7f8039f5deb93058928403fccc7dd` 上，ROCm 7.2.1 已接受 5 个记录值，并完成经复核的 gfx1100 Identity 编译/执行与精确 reference 匹配。
 - M10 封装 4 个入口：严格 UTF-8 深拷贝的 ONNX parser registry 快照，以及显式 argument/program 原生内容比较。shape equality 继续 planned。随后 `e2386dc69e7640f8ff12d95284e56c3f02c87938` 的 post-build 外部记录独立复核四个 adopted 入口，并在该精确主机/构建上提升为 `runtime-executed`。
 - M11 保持 core `27 types / 160 members`、adapter `3 / 11` 与累计 `84/107/1`。rc.5 官方诊断会话通过 registry/lifecycle 检查后，在首轮 file/buffer case 超时，并暴露 TERM 到 KILL 升级缺失；rc.6 新增持久化分阶段轨迹与固定 10 秒强制退出升级，但尚无官方 runtime promotion。隔离负向、长跑与计时仍为 `runtime-deferred`。AMD 将 MIGraphX 2.15.0 文档限定为 Linux 且 Windows 组件表标明 AI libraries 不可用，因此固定版本 Windows runtime 为 `not-applicable`。
+- M12 与历史 M3-M11 证据映射分开记录：新增 `MIGraphXShape` scalar/stride/index 快照、argument empty/generate/load/save/clone、owned options/program assign-to clone、module/instruction 图句柄、TensorFlow options/parse、FP16/BF16/INT8/FP8 option、experimental context 和 raw custom-op 回调注册；C 可变参数 operation constructor 仍为 unsupported。详见 [M12 本地接口开发](docs/design/m12-local-interface-expansion.md)。
 - 静态 shape 元数据包含已映射标量类型、lengths、strides、rank、溢出检查后的元素/字节数、standard 与 packed 标志。typed argument 拥有复制后的 host 内存；parameter map 深拷贝 argument；run 输出在原生集合释放前复制。
 - 一个 normalized model 同源生成各 158 个 `LibraryImport` 与 `DllImport` EntryPoint。C 可变参数函数 `migraphx_operation_create` 被显式标为 unsupported，不猜测 ABI。
 - 固定头中的 159 个函数全部匹配 hash 校验后的官方 ELF；ELF 额外的私有测试导出单独分类。这些 M3 结论属于 `statically-verified`，不是官方 runtime 执行。
 - 本地 fake-native 测试实际执行 loader、frontend/export 分类、对象构造、parse、不可变 shape 快照、typed host copy、多项集合、compile、同步 run、定向失败清理及并发/Dispose 边界。它继续作为测试替身证据，与官方 runtime 证据分开记录。
 - M1/M2 官方 runtime 已在 `346cdd0b01a7f8039f5deb93058928403fccc7dd` 重新验证：环境为 Ubuntu 24.04 x86-64、ROCm 7.2.1、固定 MIGraphX 包和一张 gfx1100 GPU；实际执行了官方 loader、target/program 生命周期、ONNX file/buffer parse、GPU compile、同步 run 和 Identity reference 对比。
-- M6 host 路径要求 `offloadCopy=true`；device input 路径只接受 `HipDeviceMemory`、要求 `offloadCopy=false`，并在 stream 完成后显式 D2H 复制输出。custom op、图编辑/capture 互操作、任意设备指针和 Runtime NuGet 打包仍不在范围内。
+- M6 host 路径要求 `offloadCopy=true`；device input 路径只接受 `HipDeviceMemory`、要求 `offloadCopy=false`，并在 stream 完成后显式 D2H 复制输出。M12 已在本地开发批次加入 graph/module、context 与 custom-op wrapper；fake-native 证据仅属于本地测试替身证据。图 capture 互操作、任意设备指针和 Runtime NuGet 打包仍不在范围内。
 - M4/M5/M6 行为只有本地 `statically-verified` 与 `fake-native-executed` 证据；M6 没有官方 GPU、zero-copy、重叠或性能结论。
 - core 与 adapter 包均不含 AMD 或 fake-native 二进制。项目不会生成或规划 `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.*` 包；`eng/pack.ps1 -Runtime` 会报告 `MIGRAPHX1001` 并指向 AMD 官方系统仓库。
 

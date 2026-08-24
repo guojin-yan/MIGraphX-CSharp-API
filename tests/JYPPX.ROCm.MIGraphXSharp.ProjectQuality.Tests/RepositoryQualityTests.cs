@@ -94,7 +94,13 @@ public sealed class RepositoryQualityTests
 
         foreach (var type in typeof(MIGraphXBuildInfo).Assembly.GetExportedTypes())
         {
-            AssertBilingual(members, $"T:{type.FullName}");
+            AssertBilingual(members, $"T:{XmlTypeName(type)}");
+            // Delegate Invoke/BeginInvoke/EndInvoke methods are runtime-generated
+            // members; the public ABI contract is documented on the delegate type.
+            if (type.BaseType == typeof(MulticastDelegate))
+            {
+                continue;
+            }
             foreach (var field in type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
             {
                 if (field.IsSpecialName) { continue; }
@@ -119,8 +125,8 @@ public sealed class RepositoryQualityTests
                 foreach (var parameter in parameters)
                 {
                     var documentation = member.Elements("param").SingleOrDefault(element => element.Attribute("name")?.Value == parameter.Name)?.Value ?? string.Empty;
-                    Assert.Matches("[\\u3400-\\u9fff]", documentation);
-                    Assert.Matches("[A-Za-z]", documentation);
+                    Assert.True(documentation.Any(character => character >= '\u3400' && character <= '\u9fff'), $"{id} parameter {parameter.Name} must contain Chinese documentation.");
+                    Assert.True(documentation.Any(character => (character >= 'A' && character <= 'Z') || (character >= 'a' && character <= 'z')), $"{id} parameter {parameter.Name} must contain English documentation.");
                 }
             }
         }
@@ -281,11 +287,29 @@ public sealed class RepositoryQualityTests
         var project = File.ReadAllText(Path.Combine(probeRoot, "M11RuntimeProbe.csproj"));
         var runner = File.ReadAllText(Path.Combine(probeRoot, "Program.cs"));
         var review = File.ReadAllText(Path.Combine(probeRoot, "review.ps1"));
+        var resilience = File.ReadAllText(Path.Combine(probeRoot, "run-resilience.sh"));
+        var supervisor = File.ReadAllText(Path.Combine(probeRoot, "run-long-run-supervisor.sh"));
+        var supervisorVerifier = File.ReadAllText(Path.Combine(probeRoot, "verify-supervisor-record.py"));
         Assert.DoesNotContain("ProjectReference", project, StringComparison.Ordinal);
         Assert.Contains("PackageReference", project, StringComparison.Ordinal);
         Assert.Contains("runtime-candidate-executed-review-required", runner, StringComparison.Ordinal);
         Assert.DoesNotContain("runtime-executed", runner, StringComparison.Ordinal);
         Assert.Contains("reviewedEvidence = 'runtime-executed'", review, StringComparison.Ordinal);
+        Assert.Contains("--defer-artifact-manifest", resilience, StringComparison.Ordinal);
+        Assert.Contains("defer_artifact_manifest=false", resilience, StringComparison.Ordinal);
+        Assert.Contains("defer_artifact_manifest=true", resilience, StringComparison.Ordinal);
+        Assert.Contains("setsid timeout", supervisor, StringComparison.Ordinal);
+        Assert.Contains("--showmeminfo vram --showuse", supervisor, StringComparison.Ordinal);
+        Assert.Contains("capture_snapshot pre", supervisor, StringComparison.Ordinal);
+        Assert.Contains("capture_snapshot post", supervisor, StringComparison.Ordinal);
+        Assert.Contains("hostRestartHandledBySupervisor", supervisor, StringComparison.Ordinal);
+        Assert.Contains("find . -type f ! -path './raw/artifact-hashes.txt'", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("systemctl reboot", supervisor, StringComparison.Ordinal);
+        Assert.DoesNotContain("shutdown -r", supervisor, StringComparison.Ordinal);
+        Assert.Contains("malformed final artifact manifest entry", supervisorVerifier, StringComparison.Ordinal);
+        Assert.Contains("unsafe path", supervisorVerifier, StringComparison.Ordinal);
+        Assert.Contains("durationSeconds", supervisorVerifier, StringComparison.Ordinal);
+        Assert.Contains("hostRestartProofValidated", supervisorVerifier, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -299,11 +323,11 @@ public sealed class RepositoryQualityTests
             .Where(line => line.StartsWith("T|", StringComparison.Ordinal))
             .Select(line => line.Split('|')[2].Split(';')[0])
             .ToHashSet(StringComparer.Ordinal);
-        var exportedTypes = assembly.GetExportedTypes().Select(type => type.FullName!).ToHashSet(StringComparer.Ordinal);
+        var exportedTypes = assembly.GetExportedTypes().Select(type => type.FullName!.Replace('+', '.')).ToHashSet(StringComparer.Ordinal);
         Assert.True(baselineTypes.SetEquals(exportedTypes),
             $"Public type baseline drift. Missing: {string.Join(", ", exportedTypes.Except(baselineTypes))}; stale: {string.Join(", ", baselineTypes.Except(exportedTypes))}");
-        Assert.Equal(27, baselineTypes.Count);
-        Assert.Equal(160, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
+        Assert.Equal(44, baselineTypes.Count);
+        Assert.Equal(282, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
 
         var m5Types = new[]
         {
@@ -322,7 +346,7 @@ public sealed class RepositoryQualityTests
             + type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(field => !field.IsSpecialName)
             + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
-        Assert.Equal(106, classMemberCount);
+        Assert.Equal(141, classMemberCount);
 
         foreach (var type in m5Types)
         {

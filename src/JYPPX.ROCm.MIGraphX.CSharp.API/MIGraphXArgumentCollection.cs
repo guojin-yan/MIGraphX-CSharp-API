@@ -32,6 +32,26 @@ public sealed class MIGraphXArgumentCollection : IReadOnlyList<MIGraphXArgument>
         get { lock (sync) { return RequireArguments()[index]; } }
     }
 
+    /// <summary>复制集合及其所有 argument；对应 native <c>migraphx_arguments_assign_to</c> 的托管快照语义。 Creates a managed snapshot with cloned arguments.</summary>
+    public MIGraphXArgumentCollection Clone()
+    {
+        lock (sync)
+        {
+            var current = RequireArguments();
+            var copies = new MIGraphXArgument[current.Length];
+            try
+            {
+                for (var index = 0; index < current.Length; index++) copies[index] = current[index].Clone();
+                return new MIGraphXArgumentCollection(copies);
+            }
+            catch
+            {
+                foreach (var copy in copies) copy?.Dispose();
+                throw;
+            }
+        }
+    }
+
     /// <summary>返回当前只读输出快照的枚举器。 Returns an enumerator over the current read-only output snapshot.</summary>
     /// <returns>按原生索引排序的枚举器。 An enumerator ordered by native index.</returns>
     public IEnumerator<MIGraphXArgument> GetEnumerator()

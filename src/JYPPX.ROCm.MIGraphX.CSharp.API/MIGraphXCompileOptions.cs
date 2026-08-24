@@ -39,6 +39,14 @@ public sealed class MIGraphXCompileOptions : IDisposable
         ExhaustiveTune = exhaustiveTune;
     }
 
+    private MIGraphXCompileOptions(NativeRuntime runtime, NativeCompileOptionsHandle handle, bool offloadCopy, bool fastMath, bool exhaustiveTune)
+    {
+        owner = new NativeResourceOwner<NativeCompileOptionsHandle>(runtime, handle);
+        OffloadCopy = offloadCopy;
+        FastMath = fastMath;
+        ExhaustiveTune = exhaustiveTune;
+    }
+
     /// <summary>获取构造时应用的 offload-copy 设置。 Gets the offload-copy setting applied at construction.</summary>
     public bool OffloadCopy { get; }
 
@@ -49,6 +57,10 @@ public sealed class MIGraphXCompileOptions : IDisposable
     public bool ExhaustiveTune { get; }
 
     internal NativeResourceOwner<NativeCompileOptionsHandle> Owner => owner;
+
+    /// <summary>使用 native assign-to 创建独立编译选项副本。 Creates an independent compile-options clone through native assign-to.</summary>
+    public MIGraphXCompileOptions Clone()
+        => owner.WithHandle(handle => new MIGraphXCompileOptions(owner.Runtime, NativeCompileOptionsHandle.CloneFrom(handle), OffloadCopy, FastMath, ExhaustiveTune));
 
     /// <summary>确定性释放 owned options handle；重复调用安全。 Deterministically releases the owned options handle; repeated calls are safe.</summary>
     public void Dispose() => owner.Dispose();

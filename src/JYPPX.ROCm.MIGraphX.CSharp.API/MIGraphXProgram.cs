@@ -88,6 +88,91 @@ public sealed class MIGraphXProgram : IDisposable
         }
     }
 
+    /// <summary>从绝对 TensorFlow GraphDef 文件解析 program。 Parses a program from an absolute TensorFlow GraphDef file.</summary>
+    /// <param name="modelPath">绝对模型文件路径。 Absolute model-file path.</param>
+    /// <param name="options">TensorFlow 解析选项。 TensorFlow parsing options.</param>
+    public static MIGraphXProgram ParseTfFile(string modelPath, MIGraphXTfOptions options)
+    {
+        if (options is null) { throw new ArgumentNullException(nameof(options)); }
+        var fullPath = MIGraphXTfOptions.ValidateInputPath(modelPath, nameof(modelPath));
+        using (var path = new StrictUtf8String(fullPath, nameof(modelPath)))
+        {
+            return options.Owner.WithHandle(handle => new MIGraphXProgram(options.Owner.Runtime, NativeProgramHandle.ParseTfFile(path.Pointer, options.Owner.HandleUnderLock)));
+        }
+    }
+
+    /// <summary>从非空 TensorFlow GraphDef 字节解析 program。 Parses a program from a non-empty TensorFlow GraphDef buffer.</summary>
+    /// <param name="model">GraphDef 字节。 GraphDef bytes.</param>
+    /// <param name="options">TensorFlow 解析选项。 TensorFlow parsing options.</param>
+    public static MIGraphXProgram ParseTfBuffer(byte[] model, MIGraphXTfOptions options)
+    {
+        if (options is null) { throw new ArgumentNullException(nameof(options)); }
+        if (model is null) { throw new ArgumentNullException(nameof(model)); }
+        if (model.Length == 0) { throw new ArgumentException("The TensorFlow model buffer must not be empty.", nameof(model)); }
+        var pinned = GCHandle.Alloc(model, GCHandleType.Pinned);
+        try
+        {
+            return options.Owner.WithHandle(handle => new MIGraphXProgram(
+                options.Owner.Runtime,
+                NativeProgramHandle.ParseTfBuffer(pinned.AddrOfPinnedObject(), NativeSizeTArray.Count(model.Length), options.Owner.HandleUnderLock)));
+        }
+        finally
+        {
+            pinned.Free();
+        }
+    }
+
+    /// <summary>获取 program 的 main module 视图；返回对象保持 program 存活。 Gets the main module view while keeping the program alive.</summary>
+    public MIGraphXModule GetMainModule()
+    {
+        var module = owner.WithHandle(program =>
+        {
+            var slot = Marshal.AllocHGlobal(IntPtr.Size);
+            try
+            {
+                Marshal.WriteIntPtr(slot, IntPtr.Zero);
+                NativeStatus.ThrowIfFailed(NativeMethods.ProgramGetMainModule(slot, program), "migraphx_program_get_main_module");
+                var pointer = Marshal.ReadIntPtr(slot);
+                if (pointer == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_get_main_module (success with null module)");
+                var lease = owner.AcquireLease();
+                try { return new MIGraphXModule(owner.Runtime, lease, pointer); }
+                catch { lease.Dispose(); throw; }
+            }
+            finally { Marshal.FreeHGlobal(slot); }
+        });
+        return module;
+    }
+
+    /// <summary>在 program 中创建命名 module；返回对象保持 program 存活。 Creates a named module while keeping the program alive through the returned view.</summary>
+    /// <param name="name">module 名称。 Module name.</param>
+    public MIGraphXModule CreateModule(string name)
+    {
+        using (var utf8 = new StrictUtf8String(name, nameof(name)))
+        {
+            var module = owner.WithHandle(program =>
+            {
+                var slot = Marshal.AllocHGlobal(IntPtr.Size);
+                try
+                {
+                    Marshal.WriteIntPtr(slot, IntPtr.Zero);
+                    NativeStatus.ThrowIfFailed(NativeMethods.ProgramCreateModule(slot, program, utf8.Pointer), "migraphx_program_create_module");
+                    var pointer = Marshal.ReadIntPtr(slot);
+                    if (pointer == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_create_module (success with null module)");
+                    var lease = owner.AcquireLease();
+                    try
+                    {
+                        var result = new MIGraphXModule(owner.Runtime, lease, pointer);
+                        compiled = false;
+                        return result;
+                    }
+                    catch { lease.Dispose(); throw; }
+                }
+                finally { Marshal.FreeHGlobal(slot); }
+            });
+            return module;
+        }
+    }
+
     /// <summary>
     /// 使用显式 target 与 compile options 同步编译 program。
     /// Synchronizes compilation of the program with explicit target and compile options.
@@ -115,6 +200,127 @@ public sealed class MIGraphXProgram : IDisposable
                 compiled = true;
                 compiledOffloadCopy = options.OffloadCopy;
                 return 0;
+            });
+    }
+
+    /// <summary>调用 native program print。 Prints the native program representation.</summary>
+    public void Print() => owner.WithHandle(handle => NativeStatus.ThrowIfFailed(NativeMethods.ProgramPrint(handle), "migraphx_program_print"));
+
+    /// <summary>对 program 执行 native sort，并使已编译标志失效。 Sorts the native program and invalidates its compiled state.</summary>
+    public void Sort()
+    {
+        owner.WithHandle(handle =>
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.ProgramSort(handle), "migraphx_program_sort");
+            compiled = false;
+        });
+    }
+
+    /// <summary>使用 native <c>program_equal</c> 比较两个 program。 Compares two programs using native <c>program_equal</c> semantics.</summary>
+    /// <param name="other">待比较的 program。 Program to compare.</param>
+    public bool IsEqual(MIGraphXProgram other)
+    {
+        if (other is null) throw new ArgumentNullException(nameof(other));
+        owner.Runtime.RequireSame(other.owner.Runtime, nameof(other));
+        owner.Runtime.RequireM10Equality();
+        return NativeResourceLock.With(
+            new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(other.owner.Id, other.owner.Sync) },
+            () => NativeM10Methods.ProgramContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock));
+    }
+
+    /// <summary>将 program 量化为 FP16；传入名称集合时仅处理指定 operator。 Quantizes the program to FP16, optionally limiting processing to named operators.</summary>
+    /// <param name="opNames">可选 operator 名称集合。 Optional operator-name collection.</param>
+    public void QuantizeFp16(MIGraphXQuantizeOpNames? opNames = null)
+    {
+        if (opNames is null)
+        {
+            owner.WithHandle(handle =>
+            {
+                NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp16(handle), "migraphx_quantize_fp16");
+                compiled = false;
+            });
+        }
+        else
+        {
+            owner.Runtime.RequireSame(opNames.Owner.Runtime, nameof(opNames));
+            NativeResourceLock.With(
+                new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(opNames.Owner.Id, opNames.Owner.Sync) },
+                () =>
+                {
+                    NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp16WithOpNames(owner.HandleUnderLock, opNames.Owner.HandleUnderLock), "migraphx_quantize_fp16_with_op_names");
+                    compiled = false;
+                });
+        }
+    }
+
+    /// <summary>将 program 量化为 BF16；传入名称集合时仅处理指定 operator。 Quantizes the program to BF16, optionally limiting processing to named operators.</summary>
+    /// <param name="opNames">可选 operator 名称集合。 Optional operator-name collection.</param>
+    public void QuantizeBf16(MIGraphXQuantizeOpNames? opNames = null)
+    {
+        if (opNames is null)
+        {
+            owner.WithHandle(handle =>
+            {
+                NativeStatus.ThrowIfFailed(NativeMethods.QuantizeBf16(handle), "migraphx_quantize_bf16");
+                compiled = false;
+            });
+        }
+        else
+        {
+            owner.Runtime.RequireSame(opNames.Owner.Runtime, nameof(opNames));
+            NativeResourceLock.With(
+                new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(opNames.Owner.Id, opNames.Owner.Sync) },
+                () =>
+                {
+                    NativeStatus.ThrowIfFailed(NativeMethods.QuantizeBf16WithOpNames(owner.HandleUnderLock, opNames.Owner.HandleUnderLock), "migraphx_quantize_bf16_with_op_names");
+                    compiled = false;
+                });
+        }
+    }
+
+    /// <summary>使用 INT8 选项量化 program。 Quantizes the program using INT8 options.</summary>
+    /// <param name="target">量化目标。 Quantization target.</param>
+    /// <param name="options">INT8 量化选项。 INT8 quantization options.</param>
+    public void QuantizeInt8(MIGraphXTarget target, MIGraphXQuantizeInt8Options options)
+    {
+        if (target is null) { throw new ArgumentNullException(nameof(target)); }
+        if (options is null) { throw new ArgumentNullException(nameof(options)); }
+        owner.Runtime.RequireSame(target.Owner.Runtime, nameof(target));
+        owner.Runtime.RequireSame(options.Owner.Runtime, nameof(options));
+        NativeResourceLock.With(
+            new[]
+            {
+                NativeResourceLock.Target(owner.Id, owner.Sync),
+                NativeResourceLock.Target(target.Owner.Id, target.Owner.Sync),
+                NativeResourceLock.Target(options.Owner.Id, options.Owner.Sync),
+            },
+            () =>
+            {
+                NativeStatus.ThrowIfFailed(NativeMethods.QuantizeInt8(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock), "migraphx_quantize_int8");
+                compiled = false;
+            });
+    }
+
+    /// <summary>使用 FP8 选项量化 program。 Quantizes the program using FP8 options.</summary>
+    /// <param name="target">量化目标。 Quantization target.</param>
+    /// <param name="options">FP8 量化选项。 FP8 quantization options.</param>
+    public void QuantizeFp8(MIGraphXTarget target, MIGraphXQuantizeFp8Options options)
+    {
+        if (target is null) { throw new ArgumentNullException(nameof(target)); }
+        if (options is null) { throw new ArgumentNullException(nameof(options)); }
+        owner.Runtime.RequireSame(target.Owner.Runtime, nameof(target));
+        owner.Runtime.RequireSame(options.Owner.Runtime, nameof(options));
+        NativeResourceLock.With(
+            new[]
+            {
+                NativeResourceLock.Target(owner.Id, owner.Sync),
+                NativeResourceLock.Target(target.Owner.Id, target.Owner.Sync),
+                NativeResourceLock.Target(options.Owner.Id, options.Owner.Sync),
+            },
+            () =>
+            {
+                NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp8(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock), "migraphx_quantize_fp8");
+                compiled = false;
             });
     }
 
@@ -163,6 +369,9 @@ public sealed class MIGraphXProgram : IDisposable
     /// </summary>
     /// <returns>与原生 collection 生命周期独立的 shape 列表。 Shape list independent of the native collection lifetime.</returns>
     public IReadOnlyList<MIGraphXShape> GetOutputShapes() => owner.WithHandle(GetOutputShapesUnderLock);
+
+    /// <summary>复制输出 shape 为独立集合对象；对应 native shapes collection 的托管快照。 Creates an independent managed collection snapshot of native output shapes.</summary>
+    public MIGraphXShapeCollection GetOutputShapeCollection() => new MIGraphXShapeCollection(GetOutputShapes());
 
     /// <summary>
     /// 使用显式 parameter map 同步运行，并在 native output collection 释放前复制所有输出。
@@ -247,6 +456,44 @@ public sealed class MIGraphXProgram : IDisposable
                 NativeResourceLock.Target(other.owner.Id, other.owner.Sync),
             },
             () => NativeM10Methods.ProgramContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock));
+    }
+
+    /// <summary>使用 native assign-to 创建独立 program 副本。 Creates an independent program clone through native assign-to.</summary>
+    public MIGraphXProgram Clone()
+    {
+        return owner.WithHandle(handle =>
+        {
+            var overrides = dynamicOverrides.ToDictionary(
+                pair => pair.Key,
+                pair => pair.Value.ToArray(),
+                StringComparer.Ordinal);
+            var result = new MIGraphXProgram(owner.Runtime, NativeProgramHandle.CloneFrom(handle), overrides)
+            {
+                compiled = compiled,
+                compiledOffloadCopy = compiledOffloadCopy,
+            };
+            return result;
+        });
+    }
+
+    /// <summary>获取由 program 所有且由返回对象保持存活的实验 context。 Gets a program-owned experimental context kept alive by the returned object.</summary>
+    public MIGraphXContext GetExperimentalContext()
+    {
+        return owner.WithHandle(program =>
+        {
+            var slot = Marshal.AllocHGlobal(IntPtr.Size);
+            try
+            {
+                Marshal.WriteIntPtr(slot, IntPtr.Zero);
+                NativeStatus.ThrowIfFailed(NativeMethods.ProgramExperimentalGetContext(slot, program), "migraphx_program_experimental_get_context");
+                var context = Marshal.ReadIntPtr(slot);
+                if (context == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_experimental_get_context (success with null context)");
+                var lease = owner.AcquireLease();
+                try { return new MIGraphXContext(lease, context); }
+                catch { lease.Dispose(); throw; }
+            }
+            finally { Marshal.FreeHGlobal(slot); }
+        });
     }
 
     internal NativeRuntime Runtime => owner.Runtime;
