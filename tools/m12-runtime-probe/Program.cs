@@ -104,7 +104,8 @@ internal sealed class ProbeRunner
         var strided = MIGraphXShape.CreateWithStrides(MIGraphXShapeDataType.Float32, new long[] { 2, 2 }, new long[] { 1, 2 });
         Require(strided.Rank == 2 && strided.Strides.SequenceEqual(new long[] { 1, 2 }), "Explicit strides were not preserved.");
         WriteStage(id, "empty", "entered");
-        using var empty = MIGraphXArgument.CreateEmpty(options.NativePath, scalar);
+        var emptyShape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+        using var empty = MIGraphXArgument.CreateEmpty(options.NativePath, emptyShape);
         WriteStage(id, "generated", "entered");
         using var generated = MIGraphXArgument.Generate(options.NativePath, new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }), 17);
         WriteStage(id, "clone", "entered");
@@ -112,7 +113,7 @@ internal sealed class ProbeRunner
         WriteStage(id, "compare", "entered");
         Require(generated.HasSameNativeContent(clone), "Generated argument clone differs from its source.");
         WriteStage(id, "empty-shape", "entered");
-        Require(empty.Shape.HasSameNativeContent(scalar), "Empty argument shape snapshot differs.");
+        Require(empty.Shape.HasSameNativeContent(emptyShape), "Empty argument shape snapshot differs.");
     }
 
     private void RunArgumentPersistence()
