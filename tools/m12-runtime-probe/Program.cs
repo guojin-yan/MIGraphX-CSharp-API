@@ -99,12 +99,19 @@ internal sealed class ProbeRunner
 
     private void RunShapeAndArgumentFactories()
     {
+        const string id = "m12-shape-argument-factories";
+        WriteStage(id, "strided", "entered");
         var strided = MIGraphXShape.CreateWithStrides(MIGraphXShapeDataType.Float32, new long[] { 2, 2 }, new long[] { 1, 2 });
         Require(strided.Rank == 2 && strided.Strides.SequenceEqual(new long[] { 1, 2 }), "Explicit strides were not preserved.");
+        WriteStage(id, "empty", "entered");
         using var empty = MIGraphXArgument.CreateEmpty(options.NativePath, scalar);
+        WriteStage(id, "generated", "entered");
         using var generated = MIGraphXArgument.Generate(options.NativePath, new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }), 17);
+        WriteStage(id, "clone", "entered");
         using var clone = generated.Clone();
+        WriteStage(id, "compare", "entered");
         Require(generated.HasSameNativeContent(clone), "Generated argument clone differs from its source.");
+        WriteStage(id, "empty-shape", "entered");
         Require(empty.Shape.HasSameNativeContent(scalar), "Empty argument shape snapshot differs.");
     }
 
@@ -226,6 +233,7 @@ internal sealed class ProbeRunner
         }
         catch (Exception exception)
         {
+            WriteStage(id, "exception", $"{exception.GetType().FullName}: {exception.Message}");
             WriteStage(id, "case", "failed");
             report.Cases.Add(new ProbeCase(id, "failed", DateTimeOffset.UtcNow - started, exception.GetType().FullName));
         }
