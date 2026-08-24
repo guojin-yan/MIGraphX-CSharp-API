@@ -54,7 +54,7 @@ $expectedDeferred = @(
     'm12-concurrent-dispose',
     'm12-cross-target-abi'
 )
-if (Compare-Object $expectedCases @($result.cases.id) -or @($result.cases | Where-Object state -ne 'passed').Count -ne 0) {
+if ((Compare-Object $expectedCases @($result.cases.id)) -or (@($result.cases | Where-Object state -ne 'passed').Count -ne 0)) {
     throw 'M12 executed case set is incomplete or failed.'
 }
 if (Compare-Object $expectedDeferred @($result.deferredCaseIds)) { throw 'M12 deferred case set drifted.' }
