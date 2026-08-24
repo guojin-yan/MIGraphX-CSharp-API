@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: run.sh --repo DIR --feed DIR --record DIR --identity FILE --native FILE --header FILE --source-sha SHA --version VERSION --core-sha SHA256" >&2
+  echo "Usage: run.sh --repo DIR --feed DIR --record DIR --identity FILE --native FILE --header FILE --source-sha SHA --version VERSION --core-sha SHA256 [--case CASE]" >&2
   exit 2
 }
 
@@ -15,6 +15,7 @@ header=''
 source_sha=''
 version=''
 core_sha=''
+case_id=''
 while [[ $# -gt 0 ]]; do
   [[ $# -ge 2 ]] || usage
   case "$1" in
@@ -27,6 +28,7 @@ while [[ $# -gt 0 ]]; do
     --source-sha) source_sha="$2" ;;
     --version) version="$2" ;;
     --core-sha) core_sha="$2" ;;
+    --case) case_id="$2" ;;
     *) usage ;;
   esac
   shift 2
@@ -42,6 +44,12 @@ done
 [[ "$source_sha" =~ ^[a-f0-9]{40}$ ]] || usage
 [[ "$version" == '0.0.0' ]] || usage
 [[ "$core_sha" =~ ^[a-f0-9]{64}$ ]] || usage
+if [[ -n "$case_id" ]]; then
+  case "$case_id" in
+    m12-shape-argument-factories|m12-argument-persistence-clone|m12-assign-to-clone|m12-graph-parent-lease|m12-graph-editing|m12-context-lifetime) ;;
+    *) usage ;;
+  esac
+fi
 
 [[ "$(git -C "$repo" rev-parse HEAD)" == "$source_sha" ]] || { echo 'source SHA mismatch' >&2; exit 1; }
 [[ -z "$(git -C "$repo" status --porcelain)" ]] || { echo 'source checkout is dirty' >&2; exit 1; }
@@ -87,10 +95,13 @@ dotnet restore "$project" --configfile "$record/build/NuGet.Config" --packages "
 dotnet build "$project" -c Release --no-restore -p:M12PackageVersion="$version" > "$record/raw/build.log" 2>&1
 
 command -v timeout >/dev/null 2>&1 || { echo 'GNU timeout is required for the bounded M12 session' >&2; exit 1; }
+probe_case_args=()
+if [[ -n "$case_id" ]]; then probe_case_args=(--case "$case_id"); fi
 set +e
 timeout --kill-after=10s 300s dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" -- \
   --native "$resolved_native" --identity "$identity" --record "$record" --output "$record/raw/m12-functional.json" \
   --source-sha "$source_sha" --expected-version "$version" \
+  "${probe_case_args[@]}" \
   > "$record/raw/functional-stdout.log" 2> "$record/raw/functional-stderr.log"
 functional_exit=$?
 set -e
@@ -107,6 +118,7 @@ cat > "$record/raw/run-metadata.json" <<EOF
   "functionalExitCode": $functional_exit,
   "functionalSessionTimeoutSeconds": 300,
   "sessionKillAfterSeconds": 10,
+  "caseFilter": "${case_id:-all}",
   "environmentChanged": false,
   "promotionRequested": false
 }

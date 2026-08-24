@@ -13,7 +13,8 @@ $raw = Join-Path $record 'raw'
 $resultPath = Join-Path $raw 'm12-functional.json'
 $metadataPath = Join-Path $raw 'run-metadata.json'
 $manifestPath = Join-Path $raw 'artifact-hashes.txt'
-foreach ($path in @($resultPath, $metadataPath, $manifestPath)) {
+$stagePath = Join-Path $raw 'case-stages.jsonl'
+foreach ($path in @($resultPath, $metadataPath, $manifestPath, $stagePath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required review input is missing: $path" }
 }
 
@@ -30,6 +31,7 @@ if ($result.evidence -ne 'runtime-candidate-executed-review-required' -or $resul
 if ($metadata.evidence -ne 'runtime-candidate-executed-review-required' -or $metadata.sourceSha -ne $SourceSha -or
     $metadata.version -ne '0.0.0' -or $metadata.functionalExitCode -ne 0 -or
     $metadata.functionalSessionTimeoutSeconds -ne 300 -or $metadata.sessionKillAfterSeconds -ne 10 -or
+    $metadata.caseFilter -ne 'all' -or
     $metadata.environmentChanged -ne $false -or $metadata.promotionRequested -ne $false) {
     throw 'M12 runner metadata is invalid or requests an unauthorized promotion.'
 }
@@ -56,6 +58,14 @@ if (Compare-Object $expectedCases @($result.cases.id) -or @($result.cases | Wher
     throw 'M12 executed case set is incomplete or failed.'
 }
 if (Compare-Object $expectedDeferred @($result.deferredCaseIds)) { throw 'M12 deferred case set drifted.' }
+$stages = @(Get-Content -LiteralPath $stagePath | ForEach-Object { $_ | ConvertFrom-Json })
+foreach ($caseId in $expectedCases) {
+    foreach ($state in @('started', 'completed')) {
+        if (@($stages | Where-Object { $_.caseId -eq $caseId -and $_.stage -eq 'case' -and $_.state -eq $state }).Count -ne 1) {
+            throw "M12 case stage trace is incomplete: $caseId/$state"
+        }
+    }
+}
 if ((Get-Sha256 $CorePackagePath) -ne $CoreSha256) { throw 'Core package hash mismatch.' }
 
 $manifestFailures = [Collections.Generic.List[string]]::new()

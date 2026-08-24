@@ -108,7 +108,7 @@ $sourceChecks = @{
     'native\fake-migraphx\fake_m12.inc' = @('m12_live_count', 'migraphx_experimental_custom_op_register')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs' = @('ShapeAndArgumentFactories', 'GraphEditingAndContextViews', 'TensorFlowAndQuantization', 'CustomOpClone')
     'tools\m12-runtime-probe\M12RuntimeProbe.csproj' = @('PackageReference', 'M12PackageVersion')
-    'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'DeferredCases')
+    'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'DeferredCases', 'case-stages.jsonl')
     'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'M12PackageVersion', '--no-cache --force-evaluate', 'environmentChanged')
     'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'promotionState')
 }

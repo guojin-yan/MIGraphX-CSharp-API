@@ -70,16 +70,23 @@ internal sealed class ProbeRunner
         const string expectedIdentitySha = "0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9";
         if (Program.HashFile(options.IdentityFixture) != expectedIdentitySha) throw new InvalidOperationException("Identity fixture SHA-256 mismatch.");
         Directory.CreateDirectory(options.RecordDirectory);
+        Directory.CreateDirectory(Path.Combine(options.RecordDirectory, "raw"));
     }
 
     internal void Run()
     {
-        RunCase("m12-shape-argument-factories", RunShapeAndArgumentFactories);
-        RunCase("m12-argument-persistence-clone", RunArgumentPersistence);
-        RunCase("m12-assign-to-clone", RunAssignToClones);
-        RunCase("m12-graph-parent-lease", RunGraphParentLease);
-        RunCase("m12-graph-editing", RunGraphEditing);
-        RunCase("m12-context-lifetime", RunContextLifetime);
+        var cases = new (string Id, Action Action)[]
+        {
+            ("m12-shape-argument-factories", RunShapeAndArgumentFactories),
+            ("m12-argument-persistence-clone", RunArgumentPersistence),
+            ("m12-assign-to-clone", RunAssignToClones),
+            ("m12-graph-parent-lease", RunGraphParentLease),
+            ("m12-graph-editing", RunGraphEditing),
+            ("m12-context-lifetime", RunContextLifetime),
+        };
+        var selected = options.CaseId is null ? cases : cases.Where(item => item.Id == options.CaseId).ToArray();
+        if (selected.Length == 0) throw new ArgumentException("--case does not name an executable M12 candidate case.");
+        foreach (var item in selected) RunCase(item.Id, item.Action);
         foreach (var id in DeferredCases) report.DeferredCaseIds.Add(id);
     }
 
@@ -103,14 +110,22 @@ internal sealed class ProbeRunner
 
     private void RunArgumentPersistence()
     {
+        const string id = "m12-argument-persistence-clone";
         var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
         var path = Path.Combine(options.RecordDirectory, "argument.msgpack");
+        WriteStage(id, "create", "entered");
         using var original = MIGraphXArgument.Create(options.NativePath, shape, new[] { 0.25f, -1f, 2f, 9f });
+        WriteStage(id, "save", "entered");
         original.Save(path);
+        WriteStage(id, "load", "entered");
         using var loaded = MIGraphXArgument.Load(options.NativePath, path);
+        WriteStage(id, "clone", "entered");
         using var clone = loaded.Clone();
+        WriteStage(id, "compare", "entered");
         Require(loaded.HasSameNativeContent(clone), "Loaded argument clone differs from its source.");
+        WriteStage(id, "readback", "entered");
         Require(clone.ToArray<float>().SequenceEqual(new[] { 0.25f, -1f, 2f, 9f }), "Argument persistence values differ.");
+        WriteStage(id, "hash", "entered");
         report.Artifacts["argumentSha256"] = Program.HashFile(path);
     }
 
@@ -177,15 +192,24 @@ internal sealed class ProbeRunner
     private void RunCase(string id, Action action)
     {
         var started = DateTimeOffset.UtcNow;
+        WriteStage(id, "case", "started");
         try
         {
             action();
+            WriteStage(id, "case", "completed");
             report.Cases.Add(new ProbeCase(id, "passed", DateTimeOffset.UtcNow - started, null));
         }
         catch (Exception exception)
         {
+            WriteStage(id, "case", "failed");
             report.Cases.Add(new ProbeCase(id, "failed", DateTimeOffset.UtcNow - started, exception.GetType().FullName));
         }
+    }
+
+    private void WriteStage(string caseId, string stage, string state)
+    {
+        var entry = JsonSerializer.Serialize(new { schemaVersion = "1.0.0", caseId, stage, state, utc = DateTimeOffset.UtcNow });
+        File.AppendAllText(Path.Combine(options.RecordDirectory, "raw", "case-stages.jsonl"), entry + Environment.NewLine);
     }
 
     private static void Require(bool condition, string message)
@@ -202,6 +226,7 @@ internal sealed class ProbeOptions
     public required string OutputPath { get; init; }
     public required string SourceSha { get; init; }
     public required string ExpectedVersion { get; init; }
+    public string? CaseId { get; init; }
 
     internal static ProbeOptions Parse(string[] args)
     {
@@ -220,7 +245,8 @@ internal sealed class ProbeOptions
         var output = Path.GetFullPath(Required("--output"));
         var prefix = record.EndsWith(Path.DirectorySeparatorChar) ? record : record + Path.DirectorySeparatorChar;
         if (!output.StartsWith(prefix, StringComparison.Ordinal)) throw new ArgumentException("--output must be inside --record.");
-        return new ProbeOptions { NativePath = ExistingFile("--native"), IdentityFixture = ExistingFile("--identity"), RecordDirectory = record, OutputPath = output, SourceSha = source.ToLowerInvariant(), ExpectedVersion = Required("--expected-version") };
+        values.TryGetValue("--case", out var caseId);
+        return new ProbeOptions { NativePath = ExistingFile("--native"), IdentityFixture = ExistingFile("--identity"), RecordDirectory = record, OutputPath = output, SourceSha = source.ToLowerInvariant(), ExpectedVersion = Required("--expected-version"), CaseId = caseId };
     }
 }
 
