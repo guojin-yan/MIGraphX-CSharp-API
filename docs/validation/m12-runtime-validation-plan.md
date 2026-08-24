@@ -4,7 +4,7 @@ M12 local development is complete and its local evidence is closed. Real MIGraph
 
 ## Current status
 
-The local Windows environment has no official MIGraphX provider. The fake MIGraphX and fake HIP fixtures, all 15 managed target frameworks, the five M12 focused tests, the 41-test unit suite, the 24 ProjectQuality tests, the package tests, and the historical M11/API gates pass locally. That evidence proves managed ownership and ABI-shape contracts only; it does not prove behavior against MIGraphX 2.15.0.
+The local Windows environment has no official MIGraphX provider. The fake MIGraphX and fake HIP fixtures, all 15 managed target frameworks, the six M12 focused tests, representative M12 graph execution through both interop families, the 42-test unit suite, the 24 ProjectQuality tests, the package tests, and the historical M11/API gates pass locally. That evidence proves managed ownership and ABI-shape contracts only; it does not prove behavior against MIGraphX 2.15.0.
 
 The M12 matrix is intentionally separate from the historical M3-M11 maps. Its cases remain `officialEvidence: runtime-deferred`, its authorization flags are false, and its review policy requires the candidate label `runtime-candidate-executed-review-required`. No M12 case may be promoted directly by the runner or by a local test.
 

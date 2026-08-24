@@ -74,12 +74,21 @@ using var leftArgument = MIGraphXArgument.Create(args[0], shape, input);
 using var rightArgument = MIGraphXArgument.Create(args[0], shape, input);
 using var leftProgram = new MIGraphXProgram(args[0]);
 using var rightProgram = new MIGraphXProgram(args[0]);
+using var graphProgram = new MIGraphXProgram(args[0]);
+using var graphModule = graphProgram.CreateModule("m12-cross-target");
+var graphShape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+using var graphParameter = graphModule.AddParameter("input", graphShape);
+using var graphAllocation = graphModule.AddAllocation(graphShape);
+using var graphInstructions = new MIGraphXInstructions(args[0], new[] { graphParameter, graphAllocation });
+using var graphReturn = graphModule.AddReturn(graphInstructions);
+var m12Passed = graphInstructions.Count == 2;
 var passed = report.Diagnostics.Any(item => item.Kind == JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind.Executed)
     && onnx.InputDimensions.SequenceEqual(new long[] { 1, 4 })
     && onnx.OutputDimensions.SequenceEqual(new long[] { 1, 4 })
     && onnx.Output.SequenceEqual(input)
     && operators.SequenceEqual(new[] { "Add", "\u52a0", "Relu" })
     && leftArgument.HasSameNativeContent(rightArgument)
-    && leftProgram.HasSameNativeContent(rightProgram);
-Console.WriteLine($"framework={framework};m1={report.State};m2={(passed ? "executed" : "failed")};m10={(passed ? "executed" : "failed")};exports={report.ExportsComplete};objects={report.ObjectsExecuted}");
+    && leftProgram.HasSameNativeContent(rightProgram)
+    && m12Passed;
+Console.WriteLine($"framework={framework};m1={report.State};m2={(passed ? "executed" : "failed")};m10={(passed ? "executed" : "failed")};m12={(m12Passed ? "executed" : "failed")};exports={report.ExportsComplete};objects={report.ObjectsExecuted}");
 return passed ? 0 : 1;

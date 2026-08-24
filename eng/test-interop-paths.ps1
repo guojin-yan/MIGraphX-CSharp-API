@@ -43,4 +43,4 @@ $missingEqualityRunArguments += @('--', '--expect-m10-equality-missing', $m10Mis
 & dotnet @missingEqualityRunArguments
 if ($LASTEXITCODE -ne 0) { throw 'M10 equality missing-export diagnostics failed for net10.0.' }
 
-Write-Output 'Representative Direct P/Invoke M1/M2/M10 execution passed for net46, netcoreapp3.1, net7.0, and net10.0; registry and equality missing exports fail closed.'
+Write-Output 'Representative Direct P/Invoke M1/M2/M10/M12 graph execution passed for net46, netcoreapp3.1, net7.0, and net10.0; registry and equality missing exports fail closed.'

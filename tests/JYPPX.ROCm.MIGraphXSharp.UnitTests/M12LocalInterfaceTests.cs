@@ -285,6 +285,37 @@ public sealed class M12LocalInterfaceTests
         AssertNoNativeLeaks(controls);
     }
 
+    [Fact]
+    public async System.Threading.Tasks.Task DeferredNegativeBoundariesAndConcurrentDisposeRemainFailClosed()
+    {
+        Assert.Empty(typeof(MIGraphXOperation).GetConstructors());
+        Assert.Empty(typeof(MIGraphXModule).GetConstructors());
+
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        using var program = new MIGraphXProgram(nativePath);
+        using var module = program.CreateModule("m12-concurrent-dispose");
+        using var started = new System.Threading.ManualResetEventSlim(false);
+        var worker = System.Threading.Tasks.Task.Run(() =>
+        {
+            started.Wait();
+            for (var index = 0; index < 256; index++)
+            {
+                try { module.Print(); }
+                catch (ObjectDisposedException) { break; }
+            }
+        });
+        started.Set();
+        module.Dispose();
+        var completed = await System.Threading.Tasks.Task.WhenAny(worker, System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.Same(worker, completed);
+        Assert.Throws<ObjectDisposedException>(() => module.Print());
+        program.Dispose();
+
+        AssertNoNativeLeaks(controls);
+    }
+
     private static void AssertNoNativeLeaks(FakeControls controls)
     {
         Assert.Equal(0, controls.TargetLiveCount());
