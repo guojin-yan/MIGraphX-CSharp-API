@@ -1,6 +1,6 @@
 # M12 real-runtime validation plan
 
-M12 local development is complete and its local evidence is closed. Real MIGraphX validation remains `runtime-deferred`; this document and [`compatibility/m12-runtime-cases.json`](../../compatibility/m12-runtime-cases.json) define the next authorized execution boundary. No remote host, package-only probe, or real native provider was contacted while preparing this plan.
+M12 local development is complete and its local evidence is closed. Real MIGraphX validation remains `runtime-deferred`; this document and `compatibility/m12-runtime-cases.json` define the next authorized execution boundary. No remote host, package-only probe, or real native provider was contacted while preparing this plan.
 
 ## Current status
 
