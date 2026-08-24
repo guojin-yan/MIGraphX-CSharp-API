@@ -174,7 +174,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "File and buffer parses produce equivalent program shapes and deterministic output for the reviewed fixture.",
-      "deferredBoundary": "No TensorFlow model fixture or real TensorFlow parser behavior has been reviewed yet."
+      "deferredBoundary": "The deterministic GraphDef fixture is hash-checked locally, but real TensorFlow parser behavior and file/buffer equivalence remain unverified."
     },
     {
       "id": "m12-quantization-options",
@@ -192,7 +192,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Option forwarding, clone equality, and quantized numerical output match independently reviewed expectations.",
-      "deferredBoundary": "Fake-native only proves forwarding and ownership; numerical quantization behavior is unverified."
+      "deferredBoundary": "The calibration map is schema- and hash-checked locally; fake-native proves forwarding and ownership only, while numerical quantization behavior is unverified."
     },
     {
       "id": "m12-context-lifetime",
