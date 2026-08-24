@@ -1,0 +1,9 @@
+# M12 package-only candidate probe
+
+This project is a package-only `net10.0` probe for the M12 candidate package `0.0.0`. It has one exact core package reference and no `ProjectReference`, source assembly reference, native payload, provider installation step, or promotion path.
+
+`run.sh` requires a clean detached source checkout, the exact core package hash, the fixed MIGraphX C header, an exact ONNX identity fixture, and an explicit native library path. It restores only from the supplied local package feed with NuGet caches disabled, records the dependency closure and export set, then runs one 300-second bounded process with a 10-second TERM-to-KILL escalation. It does not inventory GPU devices, change the environment, or invoke long-running/timing scenarios.
+
+The executable cases cover shape/argument factories, argument persistence and cloning, assign-to cloning, graph parent leases, graph editing, and context lifetime. TensorFlow parsing, quantization, custom operations, negative ownership/ABI cases, concurrent disposal, and cross-target ABI are intentionally recorded as deferred. Every result is labelled `runtime-candidate-executed-review-required`.
+
+`review.ps1` only checks the candidate record's identity, exact executed/deferred case sets, timeout metadata, package hash, and artifact hashes. Its output is `candidate-record-verified`, not `runtime-executed`; it cannot alter `compatibility/m12-runtime-cases.json` or promote an M12 interface.

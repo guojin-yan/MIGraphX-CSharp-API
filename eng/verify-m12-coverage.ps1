@@ -107,6 +107,10 @@ $sourceChecks = @{
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXExperimentalCustomOp.cs' = @('SetCompute', 'Register', 'CopyState')
     'native\fake-migraphx\fake_m12.inc' = @('m12_live_count', 'migraphx_experimental_custom_op_register')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs' = @('ShapeAndArgumentFactories', 'GraphEditingAndContextViews', 'TensorFlowAndQuantization', 'CustomOpClone')
+    'tools\m12-runtime-probe\M12RuntimeProbe.csproj' = @('PackageReference', 'M12PackageVersion')
+    'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'DeferredCases')
+    'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'M12PackageVersion', '--no-cache --force-evaluate', 'environmentChanged')
+    'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'promotionState')
 }
 foreach ($relativePath in $sourceChecks.Keys) {
     $path = Join-Path $root $relativePath
@@ -115,6 +119,11 @@ foreach ($relativePath in $sourceChecks.Keys) {
     foreach ($token in $sourceChecks[$relativePath]) {
         if (-not $source.Contains($token, [StringComparison]::Ordinal)) { throw "M12 source check is missing '$token' in $relativePath" }
     }
+}
+
+$probeProject = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m12-runtime-probe\M12RuntimeProbe.csproj')
+if ($probeProject.Contains('ProjectReference', [StringComparison]::Ordinal)) {
+    throw 'M12 runtime probe must remain package-only and cannot add a ProjectReference.'
 }
 
 $design = Get-Content -Raw -LiteralPath (Join-Path $root 'docs\design\m12-local-interface-expansion.md')
