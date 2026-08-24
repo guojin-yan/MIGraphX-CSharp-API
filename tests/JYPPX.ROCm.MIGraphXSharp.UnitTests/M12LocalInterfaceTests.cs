@@ -313,7 +313,60 @@ public sealed class M12LocalInterfaceTests
         Assert.Throws<ObjectDisposedException>(() => module.Print());
         program.Dispose();
 
+        var concurrentShape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+        using var argument = MIGraphXArgument.Create(nativePath, concurrentShape, new[] { 1f, 2f, 3f, 4f });
+        await AssertConcurrentDisposeAsync(
+            () => _ = argument.ToArray<float>(),
+            argument.Dispose);
+
+        using var compileOptions = new MIGraphXCompileOptions(nativePath);
+        await AssertConcurrentDisposeAsync(
+            () =>
+            {
+                using var clone = compileOptions.Clone();
+            },
+            compileOptions.Dispose);
+
+        using var contextProgram = new MIGraphXProgram(nativePath);
+        using var contextTarget = new MIGraphXTarget(nativePath);
+        using var contextCompileOptions = new MIGraphXCompileOptions(nativePath);
+        contextProgram.Compile(contextTarget, contextCompileOptions);
+        using var context = contextProgram.GetExperimentalContext();
+        await AssertConcurrentDisposeAsync(context.Finish, context.Dispose);
+
+        using var customOp = new MIGraphXExperimentalCustomOp(nativePath, "m12-concurrent-custom-op", new object());
+        await AssertConcurrentDisposeAsync(customOp.Register, customOp.Dispose);
+
+        using var quantizeOptions = new MIGraphXQuantizeInt8Options(nativePath);
+        await AssertConcurrentDisposeAsync(
+            () => quantizeOptions.AddOpName("convolution"),
+            quantizeOptions.Dispose);
+
+        contextProgram.Dispose();
+        contextTarget.Dispose();
+        contextCompileOptions.Dispose();
         AssertNoNativeLeaks(controls);
+    }
+
+    private static async System.Threading.Tasks.Task AssertConcurrentDisposeAsync(Action access, Action dispose)
+    {
+        using var started = new System.Threading.ManualResetEventSlim(false);
+        var worker = System.Threading.Tasks.Task.Run(() =>
+        {
+            started.Wait();
+            for (var index = 0; index < 256; index++)
+            {
+                try { access(); }
+                catch (ObjectDisposedException) { return; }
+            }
+        });
+        started.Set();
+        dispose();
+        var completed = await System.Threading.Tasks.Task.WhenAny(worker, System.Threading.Tasks.Task.Delay(TimeSpan.FromSeconds(5)));
+        Assert.Same(worker, completed);
+        await worker;
+        Assert.Throws<ObjectDisposedException>(access);
+        dispose();
     }
 
     private static void AssertNoNativeLeaks(FakeControls controls)

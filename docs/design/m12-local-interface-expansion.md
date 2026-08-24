@@ -31,7 +31,7 @@ The following local checks pass for this batch:
 
 - Fake MIGraphX and fake HIP native fixtures build successfully in Release configuration.
 - The managed API and solution build successfully for all 15 exact target frameworks, with zero warnings and errors; ProjectQuality also builds successfully for `net10.0`.
-- `M12LocalInterfaceTests` passes all six focused tests, covering shape/argument factories, graph/context views, assign-to clones, TensorFlow/quantization paths, custom-op cloning, negative construction boundaries, and concurrent module disposal.
+- `M12LocalInterfaceTests` passes all six focused tests, covering shape/argument factories, graph/context views, assign-to clones, TensorFlow/quantization paths, custom-op cloning, negative construction boundaries, and concurrent disposal races across module, argument, compile-option, context, custom-op, and quantization-option owners.
 - ProjectQuality tests pass all 24 tests, including the current core API snapshot of 44 types and 282 members, bilingual XML documentation, generated binding traceability, and ownership/audit checks.
 
 These results are local compile and test-substitute evidence. They do not promote M12 declarations in the historical compatibility maps or establish behavior against a real MIGraphX installation.
