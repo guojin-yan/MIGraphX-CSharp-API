@@ -22,6 +22,22 @@ $corePackage = Join-Path $output "JYPPX.ROCm.MIGraphX.CSharp.API.$Version.nupkg"
 if (-not (Test-Path -LiteralPath $corePackage -PathType Leaf)) {
     throw "Pack and verify the core candidate before the adapter: $corePackage"
 }
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$coreArchive = [IO.Compression.ZipFile]::OpenRead($corePackage)
+try {
+    $coreNuspecEntries = @($coreArchive.Entries | Where-Object FullName -like '*.nuspec')
+    if ($coreNuspecEntries.Count -ne 1) { throw 'Core package must contain exactly one nuspec before adapter packaging.' }
+    $coreReader = [IO.StreamReader]::new($coreNuspecEntries[0].Open())
+    try { [xml] $coreNuspec = $coreReader.ReadToEnd() } finally { $coreReader.Dispose() }
+    $coreMetadata = $coreNuspec.package.metadata
+    if ($coreMetadata.id -ne 'JYPPX.ROCm.MIGraphX.CSharp.API' -or $coreMetadata.version -ne $Version) {
+        throw 'Core package identity or version does not match the adapter candidate.'
+    }
+    if ($coreMetadata.repository.commit -ne $repositoryCommit) {
+        throw "Core package repository commit mismatch: expected $repositoryCommit, actual $($coreMetadata.repository.commit)."
+    }
+}
+finally { $coreArchive.Dispose() }
 if ([string]::IsNullOrWhiteSpace($HipSharpPackagePath)) {
     $expectedName = "JYPPX.ROCm.HIP.CSharp.API.$HipSharpVersion.nupkg"
     $HipSharpPackagePath = Get-ChildItem -LiteralPath (Join-Path $root 'artifacts') -Filter $expectedName -File -Recurse -ErrorAction SilentlyContinue |

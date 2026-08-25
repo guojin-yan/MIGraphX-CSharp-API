@@ -2,6 +2,8 @@
 param(
     [Parameter(Mandatory)][string] $PackagePath,
     [string] $Version = '0.0.0',
+    [ValidatePattern('^[a-f0-9]{40}$')]
+    [string] $RepositoryCommit,
     [string] $HipSharpVersion = '0.9.1',
     [string] $HipSharpPackagePath,
     [string] $HipSharpPackageDirectory
@@ -48,6 +50,9 @@ try {
     $metadata = $nuspec.package.metadata
     if ($metadata.id -ne 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop' -or $metadata.version -ne $Version) { throw 'Adapter package identity is incorrect.' }
     if ($metadata.repository.commit -notmatch '^[a-f0-9]{40}$' -or -not $metadata.releaseNotes) { throw 'Adapter repository commit or release notes are missing.' }
+    if (-not [string]::IsNullOrWhiteSpace($RepositoryCommit) -and $metadata.repository.commit -ne $RepositoryCommit) {
+        throw "Adapter repository commit mismatch: expected $RepositoryCommit, actual $($metadata.repository.commit)."
+    }
     if ($metadata.authors -ne 'Guojin Yan' -or $metadata.copyright -ne 'Copyright 2026 Guojin Yan' -or -not $metadata.readme) { throw 'Adapter authors, copyright, or readme metadata is incorrect.' }
     $license = $metadata.SelectSingleNode("*[local-name()='license']")
     if (-not $license -or $license.type -ne 'expression' -or $license.InnerText -ne 'Apache-2.0') { throw 'Adapter license metadata must use Apache-2.0.' }

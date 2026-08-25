@@ -4,6 +4,8 @@ param(
     [ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })]
     [string] $PackagePath,
     [string] $Version = '0.0.0',
+    [ValidatePattern('^[a-f0-9]{40}$')]
+    [string] $RepositoryCommit,
     [switch] $SkipConsumers
 )
 
@@ -57,6 +59,9 @@ try {
     }
     if ($metadata.repository.commit -notmatch '^[a-f0-9]{40}$') {
         throw 'NuGet repository metadata must contain a 40-character commit SHA.'
+    }
+    if (-not [string]::IsNullOrWhiteSpace($RepositoryCommit) -and $metadata.repository.commit -ne $RepositoryCommit) {
+        throw "NuGet repository commit mismatch: expected $RepositoryCommit, actual $($metadata.repository.commit)."
     }
     $license = $metadata.SelectSingleNode("*[local-name()='license']")
     if (-not $license -or $license.type -ne 'expression' -or $license.InnerText -ne 'Apache-2.0') {

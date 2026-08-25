@@ -456,6 +456,7 @@ public sealed class RepositoryQualityTests
 
         var candidate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-release-candidate.ps1"));
         Assert.Contains("HEAD == origin/main == RepositoryCommit", candidate, StringComparison.Ordinal);
+        Assert.Contains("-RepositoryCommit $RepositoryCommit", candidate, StringComparison.Ordinal);
         Assert.Contains("--vulnerable --include-transitive", candidate, StringComparison.Ordinal);
         Assert.Contains("publicationAuthorized = $false", File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "new-release-evidence.ps1")), StringComparison.Ordinal);
 
@@ -466,6 +467,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("artifacts\\release-feed\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Contains("artifacts\\adapter-pack-restore\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Contains("artifacts\\adapter-pack-obj\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("Core package repository commit mismatch", adapterPack, StringComparison.Ordinal);
         Assert.Equal(3, Regex.Matches(adapterPack, "BaseIntermediateOutputPath=\\$restoreIntermediateWithSlash", RegexOptions.CultureInvariant).Count);
     }
 
