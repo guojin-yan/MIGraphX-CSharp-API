@@ -31,6 +31,7 @@ The following local checks pass for this batch:
 
 - Fake MIGraphX and fake HIP native fixtures build successfully in Release configuration.
 - The managed API and solution build successfully for all 15 exact target frameworks, with zero warnings and errors; ProjectQuality also builds successfully for `net10.0`.
+- The clean-consumer package audit compiles the packaged M12 public surface (scalar/stride shape metadata plus graph, TensorFlow, quantization, context, custom-op, and argument type references) on `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0` without a source-project reference.
 - `M12LocalInterfaceTests` passes all six focused tests, covering shape/argument factories, graph/context views, assign-to clones, TensorFlow/quantization paths, custom-op cloning, negative construction boundaries, and concurrent disposal races across module, argument, compile-option, context, custom-op, and quantization-option owners.
 - ProjectQuality tests pass all 24 tests, including the current core API snapshot of 44 types and 282 members, bilingual XML documentation, generated binding traceability, and ownership/audit checks.
 - `eng/generate-m12-fixtures.ps1` deterministically produces the minimal TensorFlow GraphDef and calibration-map fixtures; the M12 coverage gate verifies their SHA-256 identities and the calibration-map schema.
