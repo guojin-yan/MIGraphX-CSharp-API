@@ -177,6 +177,7 @@ $json = @'
   ]
 }
 '@
+$json = [regex]::Replace($json, "\r\n?", [string][char]10)
 [IO.File]::WriteAllText($calibrationPath, $json.TrimStart([char]10, [char]13) + [char]10, [Text.UTF8Encoding]::new($false))
 
 @(
