@@ -32,6 +32,8 @@ Core and adapter candidates contain 15 DLL/XML pairs, README, LICENSE, NOTICE, r
 
 `eng/verify-release-candidate.ps1` audits packages and isolated consumers, scans restored NuGet dependencies for known vulnerabilities, and emits a product CycloneDX SBOM, package manifest, and local SLSA-shaped provenance. Evidence records both the ZIP SHA-256 and a normalized identity over sorted package entry paths, sizes, and hashes. The provenance is local and unsigned; it is not a publication attestation.
 
+The adapter package-reference workflow restores and builds through a version-scoped `artifacts/adapter-pack-obj/<version>` intermediate directory (and a separate package cache). This keeps package-mode assets out of the standard source-reference restore state; a subsequent source-mode build can run with `--no-restore` without requiring a repair restore.
+
 The maximum status without a newly authorized official host is `release-candidate-local`. It is not `release-candidate-runtime`, `release-ready`, `published`, or permission to create a tag, GitHub release, NuGet upload, Pages deployment, or Actions run.
 
-中文摘要：M8 建立可审查的版本化 API 基线，不是永久冻结；后续在 `0.x.x` 下继续封装接口，并同步更新快照、ownership、测试与云端验证计划。托管 SemVer 与 ROCm/MIGraphX 系统版本独立，`1.0.0` 还要求 Windows 实机验证和 Owner 明确授权；产品 SBOM/provenance 只证明本地 managed 候选，不提升官方运行证据。
+中文摘要：M8 建立可审查的版本化 API 基线，不是永久冻结；后续在 `0.x.x` 下继续封装接口，并同步更新快照、ownership、测试与云端验证计划。托管 SemVer 与 ROCm/MIGraphX 系统版本独立，`1.0.0` 还要求 Windows 实机验证和 Owner 明确授权；适配器包模式还原使用按版本隔离的中间目录，避免污染标准源码还原；产品 SBOM/provenance 只证明本地 managed 候选，不提升官方运行证据。

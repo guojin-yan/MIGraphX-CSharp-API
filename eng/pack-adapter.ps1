@@ -39,6 +39,8 @@ if ($HipSharpVersion -ne '0.9.1' -or $hipHash -ne 'e71398538d7ff5db91c018cac3a2f
 
 $feed = Join-Path $root "artifacts\release-feed\$Version"
 $restorePackages = Join-Path $root "artifacts\adapter-pack-restore\$Version"
+$restoreIntermediate = Join-Path $root "artifacts\adapter-pack-obj\$Version"
+$restoreIntermediateWithSlash = "$restoreIntermediate\"
 New-Item -ItemType Directory -Force -Path $feed | Out-Null
 Copy-Item -LiteralPath $corePackage -Destination $feed -Force
 Copy-Item -LiteralPath $HipSharpPackagePath -Destination $feed -Force
@@ -63,17 +65,21 @@ $restoreConfigText = @"
 "@
 [IO.File]::WriteAllText($restoreConfig, $restoreConfigText, [Text.UTF8Encoding]::new($false))
 & dotnet restore $project --configfile $restoreConfig --packages $restorePackages --no-http-cache --force-evaluate `
+    -p:BaseIntermediateOutputPath=$restoreIntermediateWithSlash `
     -p:UseAdapterPackageReferences=true -p:MIGraphXSharpVersion=$Version -p:AdapterPackageVersion=$Version -p:HipSharpPackageVersion=$HipSharpVersion -p:RepositoryCommit=$repositoryCommit | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Adapter package-reference restore failed with exit code $LASTEXITCODE." }
 & dotnet build $project --configuration $Configuration --no-restore `
+    -p:BaseIntermediateOutputPath=$restoreIntermediateWithSlash `
     -p:UseAdapterPackageReferences=true -p:MIGraphXSharpVersion=$Version -p:AdapterPackageVersion=$Version -p:HipSharpPackageVersion=$HipSharpVersion -p:RepositoryCommit=$repositoryCommit | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Adapter package-reference build failed with exit code $LASTEXITCODE." }
 & (Join-Path $PSScriptRoot 'verify-public-api.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $repositoryCommit -SkipToolBuild | Out-Host
 
 New-Item -ItemType Directory -Force -Path $output | Out-Null
 & dotnet pack $project --configuration $Configuration --no-build --output $output `
+    -p:BaseIntermediateOutputPath=$restoreIntermediateWithSlash `
     -p:UseAdapterPackageReferences=true -p:MIGraphXSharpVersion=$Version -p:AdapterPackageVersion=$Version -p:HipSharpPackageVersion=$HipSharpVersion -p:RepositoryCommit=$repositoryCommit | Out-Host
 if ($LASTEXITCODE -ne 0) { throw "Adapter pack failed with exit code $LASTEXITCODE." }
 $package = Join-Path $output "JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.$Version.nupkg"
 if (-not (Test-Path -LiteralPath $package -PathType Leaf)) { throw "Adapter package was not created: $package" }
+Write-Output "Adapter package isolated intermediate path: $restoreIntermediate"
 Write-Output $package
