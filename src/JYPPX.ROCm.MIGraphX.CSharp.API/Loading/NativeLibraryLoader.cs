@@ -131,7 +131,8 @@ internal static class NativeLibraryLoader
                             requireOnnxWorkflow,
                             requireManagedObjects,
                             requireM10Registry,
-                            requireM10Equality));
+                            requireM10Equality,
+                            requireOperationCreateNoAttributes));
                         return new NativeLoadResult(false, null, diagnostics);
                     }
 
@@ -164,7 +165,8 @@ internal static class NativeLibraryLoader
                     requireOnnxWorkflow,
                     requireManagedObjects,
                     requireM10Registry,
-                    requireM10Equality));
+                    requireM10Equality,
+                    requireOperationCreateNoAttributes));
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
@@ -184,7 +186,9 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 #endif
-            var loadedMessage = requireM10Equality
+            var loadedMessage = requireOperationCreateNoAttributes
+                ? "Loaded native library and verified the constrained no-attribute operation-create export."
+                : requireM10Equality
                 ? "Loaded native library and verified the fixed M10 content-equality exports."
                 : requireM10Registry
                     ? "Loaded native library and verified the fixed M10 ONNX registry exports."
@@ -356,14 +360,17 @@ internal static class NativeLibraryLoader
         bool requireOnnxWorkflow,
         bool requireManagedObjects,
         bool requireM10Registry,
-        bool requireM10Equality)
+        bool requireM10Equality,
+        bool requireOperationCreateNoAttributes)
     {
         var kind = requireM10Registry || requireM10Equality || requireManagedObjects
             ? MIGraphXNativeDiagnosticKind.ExportMissing
             : requireOnnxWorkflow
                 ? MIGraphXNativeDiagnosticKind.OnnxFrontendMissing
                 : MIGraphXNativeDiagnosticKind.ExportMissing;
-        var scope = requireM10Equality
+        var scope = requireOperationCreateNoAttributes
+            ? "constrained no-attribute operation-create"
+            : requireM10Equality
             ? "M10 content-equality"
             : requireM10Registry
                 ? "M10 ONNX registry"
