@@ -37,9 +37,9 @@ if ($HipSharpVersion -ne '0.9.1' -or $hipHash -ne 'e71398538d7ff5db91c018cac3a2f
     throw "HipSharp dependency identity mismatch: $HipSharpVersion / $hipHash"
 }
 
-$feed = Join-Path $root "artifacts\release-feed\$Version"
-$restorePackages = Join-Path $root "artifacts\adapter-pack-restore\$Version"
-$restoreIntermediate = Join-Path $root "artifacts\adapter-pack-obj\$Version"
+$feed = Join-Path $root "artifacts\release-feed\$Version\$repositoryCommit"
+$restorePackages = Join-Path $root "artifacts\adapter-pack-restore\$Version\$repositoryCommit"
+$restoreIntermediate = Join-Path $root "artifacts\adapter-pack-obj\$Version\$repositoryCommit"
 $restoreIntermediateWithSlash = "$restoreIntermediate\"
 New-Item -ItemType Directory -Force -Path $feed | Out-Null
 Copy-Item -LiteralPath $corePackage -Destination $feed -Force

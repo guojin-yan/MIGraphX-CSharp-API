@@ -463,7 +463,9 @@ public sealed class RepositoryQualityTests
         Assert.Contains("packageSourceMapping", adapterPack, StringComparison.Ordinal);
         Assert.Contains("JYPPX.ROCm.HIP.CSharp.API", adapterPack, StringComparison.Ordinal);
         Assert.Contains("e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2", adapterPack, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("artifacts\\adapter-pack-obj\\$Version", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("artifacts\\release-feed\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("artifacts\\adapter-pack-restore\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("artifacts\\adapter-pack-obj\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Equal(3, Regex.Matches(adapterPack, "BaseIntermediateOutputPath=\\$restoreIntermediateWithSlash", RegexOptions.CultureInvariant).Count);
     }
 
