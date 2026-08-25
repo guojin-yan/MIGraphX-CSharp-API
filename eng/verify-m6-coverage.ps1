@@ -1,5 +1,7 @@
 [CmdletBinding()]
-param()
+param(
+    [string] $HipSharpRepositoryRoot
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -34,7 +36,16 @@ $generated = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGr
 if (-not $generated.Contains('ProgramRunAsync(IntPtr @out, IntPtr program, IntPtr @params, IntPtr s, IntPtr name)', [StringComparison]::Ordinal)) {
     throw 'Generated async ABI does not preserve void* stream and const char* name widths.'
 }
-$hipRoot = (Resolve-Path (Join-Path $root '..\..\HIP-CSharp-API\HIP-CSharp-API')).Path
+$hipRootCandidate = if ([string]::IsNullOrWhiteSpace($HipSharpRepositoryRoot)) {
+    Join-Path $root (Join-Path '..' (Join-Path '..' (Join-Path 'HIP-CSharp-API' 'HIP-CSharp-API')))
+}
+else {
+    $HipSharpRepositoryRoot
+}
+if (-not (Test-Path -LiteralPath $hipRootCandidate -PathType Container)) {
+    throw "M6 requires a HIP-CSharp-API source root. Pass -HipSharpRepositoryRoot with the exact sibling checkout; attempted '$hipRootCandidate'."
+}
+$hipRoot = (Resolve-Path -LiteralPath $hipRootCandidate).Path
 foreach ($friend in @(
     (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Properties\AssemblyInfo.cs'),
     (Join-Path $hipRoot 'src\JYPPX.ROCm.HipSharp\Properties\AssemblyInfo.cs'))) {

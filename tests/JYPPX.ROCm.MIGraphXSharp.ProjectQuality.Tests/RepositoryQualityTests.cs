@@ -461,6 +461,20 @@ public sealed class RepositoryQualityTests
         Assert.Contains("publicationAuthorized = $false", File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "new-release-evidence.ps1")), StringComparison.Ordinal);
 
         var adapterPack = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-adapter.ps1"));
+        var m6Coverage = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-m6-coverage.ps1"));
+        Assert.Contains("HipSharpRepositoryRoot", m6Coverage, StringComparison.Ordinal);
+        Assert.Contains("M6 requires a HIP-CSharp-API source root", m6Coverage, StringComparison.Ordinal);
+        foreach (var gateScript in new[] { "build.ps1", "test.ps1", "docs.ps1" })
+        {
+            var gateText = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", gateScript));
+            Assert.Contains("m6Arguments", gateText, StringComparison.Ordinal);
+            Assert.Contains("verify-m6-coverage.ps1", gateText, StringComparison.Ordinal);
+        }
+        var buildShell = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "build.sh"));
+        Assert.Contains("HIPSHARP_REPOSITORY_ROOT", buildShell, StringComparison.Ordinal);
+        Assert.Contains("-HipSharpRepositoryRoot", buildShell, StringComparison.Ordinal);
+        var cloudTest = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
+        Assert.Contains("HIPSHARP_REPOSITORY_ROOT", cloudTest, StringComparison.Ordinal);
         Assert.Contains("packageSourceMapping", adapterPack, StringComparison.Ordinal);
         Assert.Contains("JYPPX.ROCm.HIP.CSharp.API", adapterPack, StringComparison.Ordinal);
         Assert.Contains("e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2", adapterPack, StringComparison.OrdinalIgnoreCase);

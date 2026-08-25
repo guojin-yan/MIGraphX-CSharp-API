@@ -20,6 +20,9 @@ dependencies="$(ldd "${resolved_library}")"
 ! grep -q 'not found' <<< "${dependencies}"
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
+if [[ -z "${HIPSHARP_REPOSITORY_ROOT:-}" && -d /workspace/HIP-CSharp-API/HIP-CSharp-API ]]; then
+  export HIPSHARP_REPOSITORY_ROOT=/workspace/HIP-CSharp-API/HIP-CSharp-API
+fi
 results=/workspace/MIGraphX-CSharp-API/test-results
 mkdir -p "${results}"
 ./tools/radeon/env-report.sh | tee "${results}/environment.txt"
