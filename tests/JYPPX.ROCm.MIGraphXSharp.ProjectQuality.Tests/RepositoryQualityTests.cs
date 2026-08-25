@@ -463,6 +463,12 @@ public sealed class RepositoryQualityTests
         var adapterPack = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-adapter.ps1"));
         var buildProps = File.ReadAllText(Path.Combine(RepositoryRoot, "Directory.Build.props"));
         Assert.Contains("HIPSHARP_REPOSITORY_ROOT", buildProps, StringComparison.Ordinal);
+        foreach (var projectFile in new[] {
+            Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop", "JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.csproj"),
+            Path.Combine(RepositoryRoot, "tests", "JYPPX.ROCm.MIGraphXSharp.UnitTests", "JYPPX.ROCm.MIGraphXSharp.UnitTests.csproj") })
+        {
+            Assert.Contains("$(HipSharpRepositoryRoot)/src/JYPPX.ROCm.HipSharp/", File.ReadAllText(projectFile), StringComparison.Ordinal);
+        }
         var m6Coverage = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-m6-coverage.ps1"));
         Assert.Contains("HipSharpRepositoryRoot", m6Coverage, StringComparison.Ordinal);
         Assert.Contains("M6 requires a HIP-CSharp-API source root", m6Coverage, StringComparison.Ordinal);

@@ -13,6 +13,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\JYPPX.ROCm.MIGraphX.CSharp.API\JYPPX.ROCm.MIGraphX.CSharp.API.csproj" />
     <ProjectReference Include="..\..\src\JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop\JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.csproj" />
-    <ProjectReference Include="$(HipSharpRepositoryRoot)src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj" />
+    <ProjectReference Include="$(HipSharpRepositoryRoot)/src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj" />
   </ItemGroup>
 </Project>
