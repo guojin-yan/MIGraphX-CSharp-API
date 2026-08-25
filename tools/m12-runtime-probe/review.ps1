@@ -71,7 +71,7 @@ foreach ($caseId in $expectedCases) {
 }
 if ((Get-Sha256 $CorePackagePath) -ne $CoreSha256) { throw 'Core package hash mismatch.' }
 $expectedTensorFlowFixtureSha = 'de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e'
-$expectedCalibrationFixtureSha = '5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f'
+$expectedCalibrationFixtureSha = '15f8698707b49e1c92021d833bc0b79c1455f777241e80a7e500619309eda1af'
 if ((Get-Sha256 $TensorFlowFixturePath) -ne $expectedTensorFlowFixtureSha) { throw 'TensorFlow fixture hash mismatch.' }
 if ((Get-Sha256 $CalibrationMapPath) -ne $expectedCalibrationFixtureSha) { throw 'Calibration map fixture hash mismatch.' }
 if ($null -eq $result.fixtureHashes -or

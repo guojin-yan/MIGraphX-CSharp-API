@@ -50,7 +50,7 @@
       "kind": "calibration-map",
       "artifactStatus": "available",
       "fileName": "m12-calibration-map.json",
-      "sha256": "5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f",
+      "sha256": "15f8698707b49e1c92021d833bc0b79c1455f777241e80a7e500619309eda1af",
       "license": "Apache-2.0 project-generated fixture",
       "reference": "Calibration entries must be forwarded without mutation and produce a reviewed numeric result"
     },

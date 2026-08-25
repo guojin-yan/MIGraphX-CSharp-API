@@ -151,18 +151,33 @@ function New-TensorFlowGraph {
 $tensorflowPath = Join-Path $OutputDirectory 'm12-tensorflow-minimal.pb'
 [IO.File]::WriteAllBytes($tensorflowPath, (New-TensorFlowGraph))
 
-$calibration = [ordered]@{
-    schemaVersion = '1.0.0'
-    format = 'migraphx-calibration-map'
-    modelId = 'm12-identity-float32-1x4'
-    generatedBy = 'MIGraphX-CSharp-API/eng/generate-m12-fixtures.ps1'
-    license = 'Apache-2.0 project-generated fixture'
-    inputs = @([ordered]@{ name = 'input'; dataType = 'float32'; scale = 0.25; zeroPoint = 0 })
-    outputs = @([ordered]@{ name = 'output'; dataType = 'float32'; scale = 0.25; zeroPoint = 0 })
-}
 $calibrationPath = Join-Path $OutputDirectory 'm12-calibration-map.json'
-$json = $calibration | ConvertTo-Json -Depth 8
-[IO.File]::WriteAllText($calibrationPath, $json + [Environment]::NewLine, [Text.UTF8Encoding]::new($false))
+$json = @'
+{
+  "schemaVersion": "1.0.0",
+  "format": "migraphx-calibration-map",
+  "modelId": "m12-identity-float32-1x4",
+  "generatedBy": "MIGraphX-CSharp-API/eng/generate-m12-fixtures.ps1",
+  "license": "Apache-2.0 project-generated fixture",
+  "inputs": [
+    {
+      "name": "input",
+      "dataType": "float32",
+      "scale": 0.25,
+      "zeroPoint": 0
+    }
+  ],
+  "outputs": [
+    {
+      "name": "output",
+      "dataType": "float32",
+      "scale": 0.25,
+      "zeroPoint": 0
+    }
+  ]
+}
+'@
+[IO.File]::WriteAllText($calibrationPath, $json.TrimStart([char]10, [char]13) + [char]10, [Text.UTF8Encoding]::new($false))
 
 @(
     [pscustomobject]@{

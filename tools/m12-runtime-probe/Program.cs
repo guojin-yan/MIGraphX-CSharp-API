@@ -63,7 +63,7 @@ internal sealed class ProbeRunner
 {
     private const string ExpectedIdentitySha = "0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9";
     private const string ExpectedTensorFlowFixtureSha = "de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e";
-    private const string ExpectedCalibrationFixtureSha = "5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f";
+    private const string ExpectedCalibrationFixtureSha = "15f8698707b49e1c92021d833bc0b79c1455f777241e80a7e500619309eda1af";
     private readonly ProbeOptions options;
     private readonly ProbeReport report;
 

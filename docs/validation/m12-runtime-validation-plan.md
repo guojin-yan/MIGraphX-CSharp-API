@@ -32,7 +32,7 @@ The fixed Windows policy remains unchanged: HIP SDK availability is not treated 
 | Fixture | SHA-256 | Local status | Boundary |
 | --- | --- | --- | --- |
 | `m12-tensorflow-minimal.pb` | `de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e` | available | deterministic two-node GraphDef (`Placeholder` -> `Identity`); parser behavior remains runtime-deferred |
-| `m12-calibration-map.json` | `5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f` | available | schema-checked forwarding fixture; quantization numerical behavior remains runtime-deferred |
+| `m12-calibration-map.json` | `15f8698707b49e1c92021d833bc0b79c1455f777241e80a7e500619309eda1af` | available | schema-checked forwarding fixture; quantization numerical behavior remains runtime-deferred |
 
 The binary and JSON files are generated into `artifacts/models/m12-coverage/` and are not tracked or packed. Availability records fixture identity only; it does not promote TensorFlow parsing or quantization behavior.
 
