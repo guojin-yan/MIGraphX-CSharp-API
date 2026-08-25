@@ -475,6 +475,13 @@ public sealed class RepositoryQualityTests
         Assert.Contains("-HipSharpRepositoryRoot", buildShell, StringComparison.Ordinal);
         var cloudTest = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
         Assert.Contains("HIPSHARP_REPOSITORY_ROOT", cloudTest, StringComparison.Ordinal);
+        foreach (var workflow in new[] { "build.yml", "docs-pages.yml" })
+        {
+            var workflowText = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", workflow));
+            Assert.Contains("guojin-yan/HIP-CSharp-API", workflowText, StringComparison.Ordinal);
+            Assert.Contains("0c730005c37bacbd4f143b33d1f56e9ce517ac2f", workflowText, StringComparison.Ordinal);
+            Assert.Contains("HipSharpRepositoryRoot", workflowText, StringComparison.Ordinal);
+        }
         Assert.Contains("packageSourceMapping", adapterPack, StringComparison.Ordinal);
         Assert.Contains("JYPPX.ROCm.HIP.CSharp.API", adapterPack, StringComparison.Ordinal);
         Assert.Contains("e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2", adapterPack, StringComparison.OrdinalIgnoreCase);

@@ -21,14 +21,21 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: guojin-yan/HIP-CSharp-API
+          ref: 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+          path: hip-source
+          fetch-depth: 1
       - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
       - shell: pwsh
         run: |
-          dotnet restore ./MIGraphXSharp.sln
-          ./eng/build.ps1 -Configuration Release -NoRestore
-          ./eng/docs.ps1 -Configuration Release -NoBuild
+          $hipRoot = Join-Path $env:GITHUB_WORKSPACE 'hip-source'
+          dotnet restore ./MIGraphXSharp.sln "-p:HipSharpRepositoryRoot=$hipRoot"
+          ./eng/build.ps1 -Configuration Release -NoRestore -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
+          ./eng/docs.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - uses: actions/upload-pages-artifact@v5
         with:
           path: artifacts/docs

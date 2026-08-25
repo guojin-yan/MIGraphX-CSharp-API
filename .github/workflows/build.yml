@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
+      - uses: actions/checkout@v7
+        with:
+          repository: guojin-yan/HIP-CSharp-API
+          ref: 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+          path: hip-source
+          fetch-depth: 1
       - uses: actions/setup-dotnet@v6
         with:
           global-json-file: global.json
@@ -20,10 +26,11 @@ jobs:
         shell: pwsh
         run: |
           dotnet tool restore
-          dotnet restore ./MIGraphXSharp.sln
+          $hipRoot = Join-Path $env:GITHUB_WORKSPACE 'hip-source'
+          dotnet restore ./MIGraphXSharp.sln "-p:HipSharpRepositoryRoot=$hipRoot"
       - name: Build all 15 target frameworks
         shell: pwsh
-        run: ./eng/build.ps1 -Configuration Release -NoRestore
+        run: ./eng/build.ps1 -Configuration Release -NoRestore -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - name: Verify frozen ABI and M10 aggregate coverage
         shell: pwsh
         run: |
@@ -32,13 +39,13 @@ jobs:
           ./eng/verify-m3-abi.ps1 -AcquireInputs
           ./eng/verify-m4-coverage.ps1
           ./eng/verify-m5-coverage.ps1
-          ./eng/verify-m6-coverage.ps1
+          ./eng/verify-m6-coverage.ps1 -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
           ./eng/verify-m9-coverage.ps1
           ./eng/verify-m10-coverage.ps1
           ./eng/verify-m11-coverage.ps1
       - name: Test and smoke
         shell: pwsh
-        run: ./eng/test.ps1 -Configuration Release -NoBuild
+        run: ./eng/test.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - name: Pack and audit clean consumers
         shell: pwsh
         run: |
@@ -46,7 +53,7 @@ jobs:
           ./eng/verify-package.ps1 -PackagePath $package -Version 0.0.0
       - name: Build DocFX site
         shell: pwsh
-        run: ./eng/docs.ps1 -Configuration Release -NoBuild
+        run: ./eng/docs.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - uses: actions/upload-artifact@v7
         with:
           name: managed-packages-and-docs
