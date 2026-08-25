@@ -66,7 +66,6 @@ internal sealed class ProbeRunner
     private const string ExpectedCalibrationFixtureSha = "5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f";
     private readonly ProbeOptions options;
     private readonly ProbeReport report;
-    private readonly MIGraphXShape scalar = MIGraphXShape.CreateScalar(MIGraphXShapeDataType.Float32);
 
     internal ProbeRunner(ProbeOptions options, ProbeReport report)
     {
