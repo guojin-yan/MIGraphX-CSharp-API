@@ -1,6 +1,6 @@
 # M12 local interface expansion
 
-M12 is a local-development batch only. It adds managed projections for the remaining generated C declarations without making a package-publication or performance claim. The batch has passed local managed compilation, fake-native fixture compilation, focused M12 tests, representative interop execution, and project-quality tests. A separate cloud candidate probe exists for an earlier source/package identity, but real MIGraphX runtime verification remains review-required; it does not promote any M12 map entry, and the existing M3--M11 compatibility maps therefore remain the evidence baseline.
+M12 is a local-development batch only. It adds managed projections for the remaining generated C declarations without making a package-publication or performance claim. The batch has passed local managed compilation, fake-native fixture compilation, focused M12 tests, representative interop execution, and project-quality tests. The current source/package-bound cloud candidate is recorded in `Radeon_Cloud/records/20260825-1345-2cf9283-m12-runtime`; real MIGraphX runtime verification remains review-required, the candidate does not promote any M12 map entry, and the existing M3--M11 compatibility maps therefore remain the evidence baseline.
 
 ## Implemented local surface
 
