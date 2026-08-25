@@ -2,6 +2,8 @@
 param(
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Container })][string] $RecordDirectory,
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $CorePackagePath,
+    [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $TensorFlowFixturePath,
+    [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $CalibrationMapPath,
     [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{40}$')][string] $SourceSha,
     [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{64}$')][string] $CoreSha256
 )
@@ -14,7 +16,8 @@ $resultPath = Join-Path $raw 'm12-functional.json'
 $metadataPath = Join-Path $raw 'run-metadata.json'
 $manifestPath = Join-Path $raw 'artifact-hashes.txt'
 $stagePath = Join-Path $raw 'case-stages.jsonl'
-foreach ($path in @($resultPath, $metadataPath, $manifestPath, $stagePath)) {
+$identitiesPath = Join-Path $raw 'identities.txt'
+foreach ($path in @($resultPath, $metadataPath, $manifestPath, $stagePath, $identitiesPath)) {
     if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Required review input is missing: $path" }
 }
 
@@ -67,6 +70,22 @@ foreach ($caseId in $expectedCases) {
     }
 }
 if ((Get-Sha256 $CorePackagePath) -ne $CoreSha256) { throw 'Core package hash mismatch.' }
+$expectedTensorFlowFixtureSha = 'de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e'
+$expectedCalibrationFixtureSha = '5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f'
+if ((Get-Sha256 $TensorFlowFixturePath) -ne $expectedTensorFlowFixtureSha) { throw 'TensorFlow fixture hash mismatch.' }
+if ((Get-Sha256 $CalibrationMapPath) -ne $expectedCalibrationFixtureSha) { throw 'Calibration map fixture hash mismatch.' }
+if ($null -eq $result.fixtureHashes -or
+    $result.fixtureHashes.tensorflowFixtureSha256 -ne $expectedTensorFlowFixtureSha -or
+    $result.fixtureHashes.calibrationFixtureSha256 -ne $expectedCalibrationFixtureSha) {
+    throw 'Candidate result fixture identities are missing or drifted.'
+}
+$identityLines = Get-Content -LiteralPath $identitiesPath
+foreach ($expectedLine in @(
+    "tensorflowFixtureSha256=$expectedTensorFlowFixtureSha",
+    "calibrationFixtureSha256=$expectedCalibrationFixtureSha"
+)) {
+    if ($expectedLine -notin $identityLines) { throw "Candidate identity record is missing: $expectedLine" }
+}
 
 $manifestFailures = [Collections.Generic.List[string]]::new()
 foreach ($line in Get-Content -LiteralPath $manifestPath) {
@@ -83,6 +102,8 @@ $review = [ordered]@{
     sourceSha = $SourceSha
     packageVersion = '0.0.0'
     corePackageSha256 = $CoreSha256
+    tensorflowFixtureSha256 = $expectedTensorFlowFixtureSha
+    calibrationFixtureSha256 = $expectedCalibrationFixtureSha
     executedCaseCount = @($result.cases).Count
     deferredCaseCount = @($result.deferredCaseIds).Count
     candidateResultSha256 = Get-Sha256 $resultPath

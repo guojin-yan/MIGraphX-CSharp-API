@@ -130,9 +130,9 @@ $sourceChecks = @{
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs' = @('ShapeAndArgumentFactories', 'GraphEditingAndContextViews', 'TensorFlowAndQuantization', 'CustomOpClone', 'DeferredNegativeBoundariesAndConcurrentDispose')
     'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\Program.cs' = @('m12-cross-target', 'm12Passed')
     'tools\m12-runtime-probe\M12RuntimeProbe.csproj' = @('PackageReference', 'M12PackageVersion')
-    'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'DeferredCases', 'case-stages.jsonl')
-    'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'M12PackageVersion', '--no-cache --force-evaluate', 'environmentChanged')
-    'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'promotionState')
+    'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'DeferredCases', 'case-stages.jsonl', 'TensorFlowFixture', 'CalibrationMap', 'tensorflowFixtureSha256', 'calibrationFixtureSha256')
+    'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'M12PackageVersion', '--no-cache --force-evaluate', 'environmentChanged', '--tensorflow-fixture', '--calibration-map')
+    'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'promotionState', 'TensorFlowFixturePath', 'CalibrationMapPath', 'tensorflowFixtureSha256', 'calibrationFixtureSha256')
 }
 foreach ($relativePath in $sourceChecks.Keys) {
     $path = Join-Path $root $relativePath

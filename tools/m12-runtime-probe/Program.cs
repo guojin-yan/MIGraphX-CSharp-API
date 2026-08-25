@@ -31,7 +31,11 @@ internal static class Program
         }
 
         report.CompletedUtc = DateTimeOffset.UtcNow;
-        var json = JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true });
+        var json = JsonSerializer.Serialize(report, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
         Directory.CreateDirectory(options?.RecordDirectory ?? Directory.GetCurrentDirectory());
         File.WriteAllText(options?.OutputPath ?? "m12-runtime.json", json + Environment.NewLine);
         Console.WriteLine(json);
@@ -57,6 +61,9 @@ internal static class Program
 
 internal sealed class ProbeRunner
 {
+    private const string ExpectedIdentitySha = "0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9";
+    private const string ExpectedTensorFlowFixtureSha = "de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e";
+    private const string ExpectedCalibrationFixtureSha = "5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f";
     private readonly ProbeOptions options;
     private readonly ProbeReport report;
     private readonly MIGraphXShape scalar = MIGraphXShape.CreateScalar(MIGraphXShapeDataType.Float32);
@@ -67,10 +74,54 @@ internal sealed class ProbeRunner
         this.report = report;
         if (!File.Exists(options.NativePath)) throw new FileNotFoundException("Native library is missing.", options.NativePath);
         if (!File.Exists(options.IdentityFixture)) throw new FileNotFoundException("Identity fixture is missing.", options.IdentityFixture);
-        const string expectedIdentitySha = "0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9";
-        if (Program.HashFile(options.IdentityFixture) != expectedIdentitySha) throw new InvalidOperationException("Identity fixture SHA-256 mismatch.");
+        if (!File.Exists(options.TensorFlowFixture)) throw new FileNotFoundException("TensorFlow fixture is missing.", options.TensorFlowFixture);
+        if (!File.Exists(options.CalibrationMap)) throw new FileNotFoundException("Calibration map fixture is missing.", options.CalibrationMap);
+        VerifyFixtureIdentity(options.IdentityFixture, ExpectedIdentitySha, "Identity fixture");
+        VerifyFixtureIdentity(options.TensorFlowFixture, ExpectedTensorFlowFixtureSha, "TensorFlow fixture");
+        VerifyFixtureIdentity(options.CalibrationMap, ExpectedCalibrationFixtureSha, "Calibration map fixture");
+        VerifyTensorFlowFixture(options.TensorFlowFixture);
+        VerifyCalibrationMap(options.CalibrationMap);
+        report.FixtureHashes["identityFixtureSha256"] = Program.HashFile(options.IdentityFixture);
+        report.FixtureHashes["tensorflowFixtureSha256"] = Program.HashFile(options.TensorFlowFixture);
+        report.FixtureHashes["calibrationFixtureSha256"] = Program.HashFile(options.CalibrationMap);
         Directory.CreateDirectory(options.RecordDirectory);
         Directory.CreateDirectory(Path.Combine(options.RecordDirectory, "raw"));
+    }
+
+    private static void VerifyFixtureIdentity(string path, string expectedSha, string label)
+    {
+        if (!string.Equals(Program.HashFile(path), expectedSha, StringComparison.Ordinal))
+            throw new InvalidOperationException($"{label} SHA-256 mismatch.");
+    }
+
+    private static void VerifyTensorFlowFixture(string path)
+    {
+        if (new FileInfo(path).Length != 96)
+            throw new InvalidOperationException("TensorFlow fixture length is not the reviewed 96-byte GraphDef fixture.");
+    }
+
+    private static void VerifyCalibrationMap(string path)
+    {
+        using var document = JsonDocument.Parse(File.ReadAllText(path));
+        var root = document.RootElement;
+        Require(root.ValueKind == JsonValueKind.Object, "Calibration map root must be an object.");
+        Require(root.GetProperty("schemaVersion").GetString() == "1.0.0", "Calibration map schema version is not 1.0.0.");
+        Require(root.GetProperty("format").GetString() == "migraphx-calibration-map", "Calibration map format is not MIGraphX calibration-map.");
+        Require(root.GetProperty("modelId").GetString() == "m12-identity-float32-1x4", "Calibration map model identity drifted.");
+        Require(root.GetProperty("generatedBy").GetString() == "MIGraphX-CSharp-API/eng/generate-m12-fixtures.ps1", "Calibration map generator identity drifted.");
+        Require(root.GetProperty("license").GetString() == "Apache-2.0 project-generated fixture", "Calibration map license identity drifted.");
+        foreach (var sectionName in new[] { "inputs", "outputs" })
+        {
+            var entries = root.GetProperty(sectionName);
+            Require(entries.ValueKind == JsonValueKind.Array && entries.GetArrayLength() > 0, $"Calibration map {sectionName} must contain at least one entry.");
+            foreach (var entry in entries.EnumerateArray())
+            {
+                Require(entry.ValueKind == JsonValueKind.Object, $"Calibration map {sectionName} entry must be an object.");
+                Require(entry.GetProperty("dataType").GetString() == "float32", $"Calibration map {sectionName} entry data type drifted.");
+                Require(entry.GetProperty("scale").GetDouble() > 0, $"Calibration map {sectionName} entry scale must be positive.");
+                Require(entry.GetProperty("zeroPoint").ValueKind == JsonValueKind.Number && entry.GetProperty("zeroPoint").TryGetInt32(out _), $"Calibration map {sectionName} entry zero point must be an integer.");
+            }
+        }
     }
 
     internal void Run()
@@ -256,6 +307,8 @@ internal sealed class ProbeOptions
 {
     public required string NativePath { get; init; }
     public required string IdentityFixture { get; init; }
+    public required string TensorFlowFixture { get; init; }
+    public required string CalibrationMap { get; init; }
     public required string RecordDirectory { get; init; }
     public required string OutputPath { get; init; }
     public required string SourceSha { get; init; }
@@ -271,7 +324,7 @@ internal sealed class ProbeOptions
             values.Add(args[index], args[index + 1]);
         }
         string Required(string name) => values.TryGetValue(name, out var value) && value.Length != 0 ? value : throw new ArgumentException($"Missing required argument {name}.");
-        string ExistingFile(string name) { var path = Path.GetFullPath(Required(name)); if (!Path.IsPathRooted(Required(name)) || !File.Exists(path)) throw new ArgumentException($"{name} must be an existing absolute file."); return path; }
+        string ExistingFile(string name) { var supplied = Required(name); var path = Path.GetFullPath(supplied); if (!Path.IsPathRooted(supplied) || !File.Exists(path)) throw new ArgumentException($"{name} must be an existing absolute file."); return path; }
         var source = Required("--source-sha");
         if (source.Length != 40 || source.Any(value => !Uri.IsHexDigit(value))) throw new ArgumentException("--source-sha must be a 40-character hexadecimal SHA.");
         var record = Path.GetFullPath(Required("--record"));
@@ -280,7 +333,18 @@ internal sealed class ProbeOptions
         var prefix = record.EndsWith(Path.DirectorySeparatorChar) ? record : record + Path.DirectorySeparatorChar;
         if (!output.StartsWith(prefix, StringComparison.Ordinal)) throw new ArgumentException("--output must be inside --record.");
         values.TryGetValue("--case", out var caseId);
-        return new ProbeOptions { NativePath = ExistingFile("--native"), IdentityFixture = ExistingFile("--identity"), RecordDirectory = record, OutputPath = output, SourceSha = source.ToLowerInvariant(), ExpectedVersion = Required("--expected-version"), CaseId = caseId };
+        return new ProbeOptions
+        {
+            NativePath = ExistingFile("--native"),
+            IdentityFixture = ExistingFile("--identity"),
+            TensorFlowFixture = ExistingFile("--tensorflow-fixture"),
+            CalibrationMap = ExistingFile("--calibration-map"),
+            RecordDirectory = record,
+            OutputPath = output,
+            SourceSha = source.ToLowerInvariant(),
+            ExpectedVersion = Required("--expected-version"),
+            CaseId = caseId
+        };
     }
 }
 
@@ -295,6 +359,7 @@ internal sealed class ProbeReport
     public List<ProbeCase> Cases { get; } = [];
     public List<string> DeferredCaseIds { get; } = [];
     public Dictionary<string, string> Artifacts { get; } = new(StringComparer.Ordinal);
+    public Dictionary<string, string> FixtureHashes { get; } = new(StringComparer.Ordinal);
     public string? Exception { get; set; }
     public string? Message { get; set; }
 }

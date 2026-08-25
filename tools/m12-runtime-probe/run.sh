@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: run.sh --repo DIR --feed DIR --record DIR --identity FILE --native FILE --header FILE --source-sha SHA --version VERSION --core-sha SHA256 [--case CASE]" >&2
+  echo "Usage: run.sh --repo DIR --feed DIR --record DIR --identity FILE --tensorflow-fixture FILE --calibration-map FILE --native FILE --header FILE --source-sha SHA --version VERSION --core-sha SHA256 [--case CASE]" >&2
   exit 2
 }
 
@@ -10,6 +10,8 @@ repo=''
 feed=''
 record=''
 identity=''
+tensorflow_fixture=''
+calibration_map=''
 native=''
 header=''
 source_sha=''
@@ -23,6 +25,8 @@ while [[ $# -gt 0 ]]; do
     --feed) feed="$2" ;;
     --record) record="$2" ;;
     --identity) identity="$2" ;;
+    --tensorflow-fixture) tensorflow_fixture="$2" ;;
+    --calibration-map) calibration_map="$2" ;;
     --native) native="$2" ;;
     --header) header="$2" ;;
     --source-sha) source_sha="$2" ;;
@@ -38,7 +42,7 @@ for directory in "$repo" "$feed"; do
   [[ "$directory" = /* && -d "$directory" ]] || usage
 done
 [[ "$record" = /* && -d "$(dirname "$record")" ]] || usage
-for file in "$identity" "$native" "$header"; do
+for file in "$identity" "$tensorflow_fixture" "$calibration_map" "$native" "$header"; do
   [[ "$file" = /* && -f "$file" ]] || usage
 done
 [[ "$source_sha" =~ ^[a-f0-9]{40}$ ]] || usage
@@ -60,6 +64,8 @@ core="$feed/JYPPX.ROCm.MIGraphX.CSharp.API.$version.nupkg"
 [[ "$(sha256sum "$core" | awk '{print $1}')" == "$core_sha" ]] || { echo 'core package hash mismatch' >&2; exit 1; }
 [[ "$(sha256sum "$header" | awk '{print $1}')" == 'a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2' ]] || { echo 'fixed header hash mismatch' >&2; exit 1; }
 [[ "$(sha256sum "$identity" | awk '{print $1}')" == '0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9' ]] || { echo 'identity fixture hash mismatch' >&2; exit 1; }
+[[ "$(sha256sum "$tensorflow_fixture" | awk '{print $1}')" == 'de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e' ]] || { echo 'TensorFlow fixture hash mismatch' >&2; exit 1; }
+[[ "$(sha256sum "$calibration_map" | awk '{print $1}')" == '5863a18402ce36040db602b09e878214bb0bf71d623e55284ae8fa35143c8f1f' ]] || { echo 'calibration map hash mismatch' >&2; exit 1; }
 
 mkdir -p "$record/raw" "$record/build" "$record/packages"
 started_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
@@ -77,6 +83,8 @@ resolved_native="$(realpath "$native")"
   echo "coreSha256=$core_sha"
   echo "headerSha256=$(sha256sum "$header" | awk '{print $1}')"
   echo "identitySha256=$(sha256sum "$identity" | awk '{print $1}')"
+  echo "tensorflowFixtureSha256=$(sha256sum "$tensorflow_fixture" | awk '{print $1}')"
+  echo "calibrationFixtureSha256=$(sha256sum "$calibration_map" | awk '{print $1}')"
   echo "nativeSha256=$(sha256sum "$resolved_native" | awk '{print $1}')"
   echo "cleanDetached=true"
 } > "$record/raw/identities.txt"
@@ -100,6 +108,7 @@ if [[ -n "$case_id" ]]; then probe_case_args=(--case "$case_id"); fi
 set +e
 timeout --kill-after=10s 300s dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" -- \
   --native "$resolved_native" --identity "$identity" --record "$record" --output "$record/raw/m12-functional.json" \
+  --tensorflow-fixture "$tensorflow_fixture" --calibration-map "$calibration_map" \
   --source-sha "$source_sha" --expected-version "$version" \
   "${probe_case_args[@]}" \
   > "$record/raw/functional-stdout.log" 2> "$record/raw/functional-stderr.log"
