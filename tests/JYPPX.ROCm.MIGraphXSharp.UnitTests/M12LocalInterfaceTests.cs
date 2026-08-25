@@ -286,6 +286,34 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void OperationNoAttributeFactoryAndCloneOwnHandles()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        using (var operation = MIGraphXOperation.Create(nativePath, "add"))
+        using (var clone = operation.Clone())
+        {
+            Assert.Equal("add", operation.Name);
+            Assert.Equal("add", clone.Name);
+            Assert.Equal(2, controls.M12LiveCount());
+
+            controls.SetFailure("migraphx_operation_assign_to", 4);
+            var failure = Assert.Throws<MIGraphXException>(() => operation.Clone());
+            Assert.Equal("migraphx_operation_assign_to", failure.Operation);
+            Assert.Equal(2, controls.M12LiveCount());
+        }
+
+        controls.SetFailure("migraphx_operation_create", 4);
+        var createFailure = Assert.Throws<MIGraphXException>(() => MIGraphXOperation.Create(nativePath, "mul"));
+        Assert.Equal("migraphx_operation_create", createFailure.Operation);
+        controls.SetNullOutput("migraphx_operation_create");
+        Assert.Throws<MIGraphXException>(() => MIGraphXOperation.Create(nativePath, "sub"));
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public async System.Threading.Tasks.Task DeferredNegativeBoundariesAndConcurrentDisposeRemainFailClosed()
     {
         Assert.Empty(typeof(MIGraphXOperation).GetConstructors());

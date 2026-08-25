@@ -139,25 +139,76 @@ public sealed class MIGraphXOperation : IDisposable
     private MIGraphXOperation(NativeRuntime runtime, NativeOperationHandle handle) => owner = new NativeResourceOwner<NativeOperationHandle>(runtime, handle);
     internal static MIGraphXOperation FromNative(NativeRuntime runtime, NativeOperationHandle handle) => new MIGraphXOperation(runtime, handle);
     internal NativeResourceOwner<NativeOperationHandle> Owner => owner;
+
+    /// <summary>
+    /// 创建不带属性的 operation。
+    /// Creates an operation through the constrained upstream call with no attributes or variadic values.
+    /// </summary>
+    /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute path to the MIGraphX C native library.</param>
+    /// <param name="name">operation 名称。 Operation name.</param>
+    /// <remarks>
+    /// C declaration is variadic. This factory intentionally supports only the proven
+    /// <c>migraphx_operation_create(&amp;op, name, NULL)</c> form; attribute formatting and
+    /// additional variadic values remain unsupported until a typed ABI is available.
+    /// </remarks>
+    public static MIGraphXOperation Create(string nativeLibraryPath, string name)
+    {
+        var runtime = NativeRuntime.Load(nativeLibraryPath);
+        runtime.RequireOperationCreateNoAttributes();
+        using (var utf8 = new StrictUtf8String(name, nameof(name)))
+        {
+            return new MIGraphXOperation(runtime, NativeOperationHandle.CreateNoAttributes(utf8.Pointer));
+        }
+    }
+
     /// <summary>获取 operation 名称。 Gets the native operation name.</summary>
     public string Name
     {
         get
         {
-            _ = owner.HandleUnderLock;
-            const int capacity = 1024;
-            var buffer = Marshal.AllocHGlobal(capacity);
-            try
+            return owner.WithHandle(handle =>
             {
-                for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0);
-                NativeStatus.ThrowIfFailed(NativeMethods.OperationName(buffer, new UIntPtr((uint)capacity), owner.HandleUnderLock), "migraphx_operation_name");
-                return StrictUtf8String.Decode(buffer, "migraphx_operation_name");
-            }
-            finally { Marshal.FreeHGlobal(buffer); }
+                const int capacity = 1024;
+                var buffer = Marshal.AllocHGlobal(capacity);
+                try
+                {
+                    for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0);
+                    NativeStatus.ThrowIfFailed(NativeMethods.OperationName(buffer, new UIntPtr((uint)capacity), handle), "migraphx_operation_name");
+                    return StrictUtf8String.Decode(buffer, "migraphx_operation_name");
+                }
+                finally { Marshal.FreeHGlobal(buffer); }
+            });
         }
     }
+
+    /// <summary>复制不带属性的 operation。 Clones an operation created through the no-attribute factory.</summary>
+    public MIGraphXOperation Clone()
+    {
+        return owner.WithHandle(handle =>
+        {
+            var name = ReadName(handle);
+            using (var utf8 = new StrictUtf8String(name, nameof(name)))
+            {
+                return new MIGraphXOperation(owner.Runtime, NativeOperationHandle.CloneFrom(handle, utf8.Pointer));
+            }
+        });
+    }
+
     /// <summary>释放 native operation。 Releases the native operation handle.</summary>
     public void Dispose() => owner.Dispose();
+
+    private static string ReadName(IntPtr handle)
+    {
+        const int capacity = 1024;
+        var buffer = Marshal.AllocHGlobal(capacity);
+        try
+        {
+            for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0);
+            NativeStatus.ThrowIfFailed(NativeMethods.OperationName(buffer, new UIntPtr((uint)capacity), handle), "migraphx_operation_name");
+            return StrictUtf8String.Decode(buffer, "migraphx_operation_name");
+        }
+        finally { Marshal.FreeHGlobal(buffer); }
+    }
 }
 
 /// <summary>与 program 生命周期绑定的 module 视图。 Module view whose lifetime is tied to a program.</summary>

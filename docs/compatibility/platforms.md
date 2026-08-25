@@ -2,7 +2,7 @@
 
 | Claim | Status | Meaning |
 | --- | --- | --- |
-| Managed build/API | M1 through M12 local validation | Core and adapter compile all 15 exact TFMs; the current schema 2 snapshots contain 44/282 and 3/11 records; M12 remains validation-deferred beyond local fake-native evidence |
+| Managed build/API | M1 through M12 local validation | Core and adapter compile all 15 exact TFMs; the current schema 2 snapshots contain 44/284 and 3/11 records; M12 remains validation-deferred beyond local fake-native evidence |
 | Package assets | M11 local candidate | Each rc.3 core/adapter TFM has a DLL and XML document; neither candidate contains native binaries |
 | Clean managed consumer | M11 local candidate | Four representative core consumers, one adapter consumer, and the M11 runtime probe restore exact JYPPX dependencies from mapped local feeds |
 | Managed SBOM/provenance | Statically verified | Source-SHA-specific product evidence records every managed package entry, exact dependencies/licenses/source commit, ZIP hash, and normalized content identity; provenance is local and unsigned |

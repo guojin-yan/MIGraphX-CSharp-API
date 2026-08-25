@@ -105,5 +105,35 @@ internal sealed class NativeModulesHandle : NativeOwnedHandle
 
 internal sealed class NativeOperationHandle : NativeOwnedHandle
 {
+    internal static NativeOperationHandle CreateNoAttributes(IntPtr name)
+    {
+        var owned = OutHandle<NativeOperationHandle>.Create("migraphx_operation_create");
+        try
+        {
+            owned.Complete(NativeMethods.OperationCreateNoAttributes(owned.OutSlot, name, IntPtr.Zero));
+            return owned.Handle;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
+    internal static NativeOperationHandle CloneFrom(IntPtr source, IntPtr name)
+    {
+        var owned = CreateNoAttributes(name);
+        try
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.OperationAssignTo(owned.DangerousGetHandle(), source), "migraphx_operation_assign_to");
+            return owned;
+        }
+        catch
+        {
+            owned.Dispose();
+            throw;
+        }
+    }
+
     protected override bool ReleaseHandle() { NativeMethods.OperationDestroy(handle); return true; }
 }

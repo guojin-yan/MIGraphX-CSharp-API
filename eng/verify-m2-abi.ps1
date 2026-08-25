@@ -116,6 +116,7 @@ $allowedM12FakeExports = @(
     'migraphx_module_add_parameter', 'migraphx_module_add_return', 'migraphx_module_create',
     'migraphx_module_print', 'migraphx_modules_assign_to', 'migraphx_modules_create',
     'migraphx_modules_destroy', 'migraphx_onnx_options_assign_to', 'migraphx_operation_assign_to',
+    'migraphx_operation_create',
     'migraphx_operation_destroy', 'migraphx_operation_name', 'migraphx_optimals_assign_to',
     'migraphx_parse_tf', 'migraphx_parse_tf_buffer', 'migraphx_program_create_module',
     'migraphx_program_experimental_get_context', 'migraphx_program_get_main_module',
@@ -136,8 +137,8 @@ $allowedM12FakeExports = @(
     'migraphx_tf_options_set_default_dim_value', 'migraphx_tf_options_set_input_parameter_shape',
     'migraphx_tf_options_set_nhwc', 'migraphx_tf_options_set_output_names'
 )
-if ($allowedM12FakeExports.Count -ne 83 -or @($allowedM12FakeExports | Where-Object { $_ -notmatch '^migraphx_[a-z0-9_]+$' }).Count -ne 0) {
-    throw 'M12 fake-native export review must resolve to exactly 83 valid C entry points.'
+if ($allowedM12FakeExports.Count -ne 84 -or @($allowedM12FakeExports | Where-Object { $_ -notmatch '^migraphx_[a-z0-9_]+$' }).Count -ne 0) {
+    throw 'M12 fake-native export review must resolve to exactly 84 valid C entry points.'
 }
 $allowedFakeExports = @($allowedManagedObjectFakeExports + $allowedM9FakeExports + $allowedM10FakeExports + $allowedM12FakeExports)
 $unexpectedFakeExports = @($fake | Where-Object { $_ -notin $expected -and $_ -notin $allowedFakeExports })

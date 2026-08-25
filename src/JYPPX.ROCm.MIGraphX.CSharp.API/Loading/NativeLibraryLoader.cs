@@ -53,7 +53,8 @@ internal static class NativeLibraryLoader
         bool requireM5 = false,
         bool requireM6 = false,
         bool requireM10Registry = false,
-        bool requireM10Equality = false)
+        bool requireM10Equality = false,
+        bool requireOperationCreateNoAttributes = false)
     {
         if (path is null)
         {
@@ -72,7 +73,7 @@ internal static class NativeLibraryLoader
             return new NativeLoadResult(false, null, diagnostics);
         }
 
-        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality);
+        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreateNoAttributes);
     }
 
     internal static NativeLoadResult LoadSystemCandidates()
@@ -110,7 +111,8 @@ internal static class NativeLibraryLoader
         bool requireM5 = false,
         bool requireM6 = false,
         bool requireM10Registry = false,
-        bool requireM10Equality = false)
+        bool requireM10Equality = false,
+        bool requireOperationCreateNoAttributes = false)
     {
         lock (Sync)
         {
@@ -118,7 +120,7 @@ internal static class NativeLibraryLoader
             {
                 if (PathsEqual(loadedPath, candidate))
                 {
-                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality));
+                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreateNoAttributes));
                     if (missingFromActive.Length != 0)
                     {
                         diagnostics.Add(CreateMissingExportDiagnostic(
@@ -149,7 +151,7 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
-            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality);
+            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreateNoAttributes);
             var missing = MissingExports(handle, requiredExports);
             if (missing.Length != 0)
             {
@@ -202,7 +204,8 @@ internal static class NativeLibraryLoader
         bool requireM5 = false,
         bool requireM6 = false,
         bool requireM10Registry = false,
-        bool requireM10Equality = false)
+        bool requireM10Equality = false,
+        bool requireOperationCreateNoAttributes = false)
     {
         IEnumerable<string> required;
         if (requireM6)
@@ -223,6 +226,7 @@ internal static class NativeLibraryLoader
         }
         if (requireM10Registry) required = required.Concat(NativeM10Methods.RegistryRequiredExports);
         if (requireM10Equality) required = required.Concat(NativeM10Methods.EqualityRequiredExports);
+        if (requireOperationCreateNoAttributes) required = required.Concat(new[] { "migraphx_operation_create" });
         return required.Distinct(StringComparer.Ordinal);
     }
 

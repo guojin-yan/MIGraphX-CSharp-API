@@ -433,6 +433,23 @@ EXPORT migraphx_status migraphx_operation_destroy(migraphx_operation_t operation
     return (migraphx_status)take_status_for("migraphx_operation_destroy");
 }
 
+EXPORT migraphx_status migraphx_operation_create(migraphx_operation_t* out, const char* name, const char* attributes, ...)
+{
+    migraphx_operation_t operation;
+    (void)attributes;
+    if(out == NULL || name == NULL) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_operation_create"))
+    {
+        *out = NULL;
+        return (migraphx_status)take_status_for("migraphx_operation_create");
+    }
+    operation = (migraphx_operation_t)create_m12(sizeof(*operation));
+    if(operation == NULL) return migraphx_status_unknown_error;
+    copy_string(operation->name, sizeof(operation->name), name);
+    *out = operation;
+    return (migraphx_status)take_status_for("migraphx_operation_create");
+}
+
 EXPORT migraphx_status migraphx_operation_assign_to(migraphx_operation_t output, const migraphx_operation_t input)
 {
     if(output == NULL || input == NULL) return migraphx_status_bad_param;

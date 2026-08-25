@@ -68,10 +68,10 @@ if ($map.counts.supported -ne 84 -or $map.counts.planned -ne 107 -or $map.counts
 $coreBaseline = Get-Content -LiteralPath (Join-Path $root 'compatibility\managed-public-api.txt')
 $adapterBaseline = Get-Content -LiteralPath (Join-Path $root 'compatibility\m6-adapter-public-api.txt')
 if (@($coreBaseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count -ne 44 -or
-    @($coreBaseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count -ne 282 -or
+    @($coreBaseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count -ne 284 -or
     @($adapterBaseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count -ne 3 -or
     @($adapterBaseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count -ne 11) {
-    throw 'Current core public API baseline must remain 44/282 and adapter 3/11.'
+    throw 'Current core public API baseline must remain 44/284 and adapter 3/11.'
 }
 
 $probeProject = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\M11RuntimeProbe.csproj')
