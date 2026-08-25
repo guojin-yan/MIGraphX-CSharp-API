@@ -113,6 +113,17 @@ if (-not $SkipConsumers) {
         & dotnet build $project -c Release --no-restore -p:MIGraphXConsumerVersion=$Version
         if ($LASTEXITCODE -ne 0) { throw "Consumer build failed for $framework." }
     }
+
+    # Execute one managed-only consumer on the current SDK runtime. The program
+    # intentionally touches no native entry point; this proves that the packed
+    # assembly can load and run its value-level M12 surface after clean restore.
+    $managedConsumer = Join-Path $root 'tests\fixtures\package-consumers\net10.0\bin\Release\net10.0\Consumer.dll'
+    if (-not (Test-Path -LiteralPath $managedConsumer -PathType Leaf)) {
+        throw "Managed consumer output is missing: $managedConsumer"
+    }
+    & dotnet $managedConsumer
+    if ($LASTEXITCODE -ne 0) { throw 'Managed-only package consumer execution failed for net10.0.' }
+    Write-Output 'Managed-only package consumer execution passed: net10.0.'
 }
 
 Write-Output "Package audit passed: $packagePath"
