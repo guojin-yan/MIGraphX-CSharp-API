@@ -461,6 +461,8 @@ public sealed class RepositoryQualityTests
         Assert.Contains("publicationAuthorized = $false", File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "new-release-evidence.ps1")), StringComparison.Ordinal);
 
         var adapterPack = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-adapter.ps1"));
+        var buildProps = File.ReadAllText(Path.Combine(RepositoryRoot, "Directory.Build.props"));
+        Assert.Contains("HIPSHARP_REPOSITORY_ROOT", buildProps, StringComparison.Ordinal);
         var m6Coverage = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-m6-coverage.ps1"));
         Assert.Contains("HipSharpRepositoryRoot", m6Coverage, StringComparison.Ordinal);
         Assert.Contains("M6 requires a HIP-CSharp-API source root", m6Coverage, StringComparison.Ordinal);
