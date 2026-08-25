@@ -109,5 +109,10 @@ $configText = @"
 if ($LASTEXITCODE -ne 0) { throw 'Adapter clean-consumer restore failed.' }
 & dotnet build $consumer --configuration Release --no-restore -p:MIGraphXConsumerVersion=$Version
 if ($LASTEXITCODE -ne 0) { throw 'Adapter clean-consumer build failed.' }
+$managedConsumer = Join-Path $root 'artifacts\bin\Consumer\Release\net10.0\Consumer.dll'
+if (-not (Test-Path -LiteralPath $managedConsumer -PathType Leaf)) { throw "Adapter managed consumer output is missing: $managedConsumer" }
+& dotnet $managedConsumer
+if ($LASTEXITCODE -ne 0) { throw 'Adapter managed-only package consumer execution failed.' }
+Write-Output 'Adapter managed-only package consumer execution passed: net10.0.'
 $hash = (Get-FileHash -Algorithm SHA256 -LiteralPath $package).Hash.ToLowerInvariant()
 Write-Output "Adapter package audit passed: $package (sha256 $hash)"

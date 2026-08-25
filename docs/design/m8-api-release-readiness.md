@@ -1,6 +1,6 @@
 # M8 API baseline and prerelease-readiness design
 
-M8 establishes an exact managed compatibility baseline without changing the native inventory. It is not a permanent API freeze: reviewed interface batches continue on the `0.x.x` line and update the snapshot, ownership map, tests, and cloud-validation plan together. At the original M8 checkpoint, the core had 27 public types and 151 member/enum/constant records, the optional HIP adapter had 3 public types and 11 members, and the high-level inventory was 75 supported, 116 planned, and one unsupported C-variadic operation.
+M8 establishes an exact managed compatibility baseline without changing the native inventory. It is not a permanent API freeze: reviewed interface batches continue on the `0.x.x` line and update the snapshot, ownership map, tests, and cloud-validation plan together. At the original M8 checkpoint, the core had 27 public types and 151 member/enum/constant records, the optional HIP adapter had 3 public types and 11 members; the current M12 batch additionally has a four-TFM core clean-consumer audit and a managed-only adapter consumer smoke. The high-level inventory remains 75 supported, 116 planned, and one unsupported C-variadic operation.
 
 ## API review decision
 
