@@ -7,6 +7,10 @@ cd "${repo_root}"
 test -f global.json
 command -v git >/dev/null
 command -v dotnet >/dev/null
+command -v pwsh >/dev/null
+command -v cmake >/dev/null
+command -v gcc >/dev/null
+printf 'tool-baseline=git,dotnet,pwsh,cmake,gcc\n'
 
 if test -d /persistent; then
   cache_root=/persistent/projects/MIGraphX-CSharp-API/cache/nuget
@@ -20,4 +24,5 @@ export NUGET_PACKAGES="${cache_root}"
 required_sdk="$(sed -n 's/.*"version": "\([0-9.]*\)".*/\1/p' global.json)"
 printf 'required-dotnet-sdk=%s\n' "${required_sdk}"
 dotnet --info
+pwsh --version
 dotnet tool restore
