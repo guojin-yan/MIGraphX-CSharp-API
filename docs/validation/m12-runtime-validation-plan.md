@@ -1,6 +1,6 @@
 # M12 real-runtime validation plan
 
-M12 local development is complete and its local evidence is closed. Real MIGraphX promotion remains `runtime-deferred`; the authorized source/package-bound candidate for `2cf92832968d25fb905a8fea7e6d72e899f337ab` is recorded in the outer `Radeon_Cloud/records/20260825-1345-2cf9283-m12-runtime` record. Its standard cloud gate exited 0 and its package-only probe was independently reviewed as `candidate-record-verified`, but no M12 case was promoted. This document and `compatibility/m12-runtime-cases.json` continue to define the execution and promotion boundary.
+M12 local development is complete and its local evidence is closed. Real MIGraphX promotion remains `runtime-deferred`; each authorized source/package-bound candidate is recorded in the outer `Radeon_Cloud/records/` directory. The standard cloud gate and package-only probe are independently reviewable, but no M12 case is promoted automatically. This document and `compatibility/m12-runtime-cases.json` continue to define the execution and promotion boundary.
 
 ## Current status
 
@@ -8,7 +8,7 @@ The local Windows environment has no official MIGraphX provider. The fake MIGrap
 
 The M12 matrix is intentionally separate from the historical M3-M11 maps. Its cases remain `officialEvidence: runtime-deferred`, its authorization flags are false, and its review policy requires the candidate label `runtime-candidate-executed-review-required`. No M12 case may be promoted directly by the runner or by a local test.
 
-The current candidate record binds the clean detached source SHA, core package SHA-256 `fe665f6044e3a153103ae1e93d67a244dad2d7855c27686ec55fe9391a5409ed`, fixed header, ONNX identity, TensorFlow fixture, and calibration-map identities. The package-only probe passed six bounded shape/argument/clone/graph/context cases and retained eight cases as deferred. The standard cloud gate separately executed the official M1 loader/object smoke and M2/M9 Identity candidate paths; those labels remain review-required.
+The source/package-bound candidate record is maintained outside the source tree under `Radeon_Cloud/records/`. The package-only probe defines seven bounded shape/argument/clone/graph/operation/context cases and retains eight cases as deferred. The standard cloud gate separately executes the official M1 loader/object smoke and M2/M9 Identity candidate paths; those labels remain review-required.
 
 ## Required execution environment
 
@@ -53,4 +53,4 @@ The binary and JSON files are generated into `artifacts/models/m12-coverage/` an
 
 Passing local tests does not change the historical `84/107/1` high-level map or the `45/303` managed API baseline. Passing a real case also does not automatically promote a whole API family: promotion is per case and requires the source/package-bound record plus independent review. Typed, fully materialized operation attributes are now locally supported without arbitrary C varargs; general format-placeholder calls and ownerless `migraphx_module_create` remain explicitly deferred unless a future header/ownership review changes their boundary.
 
-中文摘要：M12 本地开发已经完成，当前 SHA 的授权云端候选记录为 `Radeon_Cloud/records/20260825-1345-2cf9283-m12-runtime`。标准 cloud-test 退出码为 0，package-only 探针六项 bounded case 通过并经独立 review 标记为 `candidate-record-verified`；真实 MIGraphX promotion 仍为 `runtime-deferred`，没有任何 M12 case 被提升。`compatibility/m12-runtime-cases.json` 及本计划继续定义 Linux、固定 MIGraphX 2.15.0/ROCm 7.2.1 环境下的授权执行边界；TensorFlow、quantization、custom-op、negative ownership、concurrent-dispose、cross-target ABI 仍保持 deferred。
+中文摘要：M12 本地开发已经完成，授权云端候选记录统一保存在外层 `Radeon_Cloud/records/`。package-only 探针包含七项 bounded case（含五种已审查的 typed operation attributes 及 clone），标准 cloud-test 与候选结果均要求独立 review；真实 MIGraphX promotion 仍为 `runtime-deferred`，没有任何 case 自动提升。`compatibility/m12-runtime-cases.json` 及本计划继续定义 Linux、固定 MIGraphX 2.15.0/ROCm 7.2.1 环境下的执行边界；TensorFlow、quantization、custom-op、negative ownership、concurrent-dispose、cross-target ABI 仍保持 deferred。

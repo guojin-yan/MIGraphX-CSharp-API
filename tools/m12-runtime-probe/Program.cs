@@ -132,6 +132,7 @@ internal sealed class ProbeRunner
             ("m12-assign-to-clone", RunAssignToClones),
             ("m12-graph-parent-lease", RunGraphParentLease),
             ("m12-graph-editing", RunGraphEditing),
+            ("m12-operation-materialized-attributes", RunOperationMaterializedAttributes),
             ("m12-context-lifetime", RunContextLifetime),
         };
         var selected = options.CaseId is null ? cases : cases.Where(item => item.Id == options.CaseId).ToArray();
@@ -263,6 +264,38 @@ internal sealed class ProbeRunner
         context.Finish();
         WriteStage(id, "context-queue", "entered");
         Require(context.Queue != IntPtr.Zero, "Context queue was null.");
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunOperationMaterializedAttributes()
+    {
+        const string id = "m12-operation-materialized-attributes";
+        var cases = new (string Name, MIGraphXOperationAttributes Attributes)[]
+        {
+            ("reshape", new MIGraphXOperationAttributes().SetInt64Array("dims", new long[] { 1, 4 })),
+            ("transpose", new MIGraphXOperationAttributes().SetInt64Array("permutation", new long[] { 1, 0 })),
+            ("slice", new MIGraphXOperationAttributes()
+                .SetInt64Array("axes", new long[] { 0 })
+                .SetInt64Array("starts", new long[] { 0 })
+                .SetInt64Array("ends", new long[] { 1 })),
+            ("multibroadcast", new MIGraphXOperationAttributes().SetInt64Array("out_lens", new long[] { 1, 4 })),
+            ("topk", new MIGraphXOperationAttributes()
+                .SetInt32("axis", 1)
+                .SetInt32("k", 1)
+                .SetBoolean("largest", true)),
+        };
+        var observations = new List<string>(cases.Length);
+        foreach (var item in cases)
+        {
+            WriteStage(id, item.Name, "entered");
+            using var operation = MIGraphXOperation.Create(options.NativePath, item.Name, item.Attributes);
+            using var clone = operation.Clone();
+            Require(operation.Name == item.Name && clone.Name == item.Name, $"Operation name mismatch for {item.Name}.");
+            observations.Add($"{item.Name}|{item.Attributes.Build()}|{clone.Name}");
+        }
+        var artifact = Path.Combine(options.RecordDirectory, "operation-attributes.txt");
+        File.WriteAllLines(artifact, observations);
+        report.Artifacts["operationAttributesSha256"] = Program.HashFile(artifact);
         WriteStage(id, "teardown", "entered");
     }
 

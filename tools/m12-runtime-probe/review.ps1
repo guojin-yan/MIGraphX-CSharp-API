@@ -45,6 +45,7 @@ $expectedCases = @(
     'm12-assign-to-clone',
     'm12-graph-parent-lease',
     'm12-graph-editing',
+    'm12-operation-materialized-attributes',
     'm12-context-lifetime'
 )
 $expectedDeferred = @(
@@ -68,6 +69,22 @@ foreach ($caseId in $expectedCases) {
             throw "M12 case stage trace is incomplete: $caseId/$state"
         }
     }
+}
+$operationAttributesPath = Join-Path $record 'operation-attributes.txt'
+if (-not (Test-Path -LiteralPath $operationAttributesPath -PathType Leaf)) { throw 'Operation-attribute observation artifact is missing.' }
+$expectedOperationAttributes = @(
+    'reshape|{dims: [1, 4]}|reshape',
+    'transpose|{permutation: [1, 0]}|transpose',
+    'slice|{axes: [0], starts: [0], ends: [1]}|slice',
+    'multibroadcast|{out_lens: [1, 4]}|multibroadcast',
+    'topk|{axis: 1, k: 1, largest: true}|topk'
+)
+if (Compare-Object $expectedOperationAttributes @(Get-Content -LiteralPath $operationAttributesPath)) {
+    throw 'Operation-attribute observations drifted.'
+}
+if ($null -eq $result.artifacts -or
+    $result.artifacts.operationAttributesSha256 -ne (Get-Sha256 $operationAttributesPath)) {
+    throw 'Operation-attribute artifact hash is missing or drifted.'
 }
 if ((Get-Sha256 $CorePackagePath) -ne $CoreSha256) { throw 'Core package hash mismatch.' }
 $expectedTensorFlowFixtureSha = 'de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e'

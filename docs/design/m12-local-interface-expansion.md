@@ -1,6 +1,6 @@
 # M12 local interface expansion
 
-M12 is a local-development batch only. It adds managed projections for the remaining generated C declarations without making a package-publication or performance claim. The batch has passed local managed compilation, fake-native fixture compilation, focused M12 tests, representative interop execution, and project-quality tests. The current source/package-bound cloud candidate is recorded in `Radeon_Cloud/records/20260825-1345-2cf9283-m12-runtime`; real MIGraphX runtime verification remains review-required, the candidate does not promote any M12 map entry, and the existing M3--M11 compatibility maps therefore remain the evidence baseline.
+M12 is a local-development batch only. It adds managed projections for the remaining generated C declarations without making a package-publication or performance claim. The batch has passed local managed compilation, fake-native fixture compilation, focused M12 tests, representative interop execution, and project-quality tests. Source/package-bound cloud records are kept in the outer `Radeon_Cloud/records/` directory; real MIGraphX runtime verification remains review-required, no candidate promotes an M12 map entry, and the existing M3--M11 compatibility maps therefore remain the evidence baseline.
 
 ## Implemented local surface
 
@@ -17,7 +17,7 @@ The managed API now contains the following resource-safe projections:
 
 All native `*_assign_to` declarations are treated as assignments into an already-created `T` handle, not as `T*` output-slot constructors. The managed clone helpers therefore create the destination first, invoke assign-to, and dispose that destination on failure. Collections additionally retain element/program leases so borrowed graph pointers cannot outlive their owners.
 
-The local fake-native source now models the added ownership classes, graph views, TensorFlow options, quantization mutations, context access, custom-op callback ownership, targeted failures, and null-output creation. `M12LocalInterfaceTests.cs` records focused success, clone, lease, negative-boundary, concurrent-dispose, and cleanup contracts. The fixture was compiled with the local MSVC toolchain, all eight focused M12 tests pass on `net10.0`, and the graph path executes through both generated interop families on the representative `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0` runners.
+The local fake-native source now models the added ownership classes, graph views, TensorFlow options, quantization mutations, context access, custom-op callback ownership, targeted failures, and null-output creation. `M12LocalInterfaceTests.cs` records focused success, clone, lease, negative-boundary, concurrent-dispose, and cleanup contracts. The fixture was compiled with the local MSVC toolchain, all eight focused M12 tests pass on `net10.0`, and the graph path executes through both generated interop families on the representative `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0` runners. The package probe additionally covers five reviewed materialized operation-attribute forms and their clones.
 
 Generated declarations remain source-of-truth and were not edited by hand. The new wrappers use the existing `NativeResourceOwner`, `OutHandle`, strict UTF-8, size_t, and native-library identity boundaries.
 

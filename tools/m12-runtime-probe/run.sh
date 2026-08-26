@@ -50,7 +50,7 @@ done
 [[ "$core_sha" =~ ^[a-f0-9]{64}$ ]] || usage
 if [[ -n "$case_id" ]]; then
   case "$case_id" in
-    m12-shape-argument-factories|m12-argument-persistence-clone|m12-assign-to-clone|m12-graph-parent-lease|m12-graph-editing|m12-context-lifetime) ;;
+    m12-shape-argument-factories|m12-argument-persistence-clone|m12-assign-to-clone|m12-graph-parent-lease|m12-graph-editing|m12-operation-materialized-attributes|m12-context-lifetime) ;;
     *) usage ;;
   esac
 fi
@@ -94,7 +94,7 @@ resolved_native="$(realpath "$native")"
 } > "$record/raw/native-library.txt"
 ! ldd "$resolved_native" | grep -q 'not found' || { echo 'native dependency closure is incomplete' >&2; exit 1; }
 nm -D --defined-only "$resolved_native" | awk '{print $3}' | sort -u > "$record/raw/native-exports.txt"
-for export_name in migraphx_parse_onnx migraphx_argument_save migraphx_argument_load migraphx_program_assign_to migraphx_program_get_main_module migraphx_module_add_parameter; do
+for export_name in migraphx_parse_onnx migraphx_argument_save migraphx_argument_load migraphx_program_assign_to migraphx_program_get_main_module migraphx_module_add_parameter migraphx_operation_create migraphx_operation_assign_to migraphx_operation_name migraphx_operation_destroy; do
   grep -Fxq "$export_name" "$record/raw/native-exports.txt" || { echo "required export missing: $export_name" >&2; exit 1; }
 done
 

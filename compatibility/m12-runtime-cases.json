@@ -213,6 +213,29 @@
       "deferredBoundary": "Context queue semantics and synchronization behavior are not established against the official provider."
     },
     {
+      "id": "m12-operation-materialized-attributes",
+      "area": "graph",
+      "publicSurface": "MIGraphXOperation.Create with MIGraphXOperationAttributes and operation Clone",
+      "fixtureIds": [
+        "m12-no-artifact"
+      ],
+      "expectation": "success",
+      "synchronizationBoundary": "each materialized operation create and clone returns before the next operation is accessed",
+      "copyBoundary": "typed scalar and array values are formatted into one complete attribute object before the native call",
+      "resourceOwnership": "each operation and clone owns an independent native handle; no C vararg value is retained",
+      "iterations": 1,
+      "timeoutSeconds": 120,
+      "prerequisites": [
+        "exact core package",
+        "verified native root"
+      ],
+      "environmentChangeRequired": false,
+      "localEvidence": "fake-native-executed",
+      "officialEvidence": "runtime-deferred",
+      "resultCriteria": "reshape, transpose, slice, multibroadcast, and topk accept their reviewed typed attributes, expose the expected names, and produce independent clones.",
+      "deferredBoundary": "This case proves only the reviewed fully materialized common attributes; arbitrary format placeholders and general C variadic values remain unsupported."
+    },
+    {
       "id": "m12-custom-op-registration",
       "area": "custom-op",
       "publicSurface": "MIGraphXExperimentalCustomOp registration, copy/delete, callbacks, and Clone",
