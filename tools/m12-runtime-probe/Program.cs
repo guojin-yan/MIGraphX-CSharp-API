@@ -605,6 +605,8 @@ internal sealed class ProbeOptions
         string ExistingFile(string name) { var supplied = Required(name); var path = Path.GetFullPath(supplied); if (!Path.IsPathRooted(supplied) || !File.Exists(path)) throw new ArgumentException($"{name} must be an existing absolute file."); return path; }
         var source = Required("--source-sha");
         if (source.Length != 40 || source.Any(value => !Uri.IsHexDigit(value))) throw new ArgumentException("--source-sha must be a 40-character hexadecimal SHA.");
+        var includeDeferred = values.ContainsKey("--include-deferred");
+        if (includeDeferred && values.ContainsKey("--case")) throw new ArgumentException("--include-deferred cannot be combined with --case.");
         var record = Path.GetFullPath(Required("--record"));
         Directory.CreateDirectory(record);
         var output = Path.GetFullPath(Required("--output"));
@@ -622,7 +624,7 @@ internal sealed class ProbeOptions
             SourceSha = source.ToLowerInvariant(),
             ExpectedVersion = Required("--expected-version"),
             CaseId = caseId,
-            IncludeDeferred = values.ContainsKey("--include-deferred")
+            IncludeDeferred = includeDeferred
         };
     }
 }
