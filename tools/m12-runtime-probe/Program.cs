@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -57,6 +58,9 @@ internal static class Program
         using var stream = File.OpenRead(path);
         return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
     }
+
+    internal static string HashBytes(byte[] bytes)
+        => Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 }
 
 internal sealed class ProbeRunner
@@ -134,8 +138,12 @@ internal sealed class ProbeRunner
             ("m12-graph-editing", RunGraphEditing),
             ("m12-operation-materialized-attributes", RunOperationMaterializedAttributes),
             ("m12-context-lifetime", RunContextLifetime),
+            ("m12-tensorflow-parse", RunTensorFlowParse),
+            ("m12-quantization-options", RunQuantizationOptions),
+            ("m12-custom-op-registration", RunCustomOpRegistration),
+            ("m12-concurrent-dispose", RunConcurrentDispose),
         };
-        var selected = options.CaseId is null ? cases : cases.Where(item => item.Id == options.CaseId).ToArray();
+        var selected = options.CaseId is null ? cases.Take(7).ToArray() : cases.Where(item => item.Id == options.CaseId).ToArray();
         if (selected.Length == 0) throw new ArgumentException("--case does not name an executable M12 candidate case.");
         foreach (var item in selected) RunCase(item.Id, item.Action);
         foreach (var id in DeferredCases) report.DeferredCaseIds.Add(id);
@@ -297,6 +305,233 @@ internal sealed class ProbeRunner
         File.WriteAllLines(artifact, observations);
         report.Artifacts["operationAttributesSha256"] = Program.HashFile(artifact);
         WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunTensorFlowParse()
+    {
+        const string id = "m12-tensorflow-parse";
+        var model = File.ReadAllBytes(options.TensorFlowFixture);
+        WriteStage(id, "options", "entered");
+        using var fileOptions = new MIGraphXTfOptions(options.NativePath);
+        fileOptions.SetInputParameterShape("input", new long[] { 1, 4 });
+        fileOptions.SetOutputNames(new[] { "output" });
+        using var bufferOptions = fileOptions.Clone();
+        WriteStage(id, "file-parse", "entered");
+        using var fileProgram = MIGraphXProgram.ParseTfFile(options.TensorFlowFixture, fileOptions);
+        WriteStage(id, "buffer-parse", "entered");
+        using var bufferProgram = MIGraphXProgram.ParseTfBuffer(model, bufferOptions);
+        CompareShapeMaps(fileProgram.GetParameterShapes(), bufferProgram.GetParameterShapes(), "TensorFlow parameter shapes");
+        CompareShapeLists(fileProgram.GetOutputShapes(), bufferProgram.GetOutputShapes(), "TensorFlow output shapes");
+
+        WriteStage(id, "compile", "entered");
+        using var target = new MIGraphXTarget(options.NativePath);
+        using var compileOptions = new MIGraphXCompileOptions(options.NativePath);
+        fileProgram.Compile(target, compileOptions);
+        bufferProgram.Compile(target, compileOptions);
+        using var fileParameters = CreateFloatParameters(fileProgram.GetParameterShapes());
+        using var bufferParameters = CreateFloatParameters(bufferProgram.GetParameterShapes());
+        WriteStage(id, "run", "entered");
+        using var fileOutputs = fileProgram.Run(fileParameters);
+        using var bufferOutputs = bufferProgram.Run(bufferParameters);
+        CompareOutputs(fileOutputs, bufferOutputs, "TensorFlow file/buffer outputs", 0.0001f);
+        report.Artifacts["tensorflowOutputCount"] = fileOutputs.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunQuantizationOptions()
+    {
+        const string id = "m12-quantization-options";
+        var calibrationInputs = ReadCalibrationInputNames();
+        WriteStage(id, "calibration", "entered");
+        var int8Output = RunQuantizationVariant("int8", calibrationInputs, (program, target, data) =>
+        {
+            using var options = new MIGraphXQuantizeInt8Options(this.options.NativePath);
+            options.AddCalibrationData(data);
+            program.QuantizeInt8(target, options);
+        });
+        var fp8Output = RunQuantizationVariant("fp8", calibrationInputs, (program, target, data) =>
+        {
+            using var options = new MIGraphXQuantizeFp8Options(this.options.NativePath);
+            options.AddCalibrationData(data);
+            program.QuantizeFp8(target, options);
+        });
+        report.Artifacts["quantizationOutputSha256"] = Program.HashBytes(int8Output.Concat(fp8Output).ToArray());
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private byte[] RunQuantizationVariant(
+        string variant,
+        IReadOnlyList<string> calibrationInputs,
+        Action<MIGraphXProgram, MIGraphXTarget, MIGraphXParameterMap> quantize)
+    {
+        WriteStage("m12-quantization-options", variant + "-parse", "entered");
+        using var onnx = new MIGraphXOnnxOptions(options.NativePath);
+        onnx.SetInputParameterShape("input", new long[] { 1, 4 });
+        using var program = MIGraphXProgram.ParseOnnxFile(options.IdentityFixture, onnx);
+        using var target = new MIGraphXTarget(options.NativePath);
+        using var compileOptions = new MIGraphXCompileOptions(options.NativePath);
+        program.Compile(target, compileOptions);
+        using var parameters = CreateFloatParameters(program.GetParameterShapes(), calibrationInputs);
+        quantize(program, target, parameters);
+        Require(!program.IsCompiled, $"{variant} quantization did not invalidate the compiled state.");
+        program.Compile(target, compileOptions);
+        using var outputs = program.Run(parameters);
+        var values = ReadFloatOutputs(outputs, $"{variant} quantized output");
+        Require(values.All(value => !float.IsNaN(value) && !float.IsInfinity(value)), $"{variant} quantization produced a non-finite value.");
+        return values.SelectMany(BitConverter.GetBytes).ToArray();
+    }
+
+    private void RunCustomOpRegistration()
+    {
+        const string id = "m12-custom-op-registration";
+        var callbackInvocations = 0;
+        var state = new object();
+        WriteStage(id, "create", "entered");
+        using var operation = new MIGraphXExperimentalCustomOp(options.NativePath, "m12_runtime_custom_op", state);
+        operation.SetCompute((_, _, _, _, _, _, _) => { Interlocked.Increment(ref callbackInvocations); return MIGraphXStatus.Success; });
+        operation.SetComputeShape((_, _, _, _, _) => { Interlocked.Increment(ref callbackInvocations); return MIGraphXStatus.Success; });
+        operation.SetOutputAlias((_, _, _, _, _, _) => { Interlocked.Increment(ref callbackInvocations); return MIGraphXStatus.Success; });
+        operation.SetRunsOnOffloadTarget((_, _, _, _) => { Interlocked.Increment(ref callbackInvocations); return MIGraphXStatus.Success; });
+        WriteStage(id, "clone", "entered");
+        using var clone = operation.Clone();
+        Require(ReferenceEquals(operation.State, state) && ReferenceEquals(clone.State, state), "Custom-op managed state was not retained by clone.");
+        WriteStage(id, "register", "entered");
+        operation.Register();
+        clone.Register();
+        report.Artifacts["customOpNativeCallbackInvocations"] = callbackInvocations.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        report.Artifacts["customOpCallbackExecutionVerified"] = "false";
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunConcurrentDispose()
+    {
+        const string id = "m12-concurrent-dispose";
+        var races = 0;
+        WriteStage(id, "argument", "entered");
+        var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+        using (var argument = MIGraphXArgument.Create(options.NativePath, shape, new[] { 0.25f, -1f, 2f, 9f }))
+        {
+            RunDisposeRace(() => argument.ToArray<float>(), argument.Dispose);
+            races++;
+        }
+        WriteStage(id, "compile-options", "entered");
+        using (var compileOptions = new MIGraphXCompileOptions(options.NativePath))
+        {
+            RunDisposeRace(() => { using var clone = compileOptions.Clone(); }, compileOptions.Dispose);
+            races++;
+        }
+        WriteStage(id, "program", "entered");
+        using (var program = new MIGraphXProgram(options.NativePath))
+        {
+            RunDisposeRace(() => _ = program.IsCompiled, program.Dispose);
+            races++;
+        }
+        WriteStage(id, "custom-op", "entered");
+        using (var customOp = new MIGraphXExperimentalCustomOp(options.NativePath, "m12_runtime_concurrent_custom_op"))
+        {
+            RunDisposeRace(customOp.Register, customOp.Dispose);
+            races++;
+        }
+        WriteStage(id, "quantization-options", "entered");
+        using (var names = new MIGraphXQuantizeOpNames(options.NativePath))
+        {
+            RunDisposeRace(() => names.Add("identity"), names.Dispose);
+            races++;
+        }
+        report.Artifacts["disposeRaceCount"] = races.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunDisposeRace(Action access, Action dispose)
+    {
+        var started = new ManualResetEventSlim(false);
+        var unexpected = new ConcurrentBag<Exception>();
+        try
+        {
+            var worker = Task.Run(() =>
+            {
+                started.Set();
+                for (var index = 0; index < 256; index++)
+                {
+                    try { access(); }
+                    catch (ObjectDisposedException) { return; }
+                    catch (Exception exception) { unexpected.Add(exception); return; }
+                }
+            });
+            Require(started.Wait(TimeSpan.FromSeconds(5)), "Concurrent dispose worker did not start.");
+            dispose();
+            Require(worker.Wait(TimeSpan.FromSeconds(30)), "Concurrent dispose worker did not complete.");
+            if (!unexpected.IsEmpty) throw new InvalidOperationException("Concurrent access produced an unexpected exception.", unexpected.First());
+            dispose();
+        }
+        finally
+        {
+            started.Dispose();
+        }
+    }
+
+    private IReadOnlyList<string> ReadCalibrationInputNames()
+    {
+        using var document = JsonDocument.Parse(File.ReadAllText(options.CalibrationMap));
+        return document.RootElement.GetProperty("inputs").EnumerateArray()
+            .Select(entry => entry.GetProperty("name").GetString() ?? throw new InvalidOperationException("Calibration input name is null."))
+            .ToArray();
+    }
+
+    private MIGraphXParameterMap CreateFloatParameters(IReadOnlyDictionary<string, MIGraphXShape> shapes, IReadOnlyList<string>? requiredNames = null)
+    {
+        var required = requiredNames is null ? null : new HashSet<string>(requiredNames, StringComparer.Ordinal);
+        var map = new MIGraphXParameterMap(options.NativePath);
+        try
+        {
+            foreach (var pair in shapes)
+            {
+                if (required is not null && !required.Contains(pair.Key)) continue;
+                if (pair.Value.DataType != MIGraphXShapeDataType.Float32 || pair.Value.IsDynamic || !pair.Value.IsStandard || !pair.Value.IsPacked)
+                    throw new NotSupportedException($"M12 candidate parameters require static packed float32 shapes: {pair.Key}.");
+                var values = pair.Value.ElementCount == 4
+                    ? new[] { 0.25f, -1f, 2f, 9f }
+                    : Enumerable.Range(0, checked((int)pair.Value.ElementCount)).Select(index => 0.25f + index).ToArray();
+                using var argument = MIGraphXArgument.Create(options.NativePath, pair.Value, values);
+                map.Add(pair.Key, argument);
+            }
+            if (required is not null && !required.SetEquals(map.Names)) throw new InvalidOperationException("Calibration input names do not match the parsed program parameters.");
+            return map;
+        }
+        catch
+        {
+            map.Dispose();
+            throw;
+        }
+    }
+
+    private static void CompareShapeMaps(IReadOnlyDictionary<string, MIGraphXShape> left, IReadOnlyDictionary<string, MIGraphXShape> right, string label)
+    {
+        Require(left.Count == right.Count && left.Keys.OrderBy(value => value, StringComparer.Ordinal).SequenceEqual(right.Keys.OrderBy(value => value, StringComparer.Ordinal)), $"{label} names differ.");
+        foreach (var pair in left) Require(pair.Value.HasSameNativeContent(right[pair.Key]), $"{label} differ for '{pair.Key}'.");
+    }
+
+    private static void CompareShapeLists(IReadOnlyList<MIGraphXShape> left, IReadOnlyList<MIGraphXShape> right, string label)
+    {
+        Require(left.Count == right.Count, $"{label} count differs.");
+        for (var index = 0; index < left.Count; index++) Require(left[index].HasSameNativeContent(right[index]), $"{label} differ at index {index}.");
+    }
+
+    private static void CompareOutputs(MIGraphXArgumentCollection left, MIGraphXArgumentCollection right, string label, float tolerance)
+    {
+        Require(left.Count == right.Count, $"{label} count differs.");
+        for (var index = 0; index < left.Count; index++)
+        {
+            var leftValues = left[index].ToArray<float>();
+            var rightValues = right[index].ToArray<float>();
+            Require(leftValues.Length == rightValues.Length && leftValues.Zip(rightValues, (a, b) => Math.Abs(a - b)).All(delta => delta <= tolerance), $"{label} differ at output {index}.");
+        }
+    }
+
+    private static float[] ReadFloatOutputs(MIGraphXArgumentCollection outputs, string label)
+    {
+        Require(outputs.Count > 0, $"{label} is empty.");
+        return outputs.SelectMany(output => output.ToArray<float>()).ToArray();
     }
 
     private MIGraphXProgram ParseIdentity(MIGraphXOnnxOptions onnx)
