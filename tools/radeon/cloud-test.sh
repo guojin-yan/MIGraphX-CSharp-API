@@ -41,4 +41,34 @@ model_path="${results}/m2-identity-float32.onnx"
 pwsh ./eng/generate-m2-model.ps1 -OutputPath "${model_path}" 2>&1 | tee "${results}/model.txt"
 dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj -c Release --no-build -- --runtime-candidate "${resolved_library}" "${model_path}" 2>&1 | tee "${results}/official-m2-smoke.json"
 dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj -c Release --no-build -- --runtime-options-candidate "${resolved_library}" "${model_path}" 2>&1 | tee "${results}/official-m9-options-smoke.json"
-printf '{"schemaVersion":"1.2.0","commit":"%s","managedGates":"completed","header":"verified","officialNativeM1":"runtime-executed","officialOnnxM2":"runtime-candidate-executed-review-required","gpuInference":"runtime-candidate-executed-review-required","m9InferenceOptions":"runtime-candidate-executed-review-required"}\n' "${COMMIT_SHA}" > "${results}/summary.json"
+
+# M12 package-only candidate: keep the managed package boundary explicit and run
+# every implemented bounded path in one process. The result remains review-required
+# and the independent reviewer below must pass before it is summarized as complete.
+m12_fixture_directory="${repo_root}/artifacts/models/m12"
+pwsh ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild 2>&1 | tee "${results}/m12-package.txt"
+pwsh ./eng/generate-m12-fixtures.ps1 -OutputDirectory "${m12_fixture_directory}" 2>&1 | tee "${results}/m12-fixtures.txt"
+m12_package="${repo_root}/artifacts/packages/JYPPX.ROCm.MIGraphX.CSharp.API.0.0.0.nupkg"
+m12_record="${results}/m12-candidate"
+m12_core_sha="$(sha256sum "${m12_package}" | awk '{print $1}')"
+tools/m12-runtime-probe/run.sh \
+  --repo "${repo_root}" \
+  --feed "${repo_root}/artifacts/packages" \
+  --record "${m12_record}" \
+  --identity "${model_path}" \
+  --tensorflow-fixture "${m12_fixture_directory}/m12-tensorflow-minimal.pb" \
+  --calibration-map "${m12_fixture_directory}/m12-calibration-map.json" \
+  --native "${resolved_library}" \
+  --header "${header_path}" \
+  --source-sha "${COMMIT_SHA}" \
+  --version 0.0.0 \
+  --core-sha "${m12_core_sha}" \
+  --include-deferred 2>&1 | tee "${results}/m12-candidate-run.txt"
+pwsh -NoProfile -File ./tools/m12-runtime-probe/review.ps1 \
+  -RecordDirectory "${m12_record}" \
+  -CorePackagePath "${m12_package}" \
+  -TensorFlowFixturePath "${m12_fixture_directory}/m12-tensorflow-minimal.pb" \
+  -CalibrationMapPath "${m12_fixture_directory}/m12-calibration-map.json" \
+  -SourceSha "${COMMIT_SHA}" \
+  -CoreSha256 "${m12_core_sha}" 2>&1 | tee "${results}/m12-review.txt"
+printf '{"schemaVersion":"1.3.0","commit":"%s","managedGates":"completed","header":"verified","officialNativeM1":"runtime-executed","officialOnnxM2":"runtime-candidate-executed-review-required","gpuInference":"runtime-candidate-executed-review-required","m9InferenceOptions":"runtime-candidate-executed-review-required","m12Candidate":"candidate-record-verified","m12CaseFilter":"all-candidate","m12ExecutedCases":11,"m12DeferredCases":8}\n' "${COMMIT_SHA}" > "${results}/summary.json"

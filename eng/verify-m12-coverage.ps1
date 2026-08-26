@@ -133,6 +133,7 @@ $sourceChecks = @{
     'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'RunTensorFlowParse', 'RunQuantizationOptions', 'RunCustomOpRegistration', 'RunConcurrentDispose', 'cases.Take(7)', 'IncludeDeferred', 'DeferredCases', 'case-stages.jsonl', 'TensorFlowFixture', 'CalibrationMap', 'tensorflowFixtureSha256', 'calibrationFixtureSha256')
     'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'M12PackageVersion', '--no-cache --force-evaluate', 'environmentChanged', '--tensorflow-fixture', '--calibration-map', '--include-deferred', 'all-candidate', 'includeDeferred')
     'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'promotionState', 'TensorFlowFixturePath', 'CalibrationMapPath', 'tensorflowFixtureSha256', 'calibrationFixtureSha256')
+    'tools\radeon\cloud-test.sh' = @('m12-runtime-probe/run.sh', '--include-deferred', 'm12-candidate', 'm12-review.txt', 'm12CaseFilter', 'candidate-record-verified')
 }
 foreach ($relativePath in $sourceChecks.Keys) {
     $path = Join-Path $root $relativePath
