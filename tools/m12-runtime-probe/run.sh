@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: run.sh --repo DIR --feed DIR --record DIR --identity FILE --tensorflow-fixture FILE --calibration-map FILE --native FILE --header FILE --source-sha SHA --version VERSION --core-sha SHA256 [--case CASE]" >&2
+  echo "Usage: run.sh --repo DIR --feed DIR --record DIR --identity FILE --tensorflow-fixture FILE --calibration-map FILE --native FILE --header FILE --source-sha SHA --version VERSION --core-sha SHA256 [--case CASE] [--include-deferred]" >&2
   exit 2
 }
 
@@ -18,7 +18,14 @@ source_sha=''
 version=''
 core_sha=''
 case_id=''
+include_deferred=false
 while [[ $# -gt 0 ]]; do
+  if [[ "$1" = '--include-deferred' ]]; then
+    [[ "$include_deferred" = false ]] || usage
+    include_deferred=true
+    shift
+    continue
+  fi
   [[ $# -ge 2 ]] || usage
   case "$1" in
     --repo) repo="$2" ;;
@@ -50,10 +57,11 @@ done
 [[ "$core_sha" =~ ^[a-f0-9]{64}$ ]] || usage
 if [[ -n "$case_id" ]]; then
   case "$case_id" in
-    m12-shape-argument-factories|m12-argument-persistence-clone|m12-assign-to-clone|m12-graph-parent-lease|m12-graph-editing|m12-operation-materialized-attributes|m12-context-lifetime) ;;
+    m12-shape-argument-factories|m12-argument-persistence-clone|m12-assign-to-clone|m12-graph-parent-lease|m12-graph-editing|m12-operation-materialized-attributes|m12-context-lifetime|m12-tensorflow-parse|m12-quantization-options|m12-custom-op-registration|m12-concurrent-dispose) ;;
     *) usage ;;
   esac
 fi
+[[ "$include_deferred" = false || -z "$case_id" ]] || usage
 
 [[ "$(git -C "$repo" rev-parse HEAD)" == "$source_sha" ]] || { echo 'source SHA mismatch' >&2; exit 1; }
 [[ -z "$(git -C "$repo" status --porcelain)" ]] || { echo 'source checkout is dirty' >&2; exit 1; }
@@ -105,6 +113,7 @@ dotnet build "$project" -c Release --no-restore -p:M12PackageVersion="$version" 
 command -v timeout >/dev/null 2>&1 || { echo 'GNU timeout is required for the bounded M12 session' >&2; exit 1; }
 probe_case_args=()
 if [[ -n "$case_id" ]]; then probe_case_args=(--case "$case_id"); fi
+if [[ "$include_deferred" = true ]]; then probe_case_args+=(--include-deferred); fi
 set +e
 timeout --kill-after=10s 300s dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" -- \
   --native "$resolved_native" --identity "$identity" --record "$record" --output "$record/raw/m12-functional.json" \
@@ -116,6 +125,8 @@ functional_exit=$?
 set -e
 
 completed_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+case_filter="${case_id:-all}"
+if [[ "$include_deferred" = true ]]; then case_filter='all-candidate'; fi
 cat > "$record/raw/run-metadata.json" <<EOF
 {
   "schemaVersion": "1.0.0",
@@ -127,7 +138,8 @@ cat > "$record/raw/run-metadata.json" <<EOF
   "functionalExitCode": $functional_exit,
   "functionalSessionTimeoutSeconds": 300,
   "sessionKillAfterSeconds": 10,
-  "caseFilter": "${case_id:-all}",
+  "caseFilter": "$case_filter",
+  "includeDeferred": $include_deferred,
   "environmentChanged": false,
   "promotionRequested": false
 }

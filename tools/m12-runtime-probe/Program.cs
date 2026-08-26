@@ -143,7 +143,9 @@ internal sealed class ProbeRunner
             ("m12-custom-op-registration", RunCustomOpRegistration),
             ("m12-concurrent-dispose", RunConcurrentDispose),
         };
-        var selected = options.CaseId is null ? cases.Take(7).ToArray() : cases.Where(item => item.Id == options.CaseId).ToArray();
+        var selected = options.CaseId is null
+            ? (options.IncludeDeferred ? cases : cases.Take(7)).ToArray()
+            : cases.Where(item => item.Id == options.CaseId).ToArray();
         if (selected.Length == 0) throw new ArgumentException("--case does not name an executable M12 candidate case.");
         foreach (var item in selected) RunCase(item.Id, item.Action);
         foreach (var id in DeferredCases) report.DeferredCaseIds.Add(id);
@@ -581,14 +583,23 @@ internal sealed class ProbeOptions
     public required string SourceSha { get; init; }
     public required string ExpectedVersion { get; init; }
     public string? CaseId { get; init; }
+    public bool IncludeDeferred { get; init; }
 
     internal static ProbeOptions Parse(string[] args)
     {
         var values = new Dictionary<string, string>(StringComparer.Ordinal);
-        for (var index = 0; index < args.Length; index += 2)
+        for (var index = 0; index < args.Length;)
         {
-            if (index + 1 >= args.Length || !args[index].StartsWith("--", StringComparison.Ordinal)) throw new ArgumentException("Arguments must be --name value pairs.");
+            if (!args[index].StartsWith("--", StringComparison.Ordinal)) throw new ArgumentException("Arguments must be --name value pairs.");
+            if (string.Equals(args[index], "--include-deferred", StringComparison.Ordinal))
+            {
+                values.Add(args[index], "true");
+                index++;
+                continue;
+            }
+            if (index + 1 >= args.Length) throw new ArgumentException("Arguments must be --name value pairs.");
             values.Add(args[index], args[index + 1]);
+            index += 2;
         }
         string Required(string name) => values.TryGetValue(name, out var value) && value.Length != 0 ? value : throw new ArgumentException($"Missing required argument {name}.");
         string ExistingFile(string name) { var supplied = Required(name); var path = Path.GetFullPath(supplied); if (!Path.IsPathRooted(supplied) || !File.Exists(path)) throw new ArgumentException($"{name} must be an existing absolute file."); return path; }
@@ -610,7 +621,8 @@ internal sealed class ProbeOptions
             OutputPath = output,
             SourceSha = source.ToLowerInvariant(),
             ExpectedVersion = Required("--expected-version"),
-            CaseId = caseId
+            CaseId = caseId,
+            IncludeDeferred = values.ContainsKey("--include-deferred")
         };
     }
 }
