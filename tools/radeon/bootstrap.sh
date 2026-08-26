@@ -5,11 +5,15 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 test "${repo_root}" = "/workspace/MIGraphX-CSharp-API"
 cd "${repo_root}"
 test -f global.json
-command -v git >/dev/null
-command -v dotnet >/dev/null
-command -v pwsh >/dev/null
-command -v cmake >/dev/null
-command -v gcc >/dev/null
+require_command() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    printf 'missing-tool=%s\n' "$1" >&2
+    exit 1
+  fi
+}
+for tool in git dotnet pwsh cmake gcc; do
+  require_command "$tool"
+done
 printf 'tool-baseline=git,dotnet,pwsh,cmake,gcc\n'
 
 if test -d /persistent; then

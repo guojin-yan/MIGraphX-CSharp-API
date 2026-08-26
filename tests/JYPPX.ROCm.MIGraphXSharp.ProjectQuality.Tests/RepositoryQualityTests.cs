@@ -484,9 +484,8 @@ public sealed class RepositoryQualityTests
         var cloudTest = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
         Assert.Contains("HIPSHARP_REPOSITORY_ROOT", cloudTest, StringComparison.Ordinal);
         var bootstrap = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "bootstrap.sh"));
-        Assert.Contains("command -v pwsh", bootstrap, StringComparison.Ordinal);
-        Assert.Contains("command -v cmake", bootstrap, StringComparison.Ordinal);
-        Assert.Contains("command -v gcc", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("for tool in git dotnet pwsh cmake gcc", bootstrap, StringComparison.Ordinal);
+        Assert.Contains("missing-tool=", bootstrap, StringComparison.Ordinal);
         foreach (var workflow in new[] { "build.yml", "docs-pages.yml" })
         {
             var workflowText = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", workflow));
