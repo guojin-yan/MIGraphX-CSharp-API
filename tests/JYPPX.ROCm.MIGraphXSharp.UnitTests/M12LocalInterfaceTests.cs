@@ -314,6 +314,43 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void OperationAttributeBuilderMaterializesCommonValuesAndRejectsUnsafeInput()
+    {
+        var attributes = new MIGraphXOperationAttributes()
+            .SetInt32("group", 2)
+            .SetInt64Array("axes", new long[] { 1, 2, 3 })
+            .SetSingle("value", 0.5f)
+            .SetBoolean("largest", true)
+            .SetString("mode", "nearest")
+            .SetString("pattern", "50%\\done\"ok")
+            .SetNull("optional");
+
+        Assert.Equal(
+            "{group: 2, axes: [1, 2, 3], value: 0.5, largest: true, mode: \"nearest\", pattern: \"50%\\\\done\\\"ok\", optional: null}",
+            attributes.Build());
+
+        Assert.Throws<ArgumentException>(() => attributes.SetInt64("axes", 4));
+        Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad-key", "value"));
+        Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad", "a\0b"));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new MIGraphXOperationAttributes().SetSingle("bad", float.NaN));
+
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        using (var operation = MIGraphXOperation.Create(nativePath, "reshape", attributes))
+        {
+            Assert.Equal("reshape", operation.Name);
+            Assert.Equal(1, controls.M12LiveCount());
+        }
+
+        controls.SetFailure("migraphx_operation_create", 4);
+        Assert.Throws<MIGraphXException>(() => MIGraphXOperation.Create(nativePath, "slice", attributes));
+        controls.SetNullOutput("migraphx_operation_create");
+        Assert.Throws<MIGraphXException>(() => MIGraphXOperation.Create(nativePath, "topk", attributes));
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public async System.Threading.Tasks.Task DeferredNegativeBoundariesAndConcurrentDisposeRemainFailClosed()
     {
         Assert.Empty(typeof(MIGraphXOperation).GetConstructors());

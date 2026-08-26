@@ -254,17 +254,17 @@
       "publicSurface": "migraphx_operation_create general variadic attributes and MIGraphXOperation unrestricted construction",
       "fixtureIds": ["m12-no-artifact"],
       "expectation": "managed-rejection",
-      "synchronizationBoundary": "only the no-attribute call shape reaches native; arbitrary variadic values are rejected before any native call",
+      "synchronizationBoundary": "no-attribute and fully materialized typed-attribute call shapes reach native; format placeholders and arbitrary variadic values are rejected before any native call",
       "copyBoundary": "no guessed C variadic argument layout is emitted",
-      "resourceOwnership": "the restricted no-attribute factory owns and disposes its handle; unsupported attribute calls create no owner",
+      "resourceOwnership": "the restricted factories own and dispose their handles; unsupported format-placeholder and arbitrary-vararg calls create no owner",
       "iterations": 1,
       "timeoutSeconds": 60,
       "prerequisites": ["frozen C header and normalized manifest"],
       "environmentChangeRequired": false,
       "localEvidence": "statically-verified",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "The restricted factory and clone preserve name-only operation ownership; arbitrary attribute formatting and variadic values remain absent and the compatibility inventory keeps the general declaration unsupported.",
-      "deferredBoundary": "A typed ABI is required before exposing attributes or additional variadic values."
+      "resultCriteria": "The restricted factories and clone preserve operation ownership; typed materialized common attributes are serialized without variadic values, while arbitrary formatting and general varargs remain absent and the compatibility inventory keeps the general declaration unsupported.",
+      "deferredBoundary": "A typed native ABI is required before exposing format placeholders or additional variadic values."
     },
     {
       "id": "m12-negative-module-owner",

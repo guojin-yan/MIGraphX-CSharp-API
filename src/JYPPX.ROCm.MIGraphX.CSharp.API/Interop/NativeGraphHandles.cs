@@ -107,10 +107,23 @@ internal sealed class NativeOperationHandle : NativeOwnedHandle
 {
     internal static NativeOperationHandle CreateNoAttributes(IntPtr name)
     {
+        return CreateCore(name, IntPtr.Zero, NativeMethods.OperationCreateNoAttributes);
+    }
+
+    internal static NativeOperationHandle CreateWithMaterializedAttributes(IntPtr name, IntPtr attributes)
+    {
+        return CreateCore(name, attributes, NativeMethods.OperationCreateMaterializedAttributes);
+    }
+
+    private static NativeOperationHandle CreateCore(
+        IntPtr name,
+        IntPtr attributes,
+        Func<IntPtr, IntPtr, IntPtr, NativeMIGraphXStatus> create)
+    {
         var owned = OutHandle<NativeOperationHandle>.Create("migraphx_operation_create");
         try
         {
-            owned.Complete(NativeMethods.OperationCreateNoAttributes(owned.OutSlot, name, IntPtr.Zero));
+            owned.Complete(create(owned.OutSlot, name, attributes));
             return owned.Handle;
         }
         catch

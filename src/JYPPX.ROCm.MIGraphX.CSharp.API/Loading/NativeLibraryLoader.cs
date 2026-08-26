@@ -54,7 +54,7 @@ internal static class NativeLibraryLoader
         bool requireM6 = false,
         bool requireM10Registry = false,
         bool requireM10Equality = false,
-        bool requireOperationCreateNoAttributes = false)
+        bool requireOperationCreate = false)
     {
         if (path is null)
         {
@@ -73,7 +73,7 @@ internal static class NativeLibraryLoader
             return new NativeLoadResult(false, null, diagnostics);
         }
 
-        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreateNoAttributes);
+        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreate);
     }
 
     internal static NativeLoadResult LoadSystemCandidates()
@@ -112,7 +112,7 @@ internal static class NativeLibraryLoader
         bool requireM6 = false,
         bool requireM10Registry = false,
         bool requireM10Equality = false,
-        bool requireOperationCreateNoAttributes = false)
+        bool requireOperationCreate = false)
     {
         lock (Sync)
         {
@@ -120,7 +120,7 @@ internal static class NativeLibraryLoader
             {
                 if (PathsEqual(loadedPath, candidate))
                 {
-                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreateNoAttributes));
+                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreate));
                     if (missingFromActive.Length != 0)
                     {
                         diagnostics.Add(CreateMissingExportDiagnostic(
@@ -132,7 +132,7 @@ internal static class NativeLibraryLoader
                             requireManagedObjects,
                             requireM10Registry,
                             requireM10Equality,
-                            requireOperationCreateNoAttributes));
+                            requireOperationCreate));
                         return new NativeLoadResult(false, null, diagnostics);
                     }
 
@@ -152,7 +152,7 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
-            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreateNoAttributes);
+            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreate);
             var missing = MissingExports(handle, requiredExports);
             if (missing.Length != 0)
             {
@@ -166,7 +166,7 @@ internal static class NativeLibraryLoader
                     requireManagedObjects,
                     requireM10Registry,
                     requireM10Equality,
-                    requireOperationCreateNoAttributes));
+                    requireOperationCreate));
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
@@ -186,8 +186,8 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 #endif
-            var loadedMessage = requireOperationCreateNoAttributes
-                ? "Loaded native library and verified the constrained no-attribute operation-create export."
+            var loadedMessage = requireOperationCreate
+                ? "Loaded native library and verified the constrained operation-create export."
                 : requireM10Equality
                 ? "Loaded native library and verified the fixed M10 content-equality exports."
                 : requireM10Registry
@@ -209,7 +209,7 @@ internal static class NativeLibraryLoader
         bool requireM6 = false,
         bool requireM10Registry = false,
         bool requireM10Equality = false,
-        bool requireOperationCreateNoAttributes = false)
+        bool requireOperationCreate = false)
     {
         IEnumerable<string> required;
         if (requireM6)
@@ -230,7 +230,7 @@ internal static class NativeLibraryLoader
         }
         if (requireM10Registry) required = required.Concat(NativeM10Methods.RegistryRequiredExports);
         if (requireM10Equality) required = required.Concat(NativeM10Methods.EqualityRequiredExports);
-        if (requireOperationCreateNoAttributes) required = required.Concat(new[] { "migraphx_operation_create" });
+        if (requireOperationCreate) required = required.Concat(new[] { "migraphx_operation_create" });
         return required.Distinct(StringComparer.Ordinal);
     }
 
@@ -361,15 +361,15 @@ internal static class NativeLibraryLoader
         bool requireManagedObjects,
         bool requireM10Registry,
         bool requireM10Equality,
-        bool requireOperationCreateNoAttributes)
+        bool requireOperationCreate)
     {
         var kind = requireM10Registry || requireM10Equality || requireManagedObjects
             ? MIGraphXNativeDiagnosticKind.ExportMissing
             : requireOnnxWorkflow
                 ? MIGraphXNativeDiagnosticKind.OnnxFrontendMissing
                 : MIGraphXNativeDiagnosticKind.ExportMissing;
-        var scope = requireOperationCreateNoAttributes
-            ? "constrained no-attribute operation-create"
+        var scope = requireOperationCreate
+            ? "constrained operation-create"
             : requireM10Equality
             ? "M10 content-equality"
             : requireM10Registry

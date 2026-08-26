@@ -63,13 +63,13 @@ internal sealed class NativeRuntime
         if (!result.Success) throw new MIGraphXNativeLoadException(result.Diagnostics);
     }
 
-    internal void RequireOperationCreateNoAttributes()
+    internal void RequireOperationCreate()
     {
         var result = NativeLibraryLoader.LoadExplicit(
             Path,
             requireOnnxWorkflow: true,
             requireManagedObjects: true,
-            requireOperationCreateNoAttributes: true);
+            requireOperationCreate: true);
         if (!result.Success) throw new MIGraphXNativeLoadException(result.Diagnostics);
     }
 }

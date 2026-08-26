@@ -326,8 +326,8 @@ public sealed class RepositoryQualityTests
         var exportedTypes = assembly.GetExportedTypes().Select(type => type.FullName!.Replace('+', '.')).ToHashSet(StringComparer.Ordinal);
         Assert.True(baselineTypes.SetEquals(exportedTypes),
             $"Public type baseline drift. Missing: {string.Join(", ", exportedTypes.Except(baselineTypes))}; stale: {string.Join(", ", baselineTypes.Except(exportedTypes))}");
-        Assert.Equal(44, baselineTypes.Count);
-        Assert.Equal(284, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
+        Assert.Equal(45, baselineTypes.Count);
+        Assert.Equal(303, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
 
         var m5Types = new[]
         {

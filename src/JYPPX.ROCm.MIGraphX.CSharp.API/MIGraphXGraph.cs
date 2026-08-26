@@ -132,7 +132,7 @@ public sealed class MIGraphXInstructions : IDisposable
     }
 }
 
-/// <summary>可读 operation 名称的 native operation 对象；创建 operation 仍受 C varargs ABI 限制。 Native operation wrapper with readable name; creation remains limited by the C varargs ABI.</summary>
+/// <summary>可读 operation 名称的 native operation 对象；Native operation wrapper with readable name.</summary>
 public sealed class MIGraphXOperation : IDisposable
 {
     private readonly NativeResourceOwner<NativeOperationHandle> owner;
@@ -154,10 +154,34 @@ public sealed class MIGraphXOperation : IDisposable
     public static MIGraphXOperation Create(string nativeLibraryPath, string name)
     {
         var runtime = NativeRuntime.Load(nativeLibraryPath);
-        runtime.RequireOperationCreateNoAttributes();
+        runtime.RequireOperationCreate();
         using (var utf8 = new StrictUtf8String(name, nameof(name)))
         {
             return new MIGraphXOperation(runtime, NativeOperationHandle.CreateNoAttributes(utf8.Pointer));
+        }
+    }
+
+    /// <summary>
+    /// 创建带强类型、已物化属性的 operation。
+    /// Creates an operation with strongly typed, fully materialized attributes.
+    /// </summary>
+    /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute path to the MIGraphX C native library.</param>
+    /// <param name="name">operation 名称。 Operation name.</param>
+    /// <param name="attributes">属性构建器；Typed operation attributes.</param>
+    /// <remarks>
+    /// The builder emits one complete attribute object and this binding supplies no C variadic
+    /// values. Literal percent signs are escaped for the upstream formatter. Arbitrary format
+    /// placeholders and general C varargs are intentionally unsupported.
+    /// </remarks>
+    public static MIGraphXOperation Create(string nativeLibraryPath, string name, MIGraphXOperationAttributes attributes)
+    {
+        if (attributes is null) throw new ArgumentNullException(nameof(attributes));
+        var runtime = NativeRuntime.Load(nativeLibraryPath);
+        runtime.RequireOperationCreate();
+        using (var utf8Name = new StrictUtf8String(name, nameof(name)))
+        using (var utf8Attributes = new StrictUtf8String(attributes.Build().Replace("%", "%%"), nameof(attributes)))
+        {
+            return new MIGraphXOperation(runtime, NativeOperationHandle.CreateWithMaterializedAttributes(utf8Name.Pointer, utf8Attributes.Pointer));
         }
     }
 
@@ -181,7 +205,7 @@ public sealed class MIGraphXOperation : IDisposable
         }
     }
 
-    /// <summary>复制不带属性的 operation。 Clones an operation created through the no-attribute factory.</summary>
+    /// <summary>复制 operation。 Clones the native operation.</summary>
     public MIGraphXOperation Clone()
     {
         return owner.WithHandle(handle =>
