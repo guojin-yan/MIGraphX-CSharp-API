@@ -14,6 +14,10 @@ $root = Get-RepositoryRoot
 $RepositoryCommit = if ([string]::IsNullOrWhiteSpace($RepositoryCommit)) { (& git -C $root rev-parse HEAD).Trim() } else { $RepositoryCommit }
 if ($RepositoryCommit -notmatch '^[a-f0-9]{40}$') { throw 'Documentation requires a lowercase 40-character Git SHA.' }
 Push-Location $root
+$previousHipSharpEnvironment = [Environment]::GetEnvironmentVariable('HipSharpRepositoryRoot', 'Process')
+if (-not [string]::IsNullOrWhiteSpace($HipSharpRepositoryRoot)) {
+    [Environment]::SetEnvironmentVariable('HipSharpRepositoryRoot', $HipSharpRepositoryRoot, 'Process')
+}
 try {
     & (Join-Path $PSScriptRoot 'verify-m3-coverage.ps1') | Out-Host
     & (Join-Path $PSScriptRoot 'verify-m4-coverage.ps1') | Out-Host
@@ -43,5 +47,6 @@ try {
     }
 }
 finally {
+    [Environment]::SetEnvironmentVariable('HipSharpRepositoryRoot', $previousHipSharpEnvironment, 'Process')
     Pop-Location
 }
