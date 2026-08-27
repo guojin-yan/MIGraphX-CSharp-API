@@ -98,6 +98,10 @@ typedef struct fake_quantize_fp8_options { size_t calibration_count; } *migraphx
 typedef void* migraphx_context_t;
 typedef migraphx_status (*fake_custom_copy)(void** out, void* input);
 typedef migraphx_status (*fake_custom_delete)(void* input);
+typedef migraphx_status (*fake_custom_compute)(void* output_argument, void* object, void* exception_message, size_t exception_message_size, void* context, void* output_shape, void* inputs);
+typedef migraphx_status (*fake_custom_compute_shape)(void* output_shape, void* object, void* exception_message, size_t exception_message_size, void* inputs);
+typedef migraphx_status (*fake_custom_output_alias)(void* output, void* output_size, void* object, void* exception_message, size_t exception_message_size, void* inputs);
+typedef migraphx_status (*fake_custom_runs_on_offload_target)(void* output, void* object, void* exception_message, size_t exception_message_size);
 typedef struct fake_experimental_custom_op
 {
     void* object;

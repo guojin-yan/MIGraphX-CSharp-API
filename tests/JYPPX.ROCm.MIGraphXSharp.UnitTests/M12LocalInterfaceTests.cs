@@ -264,18 +264,22 @@ public sealed class M12LocalInterfaceTests
         using var controls = new FakeControls(nativePath);
         controls.Reset();
         var state = new object();
+        var callbackInvocations = 0;
 
         using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_test", state))
         {
-            operation.SetCompute((_, _, _, _, _, _, _) => MIGraphXStatus.Success);
-            operation.SetComputeShape((_, _, _, _, _) => MIGraphXStatus.Success);
-            operation.SetOutputAlias((_, _, _, _, _, _) => MIGraphXStatus.Success);
-            operation.SetRunsOnOffloadTarget((_, _, _, _) => MIGraphXStatus.Success);
+            operation.SetCompute((_, _, _, _, _, _, _) => { callbackInvocations++; return MIGraphXStatus.Success; });
+            operation.SetComputeShape((_, _, _, _, _) => { callbackInvocations++; return MIGraphXStatus.Success; });
+            operation.SetOutputAlias((_, _, _, _, _, _) => { callbackInvocations++; return MIGraphXStatus.Success; });
+            operation.SetRunsOnOffloadTarget((_, _, _, _) => { callbackInvocations++; return MIGraphXStatus.Success; });
             using var clone = operation.Clone();
             Assert.Same(state, clone.State);
             operation.Register();
             clone.Register();
             Assert.Equal(2, controls.CustomRegisterCount());
+            Assert.Equal(0, controls.InvokeCustomCallbacks(operation.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(0, controls.InvokeCustomCallbacks(clone.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(8, callbackInvocations);
         }
 
         Assert.Equal(0, controls.M12LiveCount());
@@ -479,6 +483,7 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt customRegisterCount;
         private readonly GetInt programPrintCount;
         private readonly GetInt programSortCount;
+        private readonly CustomCallbackInvoker invokeCustomCallbacks;
 
         internal FakeControls(string path)
         {
@@ -495,6 +500,7 @@ public sealed class M12LocalInterfaceTests
             lastQuantization = Get<GetInt>("fake_last_quantization");
             contextFinishCount = Get<GetInt>("fake_context_finish_count");
             customRegisterCount = Get<GetInt>("fake_custom_register_count");
+            invokeCustomCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_callbacks");
             programPrintCount = Get<GetInt>("fake_program_print_count");
             programSortCount = Get<GetInt>("fake_program_sort_count");
         }
@@ -511,6 +517,7 @@ public sealed class M12LocalInterfaceTests
         internal int LastQuantization() => lastQuantization();
         internal int ContextFinishCount() => contextFinishCount();
         internal int CustomRegisterCount() => customRegisterCount();
+        internal int InvokeCustomCallbacks(IntPtr operation) => invokeCustomCallbacks(operation);
         internal int ProgramPrintCount() => programPrintCount();
         internal int ProgramSortCount() => programSortCount();
         public void Dispose() => NativeLibrary.Free(library);
@@ -518,6 +525,7 @@ public sealed class M12LocalInterfaceTests
             => Marshal.GetDelegateForFunctionPointer<T>(NativeLibrary.GetExport(library, name));
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int GetInt();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackInvoker(IntPtr operation);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetString([MarshalAs(UnmanagedType.LPUTF8Str)] string value);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetStringInt([MarshalAs(UnmanagedType.LPUTF8Str)] string value, int status);
     }

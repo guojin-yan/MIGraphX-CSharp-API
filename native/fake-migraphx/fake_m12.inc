@@ -788,3 +788,31 @@ EXPORT migraphx_status migraphx_experimental_custom_op_register(migraphx_experim
     ATOMIC_INCREMENT(custom_register_count);
     return (migraphx_status)take_status_for("migraphx_experimental_custom_op_register");
 }
+
+/* Test-only entry point: exercise the managed callback ABI with opaque inputs. */
+EXPORT migraphx_status fake_invoke_custom_callbacks(migraphx_experimental_custom_op_t operation)
+{
+    migraphx_status status;
+    if(operation == NULL) return migraphx_status_bad_param;
+    if(operation->compute != NULL)
+    {
+        status = ((fake_custom_compute)operation->compute)(NULL, operation->object, NULL, 0, NULL, NULL, NULL);
+        if(status != migraphx_status_success) return status;
+    }
+    if(operation->compute_shape != NULL)
+    {
+        status = ((fake_custom_compute_shape)operation->compute_shape)(NULL, operation->object, NULL, 0, NULL);
+        if(status != migraphx_status_success) return status;
+    }
+    if(operation->output_alias != NULL)
+    {
+        status = ((fake_custom_output_alias)operation->output_alias)(NULL, NULL, operation->object, NULL, 0, NULL);
+        if(status != migraphx_status_success) return status;
+    }
+    if(operation->runs_on_offload_target != NULL)
+    {
+        status = ((fake_custom_runs_on_offload_target)operation->runs_on_offload_target)(NULL, operation->object, NULL, 0);
+        if(status != migraphx_status_success) return status;
+    }
+    return migraphx_status_success;
+}
