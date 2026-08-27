@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选，并加入 M12 接口开发批次。M12 为剩余的 shape/argument、图编辑、TensorFlow、量化、context 和 experimental custom-op 声明增加托管 wrapper；该批次已通过本地托管编译、fake-native 夹具编译、M12 focused tests、项目质量测试和 package-only 候选回归。M12 独立记录审核提升两个 case，其余 13 个 case 仍为 deferred。仓库默认版本仍为 `0.0.0`，没有发布任何包。
+MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.9` 本地候选，并加入 M12 接口开发批次。M12 为剩余的 shape/argument、图编辑、TensorFlow、量化、context 和 experimental custom-op 声明增加托管 wrapper；该批次已通过本地托管编译、fake-native 夹具编译、M12 focused tests、项目质量测试和 package-only 候选回归。M12 独立记录审核提升两个 case，其余 13 个 case 仍为 deferred。仓库默认版本仍为 `0.0.0`，没有发布任何包。
 
 ## 状态
 
@@ -34,7 +34,7 @@ MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选，并加入
 构建仅供本地使用的托管候选包：
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.8
+.\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.9
 ```
 
 冻结的 NuGet/项目/程序集名是 `JYPPX.ROCm.MIGraphX.CSharp.API`；C# 命名空间是 `JYPPX.ROCm.MIGraphXSharp`。不得发布此工程候选。
@@ -123,11 +123,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.8 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.8
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.8 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.8 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.8 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.9 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.9
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.9 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.9 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.9 -NoBuild
 ```
 
 构建、官方 ELF 静态证据、fake-native 执行与官方 MIGraphX runtime 执行继续是不同证据层级。M1/M2 runtime 结论只适用于[官方验证摘要](docs/validation/m1-m2-official-runtime.md)记录的精确 SHA、环境、模型、shape 和同步 offload-copy 路径。

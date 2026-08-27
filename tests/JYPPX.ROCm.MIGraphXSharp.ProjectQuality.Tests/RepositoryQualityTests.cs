@@ -526,6 +526,8 @@ public sealed class RepositoryQualityTests
             Assert.Contains("0.0.0", text);
             Assert.Contains("0.9.0-rc.1", text);
             Assert.Contains("0.9.0-rc.2", text);
+            Assert.Contains("0.9.0-rc.9", text);
+            Assert.DoesNotContain("0.9.0-rc.8", text);
             Assert.Contains("release-candidate-local", text, StringComparison.Ordinal);
             Assert.Contains("M1", text);
             Assert.Contains("AMD", text, StringComparison.OrdinalIgnoreCase);
@@ -555,6 +557,12 @@ public sealed class RepositoryQualityTests
         Assert.Contains("publicationAuthorized = $false", File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "new-release-evidence.ps1")), StringComparison.Ordinal);
 
         var adapterPack = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-adapter.ps1"));
+        var adapterReadme = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop", "README.md"));
+        var adapterPackageReadme = File.ReadAllText(Path.Combine(RepositoryRoot, "docs", "package", "HIP.Interop.README.md"));
+        Assert.Contains("matching MIGraphX core candidate", adapterReadme, StringComparison.Ordinal);
+        Assert.Contains("matching exact MIGraphX core version", adapterPackageReadme, StringComparison.Ordinal);
+        Assert.DoesNotContain("0.9.0-rc.2", adapterReadme, StringComparison.Ordinal);
+        Assert.DoesNotContain("0.9.0-rc.2", adapterPackageReadme, StringComparison.Ordinal);
         var buildProps = File.ReadAllText(Path.Combine(RepositoryRoot, "Directory.Build.props"));
         Assert.Contains("HIPSHARP_REPOSITORY_ROOT", buildProps, StringComparison.Ordinal);
         foreach (var projectFile in new[] {

@@ -22,11 +22,11 @@ dotnet tool restore
 .\eng\test.ps1 -Configuration Release -NoBuild
 .\eng\verify-m2-abi.ps1 -AcquireInputs
 .\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.2
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.2 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.2 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.2 -NoBuild
+$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.9 -NoBuild
+.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.9
+$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.9 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage -NoBuild
+.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.9 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage
+.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.9 -NoBuild
 ```
 
 `generate-interop.ps1` stops before generation if the header SHA-256 differs from the frozen value and verify mode never writes tracked outputs. `verify-m2-abi.ps1` preserves the 41-function workflow gate and deterministic Identity model. `verify-m3-abi.ps1` closes the complete 159-function header against 158 managed EntryPoints, one explicit variadic unsupported item, and 159 official public ELF exports.
