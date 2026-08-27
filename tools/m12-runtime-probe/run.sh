@@ -63,6 +63,24 @@ if [[ -n "$case_id" ]]; then
 fi
 [[ "$include_deferred" = false || -z "$case_id" ]] || usage
 
+repo="$(realpath "$repo")"
+feed="$(realpath "$feed")"
+record="$(realpath -m "$record")"
+is_same_or_child() { [[ "$1" == "$2" || "$1" == "$2"/* ]]; }
+if is_same_or_child "$record" "$repo" || is_same_or_child "$repo" "$record" ||
+   is_same_or_child "$record" "$feed" || is_same_or_child "$feed" "$record"; then
+  echo 'evidence record must be isolated from repository and package feed' >&2
+  exit 1
+fi
+if [[ -e "$record" ]]; then
+  [[ -d "$record" && -z "$(find "$record" -mindepth 1 -print -quit)" ]] || {
+    echo 'evidence record directory must be new or empty before a new run' >&2
+    exit 1
+  }
+else
+  mkdir -p "$record"
+fi
+
 [[ "$(git -C "$repo" rev-parse HEAD)" == "$source_sha" ]] || { echo 'source SHA mismatch' >&2; exit 1; }
 [[ -z "$(git -C "$repo" status --porcelain)" ]] || { echo 'source checkout is dirty' >&2; exit 1; }
 [[ -z "$(git -C "$repo" branch --show-current)" ]] || { echo 'source checkout is not detached' >&2; exit 1; }

@@ -388,6 +388,25 @@ public sealed class RepositoryQualityTests
     }
 
     [Fact]
+    public void M12ProbeInputAndReviewContractsFailClosed()
+    {
+        var probeRoot = Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe");
+        var runner = File.ReadAllText(Path.Combine(probeRoot, "run.sh"));
+        var review = File.ReadAllText(Path.Combine(probeRoot, "review.ps1"));
+
+        Assert.Contains("realpath -m", runner, StringComparison.Ordinal);
+        Assert.Contains("evidence record must be isolated from repository and package feed", runner, StringComparison.Ordinal);
+        Assert.Contains("evidence record directory must be new or empty before a new run", runner, StringComparison.Ordinal);
+        Assert.Contains("Artifact manifest path must be absolute", review, StringComparison.Ordinal);
+        Assert.Contains("Artifact manifest path escapes evidence record", review, StringComparison.Ordinal);
+        Assert.Contains("Duplicate artifact manifest path", review, StringComparison.Ordinal);
+        Assert.Contains("Artifact manifest is missing required review input", review, StringComparison.Ordinal);
+        Assert.Contains("HashSet", review, StringComparison.Ordinal);
+        Assert.DoesNotContain("runtime-executed", review, StringComparison.Ordinal);
+        Assert.DoesNotContain("|| true", runner, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ReviewedPublicBaselineMatchesExportedTypesAndM4Shape()
     {
         var assembly = typeof(MIGraphXBuildInfo).Assembly;

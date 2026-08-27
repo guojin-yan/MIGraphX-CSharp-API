@@ -1,5 +1,7 @@
 # M12 package-only candidate probe
 
+The runner resolves the repository, package feed, and evidence-record paths before restoring packages. A new record must be absent or empty and cannot overlap the repository or feed. The reviewer accepts only absolute, unique artifact-manifest entries inside the record and requires every critical review input to be covered by that manifest.
+
 This project is a package-only `net10.0` probe for the M12 candidate package `0.0.0`. It has one exact core package reference and no `ProjectReference`, source assembly reference, native payload, provider installation step, or promotion path.
 
 `run.sh` requires a clean detached source checkout, the exact core package hash, the fixed MIGraphX C header, the exact ONNX identity fixture, the generated TensorFlow GraphDef fixture, the generated calibration map, and an explicit native library path. It verifies the three model artifact hashes before restore and passes their absolute paths to the probe. The probe records the same fixture identities in both `identities.txt` and `m12-functional.json`; these checks bind the candidate record to reviewed bytes without claiming TensorFlow parser or quantization semantics. It restores only from the supplied local package feed with NuGet caches disabled, records the dependency closure and export set, then runs one 300-second bounded process with a 10-second TERM-to-KILL escalation. It does not inventory GPU devices, change the environment, or invoke long-running/timing scenarios.
