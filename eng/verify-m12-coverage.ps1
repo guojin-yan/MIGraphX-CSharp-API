@@ -197,6 +197,19 @@ foreach ($relativePath in $sourceChecks.Keys) {
     }
 }
 
+$packageConsumerFrameworks = @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')
+$packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK')
+foreach ($framework in $packageConsumerFrameworks) {
+    $consumerPath = Join-Path $root (Join-Path 'tests\fixtures\package-consumers' (Join-Path $framework 'Program.cs'))
+    if (-not (Test-Path -LiteralPath $consumerPath -PathType Leaf)) { throw "M12 package consumer is missing: $framework" }
+    $consumerSource = Get-Content -Raw -LiteralPath $consumerPath
+    foreach ($token in $packageConsumerTokens) {
+        if (-not $consumerSource.Contains($token, [StringComparison]::Ordinal)) {
+            throw "M12 package consumer is missing '$token': $framework"
+        }
+    }
+}
+
 $probeProject = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m12-runtime-probe\M12RuntimeProbe.csproj')
 if ($probeProject.Contains('ProjectReference', [StringComparison]::Ordinal)) {
     throw 'M12 runtime probe must remain package-only and cannot add a ProjectReference.'
