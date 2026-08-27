@@ -372,11 +372,14 @@ internal sealed class ProbeRunner
         using var program = MIGraphXProgram.ParseOnnxFile(options.IdentityFixture, onnx);
         using var target = new MIGraphXTarget(options.NativePath);
         using var compileOptions = new MIGraphXCompileOptions(options.NativePath);
-        program.Compile(target, compileOptions);
+        WriteStage("m12-quantization-options", variant + "-parameters", "entered");
         using var parameters = CreateFloatParameters(program.GetParameterShapes(), calibrationInputs);
+        WriteStage("m12-quantization-options", variant + "-quantize", "entered");
         quantize(program, target, parameters);
         Require(!program.IsCompiled, $"{variant} quantization did not invalidate the compiled state.");
+        WriteStage("m12-quantization-options", variant + "-compile", "entered");
         program.Compile(target, compileOptions);
+        WriteStage("m12-quantization-options", variant + "-run", "entered");
         using var outputs = program.Run(parameters);
         var values = ReadFloatOutputs(outputs, $"{variant} quantized output");
         Require(values.All(value => !float.IsNaN(value) && !float.IsInfinity(value)), $"{variant} quantization produced a non-finite value.");

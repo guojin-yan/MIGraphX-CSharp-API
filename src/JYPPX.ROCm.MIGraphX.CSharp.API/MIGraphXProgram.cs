@@ -230,12 +230,14 @@ public sealed class MIGraphXProgram : IDisposable
 
     /// <summary>将 program 量化为 FP16；传入名称集合时仅处理指定 operator。 Quantizes the program to FP16, optionally limiting processing to named operators.</summary>
     /// <param name="opNames">可选 operator 名称集合。 Optional operator-name collection.</param>
+    /// <exception cref="InvalidOperationException">program 已编译；量化必须在编译前执行。 The program is compiled; quantization must run before compilation.</exception>
     public void QuantizeFp16(MIGraphXQuantizeOpNames? opNames = null)
     {
         if (opNames is null)
         {
             owner.WithHandle(handle =>
             {
+                RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp16(handle), "migraphx_quantize_fp16");
                 compiled = false;
             });
@@ -247,6 +249,7 @@ public sealed class MIGraphXProgram : IDisposable
                 new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(opNames.Owner.Id, opNames.Owner.Sync) },
                 () =>
                 {
+                    RequireUncompiledForQuantizationUnderLock();
                     NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp16WithOpNames(owner.HandleUnderLock, opNames.Owner.HandleUnderLock), "migraphx_quantize_fp16_with_op_names");
                     compiled = false;
                 });
@@ -255,12 +258,14 @@ public sealed class MIGraphXProgram : IDisposable
 
     /// <summary>将 program 量化为 BF16；传入名称集合时仅处理指定 operator。 Quantizes the program to BF16, optionally limiting processing to named operators.</summary>
     /// <param name="opNames">可选 operator 名称集合。 Optional operator-name collection.</param>
+    /// <exception cref="InvalidOperationException">program 已编译；量化必须在编译前执行。 The program is compiled; quantization must run before compilation.</exception>
     public void QuantizeBf16(MIGraphXQuantizeOpNames? opNames = null)
     {
         if (opNames is null)
         {
             owner.WithHandle(handle =>
             {
+                RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeBf16(handle), "migraphx_quantize_bf16");
                 compiled = false;
             });
@@ -272,6 +277,7 @@ public sealed class MIGraphXProgram : IDisposable
                 new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(opNames.Owner.Id, opNames.Owner.Sync) },
                 () =>
                 {
+                    RequireUncompiledForQuantizationUnderLock();
                     NativeStatus.ThrowIfFailed(NativeMethods.QuantizeBf16WithOpNames(owner.HandleUnderLock, opNames.Owner.HandleUnderLock), "migraphx_quantize_bf16_with_op_names");
                     compiled = false;
                 });
@@ -281,6 +287,7 @@ public sealed class MIGraphXProgram : IDisposable
     /// <summary>使用 INT8 选项量化 program。 Quantizes the program using INT8 options.</summary>
     /// <param name="target">量化目标。 Quantization target.</param>
     /// <param name="options">INT8 量化选项。 INT8 quantization options.</param>
+    /// <exception cref="InvalidOperationException">program 已编译；量化必须在编译前执行。 The program is compiled; quantization must run before compilation.</exception>
     public void QuantizeInt8(MIGraphXTarget target, MIGraphXQuantizeInt8Options options)
     {
         if (target is null) { throw new ArgumentNullException(nameof(target)); }
@@ -296,6 +303,7 @@ public sealed class MIGraphXProgram : IDisposable
             },
             () =>
             {
+                RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeInt8(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock), "migraphx_quantize_int8");
                 compiled = false;
             });
@@ -304,6 +312,7 @@ public sealed class MIGraphXProgram : IDisposable
     /// <summary>使用 FP8 选项量化 program。 Quantizes the program using FP8 options.</summary>
     /// <param name="target">量化目标。 Quantization target.</param>
     /// <param name="options">FP8 量化选项。 FP8 quantization options.</param>
+    /// <exception cref="InvalidOperationException">program 已编译；量化必须在编译前执行。 The program is compiled; quantization must run before compilation.</exception>
     public void QuantizeFp8(MIGraphXTarget target, MIGraphXQuantizeFp8Options options)
     {
         if (target is null) { throw new ArgumentNullException(nameof(target)); }
@@ -319,6 +328,7 @@ public sealed class MIGraphXProgram : IDisposable
             },
             () =>
             {
+                RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp8(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock), "migraphx_quantize_fp8");
                 compiled = false;
             });
@@ -590,6 +600,14 @@ public sealed class MIGraphXProgram : IDisposable
             {
                 if (namesBuffer != IntPtr.Zero) { Marshal.FreeHGlobal(namesBuffer); }
             }
+        }
+    }
+
+    private void RequireUncompiledForQuantizationUnderLock()
+    {
+        if (compiled)
+        {
+            throw new InvalidOperationException("Quantization must be applied before program compilation.");
         }
     }
 

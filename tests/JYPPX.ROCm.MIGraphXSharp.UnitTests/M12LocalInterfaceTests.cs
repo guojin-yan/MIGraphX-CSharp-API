@@ -229,7 +229,6 @@ public sealed class M12LocalInterfaceTests
                 int8.AddCalibrationData(calibration);
                 fp8.AddCalibrationData(calibration);
 
-                program.Compile(target, compile);
                 program.QuantizeFp16(names);
                 Assert.False(program.IsCompiled);
                 Assert.Equal(16, controls.LastQuantization());
@@ -239,6 +238,14 @@ public sealed class M12LocalInterfaceTests
                 program.QuantizeInt8(target, int8);
                 Assert.Equal(8, controls.LastQuantization());
                 program.QuantizeFp8(target, fp8);
+                Assert.Equal(18, controls.LastQuantization());
+
+                program.Compile(target, compile);
+                Assert.Throws<InvalidOperationException>(() => program.QuantizeFp16(names));
+                Assert.Throws<InvalidOperationException>(() => program.QuantizeBf16());
+                Assert.Throws<InvalidOperationException>(() => program.QuantizeInt8(target, int8));
+                Assert.Throws<InvalidOperationException>(() => program.QuantizeFp8(target, fp8));
+                Assert.True(program.IsCompiled);
                 Assert.Equal(18, controls.LastQuantization());
             }
         }
