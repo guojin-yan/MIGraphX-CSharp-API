@@ -337,17 +337,11 @@ internal sealed class ProbeRunner
         const string id = "m12-operation-materialized-attributes";
         var cases = new (string Name, MIGraphXOperationAttributes Attributes)[]
         {
-            ("reshape", new MIGraphXOperationAttributes().SetInt64Array("dims", new long[] { 1, 4 })),
-            ("transpose", new MIGraphXOperationAttributes().SetInt64Array("permutation", new long[] { 1, 0 })),
-            ("slice", new MIGraphXOperationAttributes()
-                .SetInt64Array("axes", new long[] { 0 })
-                .SetInt64Array("starts", new long[] { 0 })
-                .SetInt64Array("ends", new long[] { 1 })),
-            ("multibroadcast", new MIGraphXOperationAttributes().SetInt64Array("out_lens", new long[] { 1, 4 })),
-            ("topk", new MIGraphXOperationAttributes()
-                .SetInt32("axis", 1)
-                .SetInt32("k", 1)
-                .SetBoolean("largest", true)),
+            ("reshape", MIGraphXOperationAttributes.ForReshape(1, 4)),
+            ("transpose", MIGraphXOperationAttributes.ForTranspose(1, 0)),
+            ("slice", MIGraphXOperationAttributes.ForSlice(new long[] { 0 }, new long[] { 0 }, new long[] { 1 })),
+            ("multibroadcast", MIGraphXOperationAttributes.ForMultibroadcast(1, 4)),
+            ("topk", MIGraphXOperationAttributes.ForTopK(1, 1, true)),
         };
         var observations = new List<string>(cases.Length);
         foreach (var item in cases)

@@ -157,7 +157,7 @@ if ($tensorflow.Count -ne 1 -or $tensorflow[0].Format -ne 'tensorflow-graphdef' 
 $baseline = Get-Content -LiteralPath (Join-Path $root 'compatibility\managed-public-api.txt')
 $coreTypes = @($baseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count
 $coreMembers = @($baseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count
-if ($coreTypes -ne 45 -or $coreMembers -ne 303) { throw "M12 core API baseline drifted: $coreTypes/$coreMembers, expected 45/303." }
+if ($coreTypes -ne 45 -or $coreMembers -ne 308) { throw "M12 core API baseline drifted: $coreTypes/$coreMembers, expected 45/308." }
 
 $m10 = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m10-high-level-api-map.json') | ConvertFrom-Json
 if ($m10.counts.supported -ne 84 -or $m10.counts.planned -ne 107 -or $m10.counts.unsupported -ne 1) {
@@ -169,6 +169,7 @@ $sourceChecks = @{
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXArgument.cs' = @('CreateEmpty', 'Generate', 'Save', 'Clone')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXProgram.cs' = @('ParseTfFile', 'QuantizeInt8', 'GetExperimentalContext', 'GetMainModule')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXGraph.cs' = @('MIGraphXModule', 'MIGraphXInstruction', 'MIGraphXOperation', 'Create(string nativeLibraryPath, string name)', 'Clone()')
+    'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOperationAttributes.cs' = @('ForReshape', 'ForTranspose', 'ForSlice', 'ForMultibroadcast', 'ForTopK', 'RequireValues')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXTfOptions.cs' = @('SetInputParameterShape', 'SetOutputNames')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXQuantization.cs' = @('MIGraphXQuantizeInt8Options', 'MIGraphXQuantizeFp8Options')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXContext.cs' = @('GetQueue', 'Finish')
@@ -209,4 +210,4 @@ if (-not $design.Contains('Local validation record', [StringComparison]::Ordinal
     throw 'M12 design record is missing local validation or deferred-boundary statements.'
 }
 
-Write-Output "M12 coverage gate passed: $($cases.Count) runtime cases, $($fixtures.Count) fixtures, 2 reviewed promotions, 13 retained cases, 45/303 API baseline, and local source/test closure."
+Write-Output "M12 coverage gate passed: $($cases.Count) runtime cases, $($fixtures.Count) fixtures, 2 reviewed promotions, 13 retained cases, 45/308 API baseline, and local source/test closure."

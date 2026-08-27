@@ -327,6 +327,16 @@ public sealed class M12LocalInterfaceTests
     [Fact]
     public void OperationAttributeBuilderMaterializesCommonValuesAndRejectsUnsafeInput()
     {
+        Assert.Equal("{dims: [1, 4]}", MIGraphXOperationAttributes.ForReshape(1, 4).Build());
+        Assert.Equal("{permutation: [1, 0]}", MIGraphXOperationAttributes.ForTranspose(1, 0).Build());
+        Assert.Equal("{axes: [0], starts: [0], ends: [1]}",
+            MIGraphXOperationAttributes.ForSlice(new long[] { 0 }, new long[] { 0 }, new long[] { 1 }).Build());
+        Assert.Equal("{out_lens: [1, 4]}", MIGraphXOperationAttributes.ForMultibroadcast(1, 4).Build());
+        Assert.Equal("{axis: 1, k: 1, largest: true}", MIGraphXOperationAttributes.ForTopK(1, 1, true).Build());
+        Assert.Throws<ArgumentException>(() =>
+            MIGraphXOperationAttributes.ForSlice(new long[] { 0 }, new long[] { 0, 1 }, new long[] { 1 }));
+        Assert.Throws<ArgumentNullException>(() => MIGraphXOperationAttributes.ForReshape(null!));
+
         var attributes = new MIGraphXOperationAttributes()
             .SetInt32("group", 2)
             .SetInt64Array("axes", new long[] { 1, 2, 3 })

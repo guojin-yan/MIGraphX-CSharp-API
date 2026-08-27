@@ -20,6 +20,65 @@ public sealed class MIGraphXOperationAttributes
     private readonly List<KeyValuePair<string, string>> values = new List<KeyValuePair<string, string>>();
     private readonly HashSet<string> keys = new HashSet<string>(StringComparer.Ordinal);
 
+    /// <summary>创建 reshape 的常用属性；Creates the reviewed reshape attributes.</summary>
+    /// <param name="dimensions">目标维度；Target dimensions.</param>
+    /// <remarks>这是托管层便捷工厂，不是 native C 可变参数调用。</remarks>
+    public static MIGraphXOperationAttributes ForReshape(params long[] dimensions)
+    {
+        return New().SetInt64Array("dims", RequireValues(dimensions, nameof(dimensions)));
+    }
+
+    /// <summary>创建 transpose 的常用属性；Creates the reviewed transpose attributes.</summary>
+    /// <param name="permutation">置换向量；Permutation vector.</param>
+    /// <remarks>这是托管层便捷工厂，不是 native C 可变参数调用。</remarks>
+    public static MIGraphXOperationAttributes ForTranspose(params long[] permutation)
+    {
+        return New().SetInt64Array("permutation", RequireValues(permutation, nameof(permutation)));
+    }
+
+    /// <summary>创建 slice 的常用属性；Creates the reviewed slice attributes.</summary>
+    /// <param name="axes">切片轴；Slice axes.</param>
+    /// <param name="starts">起始索引；Slice starts.</param>
+    /// <param name="ends">结束索引；Slice ends.</param>
+    /// <remarks>三个向量必须长度相同；this is a managed shape check, not a native varargs call.</remarks>
+    public static MIGraphXOperationAttributes ForSlice(
+        IReadOnlyList<long> axes,
+        IReadOnlyList<long> starts,
+        IReadOnlyList<long> ends)
+    {
+        var checkedAxes = RequireValues(axes, nameof(axes));
+        var checkedStarts = RequireValues(starts, nameof(starts));
+        var checkedEnds = RequireValues(ends, nameof(ends));
+        if (checkedAxes.Count != checkedStarts.Count || checkedAxes.Count != checkedEnds.Count)
+            throw new ArgumentException("Slice axes, starts, and ends must have the same length.");
+
+        return New()
+            .SetInt64Array("axes", checkedAxes)
+            .SetInt64Array("starts", checkedStarts)
+            .SetInt64Array("ends", checkedEnds);
+    }
+
+    /// <summary>创建 multibroadcast 的常用属性；Creates the reviewed multibroadcast attributes.</summary>
+    /// <param name="outputLengths">输出维度；Output lengths.</param>
+    /// <remarks>这是托管层便捷工厂，不是 native C 可变参数调用。</remarks>
+    public static MIGraphXOperationAttributes ForMultibroadcast(params long[] outputLengths)
+    {
+        return New().SetInt64Array("out_lens", RequireValues(outputLengths, nameof(outputLengths)));
+    }
+
+    /// <summary>创建 topk 的常用属性；Creates the reviewed topk attributes.</summary>
+    /// <param name="axis">排序轴；Ranking axis.</param>
+    /// <param name="k">返回元素数量；Number of returned elements.</param>
+    /// <param name="largest">是否返回最大值；Whether to select largest values.</param>
+    /// <remarks>仅物化已审计的三个字段；no native C varargs are emitted.</remarks>
+    public static MIGraphXOperationAttributes ForTopK(int axis, int k, bool largest)
+    {
+        return New()
+            .SetInt32("axis", axis)
+            .SetInt32("k", k)
+            .SetBoolean("largest", largest);
+    }
+
     /// <summary>添加 32 位有符号整数属性；Adds a signed 32-bit integer attribute.</summary>
     /// <param name="key">属性键；Attribute key.</param>
     /// <param name="value">属性值；Attribute value.</param>
@@ -124,6 +183,14 @@ public sealed class MIGraphXOperationAttributes
         if (array is null) throw new ArgumentNullException(parameterName);
         var serialized = string.Join(", ", array.Select(formatter));
         return Add(key, "[" + serialized + "]");
+    }
+
+    private static MIGraphXOperationAttributes New() => new MIGraphXOperationAttributes();
+
+    private static IReadOnlyList<long> RequireValues(IReadOnlyList<long> values, string parameterName)
+    {
+        if (values is null) throw new ArgumentNullException(parameterName);
+        return values;
     }
 
     private static void ValidateKey(string key)
