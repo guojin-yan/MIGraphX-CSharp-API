@@ -50,6 +50,22 @@ for hash in "$core_sha" "$adapter_sha" "$hipsharp_sha"; do
   [[ "$hash" =~ ^[a-f0-9]{64}$ ]] || usage
 done
 
+repo="$(realpath "$repo")"
+feed="$(realpath "$feed")"
+record="$(realpath "$record")"
+fixtures="$(realpath "$fixtures")"
+is_same_or_child() { [[ "$1" == "$2" || "$1" == "$2"/* ]]; }
+if is_same_or_child "$record" "$repo" || is_same_or_child "$repo" "$record" ||
+   is_same_or_child "$record" "$feed" || is_same_or_child "$feed" "$record" ||
+   is_same_or_child "$record" "$fixtures" || is_same_or_child "$fixtures" "$record"; then
+  echo 'evidence record must be isolated from repository, feed, and fixtures' >&2
+  exit 1
+fi
+if [[ -n "$(find "$record" -mindepth 1 -maxdepth 1 -print -quit)" ]]; then
+  echo 'evidence record directory must be empty before a new run' >&2
+  exit 1
+fi
+
 [[ "$(git -C "$repo" rev-parse HEAD)" == "$source_sha" ]] || { echo 'source SHA mismatch' >&2; exit 1; }
 [[ -z "$(git -C "$repo" status --porcelain)" ]] || { echo 'source checkout is dirty' >&2; exit 1; }
 [[ -z "$(git -C "$repo" branch --show-current)" ]] || { echo 'source checkout is not detached' >&2; exit 1; }

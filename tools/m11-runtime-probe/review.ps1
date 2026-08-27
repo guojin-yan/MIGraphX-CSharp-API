@@ -14,6 +14,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $record = (Resolve-Path -LiteralPath $RecordDirectory).Path
 $raw = Join-Path $record 'raw'
+$recordRoot = [IO.Path]::GetFullPath($record).TrimEnd([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
 $functionalPath = Join-Path $raw 'm11-functional.json'
 $restartPath = Join-Path $raw 'm11-cache-restart.json'
 $metadataPath = Join-Path $raw 'run-metadata.json'
@@ -178,13 +179,30 @@ if ($functional.managedIdentity.packageVersion -ne $Version -or -not $functional
 }
 
 $manifestFailures = [Collections.Generic.List[string]]::new()
+$manifestPaths = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+function Resolve-ManifestPath([string] $Path) {
+    if (-not [IO.Path]::IsPathRooted($Path)) { throw "Artifact manifest path must be absolute: $Path" }
+    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "Artifact manifest path is missing: $Path" }
+    $resolvedPath = (Resolve-Path -LiteralPath $Path).Path
+    if (-not $resolvedPath.StartsWith($recordRoot, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Artifact manifest path escapes evidence record: $Path"
+    }
+    return [IO.Path]::GetFullPath($resolvedPath)
+}
 foreach ($line in Get-Content -LiteralPath $hashManifestPath) {
     if ($line -notmatch '^([a-f0-9]{64})\s+(.+)$') { throw "Malformed artifact hash line: $line" }
     $expected = $Matches[1]
-    $path = $Matches[2]
-    if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or (Get-Sha256 $path) -ne $expected) { $manifestFailures.Add($path) }
+    $path = Resolve-ManifestPath $Matches[2]
+    if (-not $manifestPaths.Add($path)) { throw "Duplicate artifact manifest path: $path" }
+    if ((Get-Sha256 $path) -ne $expected) { $manifestFailures.Add($path) }
 }
 if ($manifestFailures.Count -ne 0) { throw "Artifact hash mismatches: $($manifestFailures -join ', ')" }
+foreach ($requiredPath in @($functionalPath, $restartPath, $metadataPath, $sourcePath, $stagePath)) {
+    $resolvedRequiredPath = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $requiredPath).Path)
+    if (-not $manifestPaths.Contains($resolvedRequiredPath)) {
+        throw "Artifact manifest is missing required review input: $requiredPath"
+    }
+}
 
 $sensitivePatterns = @('BEGIN OPENSSH ' + 'PRIVATE KEY', 'BEGIN ' + 'PRIVATE KEY', 'password=', 'token=', 'ssh-rsa ', 'ed25519 ')
 $textExtensions = @('.txt', '.json', '.log', '.md', '.ps1', '.sh', '.cs', '.csproj')

@@ -318,6 +318,26 @@ public sealed class RepositoryQualityTests
     }
 
     [Fact]
+    public void M11ProbeInputAndReviewContractsFailClosed()
+    {
+        var probeRoot = Path.Combine(RepositoryRoot, "tools", "m11-runtime-probe");
+        var runner = File.ReadAllText(Path.Combine(probeRoot, "run.sh"));
+        var review = File.ReadAllText(Path.Combine(probeRoot, "review.ps1"));
+
+        Assert.Contains("realpath", runner, StringComparison.Ordinal);
+        Assert.Contains("evidence record must be isolated from repository, feed, and fixtures", runner, StringComparison.Ordinal);
+        Assert.Contains("evidence record directory must be empty before a new run", runner, StringComparison.Ordinal);
+        Assert.Contains("set -euo pipefail", runner, StringComparison.Ordinal);
+        Assert.Contains("Artifact manifest path must be absolute", review, StringComparison.Ordinal);
+        Assert.Contains("Artifact manifest path escapes evidence record", review, StringComparison.Ordinal);
+        Assert.Contains("Duplicate artifact manifest path", review, StringComparison.Ordinal);
+        Assert.Contains("Artifact manifest is missing required review input", review, StringComparison.Ordinal);
+        Assert.Contains("HashSet", review, StringComparison.Ordinal);
+        Assert.DoesNotContain("|| true", runner, StringComparison.Ordinal);
+        Assert.DoesNotContain("|| true", review, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void M12RuntimePromotionIsSourceBoundAndPartial()
     {
         var compatibility = Path.Combine(RepositoryRoot, "compatibility");

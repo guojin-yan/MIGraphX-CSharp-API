@@ -89,13 +89,13 @@ if ($probeSource.Contains('runtime-executed', [StringComparison]::Ordinal) -or
     throw 'M11 runner evidence label or required cases are incomplete.'
 }
 $runScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\run.sh')
-foreach ($required in @('source checkout is not detached', 'sha256sum', 'timeout --kill-after=', 'functional_session_timeout=1800', 'case_timeout=120', 'session_kill_after=10', 'gpuRuntimeQuery=not-invoked-by-runner', 'runtime-candidate-executed-review-required', 'functionalExitCode', 'cacheRestartExitCode', 'caseStageTraceFile')) {
+foreach ($required in @('source checkout is not detached', 'sha256sum', 'timeout --kill-after=', 'functional_session_timeout=1800', 'case_timeout=120', 'session_kill_after=10', 'gpuRuntimeQuery=not-invoked-by-runner', 'runtime-candidate-executed-review-required', 'functionalExitCode', 'cacheRestartExitCode', 'caseStageTraceFile', 'evidence record must be isolated from repository, feed, and fixtures', 'evidence record directory must be empty before a new run')) {
     if (-not $runScript.Contains($required, [StringComparison]::Ordinal)) { throw "M11 runner identity gate is missing: $required" }
 }
 if ($runScript.Contains('timeout --foreground', [StringComparison]::Ordinal)) { throw 'M11 runner must time out the entire probe process group.' }
 if ($runScript.Contains('rocminfo', [StringComparison]::Ordinal)) { throw 'M11 runner must not invoke a GPU runtime inventory utility.' }
 $reviewScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\review.ps1')
-foreach ($required in @('normalizedContentSha256', 'functionalSessionTimeoutSeconds', 'sessionKillAfterSeconds', 'iterationDurationMilliseconds', 'caseStageTraceValidated', 'artifactHashesRecomputed', 'sensitiveScanPassed', "reviewedEvidence = 'runtime-executed'")) {
+foreach ($required in @('normalizedContentSha256', 'functionalSessionTimeoutSeconds', 'sessionKillAfterSeconds', 'iterationDurationMilliseconds', 'caseStageTraceValidated', 'artifactHashesRecomputed', 'sensitiveScanPassed', "reviewedEvidence = 'runtime-executed'", 'Artifact manifest path must be absolute', 'Artifact manifest path escapes evidence record', 'Duplicate artifact manifest path', 'Artifact manifest is missing required review input')) {
     if (-not $reviewScript.Contains($required, [StringComparison]::Ordinal)) { throw "M11 independent review is missing: $required" }
 }
 $resilienceScript = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m11-runtime-probe\run-resilience.sh')
