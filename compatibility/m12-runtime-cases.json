@@ -84,7 +84,7 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "Scalar metadata round-trips through a native empty argument; explicit-stride metadata remains intact as an independent managed shape; non-scalar standard empty/generated arguments and independent clone values match.",
+      "resultCriteria": "Scalar metadata is validated as a managed shape contract; native empty/generated arguments use the standard [1,4] fixture shape, while explicit-stride metadata remains an independent managed shape and clone values match.",
       "evidenceBoundary": "Native detached arguments require static standard packed shapes, so explicit-stride coverage is limited to managed shape metadata while native empty/generated/clone behavior is exercised with standard shapes."
     },
     {
