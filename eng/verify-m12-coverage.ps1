@@ -8,14 +8,22 @@ $root = Get-RepositoryRoot
 
 $matrixPath = Join-Path $root 'compatibility\m12-runtime-cases.json'
 $schemaPath = Join-Path $root 'compatibility\schemas\m12-runtime-cases.schema.json'
-if (-not (Test-Path -LiteralPath $matrixPath -PathType Leaf) -or -not (Test-Path -LiteralPath $schemaPath -PathType Leaf)) {
-    throw 'M12 runtime matrix or schema is missing.'
+$promotionPath = Join-Path $root 'compatibility\m12-post-build-runtime-evidence.json'
+$promotionSchemaPath = Join-Path $root 'compatibility\schemas\m12-post-build-runtime-evidence.schema.json'
+if (-not (Test-Path -LiteralPath $matrixPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $schemaPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $promotionPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $promotionSchemaPath -PathType Leaf)) {
+    throw 'M12 runtime matrix, promotion record, or schema is missing.'
 }
 $matrixText = Get-Content -Raw -LiteralPath $matrixPath
 if (-not ($matrixText | Test-Json -SchemaFile $schemaPath)) { throw 'M12 runtime cases do not match their JSON schema.' }
 $matrix = $matrixText | ConvertFrom-Json
+$promotionText = Get-Content -Raw -LiteralPath $promotionPath
+if (-not ($promotionText | Test-Json -SchemaFile $promotionSchemaPath)) { throw 'M12 promotion record does not match its JSON schema.' }
+$promotion = $promotionText | ConvertFrom-Json
 
-if ($matrix.stage -ne 'M12' -or $matrix.candidateVersion -ne '0.0.0' -or $matrix.validationStatus -ne 'runtime-deferred') {
+if ($matrix.stage -ne 'M12' -or $matrix.candidateVersion -ne '0.0.0' -or $matrix.validationStatus -ne 'partially-runtime-executed') {
     throw 'M12 matrix identity or validation status drifted.'
 }
 if ($matrix.authorization.realRuntimeAuthorized -ne $false -or
@@ -54,6 +62,7 @@ $requiredCaseIds = @(
     'm12-tensorflow-parse',
     'm12-quantization-options',
     'm12-context-lifetime',
+    'm12-operation-materialized-attributes',
     'm12-custom-op-registration',
     'm12-negative-borrowed-device-clone',
     'm12-negative-variadic-operation',
@@ -64,15 +73,55 @@ $requiredCaseIds = @(
 foreach ($id in $requiredCaseIds) {
     if (@($cases | Where-Object id -eq $id).Count -ne 1) { throw "M12 required case is missing or duplicated: $id" }
 }
+$promotedCaseIds = @('m12-context-lifetime', 'm12-operation-materialized-attributes')
+$retainedCaseIds = @($requiredCaseIds | Where-Object { $_ -notin $promotedCaseIds })
 foreach ($case in $cases) {
-    if ($case.officialEvidence -ne 'runtime-deferred') { throw "M12 case is promoted before independent review: $($case.id)" }
+    $expectedEvidence = if ($case.id -in $promotedCaseIds) { 'runtime-executed' } else { 'runtime-deferred' }
+    if ($case.officialEvidence -ne $expectedEvidence) { throw "M12 case evidence does not match the independent promotion decision: $($case.id)" }
+    if ([string]::IsNullOrWhiteSpace($case.evidenceBoundary)) { throw "M12 case evidence boundary is missing: $($case.id)" }
     foreach ($fixtureId in @($case.fixtureIds)) {
         if ($fixtureId -notin $fixtureIds) { throw "M12 case references an unknown fixture: $($case.id) -> $fixtureId" }
     }
 }
 if ($matrix.review.candidateResultLabel -ne 'runtime-candidate-executed-review-required' -or
+    $matrix.review.promotionRecord -ne 'm12-post-build-runtime-evidence.json' -or
     $matrix.review.historicalMapsRemainUnchanged -ne $true) {
     throw 'M12 review and promotion boundary is incomplete.'
+}
+
+if ($promotion.stage -ne 'M12' -or
+    $promotion.sourceSha -ne 'b53689ba3831ce721875d3e5bb4d370ae8a737e6' -or
+    $promotion.candidateVersion -ne '0.0.0' -or
+    $promotion.externalRecord -ne 'Radeon_Cloud/records/20260827-0242-b53689b-m12-runtime' -or
+    $promotion.reviewState -ne 'passed' -or
+    $promotion.reviewedEvidence -ne 'runtime-executed' -or
+    $promotion.candidateResultLabel -ne 'runtime-candidate-executed-review-required' -or
+    $promotion.candidateReviewState -ne 'candidate-record-verified' -or
+    $promotion.candidatePromotionState -ne 'not-requested' -or
+    $promotion.candidateExecutedCaseCount -ne 11 -or
+    $promotion.candidateDeferredCaseCount -ne 8 -or
+    $promotion.resultSha256 -ne '3493a5c5b7023df19d074b634f7696ec93a71d65e46bebc201bcbdb695ca6b09' -or
+    $promotion.reviewSha256 -ne '4cc8178deb831091ed7c645cb0ce0ccb43a3905a09e9b3972e98e8b536452250' -or
+    $promotion.summarySha256 -ne 'f226766aa9c1c321f3e5495b044007065927869cd2089cdc2821e007cd21eaa0' -or
+    $promotion.runMetadataSha256 -ne '47e091ee9c616aeff478ea926936c4fbaa3a8132aa0e60a423480312176ea35c' -or
+    $promotion.environment.os -ne 'Ubuntu 24.04' -or
+    $promotion.environment.nativeProvider -ne 'MIGraphX 2.15.0 with ROCm 7.2.1' -or
+    $promotion.environment.headerSha256 -ne 'a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2' -or
+    $promotion.environment.librarySha256 -ne '3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff' -or
+    $promotion.historicalMapsRemainUnchanged -ne $true) {
+    throw 'M12 promotion identity, evidence hashes, or environment drifted.'
+}
+$promotionIds = @($promotion.promotions | ForEach-Object id)
+$retainedIds = @($promotion.retained | ForEach-Object id)
+if (@($promotion.promotions).Count -ne $promotedCaseIds.Count -or
+    @($promotion.promotions | Where-Object status -ne 'runtime-executed').Count -ne 0 -or
+    (Compare-Object $promotedCaseIds $promotionIds)) {
+    throw 'M12 promoted case set drifted.'
+}
+if (@($promotion.retained).Count -ne $retainedCaseIds.Count -or
+    @($promotion.retained | Where-Object status -ne 'runtime-deferred').Count -ne 0 -or
+    (Compare-Object $retainedCaseIds $retainedIds)) {
+    throw 'M12 retained case set drifted.'
 }
 
 $m11Path = Join-Path $root 'compatibility\m11-runtime-cases.json'
@@ -127,10 +176,12 @@ $sourceChecks = @{
     'native\fake-migraphx\fake_m12.inc' = @('m12_live_count', 'migraphx_experimental_custom_op_register')
     'eng\generate-m12-fixtures.ps1' = @('m12-tensorflow-minimal.pb', 'm12-calibration-map.json', 'tensorflow-graphdef')
     'compatibility\schemas\m12-calibration-map.schema.json' = @('migraphx-calibration-map', 'float32', 'zeroPoint')
+    'compatibility\m12-post-build-runtime-evidence.json' = @('b53689ba3831ce721875d3e5bb4d370ae8a737e6', 'candidate-record-verified', 'm12-context-lifetime', 'm12-operation-materialized-attributes', 'runtime-executed', 'runtime-deferred')
+    'compatibility\schemas\m12-post-build-runtime-evidence.schema.json' = @('post-build-external-runtime-promotion', 'candidateExecutedCaseCount', 'candidateDeferredCaseCount')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs' = @('ShapeAndArgumentFactories', 'GraphEditingAndContextViews', 'TensorFlowAndQuantization', 'CustomOpClone', 'DeferredNegativeBoundariesAndConcurrentDispose')
     'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\Program.cs' = @('m12-cross-target', 'm12Passed')
     'tools\m12-runtime-probe\M12RuntimeProbe.csproj' = @('PackageReference', 'M12PackageVersion')
-    'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'RunTensorFlowParse', 'RunQuantizationOptions', 'RunCustomOpRegistration', 'RunConcurrentDispose', 'cases.Take(7)', 'IncludeDeferred', '--include-deferred cannot be combined with --case', 'DeferredCases', 'case-stages.jsonl', 'TensorFlowFixture', 'CalibrationMap', 'tensorflowFixtureSha256', 'calibrationFixtureSha256')
+    'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'scalar-empty', 'source-dispose', 'collection-clone', 'assignToCloneSha256', 'module-collections', 'Edited graph output', 'RunTensorFlowParse', 'RunQuantizationOptions', 'RunCustomOpRegistration', 'RunConcurrentDispose', 'cases.Take(7)', 'IncludeDeferred', '--include-deferred cannot be combined with --case', 'DeferredCases', 'case-stages.jsonl', 'TensorFlowFixture', 'CalibrationMap', 'tensorflowFixtureSha256', 'calibrationFixtureSha256')
     'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'M12PackageVersion', '--no-cache --force-evaluate', 'environmentChanged', '--tensorflow-fixture', '--calibration-map', '--include-deferred', 'all-candidate', 'includeDeferred')
     'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'promotionState', 'TensorFlowFixturePath', 'CalibrationMapPath', 'tensorflowFixtureSha256', 'calibrationFixtureSha256')
     'tools\radeon\cloud-test.sh' = @('m12-runtime-probe/run.sh', '--include-deferred', 'm12-candidate', 'm12-review.txt', 'm12CaseFilter', 'candidate-record-verified')
@@ -157,4 +208,4 @@ if (-not $design.Contains('Local validation record', [StringComparison]::Ordinal
     throw 'M12 design record is missing local validation or deferred-boundary statements.'
 }
 
-Write-Output "M12 coverage gate passed: $($cases.Count) runtime cases, $($fixtures.Count) fixtures, 45/303 API baseline, deferred promotion, and local source/test closure."
+Write-Output "M12 coverage gate passed: $($cases.Count) runtime cases, $($fixtures.Count) fixtures, 2 reviewed promotions, 13 retained cases, 45/303 API baseline, and local source/test closure."

@@ -185,16 +185,21 @@ public sealed class RepositoryQualityTests
             "m10-official-onnx-registry",
             "m10-official-argument-comparison",
             "m10-official-program-comparison",
+            "m12-official-context-lifetime",
+            "m12-official-materialized-operation-attributes",
         };
 
         Assert.True(
             expectedRuntimeIds.SetEquals(runtimeExecuted.Select(item => item.GetProperty("id").GetString()!)),
-            "Only the independently reviewed M1/M2/M9/M10 official runtime entries may be runtime-executed.");
+            "Only the independently reviewed M1/M2/M9/M10/M12 official runtime entries may be runtime-executed.");
         Assert.All(runtimeExecuted, item =>
         {
-            var expectedCommit = item.GetProperty("id").GetString()!.StartsWith("m10-", StringComparison.Ordinal)
+            var id = item.GetProperty("id").GetString()!;
+            var expectedCommit = id.StartsWith("m10-", StringComparison.Ordinal)
                 ? "e2386dc69e7640f8ff12d95284e56c3f02c87938"
-                : "346cdd0b01a7f8039f5deb93058928403fccc7dd";
+                : id.StartsWith("m12-", StringComparison.Ordinal)
+                    ? "b53689ba3831ce721875d3e5bb4d370ae8a737e6"
+                    : "346cdd0b01a7f8039f5deb93058928403fccc7dd";
             Assert.Contains(expectedCommit, item.GetProperty("evidence").GetString(), StringComparison.Ordinal);
         });
         Assert.Equal(
@@ -310,6 +315,56 @@ public sealed class RepositoryQualityTests
         Assert.Contains("unsafe path", supervisorVerifier, StringComparison.Ordinal);
         Assert.Contains("durationSeconds", supervisorVerifier, StringComparison.Ordinal);
         Assert.Contains("hostRestartProofValidated", supervisorVerifier, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void M12RuntimePromotionIsSourceBoundAndPartial()
+    {
+        var compatibility = Path.Combine(RepositoryRoot, "compatibility");
+        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-runtime-cases.json")));
+        var root = matrix.RootElement;
+        Assert.Equal("M12", root.GetProperty("stage").GetString());
+        Assert.Equal("1.1.0", root.GetProperty("schemaVersion").GetString());
+        Assert.Equal("partially-runtime-executed", root.GetProperty("validationStatus").GetString());
+        Assert.Equal("m12-post-build-runtime-evidence.json", root.GetProperty("review").GetProperty("promotionRecord").GetString());
+
+        var promotedIds = new HashSet<string>(StringComparer.Ordinal)
+        {
+            "m12-context-lifetime",
+            "m12-operation-materialized-attributes",
+        };
+        var cases = root.GetProperty("cases").EnumerateArray().ToArray();
+        Assert.Equal(15, cases.Length);
+        Assert.Equal(2, cases.Count(item => item.GetProperty("officialEvidence").GetString() == "runtime-executed"));
+        Assert.Equal(13, cases.Count(item => item.GetProperty("officialEvidence").GetString() == "runtime-deferred"));
+        Assert.All(cases, item =>
+        {
+            var id = item.GetProperty("id").GetString()!;
+            var expected = promotedIds.Contains(id) ? "runtime-executed" : "runtime-deferred";
+            Assert.Equal(expected, item.GetProperty("officialEvidence").GetString());
+            Assert.False(string.IsNullOrWhiteSpace(item.GetProperty("evidenceBoundary").GetString()));
+        });
+
+        using var promotion = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-post-build-runtime-evidence.json")));
+        var evidence = promotion.RootElement;
+        Assert.Equal("b53689ba3831ce721875d3e5bb4d370ae8a737e6", evidence.GetProperty("sourceSha").GetString());
+        Assert.Equal("passed", evidence.GetProperty("reviewState").GetString());
+        Assert.Equal("runtime-executed", evidence.GetProperty("reviewedEvidence").GetString());
+        Assert.Equal("candidate-record-verified", evidence.GetProperty("candidateReviewState").GetString());
+        Assert.Equal("not-requested", evidence.GetProperty("candidatePromotionState").GetString());
+        Assert.Equal(11, evidence.GetProperty("candidateExecutedCaseCount").GetInt32());
+        Assert.Equal(8, evidence.GetProperty("candidateDeferredCaseCount").GetInt32());
+        Assert.Equal("3493a5c5b7023df19d074b634f7696ec93a71d65e46bebc201bcbdb695ca6b09", evidence.GetProperty("resultSha256").GetString());
+        Assert.Equal("4cc8178deb831091ed7c645cb0ce0ccb43a3905a09e9b3972e98e8b536452250", evidence.GetProperty("reviewSha256").GetString());
+        Assert.True(promotedIds.SetEquals(evidence.GetProperty("promotions").EnumerateArray().Select(item => item.GetProperty("id").GetString()!)));
+        Assert.Equal(13, evidence.GetProperty("retained").GetArrayLength());
+
+        var runner = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "Program.cs"));
+        var review = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "review.ps1"));
+        Assert.Contains("runtime-candidate-executed-review-required", runner, StringComparison.Ordinal);
+        Assert.DoesNotContain("runtime-executed", runner, StringComparison.Ordinal);
+        Assert.Contains("candidate-record-verified", review, StringComparison.Ordinal);
+        Assert.DoesNotContain("runtime-executed", review, StringComparison.Ordinal);
     }
 
     [Fact]

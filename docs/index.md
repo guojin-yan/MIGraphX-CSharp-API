@@ -1,6 +1,6 @@
 # MIGraphXSharp documentation
 
-MIGraphXSharp has an unpublished M11 `0.9.0-rc.9` local candidate while retaining `0.0.0` as the repository default, plus an M12 local interface-expansion batch. M12 adds managed shape/argument, graph, TensorFlow, quantization, context, and custom-op projections. Local compilation, fake-native fixture compilation, focused M12 tests, and project-quality tests pass; real runtime validation remains deferred. Final publication still requires closed release-readiness evidence.
+MIGraphXSharp has an unpublished M11 `0.9.0-rc.9` local candidate while retaining `0.0.0` as the repository default, plus an M12 interface-expansion batch. M12 adds managed shape/argument, graph, TensorFlow, quantization, context, and custom-op projections. Local compilation, fake-native fixture compilation, focused M12 tests, project-quality tests, and a package-only candidate run pass; the reviewed M12 record promotes two case-level decisions and retains thirteen deferred cases. Final publication still requires closed release-readiness evidence.
 
 Local fake-native execution remains a test substitute. Separately, unified M1/M2 official runtime validation was revalidated at pushed commit `346cdd0b01a7f8039f5deb93058928403fccc7dd` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and one gfx1100 GPU. The result covers the official loader, M1 lifecycle, and the restricted M2 Identity file/buffer parse, GPU compile, synchronous run, and reference comparison.
 
@@ -12,6 +12,6 @@ M10 adds a copied ONNX parser-registry snapshot and explicit host-argument/progr
 
 M11 synchronizes that external promotion and freezes deterministic M4-M6 fixtures, cases, thresholds, package-only probe, cache restart, review, and Windows policy. The rc.6 official functional session completed 20 cases with 18 passing and two dynamic-shape failures; it remains immutable diagnostic evidence and promotes no individual case. Rc.7 repairs the native shape snapshot ordering, and rc.8 aligns SDK selection to the available .NET 10.0.110 baseline. M11 remains `runtime-deferred` and M8 remains `release-candidate-local`. See the [M11 runtime hardening plan](validation/m11-runtime-hardening-plan.md).
 
-M12 is the current local development batch. Review the [M12 local interface expansion](design/m12-local-interface-expansion.md) for the implemented surface, the [M12 real-runtime validation plan](validation/m12-runtime-validation-plan.md), and the explicit list of interfaces still deferred until an authorized validation pass.
+M12 is the current interface-expansion batch. Review the [M12 local interface expansion](design/m12-local-interface-expansion.md) for the implemented surface, the [M12 real-runtime validation plan](validation/m12-runtime-validation-plan.md), and the explicit list of interfaces still deferred until an authorized validation pass. The source repository also carries the machine-readable promotion record at compatibility/m12-post-build-runtime-evidence.json.
 
 中文摘要：M11 `0.9.0-rc.9` 不新增公开 API；它在 rc.8 基础上增加隔离、计时和长跑的 package-only 执行入口。官方运行结果仍需绑定最终提交、包身份并经独立复核；M8 仍为 `release-candidate-local`。

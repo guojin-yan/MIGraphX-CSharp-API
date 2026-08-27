@@ -161,9 +161,16 @@ internal sealed class ProbeRunner
     private void RunShapeAndArgumentFactories()
     {
         const string id = "m12-shape-argument-factories";
+        WriteStage(id, "scalar", "entered");
+        var scalar = MIGraphXShape.CreateScalar(MIGraphXShapeDataType.Float32);
+        Require(scalar.Rank == 0 && scalar.Lengths.Count == 0 && scalar.Strides.Count == 0 && scalar.ElementCount == 1 && scalar.ByteCount == sizeof(float), "Managed scalar metadata differs.");
+        WriteStage(id, "scalar-empty", "entered");
+        using var scalarEmpty = MIGraphXArgument.CreateEmpty(options.NativePath, scalar);
+        Require(scalarEmpty.Shape.HasSameNativeContent(scalar), "Native scalar argument shape differs from the managed scalar.");
         WriteStage(id, "strided", "entered");
         var strided = MIGraphXShape.CreateWithStrides(MIGraphXShapeDataType.Float32, new long[] { 2, 2 }, new long[] { 1, 2 });
-        Require(strided.Rank == 2 && strided.Strides.SequenceEqual(new long[] { 1, 2 }), "Explicit strides were not preserved.");
+        Require(strided.Rank == 2 && strided.Lengths.SequenceEqual(new long[] { 2, 2 }) && strided.Strides.SequenceEqual(new long[] { 1, 2 }) && strided.ElementCount == 4 && strided.ByteCount == 4 * sizeof(float), "Explicit stride metadata was not preserved.");
+        WriteStage(id, "strided-managed", "validated");
         WriteStage(id, "empty", "entered");
         var emptyShape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
         using var empty = MIGraphXArgument.CreateEmpty(options.NativePath, emptyShape);
@@ -173,6 +180,7 @@ internal sealed class ProbeRunner
         using var clone = generated.Clone();
         WriteStage(id, "compare", "entered");
         Require(generated.HasSameNativeContent(clone), "Generated argument clone differs from its source.");
+        Require(generated.ToArray<float>().SequenceEqual(clone.ToArray<float>()), "Generated argument clone values differ from its source.");
         WriteStage(id, "empty-shape", "entered");
         Require(empty.Shape.HasSameNativeContent(emptyShape), "Empty argument shape snapshot differs.");
     }
@@ -183,36 +191,65 @@ internal sealed class ProbeRunner
         var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
         var path = Path.Combine(options.RecordDirectory, "argument.msgpack");
         WriteStage(id, "create", "entered");
-        using var original = MIGraphXArgument.Create(options.NativePath, shape, new[] { 0.25f, -1f, 2f, 9f });
+        var original = MIGraphXArgument.Create(options.NativePath, shape, new[] { 0.25f, -1f, 2f, 9f });
         WriteStage(id, "save", "entered");
         original.Save(path);
+        WriteStage(id, "source-dispose", "entered");
+        original.Dispose();
         WriteStage(id, "load", "entered");
-        using var loaded = MIGraphXArgument.Load(options.NativePath, path);
+        var loaded = MIGraphXArgument.Load(options.NativePath, path);
         WriteStage(id, "clone", "entered");
         using var clone = loaded.Clone();
         WriteStage(id, "compare", "entered");
         Require(loaded.HasSameNativeContent(clone), "Loaded argument clone differs from its source.");
+        WriteStage(id, "loaded-dispose", "entered");
+        loaded.Dispose();
         WriteStage(id, "readback", "entered");
         Require(clone.ToArray<float>().SequenceEqual(new[] { 0.25f, -1f, 2f, 9f }), "Argument persistence values differ.");
+        WriteStage(id, "collection-clone", "entered");
+        using var program = ParseIdentity(new MIGraphXOnnxOptions(options.NativePath));
+        var parameters = CreateFloatParameters(program.GetParameterShapes());
+        using var parameterClone = parameters.Clone();
+        parameters.Dispose();
+        using var target = new MIGraphXTarget(options.NativePath);
+        using var compileOptions = new MIGraphXCompileOptions(options.NativePath);
+        program.Compile(target, compileOptions);
+        var outputs = program.Run(parameterClone);
+        using var outputClone = outputs.Clone();
+        outputs.Dispose();
+        Require(ReadFloatOutputs(outputClone, "Cloned output collection").SequenceEqual(new[] { 0.25f, -1f, 2f, 9f }), "Collection clone values differ after source disposal.");
         WriteStage(id, "hash", "entered");
         report.Artifacts["argumentSha256"] = Program.HashFile(path);
     }
 
     private void RunAssignToClones()
     {
-        using var target = new MIGraphXTarget(options.NativePath);
+        var target = new MIGraphXTarget(options.NativePath);
         using var targetClone = target.Clone();
-        using var compile = new MIGraphXCompileOptions(options.NativePath, true, true, false);
+        target.Dispose();
+        var compile = new MIGraphXCompileOptions(options.NativePath, true, true, false);
         using var compileClone = compile.Clone();
-        using var file = new MIGraphXFileOptions(options.NativePath);
+        compile.Dispose();
+        var file = new MIGraphXFileOptions(options.NativePath);
         using var fileClone = file.Clone();
-        using var onnx = new MIGraphXOnnxOptions(options.NativePath);
+        file.Dispose();
+        var onnx = new MIGraphXOnnxOptions(options.NativePath);
         onnx.SetInputParameterShape("input", new long[] { 1, 4 });
         using var onnxClone = onnx.Clone();
-        Require(targetClone.Name == target.Name && compileClone.FastMath == compile.FastMath && fileClone.FileFormat == file.FileFormat, "Assign-to clone metadata differs.");
-        using var program = ParseIdentity(onnx);
+        onnx.Dispose();
+        Require(targetClone.Name == "gpu" && compileClone.OffloadCopy && compileClone.FastMath && !compileClone.ExhaustiveTune && fileClone.FileFormat == "msgpack", "Assign-to clone metadata differs.");
+        var program = ParseIdentity(onnxClone);
+        var parameterShape = program.GetParameterShapes()["input"];
+        Require(parameterShape.Lengths.SequenceEqual(new long[] { 1, 4 }), "Cloned ONNX options did not preserve the input override.");
         using var programClone = program.Clone();
         Require(program.HasSameNativeContent(programClone), "Program assign-to clone differs from its source.");
+        program.Dispose();
+        programClone.Compile(targetClone, compileClone);
+        Require(programClone.IsCompiled, "Program clone did not remain usable after source disposal.");
+        var path = Path.Combine(options.RecordDirectory, "assign-to-clone.mxr");
+        programClone.Save(path, fileClone);
+        Require(File.Exists(path) && new FileInfo(path).Length > 0, "File-options clone did not persist the program after source disposal.");
+        report.Artifacts["assignToCloneSha256"] = Program.HashFile(path);
     }
 
     private void RunGraphParentLease()
@@ -231,12 +268,16 @@ internal sealed class ProbeRunner
         using var child = program.CreateModule("m12-child");
         WriteStage(id, "main-module", "entered");
         using var main = program.GetMainModule();
+        WriteStage(id, "module-collections", "entered");
+        using var modules = new MIGraphXModules(options.NativePath, new[] { main, child });
+        using var moduleClone = modules.Clone();
         WriteStage(id, "program-dispose", "entered");
         program.Dispose();
         WriteStage(id, "main-print", "entered");
         main.Print();
         WriteStage(id, "child-print", "entered");
         child.Print();
+        Require(modules.Count == 2 && moduleClone.Count == 2, "Module collections did not retain both program-owned views.");
         WriteStage(id, "teardown", "entered");
         main.Dispose();
         child.Dispose();
@@ -245,13 +286,26 @@ internal sealed class ProbeRunner
     private void RunGraphEditing()
     {
         using var program = new MIGraphXProgram(options.NativePath);
-        using var module = program.CreateModule("m12-edit");
+        using var module = program.GetMainModule();
         var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
         using var parameter = module.AddParameter("input", shape);
+        using var literalValue = MIGraphXArgument.Create(options.NativePath, shape, new[] { 0f, 0f, 0f, 0f });
+        using var literal = module.AddLiteral(literalValue);
         using var allocation = module.AddAllocation(shape);
-        using var instructions = new MIGraphXInstructions(options.NativePath, new[] { parameter });
-        using var returned = module.AddReturn(instructions);
+        using var addArguments = new MIGraphXInstructions(options.NativePath, new[] { parameter, literal });
+        using var add = MIGraphXOperation.Create(options.NativePath, "add");
+        using var sum = module.AddInstruction(add, addArguments);
+        using var returnArguments = new MIGraphXInstructions(options.NativePath, new[] { sum });
+        using var returned = module.AddReturn(returnArguments);
         module.Print();
+        WriteStage("m12-graph-editing", "compile", "entered");
+        using var target = new MIGraphXTarget(options.NativePath);
+        using var compileOptions = new MIGraphXCompileOptions(options.NativePath);
+        program.Compile(target, compileOptions);
+        using var parameters = CreateFloatParameters(program.GetParameterShapes());
+        WriteStage("m12-graph-editing", "run", "entered");
+        using var outputs = program.Run(parameters);
+        Require(ReadFloatOutputs(outputs, "Edited graph output").SequenceEqual(new[] { 0.25f, -1f, 2f, 9f }), "Edited graph output does not match the add-zero reference.");
     }
 
     private void RunContextLifetime()

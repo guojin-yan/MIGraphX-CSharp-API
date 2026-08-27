@@ -1,0 +1,107 @@
+{
+  "$schema": "./schemas/m12-post-build-runtime-evidence.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M12",
+  "evidenceKind": "post-build-external-runtime-promotion",
+  "sourceSha": "b53689ba3831ce721875d3e5bb4d370ae8a737e6",
+  "candidateVersion": "0.0.0",
+  "externalRecord": "Radeon_Cloud/records/20260827-0242-b53689b-m12-runtime",
+  "reviewState": "passed",
+  "reviewedEvidence": "runtime-executed",
+  "candidateResultLabel": "runtime-candidate-executed-review-required",
+  "candidateReviewState": "candidate-record-verified",
+  "candidatePromotionState": "not-requested",
+  "candidateExecutedCaseCount": 11,
+  "candidateDeferredCaseCount": 8,
+  "resultSha256": "3493a5c5b7023df19d074b634f7696ec93a71d65e46bebc201bcbdb695ca6b09",
+  "reviewSha256": "4cc8178deb831091ed7c645cb0ce0ccb43a3905a09e9b3972e98e8b536452250",
+  "summarySha256": "f226766aa9c1c321f3e5495b044007065927869cd2089cdc2821e007cd21eaa0",
+  "runMetadataSha256": "47e091ee9c616aeff478ea926936c4fbaa3a8132aa0e60a423480312176ea35c",
+  "environment": {
+    "os": "Ubuntu 24.04",
+    "nativeProvider": "MIGraphX 2.15.0 with ROCm 7.2.1",
+    "headerSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+    "librarySha256": "3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff"
+  },
+  "promotions": [
+    {
+      "id": "m12-context-lifetime",
+      "status": "runtime-executed",
+      "scope": "A compiled program yielded a non-null experimental context queue; Finish and queue access completed after caller disposal of the parent program while the managed context lease remained alive."
+    },
+    {
+      "id": "m12-operation-materialized-attributes",
+      "status": "runtime-executed",
+      "scope": "The fixed provider created and cloned reshape, transpose, slice, multibroadcast, and topk operations from the reviewed fully materialized typed attributes and returned the expected operation names."
+    }
+  ],
+  "retained": [
+    {
+      "id": "m12-shape-argument-factories",
+      "status": "runtime-deferred",
+      "scope": "The candidate exercised non-scalar CreateEmpty, Generate, and Clone, but did not satisfy the scalar and complete native metadata criteria."
+    },
+    {
+      "id": "m12-argument-persistence-clone",
+      "status": "runtime-deferred",
+      "scope": "Save, Load, Clone, and value readback passed, but source-disposal independence was not established by the candidate."
+    },
+    {
+      "id": "m12-assign-to-clone",
+      "status": "runtime-deferred",
+      "scope": "The candidate created all reviewed clones, but did not compare every option field or prove destination use after source disposal."
+    },
+    {
+      "id": "m12-graph-parent-lease",
+      "status": "runtime-deferred",
+      "scope": "Main and child modules remained printable after caller disposal of the program, but the full borrowed graph metadata criteria were not executed."
+    },
+    {
+      "id": "m12-graph-editing",
+      "status": "runtime-deferred",
+      "scope": "Parameter, allocation, return, and print edits completed, but the edited graph was not compiled and run."
+    },
+    {
+      "id": "m12-tensorflow-parse",
+      "status": "runtime-deferred",
+      "scope": "The minimal file and buffer paths produced equivalent outputs, but no independent numerical reference or model-variant coverage was recorded."
+    },
+    {
+      "id": "m12-quantization-options",
+      "status": "runtime-deferred",
+      "scope": "INT8 and FP8 produced finite outputs after quantize-before-compile, but accuracy and numerical reference criteria remain unverified."
+    },
+    {
+      "id": "m12-custom-op-registration",
+      "status": "runtime-deferred",
+      "scope": "Create, clone, and registration passed; the native provider invoked none of the registered callbacks."
+    },
+    {
+      "id": "m12-negative-borrowed-device-clone",
+      "status": "runtime-deferred",
+      "scope": "No official borrowed device argument path was executed."
+    },
+    {
+      "id": "m12-negative-variadic-operation",
+      "status": "runtime-deferred",
+      "scope": "General C format placeholders and variadic values remain outside the typed managed ABI."
+    },
+    {
+      "id": "m12-negative-module-owner",
+      "status": "runtime-deferred",
+      "scope": "The frozen C header still has no destroy contract for an independently created module owner."
+    },
+    {
+      "id": "m12-concurrent-dispose",
+      "status": "runtime-deferred",
+      "scope": "Five bounded races completed, but repeated real-runtime stress and leak observations were not recorded."
+    },
+    {
+      "id": "m12-cross-target-abi",
+      "status": "runtime-deferred",
+      "scope": "The official Linux run used net10.0 only; representative DllImport and LibraryImport runtime equivalence was not executed."
+    }
+  ],
+  "historicalMapsRemainUnchanged": true,
+  "boundary": "This post-build decision promotes only the two M12 cases whose complete frozen result criteria are present in the independently reviewed candidate record. It does not rewrite that historical record, promote the other thirteen cases, expand arbitrary C varargs or module ownership, or establish accuracy, performance, long-run, cross-target, or publication evidence."
+}

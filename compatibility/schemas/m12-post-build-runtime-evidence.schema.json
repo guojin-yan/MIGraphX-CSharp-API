@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jyppx.dev/schemas/m12-post-build-runtime-evidence.schema.json",
+  "title": "M12 independently reviewed post-build runtime promotion",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "stage",
+    "evidenceKind",
+    "sourceSha",
+    "candidateVersion",
+    "externalRecord",
+    "reviewState",
+    "reviewedEvidence",
+    "candidateResultLabel",
+    "candidateReviewState",
+    "candidatePromotionState",
+    "candidateExecutedCaseCount",
+    "candidateDeferredCaseCount",
+    "resultSha256",
+    "reviewSha256",
+    "summarySha256",
+    "runMetadataSha256",
+    "environment",
+    "promotions",
+    "retained",
+    "historicalMapsRemainUnchanged",
+    "boundary"
+  ],
+  "properties": {
+    "$schema": { "const": "./schemas/m12-post-build-runtime-evidence.schema.json" },
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M12" },
+    "evidenceKind": { "const": "post-build-external-runtime-promotion" },
+    "sourceSha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+    "candidateVersion": { "const": "0.0.0" },
+    "externalRecord": { "type": "string", "pattern": "^Radeon_Cloud/records/[a-zA-Z0-9._-]+$" },
+    "reviewState": { "const": "passed" },
+    "reviewedEvidence": { "const": "runtime-executed" },
+    "candidateResultLabel": { "const": "runtime-candidate-executed-review-required" },
+    "candidateReviewState": { "const": "candidate-record-verified" },
+    "candidatePromotionState": { "const": "not-requested" },
+    "candidateExecutedCaseCount": { "const": 11 },
+    "candidateDeferredCaseCount": { "const": 8 },
+    "resultSha256": { "$ref": "#/$defs/sha256" },
+    "reviewSha256": { "$ref": "#/$defs/sha256" },
+    "summarySha256": { "$ref": "#/$defs/sha256" },
+    "runMetadataSha256": { "$ref": "#/$defs/sha256" },
+    "environment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["os", "nativeProvider", "headerSha256", "librarySha256"],
+      "properties": {
+        "os": { "const": "Ubuntu 24.04" },
+        "nativeProvider": { "const": "MIGraphX 2.15.0 with ROCm 7.2.1" },
+        "headerSha256": { "$ref": "#/$defs/sha256" },
+        "librarySha256": { "$ref": "#/$defs/sha256" }
+      }
+    },
+    "promotions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/decision" }
+    },
+    "retained": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/decision" }
+    },
+    "historicalMapsRemainUnchanged": { "const": true },
+    "boundary": { "type": "string", "minLength": 1 }
+  },
+  "$defs": {
+    "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "status", "scope"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^m12-[a-z0-9-]+$" },
+        "status": { "enum": ["runtime-deferred", "runtime-executed"] },
+        "scope": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

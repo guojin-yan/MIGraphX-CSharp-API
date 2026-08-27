@@ -1,6 +1,6 @@
 # M12 local interface expansion
 
-M12 is a local-development batch only. It adds managed projections for the remaining generated C declarations without making a package-publication or performance claim. The batch has passed local managed compilation, fake-native fixture compilation, focused M12 tests, representative interop execution, and project-quality tests. Source/package-bound cloud records are kept in the outer `Radeon_Cloud/records/` directory; real MIGraphX runtime verification remains review-required, no candidate promotes an M12 map entry, and the existing M3--M11 compatibility maps therefore remain the evidence baseline.
+M12 is a local-development batch with a partially reviewed runtime record. It adds managed projections for the remaining generated C declarations without making a package-publication or performance claim. The batch has passed local managed compilation, fake-native fixture compilation, focused M12 tests, representative interop execution, project-quality tests, and a package-only fake-native candidate run. The reviewed record establishes limited real MIGraphX runtime evidence for two case decisions; the other thirteen cases remain deferred. The source/package-bound cloud record is kept in the outer `Radeon_Cloud/records/` directory; only `m12-context-lifetime` and `m12-operation-materialized-attributes` have independently reviewed runtime evidence. The existing M3--M11 compatibility maps remain the evidence baseline.
 
 ## Implemented local surface
 
@@ -36,7 +36,7 @@ The following local checks pass for this batch:
 - ProjectQuality tests pass all 24 tests, including the current core API snapshot of 45 types and 303 members, bilingual XML documentation, generated binding traceability, and ownership/audit checks.
 - `eng/generate-m12-fixtures.ps1` deterministically produces the minimal TensorFlow GraphDef and calibration-map fixtures; the M12 coverage gate verifies their SHA-256 identities and the calibration-map schema.
 
-These results are local compile and test-substitute evidence. They do not promote M12 declarations in the historical compatibility maps or establish behavior against a real MIGraphX installation.
+These results are local compile and test-substitute evidence. The independent M12 record promotes only two case-level decisions; it does not promote an API family, alter the historical M3--M11 maps, or establish performance, numerical accuracy, long-run, callback, ownership-negative, or cross-target behavior.
 
 ## Deliberately deferred
 
@@ -48,6 +48,6 @@ The following items still need a separate design or an authorized validation fix
 - Low-level borrowed collection readback and dynamic-dimension native getter coverage remain represented by immutable managed snapshots rather than exposing dangling pointers.
 - The M11 official functional, restart, long-run, timing, and Windows policy records are unchanged and remain validation-deferred.
 
-The next validation batch should follow the [M12 real-runtime validation plan](../validation/m12-runtime-validation-plan.md), exercise semantic workflows against an authorized real MIGraphX installation, and review native ownership/callback behavior before any interface moves from planned/local-development to supported in a compatibility map.
+The next validation batch should follow the [M12 real-runtime validation plan](../validation/m12-runtime-validation-plan.md), exercise the thirteen retained semantic cases against an authorized real MIGraphX installation, and review native ownership/callback behavior before any additional interface moves from planned/local-development to supported in a compatibility map.
 
-中文摘要：M12 已完成本地接口、fake-native 夹具和测试源码开发，并通过 fake-native 原生编译、15 个目标框架托管编译、8 项 M12 focused tests 与 24 项 ProjectQuality tests；图编辑路径已在 `net46`、`netcoreapp3.1`、`net7.0`、`net10.0` 代表 interop runner 上执行。没有执行云端或真实 native runtime promotion。新增 shape/argument 创建复制、program/module/instruction 图编辑、TensorFlow、量化、context/custom-op、无属性及强类型已物化属性 operation 创建/复制与多个 assign-to clone；host-backed argument 可独立 clone，borrowed device argument 的 public clone 明确拒绝；custom-op clone 采用重新创建并重放回调。C 可变参数 `migraphx_operation_create` 的任意 format placeholder/variadic 形式仍 unsupported；`migraphx_module_create` 因冻结头文件没有对应 module destroy、无法推断 public ownership，也不暴露独立 owner；量化数值、TF 模型、custom-op 回调执行、context queue、M11 长跑/计时及官方运行证据均保持延期。
+中文摘要：M12 已完成本地接口、fake-native 夹具和测试源码开发，并通过 fake-native 原生编译、15 个目标框架托管编译、8 项 M12 focused tests、24 项 ProjectQuality tests 及 package-only 候选回归。独立记录仅提升 `m12-context-lifetime` 与 `m12-operation-materialized-attributes` 两个 case，其余 13 个 case 仍为 deferred；不改变历史兼容矩阵，也不产生精度、性能、长跑或完整 runtime promotion 结论。新增 shape/argument 创建复制、program/module/instruction 图编辑、TensorFlow、量化、context/custom-op、无属性及强类型已物化属性 operation 创建/复制与多个 assign-to clone；host-backed argument 可独立 clone，borrowed device argument 的 public clone 明确拒绝；custom-op clone 采用重新创建并重放回调。C 可变参数 `migraphx_operation_create` 的任意 format placeholder/variadic 形式仍 unsupported；`migraphx_module_create` 因冻结头文件没有对应 module destroy、无法推断 public ownership，也不暴露独立 owner；量化数值、TF 模型、custom-op 回调执行、context queue、M11 长跑/计时及其余官方运行证据均保持延期。

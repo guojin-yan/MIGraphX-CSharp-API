@@ -2,7 +2,7 @@
 
 [English / 英文](README.md)
 
-MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选，并加入 M12 本地接口开发批次。M12 为剩余的 shape/argument、图编辑、TensorFlow、量化、context 和 experimental custom-op 声明增加托管 wrapper；该批次已通过本地托管编译、fake-native 夹具编译、M12 focused tests 和项目质量测试，但尚未进行远程或真实 MIGraphX runtime 验证。仓库默认版本仍为 `0.0.0`，没有发布任何包。
+MIGraphXSharp 现已形成未发布的 M11 `0.9.0-rc.8` 本地候选，并加入 M12 接口开发批次。M12 为剩余的 shape/argument、图编辑、TensorFlow、量化、context 和 experimental custom-op 声明增加托管 wrapper；该批次已通过本地托管编译、fake-native 夹具编译、M12 focused tests、项目质量测试和 package-only 候选回归。M12 独立记录审核提升两个 case，其余 13 个 case 仍为 deferred。仓库默认版本仍为 `0.0.0`，没有发布任何包。
 
 ## 状态
 

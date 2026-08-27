@@ -1,9 +1,9 @@
 {
   "$schema": "./schemas/m12-runtime-cases.schema.json",
-  "schemaVersion": "1.0.0",
+  "schemaVersion": "1.1.0",
   "stage": "M12",
   "candidateVersion": "0.0.0",
-  "validationStatus": "runtime-deferred",
+  "validationStatus": "partially-runtime-executed",
   "authorization": {
     "realRuntimeAuthorized": false,
     "packageProbeAuthorized": false,
@@ -65,6 +65,7 @@
   "review": {
     "candidateResultLabel": "runtime-candidate-executed-review-required",
     "promotionRule": "Only an independent review of a clean, authorized, source/package-bound record may promote a case to runtime-executed.",
+    "promotionRecord": "m12-post-build-runtime-evidence.json",
     "historicalMapsRemainUnchanged": true
   },
   "cases": [
@@ -83,8 +84,8 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "Scalar type, rank, lengths, strides, element count, and copied values match the native result.",
-      "deferredBoundary": "No real MIGraphX shape/argument call has been executed for M12."
+      "resultCriteria": "Scalar metadata round-trips through a native empty argument; explicit-stride metadata remains intact as an independent managed shape; non-scalar standard empty/generated arguments and independent clone values match.",
+      "evidenceBoundary": "Native detached arguments require static standard packed shapes, so explicit-stride coverage is limited to managed shape metadata while native empty/generated/clone behavior is exercised with standard shapes."
     },
     {
       "id": "m12-argument-persistence-clone",
@@ -101,8 +102,8 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "Round-tripped values and clone comparisons remain exact after source and collection disposal.",
-      "deferredBoundary": "Native persistence format compatibility is fixed-version evidence only."
+      "resultCriteria": "Round-tripped argument values, cloned parameter maps, and cloned output collections remain exact after their source owners are disposed.",
+      "evidenceBoundary": "The reviewed candidate executed Save, Load, Clone, and value readback, but did not prove clone use after source disposal; the complete case remains runtime-deferred."
     },
     {
       "id": "m12-assign-to-clone",
@@ -119,8 +120,8 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "All clone fields compare equal while source and destination can be disposed independently.",
-      "deferredBoundary": "The native assign-to contract and failure counters require real provider confirmation."
+      "resultCriteria": "Target, compile, file, ONNX, and program clones preserve their reviewed fields and remain usable for parse, compile, save, and metadata access after source disposal.",
+      "evidenceBoundary": "The reviewed candidate created every clone and compared selected fields, but did not verify every field, destination use after source disposal, or provider failure cleanup."
     },
     {
       "id": "m12-graph-parent-lease",
@@ -137,13 +138,13 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "Module and instruction names, parameters, literals, returns, and allocation views remain valid across parent disposal ordering.",
-      "deferredBoundary": "Graph mutation and borrowed pointer semantics are not yet confirmed against the official library."
+      "resultCriteria": "Main and child module printing plus original/cloned module collections remain usable across caller disposal of the parent program.",
+      "evidenceBoundary": "Main and child module views remained usable after caller disposal of the parent program, but the complete borrowed metadata criteria remain runtime-deferred."
     },
     {
       "id": "m12-graph-editing",
       "area": "graph",
-      "publicSurface": "MIGraphXModule.AddParameter/AddLiteral/Return/Allocate and MIGraphXInstruction.WithArguments",
+      "publicSurface": "MIGraphXModule.AddParameter/AddLiteral/AddAllocation/AddInstruction/AddReturn",
       "fixtureIds": ["m12-identity-float32-1x4"],
       "expectation": "success",
       "synchronizationBoundary": "each graph edit returns before the next edit or compile",
@@ -155,8 +156,8 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "Edited graph compiles and produces the expected output without use-after-dispose or escaped borrowed view.",
-      "deferredBoundary": "migraphx_module_create remains excluded because no matching public destroy is present in the frozen header."
+      "resultCriteria": "A managed add-zero graph containing parameter, literal, allocation, operation, and return edits compiles and exactly preserves the reviewed input values.",
+      "evidenceBoundary": "Parameter, allocation, return, and print edits executed, but the edited graph was not compiled and run; independent migraphx_module_create ownership remains excluded."
     },
     {
       "id": "m12-tensorflow-parse",
@@ -174,7 +175,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "File and buffer parses produce equivalent program shapes and deterministic output for the reviewed fixture.",
-      "deferredBoundary": "The deterministic GraphDef fixture is hash-checked locally, but real TensorFlow parser behavior and file/buffer equivalence remain unverified."
+      "evidenceBoundary": "The reviewed candidate executed file/buffer parse, compile, run, and output equivalence for one minimal GraphDef; an independent numerical reference and model variants remain unverified."
     },
     {
       "id": "m12-quantization-options",
@@ -192,7 +193,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Option forwarding, clone equality, and quantized numerical output match independently reviewed expectations.",
-      "deferredBoundary": "The calibration map is schema- and hash-checked locally; fake-native proves forwarding and ownership only, while numerical quantization behavior is unverified."
+      "evidenceBoundary": "The reviewed candidate executed INT8 and FP8 quantize-before-compile paths and observed finite outputs; numerical accuracy and performance remain unverified."
     },
     {
       "id": "m12-context-lifetime",
@@ -208,9 +209,9 @@
       "prerequisites": ["exact core package", "compiled program with context support", "verified native root"],
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
-      "officialEvidence": "runtime-deferred",
+      "officialEvidence": "runtime-executed",
       "resultCriteria": "Finish and queue calls complete without parent-program use-after-dispose or leaked context handles.",
-      "deferredBoundary": "Context queue semantics and synchronization behavior are not established against the official provider."
+      "evidenceBoundary": "At the exact reviewed source/provider identity, Finish and non-null queue access completed after caller disposal of the compiled parent program; this does not establish queue portability, performance, or broader concurrency behavior."
     },
     {
       "id": "m12-operation-materialized-attributes",
@@ -231,9 +232,9 @@
       ],
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
-      "officialEvidence": "runtime-deferred",
+      "officialEvidence": "runtime-executed",
       "resultCriteria": "reshape, transpose, slice, multibroadcast, and topk accept their reviewed typed attributes, expose the expected names, and produce independent clones.",
-      "deferredBoundary": "This case proves only the reviewed fully materialized common attributes; arbitrary format placeholders and general C variadic values remain unsupported."
+      "evidenceBoundary": "At the exact reviewed source/provider identity, reshape, transpose, slice, multibroadcast, and topk creation and cloning passed; arbitrary format placeholders and general C variadic values remain unsupported."
     },
     {
       "id": "m12-custom-op-registration",
@@ -251,7 +252,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Callback invocations, exception conversion, copy/delete balance, and clone replay match the reviewed contract.",
-      "deferredBoundary": "Real callback execution and native registry behavior have not been verified."
+      "evidenceBoundary": "The reviewed candidate executed create, clone, and registration, but native callback invocation remained zero."
     },
     {
       "id": "m12-negative-borrowed-device-clone",
@@ -269,7 +270,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Clone rejects with the documented managed exception and leaves the source lease unchanged.",
-      "deferredBoundary": "No real device pointer or GPU memory path is available in the current local environment."
+      "evidenceBoundary": "No official borrowed device argument or GPU memory clone-rejection path was executed."
     },
     {
       "id": "m12-negative-variadic-operation",
@@ -287,7 +288,7 @@
       "localEvidence": "statically-verified",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "The restricted factories and clone preserve operation ownership; typed materialized common attributes are serialized without variadic values, while arbitrary formatting and general varargs remain absent and the compatibility inventory keeps the general declaration unsupported.",
-      "deferredBoundary": "A typed native ABI is required before exposing format placeholders or additional variadic values."
+      "evidenceBoundary": "A typed native ABI is required before exposing format placeholders or additional variadic values."
     },
     {
       "id": "m12-negative-module-owner",
@@ -305,7 +306,7 @@
       "localEvidence": "statically-verified",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "The API does not expose an owner that cannot be deterministically disposed.",
-      "deferredBoundary": "A matching destroy operation and reviewed native ownership contract are required."
+      "evidenceBoundary": "A matching destroy operation and reviewed native ownership contract are required."
     },
     {
       "id": "m12-concurrent-dispose",
@@ -323,7 +324,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "No deadlock, use-after-free, leaked owner, or unexpected native status occurs across repeated races.",
-      "deferredBoundary": "Threading behavior must be repeated in a clean authorized real-runtime process."
+      "evidenceBoundary": "Five bounded races completed in the reviewed candidate, but repeated real-runtime stress and leak observations remain deferred."
     },
     {
       "id": "m12-cross-target-abi",
@@ -341,7 +342,7 @@
       "localEvidence": "statically-verified",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "At minimum net46, netcoreapp3.1, net7.0, and net10.0 produce equivalent real-runtime observations.",
-      "deferredBoundary": "The current Windows environment can only prove generated shape/build consistency, not official native execution."
+      "evidenceBoundary": "The reviewed official run used net10.0 only; representative DllImport and LibraryImport runtime equivalence remains deferred."
     }
   ]
 }

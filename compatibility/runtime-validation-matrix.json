@@ -1,11 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "schemaVersion": "1.7.0",
-  "generatedAtUtc": "2026-08-16T11:15:00Z",
+  "schemaVersion": "1.8.0",
+  "generatedAtUtc": "2026-08-27T03:38:13Z",
   "m8Status": "release-candidate-local",
   "m9Status": "runtime-executed",
   "m10Status": "completed",
   "m11Status": "runtime-deferred",
+  "m12Status": "partially-runtime-executed",
   "allowedStatuses": ["planned", "statically-verified", "fake-native-executed", "runtime-deferred", "runtime-executed", "not-applicable"],
   "environment": { "localOs": "Windows", "amdGpuAvailable": false, "officialMIGraphXInstalled": false },
   "validations": [
@@ -50,6 +51,8 @@
     { "id": "m11-m4-m6-bounded-functional", "status": "runtime-deferred", "evidence": "M4 object/multi-output, M5 dynamic/Save/Load/cache/restart, and M6 host/device async cases are frozen with completion/copy/ownership boundaries, but no rc.3 official host and time-window authorization exists." },
     { "id": "m11-isolated-official-negatives", "status": "runtime-deferred", "evidence": "Wrong architecture, missing dependency/export, mixed patch, and second-root cases require separately authorized pre-audited isolation fixtures. No official installation, loader policy, or system ELF may be modified." },
     { "id": "m11-long-run-and-timing", "status": "runtime-deferred", "evidence": "The 300-minute budget, 10/60/60/60/30-minute phase plan, 20 warmups, 200 samples in five processes, statistics, and recovery thresholds are frozen but not authorized or executed." },
-    { "id": "m11-windows-native-provider", "status": "not-applicable", "evidence": "AMD MIGraphX 2.15.0 documentation applies to Linux, while the AMD HIP SDK for Windows component table marks AI libraries unavailable. For fixed ROCm 7.2.1, HIP availability is not treated as an official supported MIGraphX Windows provider." }
+    { "id": "m11-windows-native-provider", "status": "not-applicable", "evidence": "AMD MIGraphX 2.15.0 documentation applies to Linux, while the AMD HIP SDK for Windows component table marks AI libraries unavailable. For fixed ROCm 7.2.1, HIP availability is not treated as an official supported MIGraphX Windows provider." },
+    { "id": "m12-official-context-lifetime", "status": "runtime-executed", "evidence": "The independently reviewed post-build record at clean detached pushed SHA b53689ba3831ce721875d3e5bb4d370ae8a737e6 verified Finish and non-null queue access after caller disposal of the compiled parent program while the managed context lease remained alive." },
+    { "id": "m12-official-materialized-operation-attributes", "status": "runtime-executed", "evidence": "The independently reviewed post-build record at clean detached pushed SHA b53689ba3831ce721875d3e5bb4d370ae8a737e6 verified creation and cloning of reshape, transpose, slice, multibroadcast, and topk with the reviewed fully materialized typed attributes; general C varargs remain unsupported." }
   ]
 }
