@@ -397,6 +397,11 @@ public sealed class RepositoryQualityTests
         Assert.Contains("realpath -m", runner, StringComparison.Ordinal);
         Assert.Contains("evidence record must be isolated from repository and package feed", runner, StringComparison.Ordinal);
         Assert.Contains("evidence record directory must be new or empty before a new run", runner, StringComparison.Ordinal);
+
+        var cloudTest = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
+        Assert.Contains("MIGRAPHX_CLOUD_RECORD_ROOT", cloudTest, StringComparison.Ordinal);
+        Assert.Contains("/workspace/migraphx-cloud-records/${COMMIT_SHA}", cloudTest, StringComparison.Ordinal);
+        Assert.DoesNotContain("m12_record=\"${results}/m12-candidate\"", cloudTest, StringComparison.Ordinal);
         Assert.Contains("Artifact manifest path must be absolute", review, StringComparison.Ordinal);
         Assert.Contains("Artifact manifest path escapes evidence record", review, StringComparison.Ordinal);
         Assert.Contains("Duplicate artifact manifest path", review, StringComparison.Ordinal);

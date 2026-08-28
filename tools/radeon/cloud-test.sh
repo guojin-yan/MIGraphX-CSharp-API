@@ -49,7 +49,11 @@ m12_fixture_directory="${repo_root}/artifacts/models/m12"
 pwsh ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild 2>&1 | tee "${results}/m12-package.txt"
 pwsh ./eng/generate-m12-fixtures.ps1 -OutputDirectory "${m12_fixture_directory}" 2>&1 | tee "${results}/m12-fixtures.txt"
 m12_package="${repo_root}/artifacts/packages/JYPPX.ROCm.MIGraphX.CSharp.API.0.0.0.nupkg"
-m12_record="${results}/m12-candidate"
+cloud_record_root="${MIGRAPHX_CLOUD_RECORD_ROOT:-/workspace/migraphx-cloud-records/${COMMIT_SHA}}"
+[[ "${cloud_record_root}" = /* ]] || { echo 'MIGRAPHX_CLOUD_RECORD_ROOT must be absolute' >&2; exit 1; }
+mkdir -p "${cloud_record_root}"
+m12_record="${cloud_record_root}/m12-candidate"
+printf '%s\n' "${m12_record}" | tee "${results}/m12-record-path.txt"
 m12_core_sha="$(sha256sum "${m12_package}" | awk '{print $1}')"
 tools/m12-runtime-probe/run.sh \
   --repo "${repo_root}" \
