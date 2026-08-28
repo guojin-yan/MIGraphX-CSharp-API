@@ -412,9 +412,8 @@ public sealed class M12LocalInterfaceTests
     public void ModuleSurfaceRemainsProgramBoundWithoutIndependentOwner()
     {
         var moduleType = typeof(MIGraphXModule);
-        Assert.DoesNotContain(moduleType.GetConstructors(BindingFlags.Public | BindingFlags.Instance), _ => true);
-        Assert.DoesNotContain(moduleType.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
-            .Where(method => !method.IsSpecialName), _ => true);
+        Assert.DoesNotContain(moduleType.GetConstructors(BindingFlags.Public | BindingFlags.Instance), constructor => constructor.IsPublic);
+        Assert.DoesNotContain(moduleType.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly), method => !method.IsSpecialName);
 
         var programFactories = typeof(MIGraphXProgram)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)

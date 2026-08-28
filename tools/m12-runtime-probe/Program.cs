@@ -396,8 +396,10 @@ internal sealed class ProbeRunner
             || parameter.ParameterType.IsPointer
             || parameter.GetCustomAttribute<ParamArrayAttribute>() is not null)),
             "Operation creation exposes an arbitrary variadic ABI carrier.");
+        var booleanArray = new MIGraphXOperationAttributes().SetBooleanArray("flags", new[] { true, false });
+        Require(booleanArray.Build() == "{flags: [true, false]}", "Boolean-array attributes were not materialized deterministically.");
 
-        AppendNegativeBoundaryObservation("variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object");
+        AppendNegativeBoundaryObservation("variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object|boolean-array-materialized");
         WriteStage(id, "teardown", "entered");
     }
 
