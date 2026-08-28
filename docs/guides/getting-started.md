@@ -73,6 +73,10 @@ IReadOnlyList<string> names = MIGraphXOnnxWorkflow.GetRegisteredOperators(
 
 The list is a version-bound parser capability hint, not a guarantee that a model, opset, target, or device is supported.
 
+## Materialize typed operation attributes
+
+The [M12 typed operation attributes sample](../../samples/M12TypedOperationAttributes/README.md) prints the five reviewed operation forms and exercises their native create/clone path when given an absolute MIGraphX C library path. With no argument it remains a managed-only example, so it can be built and run on a development machine without native MIGraphX.
+
 ## Probe an explicit library
 
 ```powershell

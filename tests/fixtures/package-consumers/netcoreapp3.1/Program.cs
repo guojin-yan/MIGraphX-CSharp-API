@@ -15,6 +15,7 @@ internal static class Program
         var slice = MIGraphXOperationAttributes.ForSlice(new long[] { 0 }, new long[] { 0 }, new long[] { 1 });
         var multibroadcast = MIGraphXOperationAttributes.ForMultibroadcast(1, 4);
         var topk = MIGraphXOperationAttributes.ForTopK(1, 1, true);
+        var flags = new MIGraphXOperationAttributes().SetBooleanArray("flags", new[] { true, false });
         var metadata = new MIGraphXCacheMetadata(
             new string('a', 64), "gpu", "offloadCopy=true", "msgpack", new string('b', 64),
             new[] { new MIGraphXCacheOverride("input", new[] { dynamicDimension }) });
@@ -47,6 +48,7 @@ internal static class Program
             && slice.Build() == "{axes: [0], starts: [0], ends: [1]}"
             && multibroadcast.Build() == "{out_lens: [1, 4]}"
             && topk.Build() == "{axis: 1, k: 1, largest: true}"
+            && flags.Build() == "{flags: [true, false]}"
             && metadata.ComputeKey().Length == 64
             && m12PublicSurface
             && typeof(MIGraphXProgram).Assembly == typeof(MIGraphXBuildInfo).Assembly ? 0 : 1;

@@ -160,6 +160,7 @@ M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXModules JYPPX.ROCm.MIGraphXSharp.MIGra
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.Clone()
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperation JYPPX.ROCm.MIGraphXSharp.MIGraphXOperation.Clone()
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes.SetBoolean(System.String key,System.Boolean value)
+M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes.SetBooleanArray(System.String key,System.Collections.Generic.IReadOnlyList<System.Boolean> values)
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes.SetDouble(System.String key,System.Double value)
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes.SetDoubleArray(System.String key,System.Collections.Generic.IReadOnlyList<System.Double> values)
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes.SetInt32(System.String key,System.Int32 value)

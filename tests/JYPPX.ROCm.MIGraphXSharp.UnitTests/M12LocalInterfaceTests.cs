@@ -342,18 +342,20 @@ public sealed class M12LocalInterfaceTests
             .SetInt64Array("axes", new long[] { 1, 2, 3 })
             .SetSingle("value", 0.5f)
             .SetBoolean("largest", true)
+            .SetBooleanArray("flags", new bool[] { true, false })
             .SetString("mode", "nearest")
             .SetString("pattern", "50%\\done\"ok")
             .SetNull("optional");
 
         Assert.Equal(
-            "{group: 2, axes: [1, 2, 3], value: 0.5, largest: true, mode: \"nearest\", pattern: \"50%\\\\done\\\"ok\", optional: null}",
+            "{group: 2, axes: [1, 2, 3], value: 0.5, largest: true, flags: [true, false], mode: \"nearest\", pattern: \"50%\\\\done\\\"ok\", optional: null}",
             attributes.Build());
 
         Assert.Throws<ArgumentException>(() => attributes.SetInt64("axes", 4));
         Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad-key", "value"));
         Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad", "a\0b"));
         Assert.Throws<ArgumentOutOfRangeException>(() => new MIGraphXOperationAttributes().SetSingle("bad", float.NaN));
+        Assert.Throws<ArgumentNullException>(() => new MIGraphXOperationAttributes().SetBooleanArray("bad", null!));
 
         var nativePath = FakePath();
         using var controls = new FakeControls(nativePath);

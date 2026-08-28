@@ -157,7 +157,7 @@ if ($tensorflow.Count -ne 1 -or $tensorflow[0].Format -ne 'tensorflow-graphdef' 
 $baseline = Get-Content -LiteralPath (Join-Path $root 'compatibility\managed-public-api.txt')
 $coreTypes = @($baseline | Where-Object { $_.StartsWith('T|', [StringComparison]::Ordinal) }).Count
 $coreMembers = @($baseline | Where-Object { -not $_.StartsWith('#', [StringComparison]::Ordinal) -and -not $_.StartsWith('T|', [StringComparison]::Ordinal) -and $_.Length -ne 0 }).Count
-if ($coreTypes -ne 45 -or $coreMembers -ne 308) { throw "M12 core API baseline drifted: $coreTypes/$coreMembers, expected 45/308." }
+if ($coreTypes -ne 45 -or $coreMembers -ne 309) { throw "M12 core API baseline drifted: $coreTypes/$coreMembers, expected 45/309." }
 
 $m10 = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m10-high-level-api-map.json') | ConvertFrom-Json
 if ($m10.counts.supported -ne 84 -or $m10.counts.planned -ne 107 -or $m10.counts.unsupported -ne 1) {
@@ -169,7 +169,7 @@ $sourceChecks = @{
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXArgument.cs' = @('CreateEmpty', 'Generate', 'Save', 'Clone')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXProgram.cs' = @('ParseTfFile', 'QuantizeInt8', 'GetExperimentalContext', 'GetMainModule')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXGraph.cs' = @('MIGraphXModule', 'MIGraphXInstruction', 'MIGraphXOperation', 'Create(string nativeLibraryPath, string name)', 'Clone()')
-    'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOperationAttributes.cs' = @('ForReshape', 'ForTranspose', 'ForSlice', 'ForMultibroadcast', 'ForTopK', 'RequireValues')
+    'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOperationAttributes.cs' = @('ForReshape', 'ForTranspose', 'ForSlice', 'ForMultibroadcast', 'ForTopK', 'SetBooleanArray', 'RequireValues')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXTfOptions.cs' = @('SetInputParameterShape', 'SetOutputNames')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXQuantization.cs' = @('MIGraphXQuantizeInt8Options', 'MIGraphXQuantizeFp8Options')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXContext.cs' = @('GetQueue', 'Finish')
@@ -198,7 +198,7 @@ foreach ($relativePath in $sourceChecks.Keys) {
 }
 
 $packageConsumerFrameworks = @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')
-$packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK')
+$packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK', 'SetBooleanArray')
 foreach ($framework in $packageConsumerFrameworks) {
     $consumerPath = Join-Path $root (Join-Path 'tests\fixtures\package-consumers' (Join-Path $framework 'Program.cs'))
     if (-not (Test-Path -LiteralPath $consumerPath -PathType Leaf)) { throw "M12 package consumer is missing: $framework" }
@@ -223,4 +223,4 @@ if (-not $design.Contains('Local validation record', [StringComparison]::Ordinal
     throw 'M12 design record is missing local validation or deferred-boundary statements.'
 }
 
-Write-Output "M12 coverage gate passed: $($cases.Count) runtime cases, $($fixtures.Count) fixtures, 2 reviewed promotions, 13 retained cases, 45/308 API baseline, and local source/test closure."
+Write-Output "M12 coverage gate passed: $($cases.Count) runtime cases, $($fixtures.Count) fixtures, 2 reviewed promotions, 13 retained cases, 45/309 API baseline, and local source/test closure."

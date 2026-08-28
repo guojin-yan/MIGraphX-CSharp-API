@@ -153,6 +153,11 @@ public sealed class MIGraphXOperationAttributes
     /// <param name="values">属性数组；Attribute values.</param>
     public MIGraphXOperationAttributes SetDoubleArray(string key, IReadOnlyList<double> values) => AddArray(key, values, FormatFinite, nameof(values));
 
+    /// <summary>添加布尔数组；Adds a Boolean array.</summary>
+    /// <param name="key">属性键；Attribute key.</param>
+    /// <param name="values">布尔数组；Boolean values.</param>
+    public MIGraphXOperationAttributes SetBooleanArray(string key, IReadOnlyList<bool> values) => AddArray(key, values, value => value ? "true" : "false", nameof(values));
+
     /// <summary>添加字符串或枚举文本数组；Adds a string or enum-text array.</summary>
     /// <param name="key">属性键；Attribute key.</param>
     /// <param name="values">字符串或枚举文本数组；String or enum-text values.</param>
