@@ -108,7 +108,7 @@ if ($null -eq $result.artifacts -or
 $negativeBoundariesPath = Join-Path $record 'negative-boundaries.txt'
 if (-not (Test-Path -LiteralPath $negativeBoundariesPath -PathType Leaf)) { throw 'Negative-boundary observation artifact is missing.' }
 $expectedNegativeBoundaries = @(
-    'variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object|boolean-array-materialized',
+    'variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object|boolean-array-materialized|all-typed-scalars-and-arrays-materialized',
     'module-owner|no-public-module-constructor-or-static-factory|program-bound-create-module-only'
 )
 if (Compare-Object $expectedNegativeBoundaries @(Get-Content -LiteralPath $negativeBoundariesPath)) {

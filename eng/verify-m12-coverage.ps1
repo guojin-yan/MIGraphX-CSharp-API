@@ -169,7 +169,7 @@ $sourceChecks = @{
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXArgument.cs' = @('CreateEmpty', 'Generate', 'Save', 'Clone')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXProgram.cs' = @('ParseTfFile', 'QuantizeInt8', 'GetExperimentalContext', 'GetMainModule')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXGraph.cs' = @('MIGraphXModule', 'MIGraphXInstruction', 'MIGraphXOperation', 'Create(string nativeLibraryPath, string name)', 'Clone()')
-    'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOperationAttributes.cs' = @('ForReshape', 'ForTranspose', 'ForSlice', 'ForMultibroadcast', 'ForTopK', 'SetBooleanArray', 'RequireValues')
+    'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOperationAttributes.cs' = @('ForReshape', 'ForTranspose', 'ForSlice', 'ForMultibroadcast', 'ForTopK', 'SetInt32', 'SetUInt32', 'SetInt64', 'SetUInt64', 'SetSingle', 'SetDouble', 'SetBoolean', 'SetString', 'SetNull', 'SetInt32Array', 'SetUInt32Array', 'SetInt64Array', 'SetUInt64Array', 'SetSingleArray', 'SetDoubleArray', 'SetBooleanArray', 'SetStringArray', 'RequireValues')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXTfOptions.cs' = @('SetInputParameterShape', 'SetOutputNames')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXQuantization.cs' = @('MIGraphXQuantizeInt8Options', 'MIGraphXQuantizeFp8Options')
     'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXContext.cs' = @('GetQueue', 'Finish')
@@ -208,7 +208,7 @@ if (-not $operationAttributesSource.Contains('SetBooleanArray', [StringCompariso
 }
 
 $packageConsumerFrameworks = @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')
-$packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK', 'SetBooleanArray')
+$packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK', 'SetUInt32', 'SetInt64', 'SetUInt64', 'SetDouble', 'SetInt32Array', 'SetUInt32Array', 'SetUInt64Array', 'SetSingleArray', 'SetDoubleArray', 'SetStringArray', 'SetBooleanArray')
 foreach ($framework in $packageConsumerFrameworks) {
     $consumerPath = Join-Path $root (Join-Path 'tests\fixtures\package-consumers' (Join-Path $framework 'Program.cs'))
     if (-not (Test-Path -LiteralPath $consumerPath -PathType Leaf)) { throw "M12 package consumer is missing: $framework" }

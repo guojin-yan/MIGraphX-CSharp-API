@@ -352,6 +352,21 @@ public sealed class M12LocalInterfaceTests
             "{group: 2, axes: [1, 2, 3], value: 0.5, largest: true, flags: [true, false], mode: \"nearest\", pattern: \"50%\\\\done\\\"ok\", optional: null}",
             attributes.Build());
 
+        var allTypedValues = new MIGraphXOperationAttributes()
+            .SetUInt32("u32", 3u)
+            .SetInt64("i64", -4L)
+            .SetUInt64("u64", 5UL)
+            .SetDouble("double", 1.25)
+            .SetInt32Array("i32s", new[] { -1, 2 })
+            .SetUInt32Array("u32s", new[] { 3u, 4u })
+            .SetUInt64Array("u64s", new[] { 5UL, 6UL })
+            .SetSingleArray("singles", new[] { 0.5f, -1f })
+            .SetDoubleArray("doubles", new[] { 1.25, 2.5 })
+            .SetStringArray("labels", new[] { "a", "b" });
+        Assert.Equal(
+            "{u32: 3, i64: -4, u64: 5, double: 1.25, i32s: [-1, 2], u32s: [3, 4], u64s: [5, 6], singles: [0.5, -1], doubles: [1.25, 2.5], labels: [\"a\", \"b\"]}",
+            allTypedValues.Build());
+
         Assert.Throws<ArgumentException>(() => attributes.SetInt64("axes", 4));
         Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad-key", "value"));
         Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad", "a\0b"));
