@@ -208,7 +208,7 @@ if (-not $operationAttributesSource.Contains('SetBooleanArray', [StringCompariso
 }
 
 $packageConsumerFrameworks = @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')
-$packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK', 'SetUInt32', 'SetInt64', 'SetUInt64', 'SetDouble', 'SetInt32Array', 'SetUInt32Array', 'SetUInt64Array', 'SetSingleArray', 'SetDoubleArray', 'SetStringArray', 'SetBooleanArray')
+$packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK', 'SetInt32', 'SetUInt32', 'SetInt64', 'SetUInt64', 'SetSingle', 'SetDouble', 'SetBoolean', 'SetString', 'SetNull', 'SetInt32Array', 'SetUInt32Array', 'SetInt64Array', 'SetUInt64Array', 'SetSingleArray', 'SetDoubleArray', 'SetBooleanArray', 'SetStringArray')
 foreach ($framework in $packageConsumerFrameworks) {
     $consumerPath = Join-Path $root (Join-Path 'tests\fixtures\package-consumers' (Join-Path $framework 'Program.cs'))
     if (-not (Test-Path -LiteralPath $consumerPath -PathType Leaf)) { throw "M12 package consumer is missing: $framework" }

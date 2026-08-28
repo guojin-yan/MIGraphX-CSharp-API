@@ -398,10 +398,10 @@ internal sealed class ProbeRunner
             "Operation creation exposes an arbitrary variadic ABI carrier.");
         var booleanArray = new MIGraphXOperationAttributes().SetBooleanArray("flags", new[] { true, false });
         Require(booleanArray.Build() == "{flags: [true, false]}", "Boolean-array attributes were not materialized deterministically.");
-        var typedScalars = new MIGraphXOperationAttributes().SetUInt32("u32", 3u).SetInt64("i64", -4L).SetUInt64("u64", 5UL).SetDouble("double", 1.25);
-        Require(typedScalars.Build() == "{u32: 3, i64: -4, u64: 5, double: 1.25}", "Typed scalar attributes were not materialized deterministically.");
-        var typedArrays = new MIGraphXOperationAttributes().SetInt32Array("i32s", new[] { -1, 2 }).SetUInt32Array("u32s", new[] { 3u, 4u }).SetUInt64Array("u64s", new[] { 5UL, 6UL }).SetSingleArray("singles", new[] { 0.5f, -1f }).SetDoubleArray("doubles", new[] { 1.25, 2.5 }).SetStringArray("labels", new[] { "a", "b" });
-        Require(typedArrays.Build() == "{i32s: [-1, 2], u32s: [3, 4], u64s: [5, 6], singles: [0.5, -1], doubles: [1.25, 2.5], labels: [\"a\", \"b\"]}", "Typed array attributes were not materialized deterministically.");
+        var typedScalars = new MIGraphXOperationAttributes().SetInt32("i32", -2).SetUInt32("u32", 3u).SetInt64("i64", -4L).SetUInt64("u64", 5UL).SetSingle("single", 0.5f).SetDouble("double", 1.25).SetBoolean("enabled", true).SetString("mode", "nearest").SetNull("optional");
+        Require(typedScalars.Build() == "{i32: -2, u32: 3, i64: -4, u64: 5, single: 0.5, double: 1.25, enabled: true, mode: \"nearest\", optional: null}", "Typed scalar attributes were not materialized deterministically.");
+        var typedArrays = new MIGraphXOperationAttributes().SetInt32Array("i32s", new[] { -1, 2 }).SetUInt32Array("u32s", new[] { 3u, 4u }).SetInt64Array("i64s", new[] { -5L, 6L }).SetUInt64Array("u64s", new[] { 7UL, 8UL }).SetSingleArray("singles", new[] { 0.5f, -1f }).SetDoubleArray("doubles", new[] { 1.25, 2.5 }).SetBooleanArray("bools", new[] { true, false }).SetStringArray("labels", new[] { "a", "b" });
+        Require(typedArrays.Build() == "{i32s: [-1, 2], u32s: [3, 4], i64s: [-5, 6], u64s: [7, 8], singles: [0.5, -1], doubles: [1.25, 2.5], bools: [true, false], labels: [\"a\", \"b\"]}", "Typed array attributes were not materialized deterministically.");
 
         AppendNegativeBoundaryObservation("variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object|boolean-array-materialized|all-typed-scalars-and-arrays-materialized");
         WriteStage(id, "teardown", "entered");
