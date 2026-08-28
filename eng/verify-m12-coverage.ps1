@@ -197,6 +197,16 @@ foreach ($relativePath in $sourceChecks.Keys) {
     }
 }
 
+$operationAttributesSource = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOperationAttributes.cs')
+foreach ($forbiddenToken in @('params object', 'object[]', 'IntPtr', 'UnmanagedCallersOnly')) {
+    if ($operationAttributesSource.Contains($forbiddenToken, [StringComparison]::Ordinal)) {
+        throw "Operation attribute source must not expose arbitrary ABI token '$forbiddenToken'."
+    }
+}
+if (-not $operationAttributesSource.Contains('SetBooleanArray', [StringComparison]::Ordinal)) {
+    throw 'Operation attribute source lost the reviewed Boolean-array typed value.'
+}
+
 $packageConsumerFrameworks = @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')
 $packageConsumerTokens = @('MIGraphXOperationAttributes.ForReshape', 'MIGraphXOperationAttributes.ForTranspose', 'MIGraphXOperationAttributes.ForSlice', 'MIGraphXOperationAttributes.ForMultibroadcast', 'MIGraphXOperationAttributes.ForTopK', 'SetBooleanArray')
 foreach ($framework in $packageConsumerFrameworks) {
@@ -219,7 +229,8 @@ $design = Get-Content -Raw -LiteralPath (Join-Path $root 'docs\design\m12-local-
 if (-not $design.Contains('Local validation record', [StringComparison]::Ordinal) -or
     -not $design.Contains('real MIGraphX runtime', [StringComparison]::Ordinal) -or
     -not $design.Contains('migraphx_operation_create', [StringComparison]::Ordinal) -or
-    -not $design.Contains('migraphx_module_create', [StringComparison]::Ordinal)) {
+    -not $design.Contains('migraphx_module_create', [StringComparison]::Ordinal) -or
+    -not $design.Contains('reflection contract', [StringComparison]::Ordinal)) {
     throw 'M12 design record is missing local validation or deferred-boundary statements.'
 }
 

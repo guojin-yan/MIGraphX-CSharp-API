@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Runtime.InteropServices;
 using JYPPX.ROCm.MIGraphXSharp;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
@@ -371,6 +372,40 @@ public sealed class M12LocalInterfaceTests
         controls.SetNullOutput("migraphx_operation_create");
         Assert.Throws<MIGraphXException>(() => MIGraphXOperation.Create(nativePath, "topk", attributes));
         AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public void OperationAttributeSurfaceRemainsClosedOverArbitraryVariadicAbi()
+    {
+        var attributeMethods = typeof(MIGraphXOperationAttributes)
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(method => !method.IsSpecialName);
+
+        Assert.NotEmpty(attributeMethods);
+        Assert.DoesNotContain(attributeMethods, method => method.GetParameters().Any(parameter =>
+            parameter.ParameterType == typeof(object)
+            || parameter.ParameterType == typeof(object[])
+            || parameter.ParameterType == typeof(IntPtr)
+            || parameter.ParameterType.IsPointer
+            || (parameter.GetCustomAttribute<ParamArrayAttribute>() is not null
+                && parameter.ParameterType.GetElementType() == typeof(object))));
+
+        var createMethods = typeof(MIGraphXOperation)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(method => method.Name == nameof(MIGraphXOperation.Create))
+            .ToArray();
+
+        Assert.Equal(2, createMethods.Length);
+        Assert.Contains(createMethods, method => method.GetParameters().Select(parameter => parameter.ParameterType)
+            .SequenceEqual(new[] { typeof(string), typeof(string) }));
+        Assert.Contains(createMethods, method => method.GetParameters().Select(parameter => parameter.ParameterType)
+            .SequenceEqual(new[] { typeof(string), typeof(string), typeof(MIGraphXOperationAttributes) }));
+        Assert.DoesNotContain(createMethods, method => method.GetParameters().Any(parameter =>
+            parameter.ParameterType == typeof(object)
+            || parameter.ParameterType == typeof(object[])
+            || parameter.ParameterType == typeof(IntPtr)
+            || parameter.ParameterType.IsPointer
+            || parameter.GetCustomAttribute<ParamArrayAttribute>() is not null));
     }
 
     [Fact]
