@@ -409,6 +409,24 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void ModuleSurfaceRemainsProgramBoundWithoutIndependentOwner()
+    {
+        var moduleType = typeof(MIGraphXModule);
+        Assert.DoesNotContain(moduleType.GetConstructors(BindingFlags.Public | BindingFlags.Instance), _ => true);
+        Assert.DoesNotContain(moduleType.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(method => !method.IsSpecialName), _ => true);
+
+        var programFactories = typeof(MIGraphXProgram)
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(method => method.Name == nameof(MIGraphXProgram.CreateModule))
+            .ToArray();
+
+        var createModule = Assert.Single(programFactories);
+        Assert.Equal(typeof(MIGraphXModule), createModule.ReturnType);
+        Assert.Equal(new[] { typeof(string) }, createModule.GetParameters().Select(parameter => parameter.ParameterType));
+    }
+
+    [Fact]
     public async System.Threading.Tasks.Task DeferredNegativeBoundariesAndConcurrentDisposeRemainFailClosed()
     {
         Assert.Empty(typeof(MIGraphXOperation).GetConstructors());

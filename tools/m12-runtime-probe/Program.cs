@@ -138,13 +138,15 @@ internal sealed class ProbeRunner
             ("m12-graph-editing", RunGraphEditing),
             ("m12-operation-materialized-attributes", RunOperationMaterializedAttributes),
             ("m12-context-lifetime", RunContextLifetime),
+            ("m12-negative-variadic-operation", RunNegativeVariadicOperationBoundary),
+            ("m12-negative-module-owner", RunNegativeModuleOwnerBoundary),
             ("m12-tensorflow-parse", RunTensorFlowParse),
             ("m12-quantization-options", RunQuantizationOptions),
             ("m12-custom-op-registration", RunCustomOpRegistration),
             ("m12-concurrent-dispose", RunConcurrentDispose),
         };
         var selected = options.CaseId is null
-            ? (options.IncludeDeferred ? cases : cases.Take(7)).ToArray()
+            ? (options.IncludeDeferred ? cases : cases.Take(9)).ToArray()
             : cases.Where(item => item.Id == options.CaseId).ToArray();
         if (selected.Length == 0) throw new ArgumentException("--case does not name an executable M12 candidate case.");
         foreach (var item in selected) RunCase(item.Id, item.Action);
@@ -356,6 +358,78 @@ internal sealed class ProbeRunner
         File.WriteAllLines(artifact, observations);
         report.Artifacts["operationAttributesSha256"] = Program.HashFile(artifact);
         WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunNegativeVariadicOperationBoundary()
+    {
+        const string id = "m12-negative-variadic-operation";
+        WriteStage(id, "reflection", "entered");
+        var attributeMethods = typeof(MIGraphXOperationAttributes)
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(method => !method.IsSpecialName)
+            .ToArray();
+        Require(attributeMethods.Length > 0, "Operation attribute surface is empty.");
+        Require(!attributeMethods.Any(method => method.GetParameters().Any(parameter =>
+            parameter.ParameterType == typeof(object)
+            || parameter.ParameterType == typeof(object[])
+            || parameter.ParameterType == typeof(IntPtr)
+            || parameter.ParameterType.IsPointer
+            || (parameter.GetCustomAttribute<ParamArrayAttribute>() is not null
+                && parameter.ParameterType.GetElementType() == typeof(object)))),
+            "Operation attributes expose an arbitrary variadic ABI carrier.");
+
+        var createMethods = typeof(MIGraphXOperation)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Where(method => method.Name == nameof(MIGraphXOperation.Create))
+            .ToArray();
+        Require(createMethods.Length == 2, "Operation create overload count drifted.");
+        Require(createMethods.Any(method => method.GetParameters().Select(parameter => parameter.ParameterType)
+            .SequenceEqual(new[] { typeof(string), typeof(string) })),
+            "The no-attribute operation factory is missing.");
+        Require(createMethods.Any(method => method.GetParameters().Select(parameter => parameter.ParameterType)
+            .SequenceEqual(new[] { typeof(string), typeof(string), typeof(MIGraphXOperationAttributes) })),
+            "The typed-attribute operation factory is missing.");
+        Require(!createMethods.Any(method => method.GetParameters().Any(parameter =>
+            parameter.ParameterType == typeof(object)
+            || parameter.ParameterType == typeof(object[])
+            || parameter.ParameterType == typeof(IntPtr)
+            || parameter.ParameterType.IsPointer
+            || parameter.GetCustomAttribute<ParamArrayAttribute>() is not null)),
+            "Operation creation exposes an arbitrary variadic ABI carrier.");
+
+        AppendNegativeBoundaryObservation("variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object");
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunNegativeModuleOwnerBoundary()
+    {
+        const string id = "m12-negative-module-owner";
+        WriteStage(id, "reflection", "entered");
+        var moduleType = typeof(MIGraphXModule);
+        Require(moduleType.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Length == 0,
+            "MIGraphXModule exposes an independent public owner constructor.");
+        Require(!moduleType.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+            .Any(method => !method.IsSpecialName),
+            "MIGraphXModule exposes an independent public owner factory.");
+
+        var createModuleMethods = typeof(MIGraphXProgram)
+            .GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
+            .Where(method => method.Name == nameof(MIGraphXProgram.CreateModule))
+            .ToArray();
+        Require(createModuleMethods.Length == 1
+            && createModuleMethods[0].ReturnType == typeof(MIGraphXModule)
+            && createModuleMethods[0].GetParameters().Select(parameter => parameter.ParameterType).SequenceEqual(new[] { typeof(string) }),
+            "Program-bound module factory contract drifted.");
+
+        AppendNegativeBoundaryObservation("module-owner|no-public-module-constructor-or-static-factory|program-bound-create-module-only");
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private void AppendNegativeBoundaryObservation(string observation)
+    {
+        var artifact = Path.Combine(options.RecordDirectory, "negative-boundaries.txt");
+        File.AppendAllText(artifact, observation + Environment.NewLine);
+        report.Artifacts["negativeBoundariesSha256"] = Program.HashFile(artifact);
     }
 
     private void RunTensorFlowParse()

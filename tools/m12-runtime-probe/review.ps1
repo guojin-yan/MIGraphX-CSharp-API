@@ -51,7 +51,9 @@ $expectedCases = @(
     'm12-graph-parent-lease',
     'm12-graph-editing',
     'm12-operation-materialized-attributes',
-    'm12-context-lifetime'
+    'm12-context-lifetime',
+    'm12-negative-variadic-operation',
+    'm12-negative-module-owner'
 )
 if ($includeDeferred) {
     $expectedCases += @(
@@ -103,6 +105,19 @@ if ($null -eq $result.artifacts -or
     $result.artifacts.operationAttributesSha256 -ne (Get-Sha256 $operationAttributesPath)) {
     throw 'Operation-attribute artifact hash is missing or drifted.'
 }
+$negativeBoundariesPath = Join-Path $record 'negative-boundaries.txt'
+if (-not (Test-Path -LiteralPath $negativeBoundariesPath -PathType Leaf)) { throw 'Negative-boundary observation artifact is missing.' }
+$expectedNegativeBoundaries = @(
+    'variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object',
+    'module-owner|no-public-module-constructor-or-static-factory|program-bound-create-module-only'
+)
+if (Compare-Object $expectedNegativeBoundaries @(Get-Content -LiteralPath $negativeBoundariesPath)) {
+    throw 'Negative-boundary observations drifted.'
+}
+if ($null -eq $result.artifacts -or
+    $result.artifacts.negativeBoundariesSha256 -ne (Get-Sha256 $negativeBoundariesPath)) {
+    throw 'Negative-boundary artifact hash is missing or drifted.'
+}
 if ((Get-Sha256 $CorePackagePath) -ne $CoreSha256) { throw 'Core package hash mismatch.' }
 $expectedTensorFlowFixtureSha = 'de8be9fda62bbbffb72ce46ac91426b336be60f882e227b6e71e1407c584740e'
 $expectedCalibrationFixtureSha = '15f8698707b49e1c92021d833bc0b79c1455f777241e80a7e500619309eda1af'
@@ -139,7 +154,7 @@ foreach ($line in Get-Content -LiteralPath $manifestPath) {
     if ((Get-Sha256 $path) -ne $Matches[1]) { $manifestFailures.Add($path) }
 }
 if ($manifestFailures.Count -ne 0) { throw "Artifact hash mismatches: $($manifestFailures -join ', ')" }
-foreach ($requiredPath in @($resultPath, $metadataPath, $stagePath, $identitiesPath, $operationAttributesPath)) {
+foreach ($requiredPath in @($resultPath, $metadataPath, $stagePath, $identitiesPath, $operationAttributesPath, $negativeBoundariesPath)) {
     $resolvedRequiredPath = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $requiredPath).Path)
     if (-not $manifestPaths.Contains($resolvedRequiredPath)) {
         throw "Artifact manifest is missing required review input: $requiredPath"
