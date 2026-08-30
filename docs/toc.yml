@@ -2,6 +2,8 @@
   href: index.md
 - name: Getting started
   href: guides/getting-started.md
+- name: M12 typed operation attributes
+  href: guides/m12-typed-operation-attributes.md
 - name: Managed objects
   href: guides/managed-objects.md
 - name: API compatibility and versioning
