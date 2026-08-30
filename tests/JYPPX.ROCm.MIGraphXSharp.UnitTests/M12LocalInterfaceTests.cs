@@ -426,6 +426,27 @@ public sealed class M12LocalInterfaceTests
             }
         }
 
+        using (var shapeOperation = new MIGraphXExperimentalCustomOp(nativePath, "managed_shape_exception_test"))
+        {
+            shapeOperation.SetComputeShape((_, _, _, _, _) => throw new InvalidOperationException("shape callback boundary canary"));
+            Assert.Equal((int)MIGraphXStatus.UnknownError,
+                controls.InvokeCustomCallbacks(shapeOperation.Owner.WithHandle(static handle => handle)));
+        }
+
+        using (var aliasOperation = new MIGraphXExperimentalCustomOp(nativePath, "managed_alias_exception_test"))
+        {
+            aliasOperation.SetOutputAlias((_, _, _, _, _, _) => throw new InvalidOperationException("alias callback boundary canary"));
+            Assert.Equal((int)MIGraphXStatus.UnknownError,
+                controls.InvokeCustomCallbacks(aliasOperation.Owner.WithHandle(static handle => handle)));
+        }
+
+        using (var targetOperation = new MIGraphXExperimentalCustomOp(nativePath, "managed_target_exception_test"))
+        {
+            targetOperation.SetRunsOnOffloadTarget((_, _, _, _) => throw new InvalidOperationException("target callback boundary canary"));
+            Assert.Equal((int)MIGraphXStatus.UnknownError,
+                controls.InvokeCustomCallbacks(targetOperation.Owner.WithHandle(static handle => handle)));
+        }
+
         AssertNoNativeLeaks(controls);
     }
 
