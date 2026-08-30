@@ -816,3 +816,11 @@ EXPORT migraphx_status fake_invoke_custom_callbacks(migraphx_experimental_custom
     }
     return migraphx_status_success;
 }
+
+/* Test-only entry point: provide an exception buffer to the compute callback. */
+EXPORT migraphx_status fake_invoke_custom_compute_with_error_buffer(
+    migraphx_experimental_custom_op_t operation, void* exception_message, size_t exception_message_size)
+{
+    if(operation == NULL || operation->compute == NULL) return migraphx_status_bad_param;
+    return ((fake_custom_compute)operation->compute)(NULL, operation->object, exception_message, exception_message_size, NULL, NULL, NULL);
+}

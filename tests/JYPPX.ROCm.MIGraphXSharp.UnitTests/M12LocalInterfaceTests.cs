@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using JYPPX.ROCm.MIGraphXSharp;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
 using Xunit;
@@ -394,6 +395,41 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CustomOpCallbackExceptionsBecomeNativeStatusAndUtf8Message()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_exception_test"))
+        {
+            operation.SetCompute((_, _, _, _, _, _, _) => throw new InvalidOperationException("callback boundary canary"));
+
+            const int capacity = 128;
+            var buffer = Marshal.AllocHGlobal(capacity);
+            try
+            {
+                for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0xCC);
+                var status = controls.InvokeCustomComputeWithErrorBuffer(
+                    operation.Owner.WithHandle(static handle => handle), buffer, (UIntPtr)capacity);
+                Assert.Equal((int)MIGraphXStatus.UnknownError, status);
+
+                var bytes = new byte[capacity];
+                Marshal.Copy(buffer, bytes, 0, bytes.Length);
+                var length = Array.IndexOf(bytes, (byte)0);
+                if (length < 0) length = bytes.Length;
+                Assert.Equal("callback boundary canary", Encoding.UTF8.GetString(bytes, 0, length));
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void OperationAttributeSurfaceRemainsClosedOverArbitraryVariadicAbi()
     {
         var attributeMethods = typeof(MIGraphXOperationAttributes)
@@ -567,6 +603,7 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt programPrintCount;
         private readonly GetInt programSortCount;
         private readonly CustomCallbackInvoker invokeCustomCallbacks;
+        private readonly CustomCallbackErrorInvoker invokeCustomComputeWithErrorBuffer;
 
         internal FakeControls(string path)
         {
@@ -584,6 +621,7 @@ public sealed class M12LocalInterfaceTests
             contextFinishCount = Get<GetInt>("fake_context_finish_count");
             customRegisterCount = Get<GetInt>("fake_custom_register_count");
             invokeCustomCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_callbacks");
+            invokeCustomComputeWithErrorBuffer = Get<CustomCallbackErrorInvoker>("fake_invoke_custom_compute_with_error_buffer");
             programPrintCount = Get<GetInt>("fake_program_print_count");
             programSortCount = Get<GetInt>("fake_program_sort_count");
         }
@@ -601,6 +639,8 @@ public sealed class M12LocalInterfaceTests
         internal int ContextFinishCount() => contextFinishCount();
         internal int CustomRegisterCount() => customRegisterCount();
         internal int InvokeCustomCallbacks(IntPtr operation) => invokeCustomCallbacks(operation);
+        internal int InvokeCustomComputeWithErrorBuffer(IntPtr operation, IntPtr message, UIntPtr size)
+            => invokeCustomComputeWithErrorBuffer(operation, message, size);
         internal int ProgramPrintCount() => programPrintCount();
         internal int ProgramSortCount() => programSortCount();
         public void Dispose() => NativeLibrary.Free(library);
@@ -609,6 +649,7 @@ public sealed class M12LocalInterfaceTests
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int GetInt();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackInvoker(IntPtr operation);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackErrorInvoker(IntPtr operation, IntPtr message, UIntPtr size);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetString([MarshalAs(UnmanagedType.LPUTF8Str)] string value);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetStringInt([MarshalAs(UnmanagedType.LPUTF8Str)] string value, int status);
     }

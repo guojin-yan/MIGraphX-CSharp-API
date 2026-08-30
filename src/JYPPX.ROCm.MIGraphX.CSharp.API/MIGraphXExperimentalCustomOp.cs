@@ -1,11 +1,20 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Text;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
 
 namespace JYPPX.ROCm.MIGraphXSharp;
 
 /// <summary>实验 custom-op 的原始回调桥接。 Experimental custom-op callback bridge.</summary>
+/// <remarks>
+/// Managed callback exceptions are contained by a native ABI thunk. An exception is
+/// converted to <see cref="MIGraphXStatus.UnknownError"/> and, when the native side
+/// supplies a buffer, a bounded UTF-8 message is written to that buffer; no managed
+/// exception is allowed to cross the unmanaged callback boundary.
+/// 托管回调异常由原生 ABI thunk 截获并转换为 <see cref="MIGraphXStatus.UnknownError"/>，
+/// 原生侧提供缓冲区时写入有界 UTF-8 消息；任何托管异常都不会穿过非托管回调边界。
+/// </remarks>
 public sealed class MIGraphXExperimentalCustomOp : IDisposable
 {
     /// <summary>Compute 回调的原生 ABI 签名。 Native ABI signature for compute callbacks.</summary>
@@ -96,28 +105,52 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     /// <param name="callback">可为空的 compute 回调。 Optional compute callback.</param>
     public void SetCompute(ComputeCallback? callback)
     {
-        SetCallback(callback, NativeMethods.ExperimentalCustomOpSetCompute, "migraphx_experimental_custom_op_set_compute", value => compute = value);
+        NativeExperimentalCustomOpComputeCallback? thunk = callback is null ? null :
+            (outputArgument, obj, exceptionMessage, exceptionMessageSize, context, outputShape, inputs) =>
+                InvokeCompute(callback, outputArgument, obj, exceptionMessage, exceptionMessageSize, context, outputShape, inputs);
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetCompute, "migraphx_experimental_custom_op_set_compute", () =>
+        {
+            compute = callback;
+        });
     }
 
     /// <summary>设置 shape 推导回调。 Sets the shape-inference callback.</summary>
     /// <param name="callback">可为空的 shape 回调。 Optional shape callback.</param>
     public void SetComputeShape(ComputeShapeCallback? callback)
     {
-        SetCallback(callback, NativeMethods.ExperimentalCustomOpSetComputeShape, "migraphx_experimental_custom_op_set_compute_shape", value => computeShape = value);
+        NativeExperimentalCustomOpComputeShapeCallback? thunk = callback is null ? null :
+            (outputShape, obj, exceptionMessage, exceptionMessageSize, inputs) =>
+                InvokeComputeShape(callback, outputShape, obj, exceptionMessage, exceptionMessageSize, inputs);
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetComputeShape, "migraphx_experimental_custom_op_set_compute_shape", () =>
+        {
+            computeShape = callback;
+        });
     }
 
     /// <summary>设置 output alias 回调。 Sets the output-alias callback.</summary>
     /// <param name="callback">可为空的 alias 回调。 Optional alias callback.</param>
     public void SetOutputAlias(OutputAliasCallback? callback)
     {
-        SetCallback(callback, NativeMethods.ExperimentalCustomOpSetOutputAlias, "migraphx_experimental_custom_op_set_output_alias", value => outputAlias = value);
+        NativeExperimentalCustomOpOutputAliasCallback? thunk = callback is null ? null :
+            (output, outputSize, obj, exceptionMessage, exceptionMessageSize, inputs) =>
+                InvokeOutputAlias(callback, output, outputSize, obj, exceptionMessage, exceptionMessageSize, inputs);
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetOutputAlias, "migraphx_experimental_custom_op_set_output_alias", () =>
+        {
+            outputAlias = callback;
+        });
     }
 
     /// <summary>设置是否运行在 offload target 的回调。 Sets the runs-on-offload-target callback.</summary>
     /// <param name="callback">可为空的 target 回调。 Optional target callback.</param>
     public void SetRunsOnOffloadTarget(RunsOnOffloadTargetCallback? callback)
     {
-        SetCallback(callback, NativeMethods.ExperimentalCustomOpSetRunsOnOffloadTarget, "migraphx_experimental_custom_op_set_runs_on_offload_target", value => runsOnOffloadTarget = value);
+        NativeExperimentalCustomOpRunsOnOffloadTargetCallback? thunk = callback is null ? null :
+            (output, obj, exceptionMessage, exceptionMessageSize) =>
+                InvokeRunsOnOffloadTarget(callback, output, obj, exceptionMessage, exceptionMessageSize);
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetRunsOnOffloadTarget, "migraphx_experimental_custom_op_set_runs_on_offload_target", () =>
+        {
+            runsOnOffloadTarget = callback;
+        });
     }
 
     /// <summary>将 custom-op 注册到 MIGraphX 全局 registry。 Registers the custom-op in the MIGraphX global registry.</summary>
@@ -152,7 +185,7 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     /// <summary>释放 native custom-op。 Releases the native custom-op.</summary>
     public void Dispose() => owner.Dispose();
 
-    private void SetCallback<T>(T? callback, Func<IntPtr, IntPtr, NativeMIGraphXStatus> setter, string operation, Action<T?> remember) where T : Delegate
+    private void SetCallback(Delegate? callback, Func<IntPtr, IntPtr, NativeMIGraphXStatus> setter, string operation, Action remember)
     {
         var pointer = callback is null ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callback);
         owner.WithHandle(handle =>
@@ -161,9 +194,108 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
             lock (callbacks)
             {
                 if (callback is not null) callbacks.Add(callback);
-                remember(callback);
+                remember();
             }
         });
+    }
+
+    private static NativeMIGraphXStatus InvokeCompute(
+        ComputeCallback callback,
+        IntPtr outputArgument,
+        IntPtr obj,
+        IntPtr exceptionMessage,
+        UIntPtr exceptionMessageSize,
+        IntPtr context,
+        IntPtr outputShape,
+        IntPtr inputs)
+    {
+        try
+        {
+            return (NativeMIGraphXStatus)callback(outputArgument, obj, exceptionMessage, exceptionMessageSize, context, outputShape, inputs);
+        }
+        catch (Exception error)
+        {
+            WriteCallbackException(exceptionMessage, exceptionMessageSize, error);
+            return NativeMIGraphXStatus.UnknownError;
+        }
+    }
+
+    private static NativeMIGraphXStatus InvokeComputeShape(
+        ComputeShapeCallback callback,
+        IntPtr outputShape,
+        IntPtr obj,
+        IntPtr exceptionMessage,
+        UIntPtr exceptionMessageSize,
+        IntPtr inputs)
+    {
+        try
+        {
+            return (NativeMIGraphXStatus)callback(outputShape, obj, exceptionMessage, exceptionMessageSize, inputs);
+        }
+        catch (Exception error)
+        {
+            WriteCallbackException(exceptionMessage, exceptionMessageSize, error);
+            return NativeMIGraphXStatus.UnknownError;
+        }
+    }
+
+    private static NativeMIGraphXStatus InvokeOutputAlias(
+        OutputAliasCallback callback,
+        IntPtr output,
+        IntPtr outputSize,
+        IntPtr obj,
+        IntPtr exceptionMessage,
+        UIntPtr exceptionMessageSize,
+        IntPtr inputs)
+    {
+        try
+        {
+            return (NativeMIGraphXStatus)callback(output, outputSize, obj, exceptionMessage, exceptionMessageSize, inputs);
+        }
+        catch (Exception error)
+        {
+            WriteCallbackException(exceptionMessage, exceptionMessageSize, error);
+            return NativeMIGraphXStatus.UnknownError;
+        }
+    }
+
+    private static NativeMIGraphXStatus InvokeRunsOnOffloadTarget(
+        RunsOnOffloadTargetCallback callback,
+        IntPtr output,
+        IntPtr obj,
+        IntPtr exceptionMessage,
+        UIntPtr exceptionMessageSize)
+    {
+        try
+        {
+            return (NativeMIGraphXStatus)callback(output, obj, exceptionMessage, exceptionMessageSize);
+        }
+        catch (Exception error)
+        {
+            WriteCallbackException(exceptionMessage, exceptionMessageSize, error);
+            return NativeMIGraphXStatus.UnknownError;
+        }
+    }
+
+    private static void WriteCallbackException(IntPtr exceptionMessage, UIntPtr exceptionMessageSize, Exception error)
+    {
+        try
+        {
+            if (exceptionMessage == IntPtr.Zero) return;
+            var rawSize = exceptionMessageSize.ToUInt64();
+            if (rawSize == 0) return;
+            var capacity = rawSize > int.MaxValue ? int.MaxValue : (int)rawSize;
+            if (capacity <= 0) return;
+            var text = string.IsNullOrEmpty(error.Message) ? error.GetType().Name : error.Message;
+            var bytes = Encoding.UTF8.GetBytes(text);
+            var copy = Math.Min(bytes.Length, capacity - 1);
+            if (copy > 0) Marshal.Copy(bytes, 0, exceptionMessage, copy);
+            Marshal.WriteByte(exceptionMessage, copy, 0);
+        }
+        catch
+        {
+            // A callback must never let a secondary exception cross the unmanaged boundary.
+        }
     }
 
     [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
