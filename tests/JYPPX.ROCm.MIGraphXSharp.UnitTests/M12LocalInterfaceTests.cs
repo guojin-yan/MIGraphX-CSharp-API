@@ -371,6 +371,10 @@ public sealed class M12LocalInterfaceTests
         Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad-key", "value"));
         Assert.Throws<ArgumentException>(() => new MIGraphXOperationAttributes().SetString("bad", "a\0b"));
         Assert.Throws<ArgumentOutOfRangeException>(() => new MIGraphXOperationAttributes().SetSingle("bad", float.NaN));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new MIGraphXOperationAttributes().SetSingleArray("bad", new[] { 0.5f, float.PositiveInfinity }));
+        Assert.Throws<ArgumentOutOfRangeException>(() => new MIGraphXOperationAttributes().SetDoubleArray("bad", new[] { 1.0, double.NaN }));
+        Assert.Throws<ArgumentNullException>(() => new MIGraphXOperationAttributes().SetInt32Array("bad", null!));
+        Assert.Throws<ArgumentNullException>(() => new MIGraphXOperationAttributes().SetStringArray("bad", new[] { "ok", (string)null! }));
         Assert.Throws<ArgumentNullException>(() => new MIGraphXOperationAttributes().SetBooleanArray("bad", null!));
 
         var nativePath = FakePath();
