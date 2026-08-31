@@ -413,6 +413,18 @@ public sealed class RepositoryQualityTests
         Assert.Contains("HashSet", review, StringComparison.Ordinal);
         Assert.DoesNotContain("runtime-executed", review, StringComparison.Ordinal);
         Assert.DoesNotContain("|| true", runner, StringComparison.Ordinal);
+
+        var providerRoot = Path.Combine(RepositoryRoot, "tools", "m12-provider-callback-probe");
+        var providerRunner = File.ReadAllText(Path.Combine(providerRoot, "provider-callback-probe.sh"));
+        var providerProbe = File.ReadAllText(Path.Combine(providerRoot, "Program.cs"));
+        var providerReview = File.ReadAllText(Path.Combine(providerRoot, "review.ps1"));
+        Assert.True(File.Exists(Path.Combine(providerRoot, "M12ProviderCallbackProbe.csproj")));
+        Assert.Contains("provider-callback-invocation", providerRunner, StringComparison.Ordinal);
+        Assert.Contains("callback-invoked-controlled-rejection", providerProbe, StringComparison.Ordinal);
+        Assert.Contains("callback-not-observed", providerProbe, StringComparison.Ordinal);
+        Assert.Contains("promotionState", providerReview, StringComparison.Ordinal);
+        Assert.Contains("provider-callback-record-verified", providerReview, StringComparison.Ordinal);
+        Assert.DoesNotContain("runtime-executed", providerReview, StringComparison.Ordinal);
     }
 
     [Fact]
