@@ -57,8 +57,9 @@ internal static class Program
             throw new InvalidOperationException($"Core package version is {MIGraphXBuildInfo.PackageVersion}, expected {options.ExpectedVersion}.");
         var informational = typeof(MIGraphXBuildInfo).Assembly
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? string.Empty;
-        if (!informational.Contains(options.SourceSha, StringComparison.Ordinal))
-            throw new InvalidOperationException("The core package informational version is not bound to the requested source SHA.");
+        var expectedInformational = options.ExpectedVersion + "+" + options.SourceSha;
+        if (!string.Equals(informational, expectedInformational, StringComparison.Ordinal))
+            throw new InvalidOperationException($"The core package informational version is {informational}, expected {expectedInformational}.");
     }
 
     private static void RunProviderProbe(ProbeOptions options, CallbackState state, ProbeResult result)
