@@ -843,6 +843,27 @@ EXPORT migraphx_status fake_invoke_custom_callbacks(migraphx_experimental_custom
     return migraphx_status_success;
 }
 
+/* Test-only entry point: copy managed state, invoke through the copy, then delete it. */
+EXPORT migraphx_status fake_invoke_custom_state_copy_callbacks(migraphx_experimental_custom_op_t operation)
+{
+    void* copied = NULL;
+    migraphx_status callback_status = migraphx_status_success;
+    migraphx_status delete_status;
+    migraphx_status status;
+    if(operation == NULL || operation->copy == NULL || operation->delete_object == NULL)
+        return migraphx_status_bad_param;
+    status = operation->copy(&copied, operation->object);
+    if(status != migraphx_status_success) return status;
+    ATOMIC_INCREMENT(custom_state_copy_count);
+    if(copied == NULL) return migraphx_status_unknown_error;
+    if(operation->compute != NULL)
+        callback_status = ((fake_custom_compute)operation->compute)(NULL, copied, NULL, 0, NULL, NULL, NULL);
+    delete_status = operation->delete_object(copied);
+    ATOMIC_INCREMENT(custom_state_delete_count);
+    if(callback_status != migraphx_status_success) return callback_status;
+    return delete_status;
+}
+
 /* Test-only entry point: provide an exception buffer to the compute callback. */
 EXPORT migraphx_status fake_invoke_custom_compute_with_error_buffer(
     migraphx_experimental_custom_op_t operation, void* exception_message, size_t exception_message_size)

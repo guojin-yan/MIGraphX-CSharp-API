@@ -299,6 +299,46 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CustomOpStateCopyDeletePreservesManagedIdentity()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        var state = new object();
+        object? observedState = null;
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_state_copy_test", state))
+        {
+            operation.SetCompute((_, obj, _, _, _, _, _) =>
+            {
+                observedState = GCHandle.FromIntPtr(obj).Target;
+                return MIGraphXStatus.Success;
+            });
+
+            Assert.Equal(0, controls.InvokeCustomStateCopyCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+            Assert.Same(state, observedState);
+            Assert.Equal(1, controls.CustomStateCopyCount());
+            Assert.Equal(1, controls.CustomStateDeleteCount());
+
+            observedState = null;
+            Assert.Equal(0, controls.InvokeCustomCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+            Assert.Same(state, observedState);
+
+            operation.SetCompute((_, _, _, _, _, _, _) => throw new InvalidOperationException("copied callback failure"));
+            Assert.Equal((int)MIGraphXStatus.UnknownError, controls.InvokeCustomStateCopyCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(2, controls.CustomStateCopyCount());
+            Assert.Equal(2, controls.CustomStateDeleteCount());
+        }
+
+        Assert.Equal(2, controls.CustomStateCopyCount());
+        Assert.Equal(2, controls.CustomStateDeleteCount());
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void FakeProviderDispatchInvokesRegisteredShapeCallbackThroughGraphPath()
     {
         var nativePath = FakePath();
@@ -761,12 +801,15 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt lastQuantization;
         private readonly GetInt contextFinishCount;
         private readonly GetInt customRegisterCount;
+        private readonly GetInt customStateCopyCount;
+        private readonly GetInt customStateDeleteCount;
         private readonly SetInt providerCallbackDispatch;
         private readonly GetInt providerCallbackDispatchCount;
         private readonly GetString providerCallbackMessage;
         private readonly GetInt programPrintCount;
         private readonly GetInt programSortCount;
         private readonly CustomCallbackInvoker invokeCustomCallbacks;
+        private readonly CustomCallbackInvoker invokeCustomStateCopyCallbacks;
         private readonly CustomCallbackErrorInvoker invokeCustomComputeWithErrorBuffer;
 
         internal FakeControls(string path)
@@ -784,10 +827,13 @@ public sealed class M12LocalInterfaceTests
             lastQuantization = Get<GetInt>("fake_last_quantization");
             contextFinishCount = Get<GetInt>("fake_context_finish_count");
             customRegisterCount = Get<GetInt>("fake_custom_register_count");
+            customStateCopyCount = Get<GetInt>("fake_custom_state_copy_count");
+            customStateDeleteCount = Get<GetInt>("fake_custom_state_delete_count");
             providerCallbackDispatch = Get<SetInt>("fake_enable_provider_callback_dispatch");
             providerCallbackDispatchCount = Get<GetInt>("fake_provider_callback_dispatch_count");
             providerCallbackMessage = Get<GetString>("fake_provider_callback_message");
             invokeCustomCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_callbacks");
+            invokeCustomStateCopyCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_state_copy_callbacks");
             invokeCustomComputeWithErrorBuffer = Get<CustomCallbackErrorInvoker>("fake_invoke_custom_compute_with_error_buffer");
             programPrintCount = Get<GetInt>("fake_program_print_count");
             programSortCount = Get<GetInt>("fake_program_sort_count");
@@ -805,10 +851,13 @@ public sealed class M12LocalInterfaceTests
         internal int LastQuantization() => lastQuantization();
         internal int ContextFinishCount() => contextFinishCount();
         internal int CustomRegisterCount() => customRegisterCount();
+        internal int CustomStateCopyCount() => customStateCopyCount();
+        internal int CustomStateDeleteCount() => customStateDeleteCount();
         internal void EnableProviderCallbackDispatch(bool enabled) => providerCallbackDispatch(enabled ? 1 : 0);
         internal int ProviderCallbackDispatchCount() => providerCallbackDispatchCount();
         internal string ProviderCallbackMessage() => Marshal.PtrToStringUTF8(providerCallbackMessage()) ?? string.Empty;
         internal int InvokeCustomCallbacks(IntPtr operation) => invokeCustomCallbacks(operation);
+        internal int InvokeCustomStateCopyCallbacks(IntPtr operation) => invokeCustomStateCopyCallbacks(operation);
         internal int InvokeCustomComputeWithErrorBuffer(IntPtr operation, IntPtr message, UIntPtr size)
             => invokeCustomComputeWithErrorBuffer(operation, message, size);
         internal int ProgramPrintCount() => programPrintCount();

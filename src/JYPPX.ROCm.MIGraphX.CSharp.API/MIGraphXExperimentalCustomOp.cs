@@ -309,15 +309,21 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
 
     private static NativeMIGraphXStatus CopyState(IntPtr output, IntPtr input)
     {
+        var clone = default(GCHandle);
         try
         {
             if (output == IntPtr.Zero || input == IntPtr.Zero) return NativeMIGraphXStatus.BadParameter;
             var source = GCHandle.FromIntPtr(input);
-            var clone = GCHandle.Alloc(source.Target, GCHandleType.Normal);
+            clone = GCHandle.Alloc(source.Target, GCHandleType.Normal);
             Marshal.WriteIntPtr(output, GCHandle.ToIntPtr(clone));
             return NativeMIGraphXStatus.Success;
         }
-        catch { return NativeMIGraphXStatus.UnknownError; }
+        catch
+        {
+            try { if (clone.IsAllocated) clone.Free(); }
+            catch { }
+            return NativeMIGraphXStatus.UnknownError;
+        }
     }
 
     private static NativeMIGraphXStatus DeleteState(IntPtr input)
