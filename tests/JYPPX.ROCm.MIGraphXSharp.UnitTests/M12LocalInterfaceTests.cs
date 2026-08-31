@@ -339,34 +339,43 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
-    public void CustomOpClearingComputeCallbackStopsInvocationAndCloneReplay()
+    public void CustomOpReplacingAndClearingComputeCallbackKeepsReplayCurrent()
     {
         var nativePath = FakePath();
         using var controls = new FakeControls(nativePath);
         controls.Reset();
-        var callbackInvocations = 0;
+        var oldCallbackInvocations = 0;
+        var currentCallbackInvocations = 0;
 
         using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_clear_compute_test"))
         {
             operation.SetCompute((_, _, _, _, _, _, _) =>
             {
-                callbackInvocations++;
+                oldCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            });
+            operation.SetCompute((_, _, _, _, _, _, _) =>
+            {
+                currentCallbackInvocations++;
                 return MIGraphXStatus.Success;
             });
 
             Assert.Equal(0, controls.InvokeCustomCallbacks(
                 operation.Owner.WithHandle(static handle => handle)));
-            Assert.Equal(1, callbackInvocations);
+            Assert.Equal(0, oldCallbackInvocations);
+            Assert.Equal(1, currentCallbackInvocations);
 
             operation.SetCompute(null);
             Assert.Equal(0, controls.InvokeCustomCallbacks(
                 operation.Owner.WithHandle(static handle => handle)));
-            Assert.Equal(1, callbackInvocations);
+            Assert.Equal(0, oldCallbackInvocations);
+            Assert.Equal(1, currentCallbackInvocations);
 
             using var clone = operation.Clone();
             Assert.Equal(0, controls.InvokeCustomCallbacks(
                 clone.Owner.WithHandle(static handle => handle)));
-            Assert.Equal(1, callbackInvocations);
+            Assert.Equal(0, oldCallbackInvocations);
+            Assert.Equal(1, currentCallbackInvocations);
         }
 
         AssertNoNativeLeaks(controls);
