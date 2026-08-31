@@ -339,6 +339,40 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CustomOpClearingComputeCallbackStopsInvocationAndCloneReplay()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        var callbackInvocations = 0;
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_clear_compute_test"))
+        {
+            operation.SetCompute((_, _, _, _, _, _, _) =>
+            {
+                callbackInvocations++;
+                return MIGraphXStatus.Success;
+            });
+
+            Assert.Equal(0, controls.InvokeCustomCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(1, callbackInvocations);
+
+            operation.SetCompute(null);
+            Assert.Equal(0, controls.InvokeCustomCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(1, callbackInvocations);
+
+            using var clone = operation.Clone();
+            Assert.Equal(0, controls.InvokeCustomCallbacks(
+                clone.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(1, callbackInvocations);
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void FakeProviderDispatchInvokesRegisteredShapeCallbackThroughGraphPath()
     {
         var nativePath = FakePath();
