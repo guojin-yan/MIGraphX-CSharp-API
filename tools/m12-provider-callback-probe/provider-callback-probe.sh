@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: provider-callback-probe.sh --repo DIR --feed DIR --record DIR --native FILE --source-sha SHA --version VERSION --core-sha SHA256" >&2
+  echo "Usage: provider-callback-probe.sh --repo DIR --feed DIR --record DIR --native FILE --source-sha SHA --version VERSION --core-sha SHA256 [--fixture none|fake-native-provider-dispatch]" >&2
   exit 2
 }
 
