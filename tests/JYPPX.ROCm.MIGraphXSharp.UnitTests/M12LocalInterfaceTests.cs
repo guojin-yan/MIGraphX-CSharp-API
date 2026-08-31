@@ -541,6 +541,31 @@ public sealed class M12LocalInterfaceTests
             }
         }
 
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_utf8_exception_test"))
+        {
+            operation.SetCompute((_, _, _, _, _, _, _) => throw new InvalidOperationException("界限异常"));
+
+            const int capacity = 8;
+            var buffer = Marshal.AllocHGlobal(capacity);
+            try
+            {
+                for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0xCC);
+                var status = controls.InvokeCustomComputeWithErrorBuffer(
+                    operation.Owner.WithHandle(static handle => handle), buffer, (UIntPtr)capacity);
+                Assert.Equal((int)MIGraphXStatus.UnknownError, status);
+
+                var bytes = new byte[capacity];
+                Marshal.Copy(buffer, bytes, 0, bytes.Length);
+                var length = Array.IndexOf(bytes, (byte)0);
+                Assert.Equal(6, length);
+                Assert.Equal("界限", new UTF8Encoding(false, true).GetString(bytes, 0, length));
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+
         using (var shapeOperation = new MIGraphXExperimentalCustomOp(nativePath, "managed_shape_exception_test"))
         {
             shapeOperation.SetComputeShape((_, _, _, _, _) => throw new InvalidOperationException("shape callback boundary canary"));

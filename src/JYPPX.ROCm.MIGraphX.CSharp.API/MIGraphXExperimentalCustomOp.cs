@@ -289,6 +289,10 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
             var text = string.IsNullOrEmpty(error.Message) ? error.GetType().Name : error.Message;
             var bytes = Encoding.UTF8.GetBytes(text);
             var copy = Math.Min(bytes.Length, capacity - 1);
+            if (copy < bytes.Length)
+            {
+                while (copy > 0 && (bytes[copy] & 0xC0) == 0x80) copy--;
+            }
             if (copy > 0) Marshal.Copy(bytes, 0, exceptionMessage, copy);
             Marshal.WriteByte(exceptionMessage, copy, 0);
         }
