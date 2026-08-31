@@ -32,8 +32,11 @@ $result = Get-Content -Raw -LiteralPath $resultPath | ConvertFrom-Json
 $metadata = Get-Content -Raw -LiteralPath $metadataPath | ConvertFrom-Json
 if ($result.evidence -ne 'runtime-candidate-executed-review-required' -or
     $result.sourceSha -ne $SourceSha -or $result.expectedVersion -ne '0.0.0' -or
+    $result.operationName -ne 'm12_runtime_provider_callback_probe' -or
     $result.state -ne 'callback-invoked-controlled-rejection' -or
-    $result.registrationState -ne 'registered' -or $result.controlledFailure -ne $true -or
+    $result.registrationState -ne 'registered' -or
+    ($result.graphState -ne 'instruction-created' -and $result.graphState -ne 'compiled') -or
+    $result.controlledFailure -ne $true -or
     $result.promotionState -ne 'not-requested' -or
     $result.callbackInvocations.computeShape -le 0 -or $result.nativeFailureStatus -ne 4) {
     throw 'Provider callback result did not capture the required controlled invocation boundary.'

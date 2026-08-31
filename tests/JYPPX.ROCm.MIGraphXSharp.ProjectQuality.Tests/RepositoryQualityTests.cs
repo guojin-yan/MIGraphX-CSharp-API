@@ -422,6 +422,8 @@ public sealed class RepositoryQualityTests
         Assert.Contains("provider-callback-invocation", providerRunner, StringComparison.Ordinal);
         Assert.Contains("callback-invoked-controlled-rejection", providerProbe, StringComparison.Ordinal);
         Assert.Contains("callback-not-observed", providerProbe, StringComparison.Ordinal);
+        Assert.Contains("m12_runtime_provider_callback_probe", providerReview, StringComparison.Ordinal);
+        Assert.Contains("instruction-created", providerReview, StringComparison.Ordinal);
         Assert.Contains("promotionState", providerReview, StringComparison.Ordinal);
         Assert.Contains("provider-callback-record-verified", providerReview, StringComparison.Ordinal);
         Assert.DoesNotContain("runtime-executed", providerReview, StringComparison.Ordinal);
