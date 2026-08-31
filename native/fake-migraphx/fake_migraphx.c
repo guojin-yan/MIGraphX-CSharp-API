@@ -204,6 +204,7 @@ static volatile int32_t custom_register_count;
 static migraphx_experimental_custom_op_t registered_custom_op;
 static volatile int32_t provider_callback_dispatch;
 static volatile int32_t provider_callback_dispatch_count;
+static char provider_callback_message[128];
 static volatile int32_t program_print_count;
 static volatile int32_t program_sort_count;
 
@@ -332,6 +333,7 @@ EXPORT void fake_reset(void)
     registered_custom_op = NULL;
     provider_callback_dispatch = 0;
     provider_callback_dispatch_count = 0;
+    provider_callback_message[0] = '\0';
     program_print_count = 0;
     program_sort_count = 0;
 }
@@ -415,6 +417,7 @@ EXPORT int fake_context_finish_count(void) { return context_finish_count; }
 EXPORT int fake_custom_register_count(void) { return custom_register_count; }
 EXPORT void fake_enable_provider_callback_dispatch(int enabled) { ATOMIC_EXCHANGE(provider_callback_dispatch, enabled ? 1 : 0); }
 EXPORT int fake_provider_callback_dispatch_count(void) { return provider_callback_dispatch_count; }
+EXPORT const char* fake_provider_callback_message(void) { return provider_callback_message; }
 EXPORT int fake_program_print_count(void) { return program_print_count; }
 EXPORT int fake_program_sort_count(void) { return program_sort_count; }
 

@@ -365,6 +365,7 @@ public sealed class M12LocalInterfaceTests
             Assert.Equal(MIGraphXStatus.UnknownError, failure.KnownStatus);
             Assert.Equal(1, callbackInvocations);
             Assert.Equal(1, controls.ProviderCallbackDispatchCount());
+            Assert.Equal("provider fixtur", controls.ProviderCallbackMessage());
         }
         finally
         {
@@ -699,6 +700,7 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt customRegisterCount;
         private readonly SetInt providerCallbackDispatch;
         private readonly GetInt providerCallbackDispatchCount;
+        private readonly GetString providerCallbackMessage;
         private readonly GetInt programPrintCount;
         private readonly GetInt programSortCount;
         private readonly CustomCallbackInvoker invokeCustomCallbacks;
@@ -721,6 +723,7 @@ public sealed class M12LocalInterfaceTests
             customRegisterCount = Get<GetInt>("fake_custom_register_count");
             providerCallbackDispatch = Get<SetInt>("fake_enable_provider_callback_dispatch");
             providerCallbackDispatchCount = Get<GetInt>("fake_provider_callback_dispatch_count");
+            providerCallbackMessage = Get<GetString>("fake_provider_callback_message");
             invokeCustomCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_callbacks");
             invokeCustomComputeWithErrorBuffer = Get<CustomCallbackErrorInvoker>("fake_invoke_custom_compute_with_error_buffer");
             programPrintCount = Get<GetInt>("fake_program_print_count");
@@ -741,6 +744,7 @@ public sealed class M12LocalInterfaceTests
         internal int CustomRegisterCount() => customRegisterCount();
         internal void EnableProviderCallbackDispatch(bool enabled) => providerCallbackDispatch(enabled ? 1 : 0);
         internal int ProviderCallbackDispatchCount() => providerCallbackDispatchCount();
+        internal string ProviderCallbackMessage() => Marshal.PtrToStringUTF8(providerCallbackMessage()) ?? string.Empty;
         internal int InvokeCustomCallbacks(IntPtr operation) => invokeCustomCallbacks(operation);
         internal int InvokeCustomComputeWithErrorBuffer(IntPtr operation, IntPtr message, UIntPtr size)
             => invokeCustomComputeWithErrorBuffer(operation, message, size);
@@ -751,6 +755,7 @@ public sealed class M12LocalInterfaceTests
             => Marshal.GetDelegateForFunctionPointer<T>(NativeLibrary.GetExport(library, name));
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int GetInt();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate IntPtr GetString();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetInt(int value);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackInvoker(IntPtr operation);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackErrorInvoker(IntPtr operation, IntPtr message, UIntPtr size);

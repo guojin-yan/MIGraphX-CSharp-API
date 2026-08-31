@@ -353,13 +353,17 @@ static migraphx_status add_fake_instruction(migraphx_instruction_t* out, const c
 
 static migraphx_status dispatch_provider_callback(migraphx_operation_t operation)
 {
+    char callback_message[16] = {0};
+    migraphx_status status;
     if(provider_callback_dispatch == 0 || registered_custom_op == NULL ||
        !registered_custom_op->registered || registered_custom_op->compute_shape == NULL ||
        strcmp(operation->name, registered_custom_op->name) != 0)
         return migraphx_status_success;
     ATOMIC_INCREMENT(provider_callback_dispatch_count);
-    return ((fake_custom_compute_shape)registered_custom_op->compute_shape)(
-        NULL, registered_custom_op->object, NULL, 0, NULL);
+    status = ((fake_custom_compute_shape)registered_custom_op->compute_shape)(
+        NULL, registered_custom_op->object, callback_message, sizeof(callback_message), NULL);
+    copy_string(provider_callback_message, sizeof(provider_callback_message), callback_message);
+    return status;
 }
 
 EXPORT migraphx_status migraphx_module_add_instruction(migraphx_instruction_t* out, migraphx_module_t module, migraphx_operation_t operation, migraphx_instructions_t arguments)
