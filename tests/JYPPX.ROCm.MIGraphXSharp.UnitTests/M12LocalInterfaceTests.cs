@@ -376,6 +376,44 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void FakeProviderDispatchIgnoresUnrelatedOperationName()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        controls.EnableProviderCallbackDispatch(true);
+        var callbackInvocations = 0;
+        try
+        {
+            using var customOp = new MIGraphXExperimentalCustomOp(nativePath, "fake_provider_identity_probe");
+            customOp.SetComputeShape((_, _, _, _, _) =>
+            {
+                callbackInvocations++;
+                return MIGraphXStatus.UnknownError;
+            });
+            customOp.Register();
+
+            using var program = new MIGraphXProgram(nativePath);
+            using var module = program.GetMainModule();
+            using var parameter = module.AddParameter("input", new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }));
+            using var arguments = new MIGraphXInstructions(nativePath, new[] { parameter });
+            using var operation = MIGraphXOperation.Create(nativePath, "unrelated_operation");
+
+            using var instruction = module.AddInstruction(operation, arguments);
+            Assert.NotNull(instruction);
+            Assert.Equal(0, callbackInvocations);
+            Assert.Equal(0, controls.ProviderCallbackDispatchCount());
+            Assert.Equal(string.Empty, controls.ProviderCallbackMessage());
+        }
+        finally
+        {
+            controls.EnableProviderCallbackDispatch(false);
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void OperationNoAttributeFactoryAndCloneOwnHandles()
     {
         var nativePath = FakePath();
