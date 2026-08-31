@@ -337,6 +337,44 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void FakeProviderDispatchContainsShapeCallbackExceptionThroughGraphPath()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        controls.EnableProviderCallbackDispatch(true);
+        var callbackInvocations = 0;
+        try
+        {
+            using var customOp = new MIGraphXExperimentalCustomOp(nativePath, "fake_provider_exception_probe");
+            customOp.SetComputeShape((_, _, _, _, _) =>
+            {
+                callbackInvocations++;
+                throw new InvalidOperationException("provider fixture callback failure");
+            });
+            customOp.Register();
+
+            using var program = new MIGraphXProgram(nativePath);
+            using var module = program.GetMainModule();
+            using var parameter = module.AddParameter("input", new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }));
+            using var arguments = new MIGraphXInstructions(nativePath, new[] { parameter });
+            using var operation = MIGraphXOperation.Create(nativePath, "fake_provider_exception_probe");
+
+            var failure = Assert.Throws<MIGraphXException>(() => module.AddInstruction(operation, arguments));
+            Assert.Equal("migraphx_module_add_instruction", failure.Operation);
+            Assert.Equal(MIGraphXStatus.UnknownError, failure.KnownStatus);
+            Assert.Equal(1, callbackInvocations);
+            Assert.Equal(1, controls.ProviderCallbackDispatchCount());
+        }
+        finally
+        {
+            controls.EnableProviderCallbackDispatch(false);
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void OperationNoAttributeFactoryAndCloneOwnHandles()
     {
         var nativePath = FakePath();
