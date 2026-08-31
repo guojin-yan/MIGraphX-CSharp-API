@@ -13,6 +13,7 @@ native=''
 source_sha=''
 version=''
 core_sha=''
+fixture='none'
 while [[ $# -gt 0 ]]; do
   [[ $# -ge 2 ]] || usage
   case "$1" in
@@ -23,6 +24,7 @@ while [[ $# -gt 0 ]]; do
     --source-sha) source_sha="$2" ;;
     --version) version="$2" ;;
     --core-sha) core_sha="$2" ;;
+    --fixture) fixture="$2" ;;
     *) usage ;;
   esac
   shift 2
@@ -34,6 +36,7 @@ for directory in "$repo" "$feed"; do [[ "$directory" = /* && -d "$directory" ]] 
 [[ "$source_sha" =~ ^[a-f0-9]{40}$ ]] || usage
 [[ "$version" = '0.0.0' ]] || usage
 [[ "$core_sha" =~ ^[a-f0-9]{64}$ ]] || usage
+[[ "$fixture" = 'none' || "$fixture" = 'fake-native-provider-dispatch' ]] || usage
 
 repo="$(realpath "$repo")"
 feed="$(realpath "$feed")"
@@ -84,8 +87,9 @@ dotnet restore "$project" --configfile "$record/build/NuGet.Config" --packages "
 dotnet build "$project" -c Release --no-restore -p:M12PackageVersion="$version" > "$record/raw/build.log" 2>&1
 
 set +e
-dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" -- \
-  --native "$native" --source-sha "$source_sha" --expected-version "$version" --output "$record/raw/provider-callback.json" \
+probe_args=(--native "$native" --source-sha "$source_sha" --expected-version "$version" --output "$record/raw/provider-callback.json")
+if [[ "$fixture" = 'fake-native-provider-dispatch' ]]; then probe_args+=(--provider-fixture); fi
+dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" -- "${probe_args[@]}" \
   > "$record/raw/provider-callback-stdout.log" 2> "$record/raw/provider-callback-stderr.log"
 probe_exit=$?
 set -e
@@ -95,6 +99,7 @@ cat > "$record/raw/run-metadata.json" <<EOF
   "evidence": "runtime-candidate-executed-review-required",
   "sourceSha": "$source_sha",
   "version": "$version",
+  "providerFixture": "$fixture",
   "probeExitCode": $probe_exit,
   "promotionRequested": false,
   "probeKind": "provider-callback-invocation",

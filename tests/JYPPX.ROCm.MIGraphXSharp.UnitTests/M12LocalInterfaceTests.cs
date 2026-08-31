@@ -299,6 +299,44 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void FakeProviderDispatchInvokesRegisteredShapeCallbackThroughGraphPath()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        controls.EnableProviderCallbackDispatch(true);
+        var callbackInvocations = 0;
+        try
+        {
+            using var customOp = new MIGraphXExperimentalCustomOp(nativePath, "fake_provider_shape_probe");
+            customOp.SetComputeShape((_, _, _, _, _) =>
+            {
+                callbackInvocations++;
+                return MIGraphXStatus.UnknownError;
+            });
+            customOp.Register();
+
+            using var program = new MIGraphXProgram(nativePath);
+            using var module = program.GetMainModule();
+            using var parameter = module.AddParameter("input", new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }));
+            using var arguments = new MIGraphXInstructions(nativePath, new[] { parameter });
+            using var operation = MIGraphXOperation.Create(nativePath, "fake_provider_shape_probe");
+
+            var failure = Assert.Throws<MIGraphXException>(() => module.AddInstruction(operation, arguments));
+            Assert.Equal("migraphx_module_add_instruction", failure.Operation);
+            Assert.Equal(MIGraphXStatus.UnknownError, failure.KnownStatus);
+            Assert.Equal(1, callbackInvocations);
+            Assert.Equal(1, controls.ProviderCallbackDispatchCount());
+        }
+        finally
+        {
+            controls.EnableProviderCallbackDispatch(false);
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void OperationNoAttributeFactoryAndCloneOwnHandles()
     {
         var nativePath = FakePath();
@@ -621,6 +659,8 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt lastQuantization;
         private readonly GetInt contextFinishCount;
         private readonly GetInt customRegisterCount;
+        private readonly SetInt providerCallbackDispatch;
+        private readonly GetInt providerCallbackDispatchCount;
         private readonly GetInt programPrintCount;
         private readonly GetInt programSortCount;
         private readonly CustomCallbackInvoker invokeCustomCallbacks;
@@ -641,6 +681,8 @@ public sealed class M12LocalInterfaceTests
             lastQuantization = Get<GetInt>("fake_last_quantization");
             contextFinishCount = Get<GetInt>("fake_context_finish_count");
             customRegisterCount = Get<GetInt>("fake_custom_register_count");
+            providerCallbackDispatch = Get<SetInt>("fake_enable_provider_callback_dispatch");
+            providerCallbackDispatchCount = Get<GetInt>("fake_provider_callback_dispatch_count");
             invokeCustomCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_callbacks");
             invokeCustomComputeWithErrorBuffer = Get<CustomCallbackErrorInvoker>("fake_invoke_custom_compute_with_error_buffer");
             programPrintCount = Get<GetInt>("fake_program_print_count");
@@ -659,6 +701,8 @@ public sealed class M12LocalInterfaceTests
         internal int LastQuantization() => lastQuantization();
         internal int ContextFinishCount() => contextFinishCount();
         internal int CustomRegisterCount() => customRegisterCount();
+        internal void EnableProviderCallbackDispatch(bool enabled) => providerCallbackDispatch(enabled ? 1 : 0);
+        internal int ProviderCallbackDispatchCount() => providerCallbackDispatchCount();
         internal int InvokeCustomCallbacks(IntPtr operation) => invokeCustomCallbacks(operation);
         internal int InvokeCustomComputeWithErrorBuffer(IntPtr operation, IntPtr message, UIntPtr size)
             => invokeCustomComputeWithErrorBuffer(operation, message, size);
@@ -669,6 +713,7 @@ public sealed class M12LocalInterfaceTests
             => Marshal.GetDelegateForFunctionPointer<T>(NativeLibrary.GetExport(library, name));
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int GetInt();
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetInt(int value);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackInvoker(IntPtr operation);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackErrorInvoker(IntPtr operation, IntPtr message, UIntPtr size);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetString([MarshalAs(UnmanagedType.LPUTF8Str)] string value);

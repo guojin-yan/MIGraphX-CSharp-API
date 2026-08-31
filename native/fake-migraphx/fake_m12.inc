@@ -351,10 +351,30 @@ static migraphx_status add_fake_instruction(migraphx_instruction_t* out, const c
     return (migraphx_status)take_status_for(entry);
 }
 
+static migraphx_status dispatch_provider_callback(migraphx_operation_t operation)
+{
+    if(provider_callback_dispatch == 0 || registered_custom_op == NULL ||
+       !registered_custom_op->registered || registered_custom_op->compute_shape == NULL ||
+       strcmp(operation->name, registered_custom_op->name) != 0)
+        return migraphx_status_success;
+    ATOMIC_INCREMENT(provider_callback_dispatch_count);
+    return ((fake_custom_compute_shape)registered_custom_op->compute_shape)(
+        NULL, registered_custom_op->object, NULL, 0, NULL);
+}
+
 EXPORT migraphx_status migraphx_module_add_instruction(migraphx_instruction_t* out, migraphx_module_t module, migraphx_operation_t operation, migraphx_instructions_t arguments)
 {
+    migraphx_status status;
     if(module == NULL || operation == NULL || arguments == NULL) return migraphx_status_bad_param;
-    return add_fake_instruction(out, "migraphx_module_add_instruction");
+    status = add_fake_instruction(out, "migraphx_module_add_instruction");
+    if(status != migraphx_status_success || out == NULL || *out == NULL) return status;
+    status = dispatch_provider_callback(operation);
+    if(status != migraphx_status_success)
+    {
+        migraphx_instruction_destroy(*out);
+        *out = NULL;
+    }
+    return status;
 }
 
 EXPORT migraphx_status migraphx_module_add_instruction_with_mod_args(migraphx_instruction_t* out, migraphx_module_t module, migraphx_operation_t operation, migraphx_instructions_t arguments, migraphx_modules_t modules)
@@ -740,6 +760,7 @@ EXPORT migraphx_status migraphx_experimental_custom_op_create(
 EXPORT migraphx_status migraphx_experimental_custom_op_destroy(migraphx_experimental_custom_op_t operation)
 {
     migraphx_status status = migraphx_status_success;
+    if(registered_custom_op == operation) registered_custom_op = NULL;
     if(operation != NULL && operation->delete_object != NULL) status = operation->delete_object(operation->object);
     destroy_m12(operation);
     if(status != migraphx_status_success) return status;
@@ -785,6 +806,7 @@ EXPORT migraphx_status migraphx_experimental_custom_op_register(migraphx_experim
 {
     if(operation == NULL) return migraphx_status_bad_param;
     operation->registered = 1;
+    registered_custom_op = operation;
     ATOMIC_INCREMENT(custom_register_count);
     return (migraphx_status)take_status_for("migraphx_experimental_custom_op_register");
 }

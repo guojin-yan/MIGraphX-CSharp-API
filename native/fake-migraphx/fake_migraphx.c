@@ -201,6 +201,9 @@ static volatile int32_t m12_destroy_count;
 static volatile int32_t last_quantization;
 static volatile int32_t context_finish_count;
 static volatile int32_t custom_register_count;
+static migraphx_experimental_custom_op_t registered_custom_op;
+static volatile int32_t provider_callback_dispatch;
+static volatile int32_t provider_callback_dispatch_count;
 static volatile int32_t program_print_count;
 static volatile int32_t program_sort_count;
 
@@ -326,6 +329,9 @@ EXPORT void fake_reset(void)
     last_quantization = 0;
     context_finish_count = 0;
     custom_register_count = 0;
+    registered_custom_op = NULL;
+    provider_callback_dispatch = 0;
+    provider_callback_dispatch_count = 0;
     program_print_count = 0;
     program_sort_count = 0;
 }
@@ -407,6 +413,8 @@ EXPORT int fake_m12_destroy_count(void) { return m12_destroy_count; }
 EXPORT int fake_last_quantization(void) { return last_quantization; }
 EXPORT int fake_context_finish_count(void) { return context_finish_count; }
 EXPORT int fake_custom_register_count(void) { return custom_register_count; }
+EXPORT void fake_enable_provider_callback_dispatch(int enabled) { ATOMIC_EXCHANGE(provider_callback_dispatch, enabled ? 1 : 0); }
+EXPORT int fake_provider_callback_dispatch_count(void) { return provider_callback_dispatch_count; }
 EXPORT int fake_program_print_count(void) { return program_print_count; }
 EXPORT int fake_program_sort_count(void) { return program_sort_count; }
 

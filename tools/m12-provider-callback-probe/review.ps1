@@ -35,7 +35,7 @@ if ($result.evidence -ne 'runtime-candidate-executed-review-required' -or
     $result.operationName -ne 'm12_runtime_provider_callback_probe' -or
     $result.state -ne 'callback-invoked-controlled-rejection' -or
     $result.registrationState -ne 'registered' -or
-    ($result.graphState -ne 'instruction-created' -and $result.graphState -ne 'compiled') -or
+    ($result.graphState -ne 'instruction-created' -and $result.graphState -ne 'compiled' -and $result.graphState -ne 'provider-dispatch-rejected') -or
     $result.controlledFailure -ne $true -or
     $result.promotionState -ne 'not-requested' -or
     $result.callbackInvocations.computeShape -le 0 -or $result.nativeFailureStatus -ne 4) {
@@ -45,6 +45,10 @@ if ($metadata.sourceSha -ne $SourceSha -or $metadata.version -ne '0.0.0' -or
     $metadata.probeExitCode -ne 0 -or $metadata.promotionRequested -ne $false -or
     $metadata.probeKind -ne 'provider-callback-invocation' -or $metadata.controlledRejection -ne $true) {
     throw 'Provider callback probe metadata is invalid or requests promotion.'
+}
+if ($metadata.providerFixture -ne $result.providerFixture -or
+    ($metadata.providerFixture -ne 'none' -and $metadata.providerFixture -ne 'fake-native-provider-dispatch')) {
+    throw 'Provider callback fixture identity is invalid.'
 }
 if ((Get-Sha256 $CorePackagePath) -ne $CoreSha256) { throw 'Core package hash mismatch.' }
 if (-not ((Get-Content -LiteralPath $identityPath) -contains "sourceSha=$SourceSha")) { throw 'Source identity is missing.' }

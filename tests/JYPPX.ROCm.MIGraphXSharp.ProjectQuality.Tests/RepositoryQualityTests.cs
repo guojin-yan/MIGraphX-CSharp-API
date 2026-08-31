@@ -422,6 +422,10 @@ public sealed class RepositoryQualityTests
         Assert.Contains("provider-callback-invocation", providerRunner, StringComparison.Ordinal);
         Assert.Contains("callback-invoked-controlled-rejection", providerProbe, StringComparison.Ordinal);
         Assert.Contains("callback-not-observed", providerProbe, StringComparison.Ordinal);
+        Assert.Contains("fake-native-provider-dispatch", providerProbe, StringComparison.Ordinal);
+        Assert.Contains("--provider-fixture", providerProbe, StringComparison.Ordinal);
+        Assert.Contains("fake_enable_provider_callback_dispatch", providerProbe, StringComparison.Ordinal);
+        Assert.Contains("providerFixture", providerReview, StringComparison.Ordinal);
         Assert.Contains("m12_runtime_provider_callback_probe", providerReview, StringComparison.Ordinal);
         Assert.Contains("instruction-created", providerReview, StringComparison.Ordinal);
         Assert.Contains("promotionState", providerReview, StringComparison.Ordinal);
