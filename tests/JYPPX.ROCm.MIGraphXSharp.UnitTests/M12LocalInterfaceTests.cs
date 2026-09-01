@@ -576,6 +576,60 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CustomOpRegisterFailureLeavesRegistryUnchangedAndRetryWorks()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        controls.EnableProviderCallbackDispatch(true);
+        var callbackInvocations = 0;
+        const string operationName = "fake_provider_register_failure_probe";
+        try
+        {
+            using var customOp = new MIGraphXExperimentalCustomOp(nativePath, operationName);
+            customOp.SetComputeShape((_, _, _, _, _) =>
+            {
+                callbackInvocations++;
+                return MIGraphXStatus.Success;
+            });
+
+            controls.SetFailure("migraphx_experimental_custom_op_register", (int)MIGraphXStatus.UnknownError);
+            var failure = Assert.Throws<MIGraphXException>(() => customOp.Register());
+            Assert.Equal("migraphx_experimental_custom_op_register", failure.Operation);
+            Assert.Equal(MIGraphXStatus.UnknownError, failure.KnownStatus);
+            Assert.Equal(0, controls.CustomRegisterCount());
+
+            using var program = new MIGraphXProgram(nativePath);
+            using var module = program.GetMainModule();
+            using var parameter = module.AddParameter("input", new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }));
+            using var arguments = new MIGraphXInstructions(nativePath, new[] { parameter });
+            using (var operation = MIGraphXOperation.Create(nativePath, operationName))
+            using (var instruction = module.AddInstruction(operation, arguments))
+            {
+                Assert.NotNull(instruction);
+            }
+            Assert.Equal(0, callbackInvocations);
+            Assert.Equal(0, controls.ProviderCallbackDispatchCount());
+
+            customOp.Register();
+            Assert.Equal(1, controls.CustomRegisterCount());
+            using (var operation = MIGraphXOperation.Create(nativePath, operationName))
+            using (var instruction = module.AddInstruction(operation, arguments))
+            {
+                Assert.NotNull(instruction);
+            }
+            Assert.Equal(1, callbackInvocations);
+            Assert.Equal(1, controls.ProviderCallbackDispatchCount());
+        }
+        finally
+        {
+            controls.EnableProviderCallbackDispatch(false);
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void OperationNoAttributeFactoryAndCloneOwnHandles()
     {
         var nativePath = FakePath();

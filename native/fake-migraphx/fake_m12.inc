@@ -816,11 +816,16 @@ EXPORT migraphx_status migraphx_experimental_custom_op_set_runs_on_offload_targe
 }
 EXPORT migraphx_status migraphx_experimental_custom_op_register(migraphx_experimental_custom_op_t operation)
 {
+    migraphx_status status;
     if(operation == NULL) return migraphx_status_bad_param;
-    operation->registered = 1;
-    registered_custom_op = operation;
-    ATOMIC_INCREMENT(custom_register_count);
-    return (migraphx_status)take_status_for("migraphx_experimental_custom_op_register");
+    status = (migraphx_status)take_status_for("migraphx_experimental_custom_op_register");
+    if(status == migraphx_status_success)
+    {
+        operation->registered = 1;
+        registered_custom_op = operation;
+        ATOMIC_INCREMENT(custom_register_count);
+    }
+    return status;
 }
 
 /* Test-only entry point: exercise the managed callback ABI with opaque inputs. */
