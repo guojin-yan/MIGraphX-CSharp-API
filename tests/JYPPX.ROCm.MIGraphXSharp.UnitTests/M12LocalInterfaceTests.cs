@@ -406,15 +406,54 @@ public sealed class M12LocalInterfaceTests
             }));
             Assert.Equal("migraphx_experimental_custom_op_set_compute", failure.Operation);
 
+            operation.SetComputeShape((_, _, _, _, _) =>
+            {
+                previousCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            });
+            controls.SetFailure("migraphx_experimental_custom_op_set_compute_shape", (int)MIGraphXStatus.UnknownError);
+            failure = Assert.Throws<MIGraphXException>(() => operation.SetComputeShape((_, _, _, _, _) =>
+            {
+                rejectedCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            }));
+            Assert.Equal("migraphx_experimental_custom_op_set_compute_shape", failure.Operation);
+
+            operation.SetOutputAlias((_, _, _, _, _, _) =>
+            {
+                previousCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            });
+            controls.SetFailure("migraphx_experimental_custom_op_set_output_alias", (int)MIGraphXStatus.UnknownError);
+            failure = Assert.Throws<MIGraphXException>(() => operation.SetOutputAlias((_, _, _, _, _, _) =>
+            {
+                rejectedCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            }));
+            Assert.Equal("migraphx_experimental_custom_op_set_output_alias", failure.Operation);
+
+            operation.SetRunsOnOffloadTarget((_, _, _, _) =>
+            {
+                previousCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            });
+            controls.SetFailure("migraphx_experimental_custom_op_set_runs_on_offload_target", (int)MIGraphXStatus.UnknownError);
+            failure = Assert.Throws<MIGraphXException>(() => operation.SetRunsOnOffloadTarget((_, _, _, _) =>
+            {
+                rejectedCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            }));
+            Assert.Equal("migraphx_experimental_custom_op_set_runs_on_offload_target", failure.Operation);
+
             Assert.Equal(0, controls.InvokeCustomCallbacks(
                 operation.Owner.WithHandle(static handle => handle)));
-            Assert.Equal(1, previousCallbackInvocations);
+            Assert.Equal(4, previousCallbackInvocations);
             Assert.Equal(0, rejectedCallbackInvocations);
 
             using var clone = operation.Clone();
             Assert.Equal(0, controls.InvokeCustomCallbacks(
                 clone.Owner.WithHandle(static handle => handle)));
-            Assert.Equal(2, previousCallbackInvocations);
+            Assert.Equal(8, previousCallbackInvocations);
             Assert.Equal(0, rejectedCallbackInvocations);
         }
 
