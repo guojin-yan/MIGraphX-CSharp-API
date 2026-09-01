@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using JYPPX.ROCm.MIGraphXSharp;
@@ -378,6 +379,19 @@ public sealed class M12LocalInterfaceTests
             Assert.Equal(1, currentCallbackInvocations);
         }
 
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public void CustomOpCallbackRootLastsThroughNativeOwnerLifetime()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        var callbackCapture = CreateAndDisposeCustomOpWithCallbackCapture(nativePath, controls);
+
+        AssertEventuallyCollected(callbackCapture);
         AssertNoNativeLeaks(controls);
     }
 
@@ -941,6 +955,40 @@ public sealed class M12LocalInterfaceTests
         dispose();
     }
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CreateAndDisposeCustomOpWithCallbackCapture(string nativePath, FakeControls controls)
+    {
+        var capture = new CallbackLifetimeCapture();
+        var captureReference = new WeakReference(capture);
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_callback_lifetime_test"))
+        {
+            operation.SetCompute((_, _, _, _, _, _, _) =>
+            {
+                capture.InvocationCount++;
+                return MIGraphXStatus.UnknownError;
+            });
+
+            CollectGarbage();
+            Assert.True(captureReference.IsAlive);
+            Assert.Equal((int)MIGraphXStatus.UnknownError, controls.InvokeCustomCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+        }
+        return captureReference;
+    }
+
+    private static void AssertEventuallyCollected(WeakReference reference)
+    {
+        for (var attempt = 0; reference.IsAlive && attempt < 8; attempt++) CollectGarbage();
+        Assert.False(reference.IsAlive);
+    }
+
+    private static void CollectGarbage()
+    {
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+        GC.Collect();
+    }
+
     private static void AssertNoNativeLeaks(FakeControls controls)
     {
         Assert.Equal(0, controls.TargetLiveCount());
@@ -960,6 +1008,11 @@ public sealed class M12LocalInterfaceTests
             }
         }
         throw new DirectoryNotFoundException("Could not locate the MIGraphXSharp repository root.");
+    }
+
+    private sealed class CallbackLifetimeCapture
+    {
+        internal int InvocationCount;
     }
 
     private sealed class FakeControls : IDisposable

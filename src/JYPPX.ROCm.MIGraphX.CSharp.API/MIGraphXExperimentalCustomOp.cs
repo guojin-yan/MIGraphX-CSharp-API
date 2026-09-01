@@ -190,7 +190,17 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
         var pointer = callback is null ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callback);
         owner.WithHandle(handle =>
         {
-            NativeStatus.ThrowIfFailed(setter(handle, pointer), operation);
+            NativeMIGraphXStatus status;
+            try
+            {
+                status = setter(handle, pointer);
+            }
+            finally
+            {
+                // Keep the thunk alive until the native setter has finished consuming its function pointer.
+                GC.KeepAlive(callback);
+            }
+            NativeStatus.ThrowIfFailed(status, operation);
             lock (callbacks)
             {
                 if (callback is not null) callbacks.Add(callback);
