@@ -784,27 +784,35 @@ EXPORT migraphx_status migraphx_experimental_custom_op_assign_to(migraphx_experi
 
 EXPORT migraphx_status migraphx_experimental_custom_op_set_compute(migraphx_experimental_custom_op_t operation, void* callback)
 {
+    migraphx_status status;
     if(operation == NULL) return migraphx_status_bad_param;
-    operation->compute = callback;
-    return (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_compute");
+    status = (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_compute");
+    if(status == migraphx_status_success) operation->compute = callback;
+    return status;
 }
 EXPORT migraphx_status migraphx_experimental_custom_op_set_compute_shape(migraphx_experimental_custom_op_t operation, void* callback)
 {
+    migraphx_status status;
     if(operation == NULL) return migraphx_status_bad_param;
-    operation->compute_shape = callback;
-    return (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_compute_shape");
+    status = (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_compute_shape");
+    if(status == migraphx_status_success) operation->compute_shape = callback;
+    return status;
 }
 EXPORT migraphx_status migraphx_experimental_custom_op_set_output_alias(migraphx_experimental_custom_op_t operation, void* callback)
 {
+    migraphx_status status;
     if(operation == NULL) return migraphx_status_bad_param;
-    operation->output_alias = callback;
-    return (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_output_alias");
+    status = (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_output_alias");
+    if(status == migraphx_status_success) operation->output_alias = callback;
+    return status;
 }
 EXPORT migraphx_status migraphx_experimental_custom_op_set_runs_on_offload_target(migraphx_experimental_custom_op_t operation, void* callback)
 {
+    migraphx_status status;
     if(operation == NULL) return migraphx_status_bad_param;
-    operation->runs_on_offload_target = callback;
-    return (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_runs_on_offload_target");
+    status = (migraphx_status)take_status_for("migraphx_experimental_custom_op_set_runs_on_offload_target");
+    if(status == migraphx_status_success) operation->runs_on_offload_target = callback;
+    return status;
 }
 EXPORT migraphx_status migraphx_experimental_custom_op_register(migraphx_experimental_custom_op_t operation)
 {

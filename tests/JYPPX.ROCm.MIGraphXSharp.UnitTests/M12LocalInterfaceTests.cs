@@ -382,6 +382,46 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CustomOpCallbackSetterFailurePreservesPreviousCallbackAndReplay()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        var previousCallbackInvocations = 0;
+        var rejectedCallbackInvocations = 0;
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_setter_failure_test"))
+        {
+            operation.SetCompute((_, _, _, _, _, _, _) =>
+            {
+                previousCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            });
+            controls.SetFailure("migraphx_experimental_custom_op_set_compute", (int)MIGraphXStatus.UnknownError);
+
+            var failure = Assert.Throws<MIGraphXException>(() => operation.SetCompute((_, _, _, _, _, _, _) =>
+            {
+                rejectedCallbackInvocations++;
+                return MIGraphXStatus.Success;
+            }));
+            Assert.Equal("migraphx_experimental_custom_op_set_compute", failure.Operation);
+
+            Assert.Equal(0, controls.InvokeCustomCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(1, previousCallbackInvocations);
+            Assert.Equal(0, rejectedCallbackInvocations);
+
+            using var clone = operation.Clone();
+            Assert.Equal(0, controls.InvokeCustomCallbacks(
+                clone.Owner.WithHandle(static handle => handle)));
+            Assert.Equal(2, previousCallbackInvocations);
+            Assert.Equal(0, rejectedCallbackInvocations);
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void FakeProviderDispatchInvokesRegisteredShapeCallbackThroughGraphPath()
     {
         var nativePath = FakePath();
