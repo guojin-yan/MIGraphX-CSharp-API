@@ -863,7 +863,7 @@ EXPORT migraphx_status migraphx_argument_equal(uint8_t* out, const migraphx_argu
     wait_for_equality_release();
     equal = fake_shape_equal_value(&left->shape, &right->shape) &&
             (left->shape.bytes == 0 || memcmp(left->buffer, right->buffer, left->shape.bytes) == 0);
-    *out = take_bool_for("migraphx_argument_equal", equal);
+    if(!skip_bool_for("migraphx_argument_equal")) *out = take_bool_for("migraphx_argument_equal", equal);
     return migraphx_status_success;
 }
 
@@ -888,7 +888,7 @@ EXPORT migraphx_status migraphx_program_equal(uint8_t* out, const migraphx_progr
     status = take_status_for("migraphx_program_equal");
     if(status != migraphx_status_success) return (migraphx_status)status;
     wait_for_equality_release();
-    *out = take_bool_for("migraphx_program_equal", fake_program_equal_value(left, right));
+    if(!skip_bool_for("migraphx_program_equal")) *out = take_bool_for("migraphx_program_equal", fake_program_equal_value(left, right));
     return migraphx_status_success;
 }
 #endif

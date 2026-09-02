@@ -99,6 +99,10 @@ public sealed class M10CapabilityEqualityTests
             var invalid = Assert.Throws<MIGraphXException>(() => left.HasSameNativeContent(same));
             Assert.Contains("success with invalid C bool 2", invalid.Operation, StringComparison.Ordinal);
 
+            controls.SetSkipBool("migraphx_argument_equal");
+            var unwritten = Assert.Throws<MIGraphXException>(() => left.HasSameNativeContent(same));
+            Assert.Contains("success with invalid C bool 255", unwritten.Operation, StringComparison.Ordinal);
+
             using (var disposing = MIGraphXArgument.Create(nativePath, shape, new[] { 1f, 2f, 3f, 4f }))
             {
                 var enteredBefore = controls.EqualityEnterCount();
@@ -179,6 +183,10 @@ public sealed class M10CapabilityEqualityTests
             var invalid = Assert.Throws<MIGraphXException>(() => left.HasSameNativeContent(right));
             Assert.Contains("success with invalid C bool 2", invalid.Operation, StringComparison.Ordinal);
 
+            controls.SetSkipBool("migraphx_program_equal");
+            var unwritten = Assert.Throws<MIGraphXException>(() => left.HasSameNativeContent(right));
+            Assert.Contains("success with invalid C bool 255", unwritten.Operation, StringComparison.Ordinal);
+
             var enteredBefore = controls.EqualityEnterCount();
             controls.SetEqualityWait(1);
             var comparison = Task.Run(() => left.HasSameNativeContent(right));
@@ -229,6 +237,7 @@ public sealed class M10CapabilityEqualityTests
         private readonly VoidDelegate reset;
         private readonly SetStringIntDelegate setFailure;
         private readonly SetStringDelegate setInvalidBool;
+        private readonly SetStringDelegate setSkipBool;
         private readonly SetIntDelegate setRegistryMode;
         private readonly SetIntDelegate setEqualityWait;
         private readonly GetIntDelegate equalityEnterCount;
@@ -242,6 +251,7 @@ public sealed class M10CapabilityEqualityTests
             reset = Get<VoidDelegate>("fake_reset");
             setFailure = Get<SetStringIntDelegate>("fake_set_failure");
             setInvalidBool = Get<SetStringDelegate>("fake_set_invalid_bool");
+            setSkipBool = Get<SetStringDelegate>("fake_set_skip_bool");
             setRegistryMode = Get<SetIntDelegate>("fake_set_onnx_registry_mode");
             setEqualityWait = Get<SetIntDelegate>("fake_set_equality_wait");
             equalityEnterCount = Get<GetIntDelegate>("fake_equality_enter_count");
@@ -253,6 +263,7 @@ public sealed class M10CapabilityEqualityTests
         internal void Reset() => reset();
         internal void SetFailure(string entryPoint, int status) => setFailure(entryPoint, status);
         internal void SetInvalidBool(string entryPoint) => setInvalidBool(entryPoint);
+        internal void SetSkipBool(string entryPoint) => setSkipBool(entryPoint);
         internal void SetRegistryMode(int value) => setRegistryMode(value);
         internal void SetEqualityWait(int value) => setEqualityWait(value);
         internal int EqualityEnterCount() => equalityEnterCount();

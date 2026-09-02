@@ -85,14 +85,7 @@ internal static class NativeM10Methods
         {
             Marshal.WriteByte(slot, byte.MaxValue);
             NativeStatus.ThrowIfFailed(invoke(slot), operation);
-            var value = Marshal.ReadByte(slot);
-            if (value > 1)
-            {
-                throw new MIGraphXException(
-                    (int)NativeMIGraphXStatus.UnknownError,
-                    $"{operation} (success with invalid C bool {value})");
-            }
-            return value == 1;
+            return NativeBoolean.Read(slot, operation);
         }
         finally
         {
