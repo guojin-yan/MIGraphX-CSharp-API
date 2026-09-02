@@ -188,21 +188,7 @@ public sealed class MIGraphXOperation : IDisposable
     /// <summary>获取 operation 名称。 Gets the native operation name.</summary>
     public string Name
     {
-        get
-        {
-            return owner.WithHandle(handle =>
-            {
-                const int capacity = 1024;
-                var buffer = Marshal.AllocHGlobal(capacity);
-                try
-                {
-                    for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0);
-                    NativeStatus.ThrowIfFailed(NativeMethods.OperationName(buffer, new UIntPtr((uint)capacity), handle), "migraphx_operation_name");
-                    return StrictUtf8String.Decode(buffer, "migraphx_operation_name");
-                }
-                finally { Marshal.FreeHGlobal(buffer); }
-            });
-        }
+        get => owner.WithHandle(ReadName);
     }
 
     /// <summary>复制 operation。 Clones the native operation.</summary>
@@ -227,9 +213,9 @@ public sealed class MIGraphXOperation : IDisposable
         var buffer = Marshal.AllocHGlobal(capacity);
         try
         {
-            for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0);
+            for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, byte.MaxValue);
             NativeStatus.ThrowIfFailed(NativeMethods.OperationName(buffer, new UIntPtr((uint)capacity), handle), "migraphx_operation_name");
-            return StrictUtf8String.Decode(buffer, "migraphx_operation_name");
+            return StrictUtf8String.DecodeRequiredBuffer(buffer, capacity, "migraphx_operation_name");
         }
         finally { Marshal.FreeHGlobal(buffer); }
     }

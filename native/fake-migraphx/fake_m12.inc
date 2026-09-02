@@ -484,6 +484,7 @@ EXPORT migraphx_status migraphx_operation_assign_to(migraphx_operation_t output,
 EXPORT migraphx_status migraphx_operation_name(char* out, size_t out_size, const migraphx_operation_t operation)
 {
     if(out == NULL || out_size == 0 || operation == NULL) return migraphx_status_bad_param;
+    if(skip_string_for("migraphx_operation_name")) return (migraphx_status)take_status_for("migraphx_operation_name");
     copy_string(out, out_size, operation->name);
     return (migraphx_status)take_status_for("migraphx_operation_name");
 }

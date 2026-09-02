@@ -185,6 +185,7 @@ static volatile int32_t failure_status;
 static char null_entry[128];
 static char invalid_bool_entry[128];
 static char skip_bool_entry[128];
+static char skip_string_entry[128];
 static volatile int32_t onnx_registry_mode;
 static volatile int32_t onnx_registry_size_reads;
 static volatile int32_t equality_wait;
@@ -252,6 +253,16 @@ static int skip_bool_for(const char* entry)
     if(skip_bool_entry[0] != '\0' && strcmp(skip_bool_entry, entry) == 0)
     {
         skip_bool_entry[0] = '\0';
+        return 1;
+    }
+    return 0;
+}
+
+static int skip_string_for(const char* entry)
+{
+    if(skip_string_entry[0] != '\0' && strcmp(skip_string_entry, entry) == 0)
+    {
+        skip_string_entry[0] = '\0';
         return 1;
     }
     return 0;
@@ -328,6 +339,7 @@ EXPORT void fake_reset(void)
     null_entry[0] = '\0';
     invalid_bool_entry[0] = '\0';
     skip_bool_entry[0] = '\0';
+    skip_string_entry[0] = '\0';
     onnx_registry_mode = 0;
     onnx_registry_size_reads = 0;
     equality_wait = 0;
@@ -422,6 +434,7 @@ EXPORT void fake_set_failure(const char* entry, int status)
 EXPORT void fake_set_null_output(const char* entry) { copy_string(null_entry, sizeof(null_entry), entry); }
 EXPORT void fake_set_invalid_bool(const char* entry) { copy_string(invalid_bool_entry, sizeof(invalid_bool_entry), entry); }
 EXPORT void fake_set_skip_bool(const char* entry) { copy_string(skip_bool_entry, sizeof(skip_bool_entry), entry); }
+EXPORT void fake_set_skip_string(const char* entry) { copy_string(skip_string_entry, sizeof(skip_string_entry), entry); }
 EXPORT void fake_set_onnx_registry_mode(int value)
 {
     ATOMIC_EXCHANGE(onnx_registry_mode, value);

@@ -52,6 +52,34 @@ internal sealed class StrictUtf8String : IDisposable
         return new UTF8Encoding(false, true).GetString(bytes);
     }
 
+    internal static string DecodeRequiredBuffer(IntPtr value, int capacity, string operation)
+    {
+        if (value == IntPtr.Zero) { throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with null UTF-8 buffer)"); }
+        if (capacity <= 0) { throw new ArgumentOutOfRangeException(nameof(capacity)); }
+
+        var length = 0;
+        while (length < capacity && Marshal.ReadByte(value, length) != 0) { length++; }
+        if (length == capacity)
+        {
+            throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with unwritten or unterminated UTF-8 buffer)");
+        }
+        if (length == 0)
+        {
+            throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with empty UTF-8 buffer)");
+        }
+
+        var bytes = new byte[length];
+        Marshal.Copy(value, bytes, 0, length);
+        try
+        {
+            return new UTF8Encoding(false, true).GetString(bytes);
+        }
+        catch (DecoderFallbackException)
+        {
+            throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with invalid UTF-8 buffer)");
+        }
+    }
+
     public void Dispose()
     {
         var value = pointer;

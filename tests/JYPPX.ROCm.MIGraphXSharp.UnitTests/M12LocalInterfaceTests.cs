@@ -739,6 +739,15 @@ public sealed class M12LocalInterfaceTests
             var failure = Assert.Throws<MIGraphXException>(() => operation.Clone());
             Assert.Equal("migraphx_operation_assign_to", failure.Operation);
             Assert.Equal(2, controls.M12LiveCount());
+
+            controls.SetSkipString("migraphx_operation_name");
+            var unwrittenName = Assert.Throws<MIGraphXException>(() => _ = operation.Name);
+            Assert.Contains("success with unwritten or unterminated UTF-8 buffer", unwrittenName.Operation, StringComparison.Ordinal);
+
+            controls.SetSkipString("migraphx_operation_name");
+            var unwrittenCloneName = Assert.Throws<MIGraphXException>(() => operation.Clone());
+            Assert.Contains("success with unwritten or unterminated UTF-8 buffer", unwrittenCloneName.Operation, StringComparison.Ordinal);
+            Assert.Equal(2, controls.M12LiveCount());
         }
 
         controls.SetFailure("migraphx_operation_create", 4);
@@ -1216,6 +1225,7 @@ public sealed class M12LocalInterfaceTests
         private readonly Action reset;
         private readonly SetStringInt setFailure;
         private readonly SetString setNullOutput;
+        private readonly SetString setSkipString;
         private readonly GetInt targetAssignCopied;
         private readonly GetInt programAssignCopied;
         private readonly GetInt targetLiveCount;
@@ -1243,6 +1253,7 @@ public sealed class M12LocalInterfaceTests
             reset = Get<Action>("fake_reset");
             setFailure = Get<SetStringInt>("fake_set_failure");
             setNullOutput = Get<SetString>("fake_set_null_output");
+            setSkipString = Get<SetString>("fake_set_skip_string");
             targetAssignCopied = Get<GetInt>("fake_target_assign_copied");
             programAssignCopied = Get<GetInt>("fake_program_assign_copied");
             targetLiveCount = Get<GetInt>("fake_target_live_count");
@@ -1268,6 +1279,7 @@ public sealed class M12LocalInterfaceTests
         internal void Reset() => reset();
         internal void SetFailure(string entryPoint, int status) => setFailure(entryPoint, status);
         internal void SetNullOutput(string entryPoint) => setNullOutput(entryPoint);
+        internal void SetSkipString(string entryPoint) => setSkipString(entryPoint);
         internal int TargetAssignCopied() => targetAssignCopied();
         internal int ProgramAssignCopied() => programAssignCopied();
         internal int TargetLiveCount() => targetLiveCount();
