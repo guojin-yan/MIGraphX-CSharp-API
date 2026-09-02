@@ -201,6 +201,7 @@ static volatile int32_t m12_live_count;
 static volatile int32_t m12_destroy_count;
 static volatile int32_t last_quantization;
 static volatile int32_t context_finish_count;
+static char last_operation_attributes[1024];
 static volatile int32_t custom_register_count;
 static volatile int32_t custom_state_copy_count;
 static volatile int32_t custom_state_delete_count;
@@ -343,6 +344,7 @@ EXPORT void fake_reset(void)
     m12_destroy_count = 0;
     last_quantization = 0;
     context_finish_count = 0;
+    last_operation_attributes[0] = '\0';
     custom_register_count = 0;
     custom_state_copy_count = 0;
     custom_state_delete_count = 0;
@@ -431,6 +433,7 @@ EXPORT int fake_m12_live_count(void) { return m12_live_count; }
 EXPORT int fake_m12_destroy_count(void) { return m12_destroy_count; }
 EXPORT int fake_last_quantization(void) { return last_quantization; }
 EXPORT int fake_context_finish_count(void) { return context_finish_count; }
+EXPORT const char* fake_last_operation_attributes(void) { return last_operation_attributes; }
 EXPORT int fake_custom_register_count(void) { return custom_register_count; }
 EXPORT int fake_custom_state_copy_count(void) { return custom_state_copy_count; }
 EXPORT int fake_custom_state_delete_count(void) { return custom_state_delete_count; }

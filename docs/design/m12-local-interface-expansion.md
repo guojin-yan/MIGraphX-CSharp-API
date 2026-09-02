@@ -27,6 +27,8 @@ For the frozen declarations that have an ownership-safe public boundary, the loc
 
 The operation boundary is also locked by a local reflection contract. `MIGraphXOperation` exposes exactly the no-attribute and fully materialized typed-attribute `Create` overloads; neither accepts `object`, pointer handles, or arbitrary `params` values. The attribute builder retains typed scalar and array forms, including deterministic Boolean-array materialization, but it does not expose an `object`/pointer carrier and the source gate rejects those ABI-shaped tokens. This proves managed signature closure only; it does not claim that arbitrary C variadic layouts are runtime-compatible.
 
+The fake-native operation fixture additionally records the exact third argument received by the C entry point. The local operation tests assert that the no-attribute overload passes `NULL`, while the materialized path escapes a literal percent sign to `%%` before crossing the variadic declaration. This closes the managed-to-native text handoff regression without claiming support for arbitrary format placeholders or other variadic values.
+
 ## Local validation record
 
 The following local checks pass for this batch:

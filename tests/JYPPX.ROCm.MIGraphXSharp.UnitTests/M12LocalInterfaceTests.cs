@@ -732,6 +732,7 @@ public sealed class M12LocalInterfaceTests
         {
             Assert.Equal("add", operation.Name);
             Assert.Equal("add", clone.Name);
+            Assert.Equal("<null>", controls.LastOperationAttributes());
             Assert.Equal(2, controls.M12LiveCount());
 
             controls.SetFailure("migraphx_operation_assign_to", 4);
@@ -806,6 +807,7 @@ public sealed class M12LocalInterfaceTests
         using (var operation = MIGraphXOperation.Create(nativePath, "reshape", attributes))
         {
             Assert.Equal("reshape", operation.Name);
+            Assert.Contains("pattern: \"50%%\\\\done\\\"ok\"", controls.LastOperationAttributes(), StringComparison.Ordinal);
             Assert.Equal(1, controls.M12LiveCount());
         }
 
@@ -1222,6 +1224,7 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt m12LiveCount;
         private readonly GetInt lastQuantization;
         private readonly GetInt contextFinishCount;
+        private readonly GetString lastOperationAttributes;
         private readonly GetInt customRegisterCount;
         private readonly GetInt customStateCopyCount;
         private readonly GetInt customStateDeleteCount;
@@ -1248,6 +1251,7 @@ public sealed class M12LocalInterfaceTests
             m12LiveCount = Get<GetInt>("fake_m12_live_count");
             lastQuantization = Get<GetInt>("fake_last_quantization");
             contextFinishCount = Get<GetInt>("fake_context_finish_count");
+            lastOperationAttributes = Get<GetString>("fake_last_operation_attributes");
             customRegisterCount = Get<GetInt>("fake_custom_register_count");
             customStateCopyCount = Get<GetInt>("fake_custom_state_copy_count");
             customStateDeleteCount = Get<GetInt>("fake_custom_state_delete_count");
@@ -1272,6 +1276,7 @@ public sealed class M12LocalInterfaceTests
         internal int M12LiveCount() => m12LiveCount();
         internal int LastQuantization() => lastQuantization();
         internal int ContextFinishCount() => contextFinishCount();
+        internal string LastOperationAttributes() => Marshal.PtrToStringUTF8(lastOperationAttributes()) ?? string.Empty;
         internal int CustomRegisterCount() => customRegisterCount();
         internal int CustomStateCopyCount() => customStateCopyCount();
         internal int CustomStateDeleteCount() => customStateDeleteCount();

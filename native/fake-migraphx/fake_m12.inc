@@ -460,8 +460,8 @@ EXPORT migraphx_status migraphx_operation_destroy(migraphx_operation_t operation
 EXPORT migraphx_status migraphx_operation_create(migraphx_operation_t* out, const char* name, const char* attributes, ...)
 {
     migraphx_operation_t operation;
-    (void)attributes;
     if(out == NULL || name == NULL) return migraphx_status_bad_param;
+    copy_string(last_operation_attributes, sizeof(last_operation_attributes), attributes == NULL ? "<null>" : attributes);
     if(take_null_for("migraphx_operation_create"))
     {
         *out = NULL;
