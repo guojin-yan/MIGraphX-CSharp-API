@@ -872,6 +872,36 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public async System.Threading.Tasks.Task CustomOpCallbackSettersRaceDisposeRemainFailClosed()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        using var compute = new MIGraphXExperimentalCustomOp(nativePath, "m12-concurrent-compute-setter");
+        await AssertConcurrentDisposeAsync(
+            () => compute.SetCompute(static (_, _, _, _, _, _, _) => MIGraphXStatus.Success),
+            compute.Dispose);
+
+        using var computeShape = new MIGraphXExperimentalCustomOp(nativePath, "m12-concurrent-shape-setter");
+        await AssertConcurrentDisposeAsync(
+            () => computeShape.SetComputeShape(static (_, _, _, _, _) => MIGraphXStatus.Success),
+            computeShape.Dispose);
+
+        using var outputAlias = new MIGraphXExperimentalCustomOp(nativePath, "m12-concurrent-alias-setter");
+        await AssertConcurrentDisposeAsync(
+            () => outputAlias.SetOutputAlias(static (_, _, _, _, _, _) => MIGraphXStatus.Success),
+            outputAlias.Dispose);
+
+        using var offloadTarget = new MIGraphXExperimentalCustomOp(nativePath, "m12-concurrent-target-setter");
+        await AssertConcurrentDisposeAsync(
+            () => offloadTarget.SetRunsOnOffloadTarget(static (_, _, _, _) => MIGraphXStatus.Success),
+            offloadTarget.Dispose);
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public async System.Threading.Tasks.Task DeferredNegativeBoundariesAndConcurrentDisposeRemainFailClosed()
     {
         Assert.Empty(typeof(MIGraphXOperation).GetConstructors());
