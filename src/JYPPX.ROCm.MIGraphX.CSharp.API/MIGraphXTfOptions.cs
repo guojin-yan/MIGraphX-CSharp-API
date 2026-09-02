@@ -113,7 +113,16 @@ public sealed class MIGraphXTfOptions : IDisposable
     }
 
     /// <summary>输出名称快照。 Gets the output-name snapshot.</summary>
-    public IReadOnlyList<string> OutputNames { get { lock (staticOverrides) { return Array.AsReadOnly(outputNames.ToArray()); } } }
+    public IReadOnlyList<string> OutputNames
+    {
+        get
+        {
+            return owner.WithHandle(_ =>
+            {
+                lock (staticOverrides) { return (IReadOnlyList<string>)Array.AsReadOnly(outputNames.ToArray()); }
+            });
+        }
+    }
 
     /// <summary>通过 native assign-to 创建独立副本。 Creates an independent copy through native assign-to.</summary>
     public MIGraphXTfOptions Clone()

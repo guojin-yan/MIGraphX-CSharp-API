@@ -155,6 +155,24 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void TensorFlowOutputNameSnapshotFailsAfterDispose()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        var options = new MIGraphXTfOptions(nativePath);
+        options.SetOutputNames(new[] { "output", "aux" });
+        Assert.Equal(new[] { "output", "aux" }, options.OutputNames);
+
+        options.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => _ = options.OutputNames);
+        options.Dispose();
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void GraphEditingAndContextViewsKeepTheirProgramAlive()
     {
         var nativePath = FakePath();
