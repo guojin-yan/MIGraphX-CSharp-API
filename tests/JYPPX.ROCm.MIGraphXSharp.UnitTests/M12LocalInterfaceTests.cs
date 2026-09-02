@@ -137,6 +137,24 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void QuantizeInt8OptionSnapshotFailsAfterDispose()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        var options = new MIGraphXQuantizeInt8Options(nativePath);
+        options.AddOpName("dot");
+        Assert.Equal(new[] { "dot" }, options.OpNames);
+
+        options.Dispose();
+        Assert.Throws<ObjectDisposedException>(() => _ = options.OpNames);
+        options.Dispose();
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void GraphEditingAndContextViewsKeepTheirProgramAlive()
     {
         var nativePath = FakePath();

@@ -95,7 +95,16 @@ public sealed class MIGraphXQuantizeInt8Options : IDisposable
     }
 
     /// <summary>operator 名称快照。 Gets the operator-name snapshot.</summary>
-    public IReadOnlyList<string> OpNames { get { lock (opNames) { return Array.AsReadOnly(opNames.ToArray()); } } }
+    public IReadOnlyList<string> OpNames
+    {
+        get
+        {
+            return owner.WithHandle(_ =>
+            {
+                lock (opNames) { return (IReadOnlyList<string>)Array.AsReadOnly(opNames.ToArray()); }
+            });
+        }
+    }
 
     /// <summary>通过 native assign-to 创建独立副本。 Creates an independent copy through native assign-to.</summary>
     public MIGraphXQuantizeInt8Options Clone()
