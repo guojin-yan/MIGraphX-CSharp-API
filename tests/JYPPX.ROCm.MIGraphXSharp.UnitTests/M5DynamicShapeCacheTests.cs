@@ -46,6 +46,36 @@ public sealed class M5DynamicShapeCacheTests
     }
 
     [Fact]
+    public void DynamicDimensionBooleanResultsRejectInvalidNativeValues()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+
+        using (var native = NativeDynamicDimensionHandle.Create(MIGraphXDynamicDimension.Fixed(4)))
+        {
+            controls.SetInvalidBool("migraphx_dynamic_dimension_is_fixed");
+            var fixedError = Assert.Throws<MIGraphXException>(() => native.IsFixedValue());
+            Assert.Contains("success with invalid C bool 2", fixedError.Message, StringComparison.Ordinal);
+
+            using var other = NativeDynamicDimensionHandle.Create(MIGraphXDynamicDimension.Fixed(4));
+            controls.SetInvalidBool("migraphx_dynamic_dimension_equal");
+            var equalError = Assert.Throws<MIGraphXException>(() => native.EqualsValue(other));
+            Assert.Contains("success with invalid C bool 2", equalError.Message, StringComparison.Ordinal);
+        }
+
+        var shape = MIGraphXShape.CreateDynamic(MIGraphXShapeDataType.Float32, new[] { MIGraphXDynamicDimension.Fixed(4) });
+        using (var nativeShape = NativeShapeHandle.CreateDynamic(shape))
+        {
+            controls.SetInvalidBool("migraphx_dynamic_dimension_is_fixed");
+            var borrowedError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "invalid dynamic bool", shape.DynamicDimensions));
+            Assert.Contains("success with invalid C bool 2", borrowedError.Message, StringComparison.Ordinal);
+        }
+
+        Assert.Equal(0, controls.M5LiveCount());
+    }
+
+    [Fact]
     public void DynamicOnnxOverrideIsCopiedIntoShapeSnapshot()
     {
         var path = FakePath();
@@ -255,6 +285,7 @@ public sealed class M5DynamicShapeCacheTests
         private readonly Action reset;
         private readonly SetFailureDelegate setFailure;
         private readonly SetStringDelegate setNullOutput;
+        private readonly SetStringDelegate setInvalidBool;
         private readonly SetIntDelegate setShapeMode;
         private readonly GetIntDelegate m5LiveCount;
         internal FakeControls(string path)
@@ -263,12 +294,14 @@ public sealed class M5DynamicShapeCacheTests
             reset = Get<Action>("fake_reset");
             setFailure = Get<SetFailureDelegate>("fake_set_failure");
             setNullOutput = Get<SetStringDelegate>("fake_set_null_output");
+            setInvalidBool = Get<SetStringDelegate>("fake_set_invalid_bool");
             setShapeMode = Get<SetIntDelegate>("fake_set_shape_mode");
             m5LiveCount = Get<GetIntDelegate>("fake_m5_live_count");
         }
         internal void Reset() => reset();
         internal void SetFailure(string entryPoint, int status) => setFailure(entryPoint, status);
         internal void SetNullOutput(string entryPoint) => setNullOutput(entryPoint);
+        internal void SetInvalidBool(string entryPoint) => setInvalidBool(entryPoint);
         internal void SetShapeMode(int value) => setShapeMode(value);
         internal int M5LiveCount() => m5LiveCount();
         public void Dispose() => System.Runtime.InteropServices.NativeLibrary.Free(library);

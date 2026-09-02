@@ -32,6 +32,19 @@ internal sealed class NativeOptimalsHandle : NativeOwnedHandle
     private static OutHandle<NativeOptimalsHandle> CreateEmpty(string operation) => OutHandle<NativeOptimalsHandle>.Create(operation);
 }
 
+internal static class NativeM5Boolean
+{
+    internal static bool Read(IntPtr output, string operation)
+    {
+        var value = Marshal.ReadByte(output);
+        if (value > 1)
+        {
+            throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with invalid C bool {value})");
+        }
+        return value == 1;
+    }
+}
+
 internal sealed class NativeDynamicDimensionHandle : NativeOwnedHandle
 {
     internal static NativeDynamicDimensionHandle Create(MIGraphXDynamicDimension value)
@@ -75,7 +88,7 @@ internal sealed class NativeDynamicDimensionHandle : NativeOwnedHandle
         try
         {
             NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionIsFixed(output, DangerousGetHandle()), "migraphx_dynamic_dimension_is_fixed");
-            return Marshal.ReadByte(output) != 0;
+            return NativeM5Boolean.Read(output, "migraphx_dynamic_dimension_is_fixed");
         }
         finally { Marshal.FreeHGlobal(output); }
     }
@@ -87,7 +100,7 @@ internal sealed class NativeDynamicDimensionHandle : NativeOwnedHandle
         try
         {
             NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionEqual(output, DangerousGetHandle(), other.DangerousGetHandle()), "migraphx_dynamic_dimension_equal");
-            return Marshal.ReadByte(output) != 0;
+            return NativeM5Boolean.Read(output, "migraphx_dynamic_dimension_equal");
         }
         finally { Marshal.FreeHGlobal(output); }
     }
@@ -192,7 +205,7 @@ internal sealed class NativeDynamicDimensionsHandle : NativeOwnedHandle
             try
             {
                 NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionIsFixed(output, handle), "migraphx_dynamic_dimension_is_fixed");
-                return Marshal.ReadByte(output) != 0;
+                return NativeM5Boolean.Read(output, "migraphx_dynamic_dimension_is_fixed");
             }
             finally { Marshal.FreeHGlobal(output); }
         }

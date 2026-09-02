@@ -235,7 +235,6 @@ static int take_null_for(const char* entry)
     return ATOMIC_EXCHANGE(create_null, 0);
 }
 
-#ifndef FAKE_DISABLE_M10
 static uint8_t take_bool_for(const char* entry, int value)
 {
     if(invalid_bool_entry[0] != '\0' && strcmp(invalid_bool_entry, entry) == 0)
@@ -246,6 +245,7 @@ static uint8_t take_bool_for(const char* entry, int value)
     return value ? 1 : 0;
 }
 
+#ifndef FAKE_DISABLE_M10
 static void wait_for_equality_release(void)
 {
     ATOMIC_INCREMENT(equality_enter_count);
@@ -1052,13 +1052,13 @@ EXPORT migraphx_status migraphx_dynamic_dimension_is_fixed(uint8_t* out, const_m
 {
     if(out == NULL || value == NULL)
         return migraphx_status_bad_param;
-    *out = value->minimum == value->maximum ? 1 : 0;
+    *out = take_bool_for("migraphx_dynamic_dimension_is_fixed", value->minimum == value->maximum);
     return (migraphx_status)take_status_for("migraphx_dynamic_dimension_is_fixed");
 }
 EXPORT migraphx_status migraphx_dynamic_dimension_equal(uint8_t* out, const_migraphx_dynamic_dimension_t left, const_migraphx_dynamic_dimension_t right)
 {
     if(out == NULL || left == NULL || right == NULL) return migraphx_status_bad_param;
-    *out = left->minimum == right->minimum && left->maximum == right->maximum && left->optimal_count == right->optimal_count && memcmp(left->optimals, right->optimals, left->optimal_count * sizeof(size_t)) == 0;
+    *out = take_bool_for("migraphx_dynamic_dimension_equal", left->minimum == right->minimum && left->maximum == right->maximum && left->optimal_count == right->optimal_count && memcmp(left->optimals, right->optimals, left->optimal_count * sizeof(size_t)) == 0);
     return (migraphx_status)take_status_for("migraphx_dynamic_dimension_equal");
 }
 EXPORT migraphx_status migraphx_dynamic_dimensions_destroy(migraphx_dynamic_dimensions_t value) { destroy_m5(value); return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_destroy"); }

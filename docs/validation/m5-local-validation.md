@@ -2,7 +2,7 @@
 
 M5 is local `statically-verified` and `fake-native-executed` evidence only. The later official session at `346cdd0b01a7f8039f5deb93058928403fccc7dd` revalidated M1/M2 and executed the M9 option smoke, but it did not exercise M5 dynamic-shape, Save/Load, or cache behavior.
 
-The 18-test unit suite covers dynamic-dimension validation and managed/native equality, empty-rank and multi-axis dynamic shapes, static-to-dynamic ONNX override replacement, strict UTF-8 names, dynamic collection borrowed-null/count-drift failures, file-options/load cleanup, Save/Load ownership, cache cold rebuild/warm hit, payload corruption recovery, metadata-key invalidation, same-key concurrent writers, and temporary-file cleanup. Every focused failure path returns the M5 fake-native live count to zero. `eng/verify-m5-coverage.ps1` checks the 192-item map closure (`74 supported`, `117 planned`, `1 unsupported`), 13 ownership records, and the reviewed public baseline.
+The 19-test unit suite covers dynamic-dimension validation and managed/native equality, invalid native C-bool rejection, empty-rank and multi-axis dynamic shapes, static-to-dynamic ONNX override replacement, strict UTF-8 names, dynamic collection borrowed-null/count-drift failures, file-options/load cleanup, Save/Load ownership, cache cold rebuild/warm hit, payload corruption recovery, metadata-key invalidation, same-key concurrent writers, and temporary-file cleanup. Every focused failure path returns the M5 fake-native live count to zero. `eng/verify-m5-coverage.ps1` checks the 192-item map closure (`74 supported`, `117 planned`, `1 unsupported`), 13 ownership records, and the reviewed public baseline.
 
 The complete local sequence remains:
 
