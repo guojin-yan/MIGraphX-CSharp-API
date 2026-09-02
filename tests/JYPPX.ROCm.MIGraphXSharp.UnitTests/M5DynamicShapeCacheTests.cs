@@ -46,7 +46,7 @@ public sealed class M5DynamicShapeCacheTests
     }
 
     [Fact]
-    public void DynamicDimensionBooleanResultsRejectInvalidNativeValues()
+    public void NativeBooleanResultsRejectInvalidOrUnwrittenValues()
     {
         var path = FakePath();
         using var controls = new FakeControls(path);
@@ -58,10 +58,18 @@ public sealed class M5DynamicShapeCacheTests
             var fixedError = Assert.Throws<MIGraphXException>(() => native.IsFixedValue());
             Assert.Contains("success with invalid C bool 2", fixedError.Message, StringComparison.Ordinal);
 
+            controls.SetSkipBool("migraphx_dynamic_dimension_is_fixed");
+            var unwrittenFixedError = Assert.Throws<MIGraphXException>(() => native.IsFixedValue());
+            Assert.Contains("success with invalid C bool 255", unwrittenFixedError.Message, StringComparison.Ordinal);
+
             using var other = NativeDynamicDimensionHandle.Create(MIGraphXDynamicDimension.Fixed(4));
             controls.SetInvalidBool("migraphx_dynamic_dimension_equal");
             var equalError = Assert.Throws<MIGraphXException>(() => native.EqualsValue(other));
             Assert.Contains("success with invalid C bool 2", equalError.Message, StringComparison.Ordinal);
+
+            controls.SetSkipBool("migraphx_dynamic_dimension_equal");
+            var unwrittenEqualError = Assert.Throws<MIGraphXException>(() => native.EqualsValue(other));
+            Assert.Contains("success with invalid C bool 255", unwrittenEqualError.Message, StringComparison.Ordinal);
         }
 
         var staticShape = MIGraphXShape.CreateScalar(MIGraphXShapeDataType.Float32);
@@ -71,9 +79,17 @@ public sealed class M5DynamicShapeCacheTests
             var dynamicError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeStaticShape.DangerousGetHandle(), "invalid shape dynamic bool"));
             Assert.Contains("success with invalid C bool 2", dynamicError.Message, StringComparison.Ordinal);
 
+            controls.SetSkipBool("migraphx_shape_dynamic");
+            var unwrittenDynamicError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeStaticShape.DangerousGetHandle(), "unwritten shape dynamic bool"));
+            Assert.Contains("success with invalid C bool 255", unwrittenDynamicError.Message, StringComparison.Ordinal);
+
             controls.SetInvalidBool("migraphx_shape_standard");
             var standardError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeStaticShape.DangerousGetHandle(), "invalid shape standard bool"));
             Assert.Contains("success with invalid C bool 2", standardError.Message, StringComparison.Ordinal);
+
+            controls.SetSkipBool("migraphx_shape_standard");
+            var unwrittenStandardError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeStaticShape.DangerousGetHandle(), "unwritten shape standard bool"));
+            Assert.Contains("success with invalid C bool 255", unwrittenStandardError.Message, StringComparison.Ordinal);
         }
 
         var shape = MIGraphXShape.CreateDynamic(MIGraphXShapeDataType.Float32, new[] { MIGraphXDynamicDimension.Fixed(4) });
@@ -82,6 +98,10 @@ public sealed class M5DynamicShapeCacheTests
             controls.SetInvalidBool("migraphx_shape_dynamic");
             var shapeDynamicError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "invalid shape dynamic bool", shape.DynamicDimensions));
             Assert.Contains("success with invalid C bool 2", shapeDynamicError.Message, StringComparison.Ordinal);
+
+            controls.SetSkipBool("migraphx_shape_dynamic");
+            var unwrittenShapeDynamicError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "unwritten shape dynamic bool", shape.DynamicDimensions));
+            Assert.Contains("success with invalid C bool 255", unwrittenShapeDynamicError.Message, StringComparison.Ordinal);
 
             controls.SetInvalidBool("migraphx_dynamic_dimension_is_fixed");
             var borrowedError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "invalid dynamic bool", shape.DynamicDimensions));
@@ -302,6 +322,7 @@ public sealed class M5DynamicShapeCacheTests
         private readonly SetFailureDelegate setFailure;
         private readonly SetStringDelegate setNullOutput;
         private readonly SetStringDelegate setInvalidBool;
+        private readonly SetStringDelegate setSkipBool;
         private readonly SetIntDelegate setShapeMode;
         private readonly GetIntDelegate m5LiveCount;
         internal FakeControls(string path)
@@ -311,6 +332,7 @@ public sealed class M5DynamicShapeCacheTests
             setFailure = Get<SetFailureDelegate>("fake_set_failure");
             setNullOutput = Get<SetStringDelegate>("fake_set_null_output");
             setInvalidBool = Get<SetStringDelegate>("fake_set_invalid_bool");
+            setSkipBool = Get<SetStringDelegate>("fake_set_skip_bool");
             setShapeMode = Get<SetIntDelegate>("fake_set_shape_mode");
             m5LiveCount = Get<GetIntDelegate>("fake_m5_live_count");
         }
@@ -318,6 +340,7 @@ public sealed class M5DynamicShapeCacheTests
         internal void SetFailure(string entryPoint, int status) => setFailure(entryPoint, status);
         internal void SetNullOutput(string entryPoint) => setNullOutput(entryPoint);
         internal void SetInvalidBool(string entryPoint) => setInvalidBool(entryPoint);
+        internal void SetSkipBool(string entryPoint) => setSkipBool(entryPoint);
         internal void SetShapeMode(int value) => setShapeMode(value);
         internal int M5LiveCount() => m5LiveCount();
         public void Dispose() => System.Runtime.InteropServices.NativeLibrary.Free(library);

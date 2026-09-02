@@ -184,6 +184,7 @@ static char failure_entry[128];
 static volatile int32_t failure_status;
 static char null_entry[128];
 static char invalid_bool_entry[128];
+static char skip_bool_entry[128];
 static volatile int32_t onnx_registry_mode;
 static volatile int32_t onnx_registry_size_reads;
 static volatile int32_t equality_wait;
@@ -243,6 +244,16 @@ static uint8_t take_bool_for(const char* entry, int value)
         return 2;
     }
     return value ? 1 : 0;
+}
+
+static int skip_bool_for(const char* entry)
+{
+    if(skip_bool_entry[0] != '\0' && strcmp(skip_bool_entry, entry) == 0)
+    {
+        skip_bool_entry[0] = '\0';
+        return 1;
+    }
+    return 0;
 }
 
 #ifndef FAKE_DISABLE_M10
@@ -315,6 +326,7 @@ EXPORT void fake_reset(void)
     failure_status = 0;
     null_entry[0] = '\0';
     invalid_bool_entry[0] = '\0';
+    skip_bool_entry[0] = '\0';
     onnx_registry_mode = 0;
     onnx_registry_size_reads = 0;
     equality_wait = 0;
@@ -407,6 +419,7 @@ EXPORT void fake_set_failure(const char* entry, int status)
 }
 EXPORT void fake_set_null_output(const char* entry) { copy_string(null_entry, sizeof(null_entry), entry); }
 EXPORT void fake_set_invalid_bool(const char* entry) { copy_string(invalid_bool_entry, sizeof(invalid_bool_entry), entry); }
+EXPORT void fake_set_skip_bool(const char* entry) { copy_string(skip_bool_entry, sizeof(skip_bool_entry), entry); }
 EXPORT void fake_set_onnx_registry_mode(int value)
 {
     ATOMIC_EXCHANGE(onnx_registry_mode, value);
@@ -793,8 +806,8 @@ EXPORT migraphx_status migraphx_shape_strides(const size_t** out, size_t* out_si
 EXPORT migraphx_status migraphx_shape_type(int* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = shape->type; return (migraphx_status)take_status_for("migraphx_shape_type"); }
 EXPORT migraphx_status migraphx_shape_bytes(size_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; if(shape->dynamic) return migraphx_status_unknown_error; *out = shape->bytes; return (migraphx_status)take_status_for("migraphx_shape_bytes"); }
 EXPORT migraphx_status migraphx_shape_elements(size_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; if(shape->dynamic) return migraphx_status_unknown_error; *out = shape->elements; return (migraphx_status)take_status_for("migraphx_shape_elements"); }
-EXPORT migraphx_status migraphx_shape_standard(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; if(shape->dynamic) return migraphx_status_unknown_error; *out = take_bool_for("migraphx_shape_standard", shape->standard); return (migraphx_status)take_status_for("migraphx_shape_standard"); }
-EXPORT migraphx_status migraphx_shape_dynamic(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; *out = take_bool_for("migraphx_shape_dynamic", shape->dynamic); return (migraphx_status)take_status_for("migraphx_shape_dynamic"); }
+EXPORT migraphx_status migraphx_shape_standard(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; if(shape->dynamic) return migraphx_status_unknown_error; if(!skip_bool_for("migraphx_shape_standard")) *out = take_bool_for("migraphx_shape_standard", shape->standard); return (migraphx_status)take_status_for("migraphx_shape_standard"); }
+EXPORT migraphx_status migraphx_shape_dynamic(uint8_t* out, const fake_shape* shape) { if(out == NULL || shape == NULL) return migraphx_status_bad_param; if(!skip_bool_for("migraphx_shape_dynamic")) *out = take_bool_for("migraphx_shape_dynamic", shape->dynamic); return (migraphx_status)take_status_for("migraphx_shape_dynamic"); }
 EXPORT migraphx_status migraphx_argument_destroy(migraphx_argument_t value)
 {
     if(value != NULL && value->owns_buffer) free(value->buffer);
@@ -1052,13 +1065,13 @@ EXPORT migraphx_status migraphx_dynamic_dimension_is_fixed(uint8_t* out, const_m
 {
     if(out == NULL || value == NULL)
         return migraphx_status_bad_param;
-    *out = take_bool_for("migraphx_dynamic_dimension_is_fixed", value->minimum == value->maximum);
+    if(!skip_bool_for("migraphx_dynamic_dimension_is_fixed")) *out = take_bool_for("migraphx_dynamic_dimension_is_fixed", value->minimum == value->maximum);
     return (migraphx_status)take_status_for("migraphx_dynamic_dimension_is_fixed");
 }
 EXPORT migraphx_status migraphx_dynamic_dimension_equal(uint8_t* out, const_migraphx_dynamic_dimension_t left, const_migraphx_dynamic_dimension_t right)
 {
     if(out == NULL || left == NULL || right == NULL) return migraphx_status_bad_param;
-    *out = take_bool_for("migraphx_dynamic_dimension_equal", left->minimum == right->minimum && left->maximum == right->maximum && left->optimal_count == right->optimal_count && memcmp(left->optimals, right->optimals, left->optimal_count * sizeof(size_t)) == 0);
+    if(!skip_bool_for("migraphx_dynamic_dimension_equal")) *out = take_bool_for("migraphx_dynamic_dimension_equal", left->minimum == right->minimum && left->maximum == right->maximum && left->optimal_count == right->optimal_count && memcmp(left->optimals, right->optimals, left->optimal_count * sizeof(size_t)) == 0);
     return (migraphx_status)take_status_for("migraphx_dynamic_dimension_equal");
 }
 EXPORT migraphx_status migraphx_dynamic_dimensions_destroy(migraphx_dynamic_dimensions_t value) { destroy_m5(value); return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_destroy"); }
