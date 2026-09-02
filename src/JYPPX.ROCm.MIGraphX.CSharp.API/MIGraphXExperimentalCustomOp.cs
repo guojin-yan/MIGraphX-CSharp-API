@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
@@ -56,12 +55,16 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     private static readonly NativeExperimentalDeleteCallback DeleteThunk = DeleteState;
     private readonly NativeResourceOwner<NativeExperimentalCustomOpHandle> owner;
     private readonly object? state;
-    private readonly List<Delegate> callbacks = new List<Delegate>();
+    private readonly object callbackSync = new object();
     private readonly IntPtr stateHandle;
     private ComputeCallback? compute;
     private ComputeShapeCallback? computeShape;
     private OutputAliasCallback? outputAlias;
     private RunsOnOffloadTargetCallback? runsOnOffloadTarget;
+    private Delegate? computeThunk;
+    private Delegate? computeShapeThunk;
+    private Delegate? outputAliasThunk;
+    private Delegate? runsOnOffloadTargetThunk;
 
     /// <summary>创建实验 custom-op。 Creates an experimental custom-op.</summary>
     /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute MIGraphX C native-library path.</param>
@@ -108,7 +111,7 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
         NativeExperimentalCustomOpComputeCallback? thunk = callback is null ? null :
             (outputArgument, obj, exceptionMessage, exceptionMessageSize, context, outputShape, inputs) =>
                 InvokeCompute(callback, outputArgument, obj, exceptionMessage, exceptionMessageSize, context, outputShape, inputs);
-        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetCompute, "migraphx_experimental_custom_op_set_compute", () =>
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetCompute, "migraphx_experimental_custom_op_set_compute", value => computeThunk = value, () =>
         {
             compute = callback;
         });
@@ -121,7 +124,7 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
         NativeExperimentalCustomOpComputeShapeCallback? thunk = callback is null ? null :
             (outputShape, obj, exceptionMessage, exceptionMessageSize, inputs) =>
                 InvokeComputeShape(callback, outputShape, obj, exceptionMessage, exceptionMessageSize, inputs);
-        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetComputeShape, "migraphx_experimental_custom_op_set_compute_shape", () =>
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetComputeShape, "migraphx_experimental_custom_op_set_compute_shape", value => computeShapeThunk = value, () =>
         {
             computeShape = callback;
         });
@@ -134,7 +137,7 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
         NativeExperimentalCustomOpOutputAliasCallback? thunk = callback is null ? null :
             (output, outputSize, obj, exceptionMessage, exceptionMessageSize, inputs) =>
                 InvokeOutputAlias(callback, output, outputSize, obj, exceptionMessage, exceptionMessageSize, inputs);
-        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetOutputAlias, "migraphx_experimental_custom_op_set_output_alias", () =>
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetOutputAlias, "migraphx_experimental_custom_op_set_output_alias", value => outputAliasThunk = value, () =>
         {
             outputAlias = callback;
         });
@@ -147,7 +150,7 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
         NativeExperimentalCustomOpRunsOnOffloadTargetCallback? thunk = callback is null ? null :
             (output, obj, exceptionMessage, exceptionMessageSize) =>
                 InvokeRunsOnOffloadTarget(callback, output, obj, exceptionMessage, exceptionMessageSize);
-        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetRunsOnOffloadTarget, "migraphx_experimental_custom_op_set_runs_on_offload_target", () =>
+        SetCallback(thunk, NativeMethods.ExperimentalCustomOpSetRunsOnOffloadTarget, "migraphx_experimental_custom_op_set_runs_on_offload_target", value => runsOnOffloadTargetThunk = value, () =>
         {
             runsOnOffloadTarget = callback;
         });
@@ -161,7 +164,7 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     {
         return owner.WithHandle(_ =>
         {
-            lock (callbacks)
+            lock (callbackSync)
             {
                 var result = new MIGraphXExperimentalCustomOp(owner.Runtime, Name, state, ObjectTypeName);
                 try
@@ -187,9 +190,12 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     {
         // Keep callback thunks rooted until native destroy has finished consuming the owner.
         owner.Dispose();
-        lock (callbacks)
+        lock (callbackSync)
         {
-            callbacks.Clear();
+            computeThunk = null;
+            computeShapeThunk = null;
+            outputAliasThunk = null;
+            runsOnOffloadTargetThunk = null;
             compute = null;
             computeShape = null;
             outputAlias = null;
@@ -197,7 +203,7 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
         }
     }
 
-    private void SetCallback(Delegate? callback, Func<IntPtr, IntPtr, NativeMIGraphXStatus> setter, string operation, Action remember)
+    private void SetCallback(Delegate? callback, Func<IntPtr, IntPtr, NativeMIGraphXStatus> setter, string operation, Action<Delegate?> retain, Action remember)
     {
         var pointer = callback is null ? IntPtr.Zero : Marshal.GetFunctionPointerForDelegate(callback);
         owner.WithHandle(handle =>
@@ -213,9 +219,9 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
                 GC.KeepAlive(callback);
             }
             NativeStatus.ThrowIfFailed(status, operation);
-            lock (callbacks)
+            lock (callbackSync)
             {
-                if (callback is not null) callbacks.Add(callback);
+                retain(callback);
                 remember();
             }
         });

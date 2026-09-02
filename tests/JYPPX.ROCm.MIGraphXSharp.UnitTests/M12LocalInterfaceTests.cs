@@ -425,6 +425,26 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CustomOpReplacingComputeCallbackReleasesObsoleteThunkRoot()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_replaced_callback_root_test"))
+        {
+            var obsoleteCapture = InstallCapturedCompute(operation);
+            operation.SetCompute((_, _, _, _, _, _, _) => MIGraphXStatus.Success);
+
+            AssertEventuallyCollected(obsoleteCapture);
+            Assert.Equal(0, controls.InvokeCustomCallbacks(
+                operation.Owner.WithHandle(static handle => handle)));
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void CustomOpCallbackRootLastsThroughNativeOwnerLifetime()
     {
         var nativePath = FakePath();
@@ -1071,6 +1091,19 @@ public sealed class M12LocalInterfaceTests
             Assert.Equal((int)MIGraphXStatus.UnknownError, controls.InvokeCustomCallbacks(
                 operation.Owner.WithHandle(static handle => handle)));
         }
+        return captureReference;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference InstallCapturedCompute(MIGraphXExperimentalCustomOp operation)
+    {
+        var capture = new CallbackLifetimeCapture();
+        var captureReference = new WeakReference(capture);
+        operation.SetCompute((_, _, _, _, _, _, _) =>
+        {
+            capture.InvocationCount++;
+            return MIGraphXStatus.Success;
+        });
         return captureReference;
     }
 
