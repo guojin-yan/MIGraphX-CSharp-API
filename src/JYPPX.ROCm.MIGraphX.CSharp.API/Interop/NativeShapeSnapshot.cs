@@ -31,7 +31,7 @@ internal sealed class NativeShapeSnapshot
         if (shape == IntPtr.Zero) { throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{context} shape (null borrowed handle)"); }
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeType(out var type, shape), "migraphx_shape_type");
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeDynamic(out var dynamic, shape), "migraphx_shape_dynamic");
-        var isDynamic = dynamic != 0;
+        var isDynamic = NativeBoolean.Read(dynamic, "migraphx_shape_dynamic");
         if (isDynamic)
         {
             using var dimensions = NativeDynamicDimensionsHandle.FromShape(shape);
@@ -51,7 +51,7 @@ internal sealed class NativeShapeSnapshot
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeElements(out var elements, shape), "migraphx_shape_elements");
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeBytes(out var bytes, shape), "migraphx_shape_bytes");
         NativeStatus.ThrowIfFailed(NativeMethods.ShapeStandard(out var standard, shape), "migraphx_shape_standard");
-        return new NativeShapeSnapshot(type, CopySizeT(lengths, lengthCount, "shape lengths"), CopySizeT(strides, strideCount, "shape strides"), ToLong(elements, "shape elements"), ToLong(bytes, "shape bytes"), standard != 0, false, Array.Empty<bool>());
+        return new NativeShapeSnapshot(type, CopySizeT(lengths, lengthCount, "shape lengths"), CopySizeT(strides, strideCount, "shape strides"), ToLong(elements, "shape elements"), ToLong(bytes, "shape bytes"), NativeBoolean.Read(standard, "migraphx_shape_standard"), false, Array.Empty<bool>());
     }
 
     internal void RequireFloat32StaticStandard()

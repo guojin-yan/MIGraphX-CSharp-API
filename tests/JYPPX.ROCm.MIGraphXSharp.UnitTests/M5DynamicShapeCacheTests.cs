@@ -64,9 +64,25 @@ public sealed class M5DynamicShapeCacheTests
             Assert.Contains("success with invalid C bool 2", equalError.Message, StringComparison.Ordinal);
         }
 
+        var staticShape = MIGraphXShape.CreateScalar(MIGraphXShapeDataType.Float32);
+        using (var nativeStaticShape = NativeShapeHandle.Create(staticShape))
+        {
+            controls.SetInvalidBool("migraphx_shape_dynamic");
+            var dynamicError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeStaticShape.DangerousGetHandle(), "invalid shape dynamic bool"));
+            Assert.Contains("success with invalid C bool 2", dynamicError.Message, StringComparison.Ordinal);
+
+            controls.SetInvalidBool("migraphx_shape_standard");
+            var standardError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeStaticShape.DangerousGetHandle(), "invalid shape standard bool"));
+            Assert.Contains("success with invalid C bool 2", standardError.Message, StringComparison.Ordinal);
+        }
+
         var shape = MIGraphXShape.CreateDynamic(MIGraphXShapeDataType.Float32, new[] { MIGraphXDynamicDimension.Fixed(4) });
         using (var nativeShape = NativeShapeHandle.CreateDynamic(shape))
         {
+            controls.SetInvalidBool("migraphx_shape_dynamic");
+            var shapeDynamicError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "invalid shape dynamic bool", shape.DynamicDimensions));
+            Assert.Contains("success with invalid C bool 2", shapeDynamicError.Message, StringComparison.Ordinal);
+
             controls.SetInvalidBool("migraphx_dynamic_dimension_is_fixed");
             var borrowedError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "invalid dynamic bool", shape.DynamicDimensions));
             Assert.Contains("success with invalid C bool 2", borrowedError.Message, StringComparison.Ordinal);
