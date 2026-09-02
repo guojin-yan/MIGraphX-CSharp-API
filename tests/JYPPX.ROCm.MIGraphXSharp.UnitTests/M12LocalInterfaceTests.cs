@@ -1022,6 +1022,11 @@ public sealed class M12LocalInterfaceTests
         contextTarget.Dispose();
         contextCompileOptions.Dispose();
         AssertNoNativeLeaks(controls);
+
+        var abandonedViews = CreateAbandonedProgramViews(nativePath);
+        Assert.Equal(1, controls.ProgramLiveCount());
+        AssertEventuallyProgramReleased(abandonedViews, controls);
+        AssertNoNativeLeaks(controls);
     }
 
     private static async System.Threading.Tasks.Task AssertConcurrentDisposeAsync(Action access, Action dispose)
@@ -1070,6 +1075,34 @@ public sealed class M12LocalInterfaceTests
     {
         for (var attempt = 0; reference.IsAlive && attempt < 8; attempt++) CollectGarbage();
         Assert.False(reference.IsAlive);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (WeakReference Module, WeakReference Context) CreateAbandonedProgramViews(string nativePath)
+    {
+        using var program = new MIGraphXProgram(nativePath);
+        using var target = new MIGraphXTarget(nativePath);
+        using var options = new MIGraphXCompileOptions(nativePath);
+        program.Compile(target, options);
+        var module = program.GetMainModule();
+        var context = program.GetExperimentalContext();
+        var moduleReference = new WeakReference(module);
+        var contextReference = new WeakReference(context);
+        program.Dispose();
+        return (moduleReference, contextReference);
+    }
+
+    private static void AssertEventuallyProgramReleased((WeakReference Module, WeakReference Context) views, FakeControls controls)
+    {
+        for (var attempt = 0; attempt < 16; attempt++)
+        {
+            CollectGarbage();
+            if (!views.Module.IsAlive && !views.Context.IsAlive && controls.ProgramLiveCount() == 0) return;
+        }
+
+        Assert.False(views.Module.IsAlive);
+        Assert.False(views.Context.IsAlive);
+        Assert.Equal(0, controls.ProgramLiveCount());
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

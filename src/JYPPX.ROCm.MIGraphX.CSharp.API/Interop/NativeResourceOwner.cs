@@ -88,6 +88,12 @@ internal sealed class NativeHandleLease : IDisposable
 {
     private NativeOwnedHandle? handle;
 
+    ~NativeHandleLease()
+    {
+        try { Release(); }
+        catch { }
+    }
+
     internal NativeHandleLease(NativeOwnedHandle handle, IntPtr pointer, bool addedReference)
     {
         this.handle = addedReference ? handle : null;
@@ -113,6 +119,12 @@ internal sealed class NativeHandleLease : IDisposable
     }
 
     public void Dispose()
+    {
+        try { Release(); }
+        finally { GC.SuppressFinalize(this); }
+    }
+
+    private void Release()
     {
         Interlocked.Exchange(ref handle, null)?.DangerousRelease();
     }
