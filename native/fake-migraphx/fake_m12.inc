@@ -740,7 +740,7 @@ EXPORT migraphx_status migraphx_context_finish(migraphx_context_t context)
 EXPORT migraphx_status migraphx_context_get_queue(void** out, migraphx_context_t context)
 {
     if(out == NULL || context == NULL) return migraphx_status_bad_param;
-    *out = context;
+    *out = take_null_for("migraphx_context_get_queue") ? NULL : context;
     return (migraphx_status)take_status_for("migraphx_context_get_queue");
 }
 

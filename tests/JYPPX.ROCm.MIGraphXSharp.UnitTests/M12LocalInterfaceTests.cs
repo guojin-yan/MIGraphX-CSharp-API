@@ -220,6 +220,9 @@ public sealed class M12LocalInterfaceTests
         using (var context = contextProgram.GetExperimentalContext())
         {
             Assert.NotEqual(IntPtr.Zero, context.Queue);
+            controls.SetNullOutput("migraphx_context_get_queue");
+            var queueError = Assert.Throws<MIGraphXException>(() => _ = context.Queue);
+            Assert.Contains("success with null queue", queueError.Message, StringComparison.Ordinal);
             contextProgram.Dispose();
             context.Finish();
             Assert.Equal(1, controls.ContextFinishCount());

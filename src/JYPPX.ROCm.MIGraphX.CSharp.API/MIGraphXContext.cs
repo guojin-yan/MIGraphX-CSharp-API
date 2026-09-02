@@ -28,7 +28,8 @@ public sealed class MIGraphXContext : IDisposable
         }
     }
 
-    /// <summary>获取底层 HIP queue 指针；调用方不取得其所有权。 Gets the underlying HIP queue pointer without transferring ownership.</summary>
+    /// <summary>获取底层 HIP queue 指针；调用方不取得其所有权，native 成功却返回空指针时失败关闭。 Gets the underlying HIP queue pointer without transferring ownership; a successful native call that returns null fails closed.</summary>
+    /// <exception cref="MIGraphXException">native 成功但没有返回 queue 指针。 The native call succeeded without returning a queue pointer.</exception>
     public IntPtr Queue
     {
         get
@@ -41,7 +42,12 @@ public sealed class MIGraphXContext : IDisposable
                 {
                     Marshal.WriteIntPtr(slot, IntPtr.Zero);
                     NativeStatus.ThrowIfFailed(NativeMethods.ContextGetQueue(slot, handle), "migraphx_context_get_queue");
-                    return Marshal.ReadIntPtr(slot);
+                    var queue = Marshal.ReadIntPtr(slot);
+                    if (queue == IntPtr.Zero)
+                    {
+                        throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_context_get_queue (success with null queue)");
+                    }
+                    return queue;
                 }
                 finally { Marshal.FreeHGlobal(slot); }
             }
