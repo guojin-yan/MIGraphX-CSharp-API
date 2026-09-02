@@ -74,6 +74,7 @@ internal sealed class NativeDynamicDimensionHandle : NativeOwnedHandle
         var output = Marshal.AllocHGlobal(1);
         try
         {
+            Marshal.WriteByte(output, byte.MaxValue);
             NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionIsFixed(output, DangerousGetHandle()), "migraphx_dynamic_dimension_is_fixed");
             return NativeBoolean.Read(output, "migraphx_dynamic_dimension_is_fixed");
         }
@@ -86,6 +87,7 @@ internal sealed class NativeDynamicDimensionHandle : NativeOwnedHandle
         var output = Marshal.AllocHGlobal(1);
         try
         {
+            Marshal.WriteByte(output, byte.MaxValue);
             NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionEqual(output, DangerousGetHandle(), other.DangerousGetHandle()), "migraphx_dynamic_dimension_equal");
             return NativeBoolean.Read(output, "migraphx_dynamic_dimension_equal");
         }
@@ -191,6 +193,7 @@ internal sealed class NativeDynamicDimensionsHandle : NativeOwnedHandle
             var output = Marshal.AllocHGlobal(1);
             try
             {
+                Marshal.WriteByte(output, byte.MaxValue);
                 NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionIsFixed(output, handle), "migraphx_dynamic_dimension_is_fixed");
                 return NativeBoolean.Read(output, "migraphx_dynamic_dimension_is_fixed");
             }
