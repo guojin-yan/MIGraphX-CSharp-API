@@ -1009,6 +1009,12 @@ public sealed class M12LocalInterfaceTests
             () => quantizeOptions.AddOpName("convolution"),
             quantizeOptions.Dispose);
 
+        using var tfOptions = new MIGraphXTfOptions(nativePath);
+        tfOptions.SetOutputNames(new[] { "output" });
+        await AssertConcurrentDisposeAsync(
+            () => _ = tfOptions.OutputNames,
+            tfOptions.Dispose);
+
         contextProgram.Dispose();
         contextTarget.Dispose();
         contextCompileOptions.Dispose();
