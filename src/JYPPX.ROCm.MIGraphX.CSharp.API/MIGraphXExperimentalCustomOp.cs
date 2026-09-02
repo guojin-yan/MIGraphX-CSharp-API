@@ -183,7 +183,19 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
 
     internal NativeResourceOwner<NativeExperimentalCustomOpHandle> Owner => owner;
     /// <summary>释放 native custom-op。 Releases the native custom-op.</summary>
-    public void Dispose() => owner.Dispose();
+    public void Dispose()
+    {
+        // Keep callback thunks rooted until native destroy has finished consuming the owner.
+        owner.Dispose();
+        lock (callbacks)
+        {
+            callbacks.Clear();
+            compute = null;
+            computeShape = null;
+            outputAlias = null;
+            runsOnOffloadTarget = null;
+        }
+    }
 
     private void SetCallback(Delegate? callback, Func<IntPtr, IntPtr, NativeMIGraphXStatus> setter, string operation, Action remember)
     {

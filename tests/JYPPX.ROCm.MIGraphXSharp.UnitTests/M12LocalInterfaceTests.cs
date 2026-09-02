@@ -396,6 +396,21 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void DisposedCustomOpReleasesCallbackRootsWhileWrapperRemainsAlive()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        var operation = CreateDisposedCustomOpWithCallbackCapture(nativePath, out var captureReference);
+
+        AssertEventuallyCollected(captureReference);
+        Assert.Throws<ObjectDisposedException>(() => operation.SetCompute(null));
+        operation.Dispose();
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void CustomOpCallbackSetterFailurePreservesPreviousCallbackAndReplay()
     {
         var nativePath = FakePath();
@@ -1010,6 +1025,21 @@ public sealed class M12LocalInterfaceTests
     {
         for (var attempt = 0; reference.IsAlive && attempt < 8; attempt++) CollectGarbage();
         Assert.False(reference.IsAlive);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static MIGraphXExperimentalCustomOp CreateDisposedCustomOpWithCallbackCapture(string nativePath, out WeakReference captureReference)
+    {
+        var capture = new CallbackLifetimeCapture();
+        captureReference = new WeakReference(capture);
+        var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_disposed_callback_test");
+        operation.SetCompute((_, _, _, _, _, _, _) =>
+        {
+            capture.InvocationCount++;
+            return MIGraphXStatus.Success;
+        });
+        operation.Dispose();
+        return operation;
     }
 
     private static void CollectGarbage()
