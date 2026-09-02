@@ -32,7 +32,7 @@ string output = string.Join("\n", new[]
     "# assembly-version-policy: semantic-core-four-part",
     "# package-version-constant-policy: must-equal-build-version",
     "# nullable-contract: compiler-metadata",
-    "# generated-from: exported types and declared public/protected members",
+    "# generated-from: exported types and declared public/protected members (excluding finalizers)",
 }.Concat(records)) + "\n";
 
 if (write)
@@ -90,7 +90,7 @@ static List<string> GenerateSurface(Assembly assembly, string expectedVersion)
         foreach (ConstructorInfo constructor in type.GetConstructors(declared).Where(IsVisible))
             lines.Add($"C|{Visibility(constructor)}|{typeName}({FormatParameters(constructor.GetParameters(), nullability)})");
 
-        foreach (MethodInfo method in type.GetMethods(declared).Where(IsVisible).Where(method => !IsAccessor(method)))
+        foreach (MethodInfo method in type.GetMethods(declared).Where(IsVisible).Where(method => !IsAccessor(method)).Where(method => !IsFinalizer(method)))
         {
             string generic = method.IsGenericMethodDefinition ? "<" + string.Join(",", method.GetGenericArguments().Select(argument => argument.Name)) + ">" : string.Empty;
             lines.Add($"M|{MethodModifiers(method)}|{FormatType(method.ReturnType, nullability.Create(method.ReturnParameter))} {typeName}.{method.Name}{generic}({FormatParameters(method.GetParameters(), nullability)}){FormatGenericConstraints(method.GetGenericArguments())}");
@@ -216,6 +216,7 @@ static bool IsVisible(MethodBase method) => method.IsPublic || method.IsFamily |
 static string Visibility(MethodBase method) => method.IsPublic ? "public" : method.IsFamily ? "protected" : "protected-internal";
 static string TypeVisibility(Type type) => type.IsNestedPublic ? "public" : type.IsNestedFamily ? "protected" : type.IsNestedFamORAssem ? "protected-internal" : "public";
 static bool IsAccessor(MethodInfo method) => method.IsSpecialName && (method.Name.StartsWith("get_", StringComparison.Ordinal) || method.Name.StartsWith("set_", StringComparison.Ordinal) || method.Name.StartsWith("add_", StringComparison.Ordinal) || method.Name.StartsWith("remove_", StringComparison.Ordinal));
+static bool IsFinalizer(MethodInfo method) => method.Name == "Finalize" && method.IsFamily && method.IsVirtual && method.ReturnType == typeof(void) && method.GetParameters().Length == 0;
 static string AccessorVisibility(MethodInfo? method) => method is null || !IsVisible(method) ? "none" : Visibility(method);
 
 static string FirstDifference(string expected, string actual)

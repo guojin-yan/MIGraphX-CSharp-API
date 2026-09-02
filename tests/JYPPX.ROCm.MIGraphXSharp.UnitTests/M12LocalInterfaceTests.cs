@@ -78,6 +78,9 @@ public sealed class M12LocalInterfaceTests
             Marshal.FreeHGlobal(borrowedPointer);
         }
 
+        var abandonedArgument = CreateAbandonedArgument(nativePath, shape);
+        Assert.Equal(1, controls.M2LiveCount());
+        AssertEventuallyArgumentReleased(abandonedArgument, controls);
         AssertNoNativeLeaks(controls);
     }
 
@@ -1090,6 +1093,25 @@ public sealed class M12LocalInterfaceTests
         var contextReference = new WeakReference(context);
         program.Dispose();
         return (moduleReference, contextReference);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CreateAbandonedArgument(string nativePath, MIGraphXShape shape)
+    {
+        var argument = MIGraphXArgument.Create(nativePath, shape, new[] { 1f, 2f, 3f, 4f });
+        return new WeakReference(argument);
+    }
+
+    private static void AssertEventuallyArgumentReleased(WeakReference argument, FakeControls controls)
+    {
+        for (var attempt = 0; attempt < 16; attempt++)
+        {
+            CollectGarbage();
+            if (!argument.IsAlive && controls.M2LiveCount() == 0) return;
+        }
+
+        Assert.False(argument.IsAlive);
+        Assert.Equal(0, controls.M2LiveCount());
     }
 
     private static void AssertEventuallyProgramReleased((WeakReference Module, WeakReference Context) views, FakeControls controls)

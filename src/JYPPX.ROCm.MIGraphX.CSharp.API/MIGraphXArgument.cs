@@ -17,6 +17,23 @@ public sealed class MIGraphXArgument : IDisposable
     private int asyncLeaseCount;
     private bool disposeRequested;
 
+    /// <summary>在遗漏显式 Dispose 时回收 owned host buffer；异步租约仍遵守其完成边界。 Releases the owned host buffer when explicit Dispose is omitted while preserving any asynchronous lease boundary.</summary>
+    ~MIGraphXArgument()
+    {
+        try
+        {
+            var resourceOwner = owner;
+            if (resourceOwner is null) return;
+            lock (resourceOwner.Sync)
+            {
+                disposeRequested = true;
+                resourceOwner.Dispose();
+                TryFreeBufferUnderLock();
+            }
+        }
+        catch { }
+    }
+
     private MIGraphXArgument(NativeRuntime runtime, MIGraphXShape shape, byte[] bytes)
     {
         Shape = shape;
@@ -290,11 +307,18 @@ public sealed class MIGraphXArgument : IDisposable
     /// <summary>确定性释放 native argument 后再释放 owned host buffer；重复调用安全。 Deterministically releases the native argument before its owned host buffer; repeated calls are safe.</summary>
     public void Dispose()
     {
-        lock (owner.Sync)
+        try
         {
-            disposeRequested = true;
-            owner.Dispose();
-            TryFreeBufferUnderLock();
+            lock (owner.Sync)
+            {
+                disposeRequested = true;
+                owner.Dispose();
+                TryFreeBufferUnderLock();
+            }
+        }
+        finally
+        {
+            GC.SuppressFinalize(this);
         }
     }
 

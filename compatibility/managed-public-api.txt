@@ -6,7 +6,7 @@
 # assembly-version-policy: semantic-core-four-part
 # package-version-constant-policy: must-equal-build-version
 # nullable-contract: compiler-metadata
-# generated-from: exported types and declared public/protected members
+# generated-from: exported types and declared public/protected members (excluding finalizers)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata(System.String modelSha256,System.String targetName,System.String compileOptions,System.String fileFormat,System.String nativeFingerprint,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride>? inputOverrides=null,System.String? headerSha256=null,System.String? apiIdentity=null,System.String? managedIdentity=null)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride(System.String inputName,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> dimensions)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride(System.String inputName,System.Collections.Generic.IReadOnlyList<System.Int64> dimensions)
