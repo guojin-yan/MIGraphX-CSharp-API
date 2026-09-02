@@ -116,7 +116,9 @@ internal sealed class MIGraphXNativeAsyncRun : IDisposable
 
     private static int ReadSize(IntPtr arguments)
     {
-        NativeStatus.ThrowIfFailed(NativeMethods.ArgumentsSize(out var size, arguments), "migraphx_arguments_size");
+        var size = NativeValueOutput.ReadSizeT(
+            output => NativeMethods.ArgumentsSizeRaw(output, arguments),
+            "migraphx_arguments_size");
         return NativeShapeSnapshot.ToInt(size, "async output count");
     }
 }

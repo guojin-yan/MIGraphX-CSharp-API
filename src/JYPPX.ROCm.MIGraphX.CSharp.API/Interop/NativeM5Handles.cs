@@ -172,14 +172,10 @@ internal sealed class NativeDynamicDimensionsHandle : NativeOwnedHandle
 
     private int ReadCount()
     {
-        var countSlot = Marshal.AllocHGlobal(UIntPtr.Size);
-        try
-        {
-            NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionsSize(countSlot, DangerousGetHandle()), "migraphx_dynamic_dimensions_size");
-            var countValue = UIntPtr.Size == 8 ? new UIntPtr(unchecked((ulong)Marshal.ReadInt64(countSlot))) : new UIntPtr(unchecked((uint)Marshal.ReadInt32(countSlot)));
-            return NativeShapeSnapshot.ToInt(countValue, "dynamic dimension count");
-        }
-        finally { Marshal.FreeHGlobal(countSlot); }
+        var count = NativeValueOutput.ReadSizeT(
+            output => NativeMethods.DynamicDimensionsSize(output, DangerousGetHandle()),
+            "migraphx_dynamic_dimensions_size");
+        return NativeShapeSnapshot.ToInt(count, "dynamic dimension count");
     }
 
     protected override bool ReleaseHandle() { NativeMethods.DynamicDimensionsDestroy(handle); return true; }

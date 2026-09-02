@@ -162,22 +162,19 @@ public static class MIGraphXOnnxWorkflow
     }
 
     private static UIntPtr GetSize(NativeProgramParameterShapesHandle shapes)
-    {
-        NativeStatus.ThrowIfFailed(NativeMethods.ProgramParameterShapesSize(out var size, shapes.DangerousGetHandle()), "migraphx_program_parameter_shapes_size");
-        return size;
-    }
+        => NativeValueOutput.ReadSizeT(
+            output => NativeMethods.ProgramParameterShapesSizeRaw(output, shapes.DangerousGetHandle()),
+            "migraphx_program_parameter_shapes_size");
 
     private static UIntPtr GetSize(NativeShapesHandle shapes)
-    {
-        NativeStatus.ThrowIfFailed(NativeMethods.ShapesSize(out var size, shapes.DangerousGetHandle()), "migraphx_shapes_size");
-        return size;
-    }
+        => NativeValueOutput.ReadSizeT(
+            output => NativeMethods.ShapesSizeRaw(output, shapes.DangerousGetHandle()),
+            "migraphx_shapes_size");
 
     private static UIntPtr GetSize(NativeArgumentsHandle arguments)
-    {
-        NativeStatus.ThrowIfFailed(NativeMethods.ArgumentsSize(out var size, arguments.DangerousGetHandle()), "migraphx_arguments_size");
-        return size;
-    }
+        => NativeValueOutput.ReadSizeT(
+            output => NativeMethods.ArgumentsSizeRaw(output, arguments.DangerousGetHandle()),
+            "migraphx_arguments_size");
 
     private static string GetSingleParameterName(NativeProgramParameterShapesHandle shapes)
     {

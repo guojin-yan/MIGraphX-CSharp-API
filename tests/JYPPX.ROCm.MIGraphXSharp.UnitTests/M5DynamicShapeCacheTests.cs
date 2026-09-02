@@ -103,6 +103,10 @@ public sealed class M5DynamicShapeCacheTests
             var unwrittenShapeDynamicError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "unwritten shape dynamic bool", shape.DynamicDimensions));
             Assert.Contains("success with invalid C bool 255", unwrittenShapeDynamicError.Message, StringComparison.Ordinal);
 
+            controls.SetSkipOutput("migraphx_dynamic_dimensions_size");
+            var unwrittenCountError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "unwritten dynamic dimension count", shape.DynamicDimensions));
+            Assert.Contains("success without writing size_t output", unwrittenCountError.Message, StringComparison.Ordinal);
+
             controls.SetInvalidBool("migraphx_dynamic_dimension_is_fixed");
             var borrowedError = Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(nativeShape.DangerousGetHandle(), "invalid dynamic bool", shape.DynamicDimensions));
             Assert.Contains("success with invalid C bool 2", borrowedError.Message, StringComparison.Ordinal);
@@ -323,6 +327,7 @@ public sealed class M5DynamicShapeCacheTests
         private readonly SetStringDelegate setNullOutput;
         private readonly SetStringDelegate setInvalidBool;
         private readonly SetStringDelegate setSkipBool;
+        private readonly SetStringDelegate setSkipOutput;
         private readonly SetIntDelegate setShapeMode;
         private readonly GetIntDelegate m5LiveCount;
         internal FakeControls(string path)
@@ -333,6 +338,7 @@ public sealed class M5DynamicShapeCacheTests
             setNullOutput = Get<SetStringDelegate>("fake_set_null_output");
             setInvalidBool = Get<SetStringDelegate>("fake_set_invalid_bool");
             setSkipBool = Get<SetStringDelegate>("fake_set_skip_bool");
+            setSkipOutput = Get<SetStringDelegate>("fake_set_skip_output");
             setShapeMode = Get<SetIntDelegate>("fake_set_shape_mode");
             m5LiveCount = Get<GetIntDelegate>("fake_m5_live_count");
         }
@@ -341,6 +347,7 @@ public sealed class M5DynamicShapeCacheTests
         internal void SetNullOutput(string entryPoint) => setNullOutput(entryPoint);
         internal void SetInvalidBool(string entryPoint) => setInvalidBool(entryPoint);
         internal void SetSkipBool(string entryPoint) => setSkipBool(entryPoint);
+        internal void SetSkipOutput(string entryPoint) => setSkipOutput(entryPoint);
         internal void SetShapeMode(int value) => setShapeMode(value);
         internal int M5LiveCount() => m5LiveCount();
         public void Dispose() => System.Runtime.InteropServices.NativeLibrary.Free(library);

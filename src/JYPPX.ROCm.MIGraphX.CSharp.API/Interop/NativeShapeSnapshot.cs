@@ -29,7 +29,9 @@ internal sealed class NativeShapeSnapshot
     internal static NativeShapeSnapshot Create(IntPtr shape, string context)
     {
         if (shape == IntPtr.Zero) { throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{context} shape (null borrowed handle)"); }
-        NativeStatus.ThrowIfFailed(NativeMethods.ShapeType(out var type, shape), "migraphx_shape_type");
+        var type = (NativeMIGraphXShapeDataType)NativeValueOutput.ReadInt32(
+            output => NativeMethods.ShapeTypeRaw(output, shape),
+            "migraphx_shape_type");
         var isDynamic = ReadBoolean(NativeMethods.ShapeDynamicRaw, shape, "migraphx_shape_dynamic");
         if (isDynamic)
         {
@@ -45,10 +47,18 @@ internal sealed class NativeShapeSnapshot
                 dimensions.ReadFixedFlags());
         }
 
-        NativeStatus.ThrowIfFailed(NativeMethods.ShapeLengths(out var lengths, out var lengthCount, shape), "migraphx_shape_lengths");
-        NativeStatus.ThrowIfFailed(NativeMethods.ShapeStrides(out var strides, out var strideCount, shape), "migraphx_shape_strides");
-        NativeStatus.ThrowIfFailed(NativeMethods.ShapeElements(out var elements, shape), "migraphx_shape_elements");
-        NativeStatus.ThrowIfFailed(NativeMethods.ShapeBytes(out var bytes, shape), "migraphx_shape_bytes");
+        NativeValueOutput.ReadPointerAndSize(
+            (output, outputSize) => NativeMethods.ShapeLengthsRaw(output, outputSize, shape),
+            "migraphx_shape_lengths",
+            out var lengths,
+            out var lengthCount);
+        NativeValueOutput.ReadPointerAndSize(
+            (output, outputSize) => NativeMethods.ShapeStridesRaw(output, outputSize, shape),
+            "migraphx_shape_strides",
+            out var strides,
+            out var strideCount);
+        var elements = NativeValueOutput.ReadSizeT(output => NativeMethods.ShapeElementsRaw(output, shape), "migraphx_shape_elements");
+        var bytes = NativeValueOutput.ReadSizeT(output => NativeMethods.ShapeBytesRaw(output, shape), "migraphx_shape_bytes");
         var standard = ReadBoolean(NativeMethods.ShapeStandardRaw, shape, "migraphx_shape_standard");
         return new NativeShapeSnapshot(type, CopySizeT(lengths, lengthCount, "shape lengths"), CopySizeT(strides, strideCount, "shape strides"), ToLong(elements, "shape elements"), ToLong(bytes, "shape bytes"), standard, false, Array.Empty<bool>());
     }

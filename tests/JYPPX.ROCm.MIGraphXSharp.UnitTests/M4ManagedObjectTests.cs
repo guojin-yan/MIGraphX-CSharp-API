@@ -203,6 +203,8 @@ public sealed class M4ManagedObjectTests
                 {
                     Assert.Equal(new[] { 9f, 8f, 7f, 6f }, outputs[0].ToArray<float>());
                 }
+                controls.SetSkipOutput("migraphx_arguments_size");
+                Assert.Throws<MIGraphXException>(() => program.Run(complete));
                 Assert.Equal(2, controls.LastParameterCount());
             }
         }
@@ -239,6 +241,24 @@ public sealed class M4ManagedObjectTests
         }
 
         controls.SetShapeMode(0);
+        controls.SetSkipOutput("migraphx_program_parameter_shapes_size");
+        Assert.Throws<MIGraphXException>(() => program.GetParameterShapes());
+        controls.SetSkipOutput("migraphx_shapes_size");
+        Assert.Throws<MIGraphXException>(() => program.GetOutputShapes());
+        foreach (var entryPoint in new[]
+        {
+            "migraphx_shape_type",
+            "migraphx_shape_lengths",
+            "migraphx_shape_strides",
+            "migraphx_shape_elements",
+            "migraphx_shape_bytes",
+        })
+        {
+            controls.SetSkipOutput(entryPoint);
+            var unwritten = Assert.Throws<MIGraphXException>(() => program.GetOutputShapes());
+            Assert.Contains($"{entryPoint} (success without writing", unwritten.Operation, StringComparison.Ordinal);
+        }
+
         controls.SetShapeType(5);
         var doubleShape = Assert.Single(program.GetOutputShapes());
         Assert.Equal(MIGraphXShapeDataType.Float64, doubleShape.DataType);
@@ -472,6 +492,7 @@ public sealed class M4ManagedObjectTests
         private readonly ResetDelegate reset;
         private readonly SetStringIntDelegate setFailure;
         private readonly SetStringDelegate setNullOutput;
+        private readonly SetStringDelegate setSkipOutput;
         private readonly SetIntDelegate setShapeMode;
         private readonly SetIntDelegate setShapeType;
         private readonly GetIntDelegate m2LiveCount;
@@ -491,6 +512,7 @@ public sealed class M4ManagedObjectTests
             reset = Get<ResetDelegate>("fake_reset");
             setFailure = Get<SetStringIntDelegate>("fake_set_failure");
             setNullOutput = Get<SetStringDelegate>("fake_set_null_output");
+            setSkipOutput = Get<SetStringDelegate>("fake_set_skip_output");
             setShapeMode = Get<SetIntDelegate>("fake_set_shape_mode");
             setShapeType = Get<SetIntDelegate>("fake_set_shape_type");
             m2LiveCount = Get<GetIntDelegate>("fake_m2_live_count");
@@ -508,6 +530,7 @@ public sealed class M4ManagedObjectTests
         internal void Reset() => reset();
         internal void SetFailure(string entryPoint, int status) => setFailure(entryPoint, status);
         internal void SetNullOutput(string entryPoint) => setNullOutput(entryPoint);
+        internal void SetSkipOutput(string entryPoint) => setSkipOutput(entryPoint);
         internal void SetShapeMode(int value) => setShapeMode(value);
         internal void SetShapeType(int value) => setShapeType(value);
         internal int M2LiveCount() => m2LiveCount();

@@ -44,6 +44,10 @@ public sealed class M10CapabilityEqualityTests
         Assert.Contains("migraphx_get_onnx_operators_size changed from 3 to 4", drift.Message, StringComparison.Ordinal);
 
         controls.SetRegistryMode(0);
+        controls.SetSkipOutput("migraphx_get_onnx_operators_size");
+        var unwrittenSize = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.GetRegisteredOperators(nativePath));
+        Assert.Contains("success without writing size_t output", unwrittenSize.Operation, StringComparison.Ordinal);
+
         controls.SetFailure("migraphx_get_onnx_operators_size", 3);
         var sizeFailure = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.GetRegisteredOperators(nativePath));
         Assert.Equal(3, sizeFailure.StatusCode);
@@ -238,6 +242,7 @@ public sealed class M10CapabilityEqualityTests
         private readonly SetStringIntDelegate setFailure;
         private readonly SetStringDelegate setInvalidBool;
         private readonly SetStringDelegate setSkipBool;
+        private readonly SetStringDelegate setSkipOutput;
         private readonly SetIntDelegate setRegistryMode;
         private readonly SetIntDelegate setEqualityWait;
         private readonly GetIntDelegate equalityEnterCount;
@@ -252,6 +257,7 @@ public sealed class M10CapabilityEqualityTests
             setFailure = Get<SetStringIntDelegate>("fake_set_failure");
             setInvalidBool = Get<SetStringDelegate>("fake_set_invalid_bool");
             setSkipBool = Get<SetStringDelegate>("fake_set_skip_bool");
+            setSkipOutput = Get<SetStringDelegate>("fake_set_skip_output");
             setRegistryMode = Get<SetIntDelegate>("fake_set_onnx_registry_mode");
             setEqualityWait = Get<SetIntDelegate>("fake_set_equality_wait");
             equalityEnterCount = Get<GetIntDelegate>("fake_equality_enter_count");
@@ -264,6 +270,7 @@ public sealed class M10CapabilityEqualityTests
         internal void SetFailure(string entryPoint, int status) => setFailure(entryPoint, status);
         internal void SetInvalidBool(string entryPoint) => setInvalidBool(entryPoint);
         internal void SetSkipBool(string entryPoint) => setSkipBool(entryPoint);
+        internal void SetSkipOutput(string entryPoint) => setSkipOutput(entryPoint);
         internal void SetRegistryMode(int value) => setRegistryMode(value);
         internal void SetEqualityWait(int value) => setEqualityWait(value);
         internal int EqualityEnterCount() => equalityEnterCount();

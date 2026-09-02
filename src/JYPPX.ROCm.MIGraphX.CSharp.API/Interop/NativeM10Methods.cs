@@ -26,23 +26,13 @@ internal static class NativeM10Methods
 
     internal static int GetOnnxOperatorCount()
     {
-        var slot = Marshal.AllocHGlobal(UIntPtr.Size);
-        try
+        var value = NativeValueOutput.ReadSizeT(NativeMethods.GetOnnxOperatorsSize, RegistrySizeEntryPoint);
+        if ((UIntPtr.Size == 8 && value.ToUInt64() > int.MaxValue)
+            || (UIntPtr.Size == 4 && value.ToUInt32() > int.MaxValue))
         {
-            WriteZero(slot, UIntPtr.Size);
-            NativeStatus.ThrowIfFailed(NativeMethods.GetOnnxOperatorsSize(slot), RegistrySizeEntryPoint);
-            var value = ReadUIntPtr(slot);
-            if ((UIntPtr.Size == 8 && value.ToUInt64() > int.MaxValue)
-                || (UIntPtr.Size == 4 && value.ToUInt32() > int.MaxValue))
-            {
-                throw new OverflowException($"{RegistrySizeEntryPoint} returned a count that exceeds the managed collection limit.");
-            }
-            return checked((int)(UIntPtr.Size == 8 ? value.ToUInt64() : value.ToUInt32()));
+            throw new OverflowException($"{RegistrySizeEntryPoint} returned a count that exceeds the managed collection limit.");
         }
-        finally
-        {
-            Marshal.FreeHGlobal(slot);
-        }
+        return checked((int)(UIntPtr.Size == 8 ? value.ToUInt64() : value.ToUInt32()));
     }
 
     internal static string GetOnnxOperatorName(int index)
@@ -93,19 +83,7 @@ internal static class NativeM10Methods
         }
     }
 
-    private static UIntPtr ReadUIntPtr(IntPtr pointer) => UIntPtr.Size == 8
-        ? new UIntPtr(unchecked((ulong)Marshal.ReadInt64(pointer)))
-        : new UIntPtr(unchecked((uint)Marshal.ReadInt32(pointer)));
-
     private static UIntPtr ToUIntPtr(int value) => UIntPtr.Size == 8
         ? new UIntPtr(checked((ulong)value))
         : new UIntPtr(checked((uint)value));
-
-    private static void WriteZero(IntPtr pointer, int byteCount)
-    {
-        for (var index = 0; index < byteCount; index++)
-        {
-            Marshal.WriteByte(pointer, index, 0);
-        }
-    }
 }

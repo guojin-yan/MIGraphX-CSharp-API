@@ -659,22 +659,19 @@ public sealed class MIGraphXProgram : IDisposable
     }
 
     private static UIntPtr GetParameterShapeCount(IntPtr shapes)
-    {
-        NativeStatus.ThrowIfFailed(NativeMethods.ProgramParameterShapesSize(out var size, shapes), "migraphx_program_parameter_shapes_size");
-        return size;
-    }
+        => NativeValueOutput.ReadSizeT(
+            output => NativeMethods.ProgramParameterShapesSizeRaw(output, shapes),
+            "migraphx_program_parameter_shapes_size");
 
     private static UIntPtr GetShapeCount(IntPtr shapes)
-    {
-        NativeStatus.ThrowIfFailed(NativeMethods.ShapesSize(out var size, shapes), "migraphx_shapes_size");
-        return size;
-    }
+        => NativeValueOutput.ReadSizeT(
+            output => NativeMethods.ShapesSizeRaw(output, shapes),
+            "migraphx_shapes_size");
 
     private static UIntPtr GetArgumentsSize(IntPtr arguments)
-    {
-        NativeStatus.ThrowIfFailed(NativeMethods.ArgumentsSize(out var size, arguments), "migraphx_arguments_size");
-        return size;
-    }
+        => NativeValueOutput.ReadSizeT(
+            output => NativeMethods.ArgumentsSizeRaw(output, arguments),
+            "migraphx_arguments_size");
 
     private static string ValidateInputPath(string path, string parameterName)
     {
