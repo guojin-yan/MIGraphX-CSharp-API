@@ -9,10 +9,13 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 /// <remarks>
 /// Managed callback exceptions are contained by a native ABI thunk. An exception is
 /// converted to <see cref="MIGraphXStatus.UnknownError"/> and, when the native side
-/// supplies a buffer, a bounded UTF-8 message is written to that buffer; no managed
-/// exception is allowed to cross the unmanaged callback boundary.
+/// supplies a buffer, a bounded UTF-8 message is written to that buffer. Callback return
+/// values outside the frozen status enum are likewise normalized to
+/// <see cref="MIGraphXStatus.UnknownError"/>; no managed exception or undefined status is
+/// allowed to cross the unmanaged callback boundary.
 /// 托管回调异常由原生 ABI thunk 截获并转换为 <see cref="MIGraphXStatus.UnknownError"/>，
-/// 原生侧提供缓冲区时写入有界 UTF-8 消息；任何托管异常都不会穿过非托管回调边界。
+/// 原生侧提供缓冲区时写入有界 UTF-8 消息；冻结枚举之外的回调返回值也统一转换为
+/// <see cref="MIGraphXStatus.UnknownError"/>，任何托管异常或未定义状态都不会穿过非托管回调边界。
 /// </remarks>
 public sealed class MIGraphXExperimentalCustomOp : IDisposable
 {
@@ -239,7 +242,10 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     {
         try
         {
-            return (NativeMIGraphXStatus)callback(outputArgument, obj, exceptionMessage, exceptionMessageSize, context, outputShape, inputs);
+            return NormalizeCallbackStatus(
+                callback(outputArgument, obj, exceptionMessage, exceptionMessageSize, context, outputShape, inputs),
+                exceptionMessage,
+                exceptionMessageSize);
         }
         catch (Exception error)
         {
@@ -258,7 +264,10 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     {
         try
         {
-            return (NativeMIGraphXStatus)callback(outputShape, obj, exceptionMessage, exceptionMessageSize, inputs);
+            return NormalizeCallbackStatus(
+                callback(outputShape, obj, exceptionMessage, exceptionMessageSize, inputs),
+                exceptionMessage,
+                exceptionMessageSize);
         }
         catch (Exception error)
         {
@@ -278,7 +287,10 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     {
         try
         {
-            return (NativeMIGraphXStatus)callback(output, outputSize, obj, exceptionMessage, exceptionMessageSize, inputs);
+            return NormalizeCallbackStatus(
+                callback(output, outputSize, obj, exceptionMessage, exceptionMessageSize, inputs),
+                exceptionMessage,
+                exceptionMessageSize);
         }
         catch (Exception error)
         {
@@ -296,7 +308,10 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     {
         try
         {
-            return (NativeMIGraphXStatus)callback(output, obj, exceptionMessage, exceptionMessageSize);
+            return NormalizeCallbackStatus(
+                callback(output, obj, exceptionMessage, exceptionMessageSize),
+                exceptionMessage,
+                exceptionMessageSize);
         }
         catch (Exception error)
         {
@@ -306,6 +321,32 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     }
 
     private static void WriteCallbackException(IntPtr exceptionMessage, UIntPtr exceptionMessageSize, Exception error)
+        => WriteCallbackMessage(
+            exceptionMessage,
+            exceptionMessageSize,
+            string.IsNullOrEmpty(error.Message) ? error.GetType().Name : error.Message);
+
+    private static NativeMIGraphXStatus NormalizeCallbackStatus(
+        MIGraphXStatus status,
+        IntPtr exceptionMessage,
+        UIntPtr exceptionMessageSize)
+    {
+        switch (status)
+        {
+            case MIGraphXStatus.Success: return NativeMIGraphXStatus.Success;
+            case MIGraphXStatus.BadParameter: return NativeMIGraphXStatus.BadParameter;
+            case MIGraphXStatus.UnknownTarget: return NativeMIGraphXStatus.UnknownTarget;
+            case MIGraphXStatus.UnknownError: return NativeMIGraphXStatus.UnknownError;
+            default:
+                WriteCallbackMessage(
+                    exceptionMessage,
+                    exceptionMessageSize,
+                    $"Managed custom-op callback returned undefined status {(int)status}.");
+                return NativeMIGraphXStatus.UnknownError;
+        }
+    }
+
+    private static void WriteCallbackMessage(IntPtr exceptionMessage, UIntPtr exceptionMessageSize, string text)
     {
         try
         {
@@ -314,7 +355,6 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
             if (rawSize == 0) return;
             var capacity = rawSize > int.MaxValue ? int.MaxValue : (int)rawSize;
             if (capacity <= 0) return;
-            var text = string.IsNullOrEmpty(error.Message) ? error.GetType().Name : error.Message;
             var bytes = Encoding.UTF8.GetBytes(text);
             var copy = Math.Min(bytes.Length, capacity - 1);
             if (copy < bytes.Length)

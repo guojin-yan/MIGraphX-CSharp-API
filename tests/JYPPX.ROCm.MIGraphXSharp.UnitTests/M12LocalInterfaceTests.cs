@@ -913,6 +913,60 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CustomOpCallbacksNormalizeUndefinedStatusValues()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_invalid_status_test"))
+        {
+            operation.SetCompute((_, _, _, _, _, _, _) => (MIGraphXStatus)2);
+            const int capacity = 128;
+            var buffer = Marshal.AllocHGlobal(capacity);
+            try
+            {
+                for (var index = 0; index < capacity; index++) Marshal.WriteByte(buffer, index, 0xCC);
+                Assert.Equal((int)MIGraphXStatus.UnknownError, controls.InvokeCustomComputeWithErrorBuffer(
+                    operation.Owner.WithHandle(static handle => handle), buffer, (UIntPtr)capacity));
+
+                var bytes = new byte[capacity];
+                Marshal.Copy(buffer, bytes, 0, bytes.Length);
+                var length = Array.IndexOf(bytes, (byte)0);
+                Assert.True(length >= 0);
+                Assert.Equal("Managed custom-op callback returned undefined status 2.", Encoding.UTF8.GetString(bytes, 0, length));
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(buffer);
+            }
+        }
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_shape_invalid_status_test"))
+        {
+            operation.SetComputeShape((_, _, _, _, _) => (MIGraphXStatus)2);
+            Assert.Equal((int)MIGraphXStatus.UnknownError,
+                controls.InvokeCustomCallbacks(operation.Owner.WithHandle(static handle => handle)));
+        }
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_alias_invalid_status_test"))
+        {
+            operation.SetOutputAlias((_, _, _, _, _, _) => (MIGraphXStatus)2);
+            Assert.Equal((int)MIGraphXStatus.UnknownError,
+                controls.InvokeCustomCallbacks(operation.Owner.WithHandle(static handle => handle)));
+        }
+
+        using (var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_target_invalid_status_test"))
+        {
+            operation.SetRunsOnOffloadTarget((_, _, _, _) => (MIGraphXStatus)2);
+            Assert.Equal((int)MIGraphXStatus.UnknownError,
+                controls.InvokeCustomCallbacks(operation.Owner.WithHandle(static handle => handle)));
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void OperationAttributeSurfaceRemainsClosedOverArbitraryVariadicAbi()
     {
         var attributeMethods = typeof(MIGraphXOperationAttributes)
