@@ -205,6 +205,12 @@ public sealed class M1NativeVerticalTests
         }
         controls.SetShapeMode(0);
 
+        controls.SetSkipString("migraphx_program_parameter_shapes_names");
+        var unwrittenName = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Contains("migraphx_program_parameter_shapes_names", unwrittenName.Operation, StringComparison.Ordinal);
+        Assert.Contains("success with null UTF-8 pointer", unwrittenName.Operation, StringComparison.Ordinal);
+        AssertNoNativeLeaks(controls);
+
         controls.SetNextStatus((int)MIGraphXStatus.UnknownError);
         var nativeFailure = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
         Assert.Equal("migraphx_onnx_options_create", nativeFailure.Operation);
@@ -266,6 +272,7 @@ public sealed class M1NativeVerticalTests
         private readonly GetIntDelegate m2DestroyCount;
         private readonly GetIntDelegate m2LiveCount;
         private readonly SetIntDelegate setShapeMode;
+        private readonly SetStringDelegate setSkipString;
 
         internal FakeControls(string path)
         {
@@ -294,6 +301,7 @@ public sealed class M1NativeVerticalTests
             m2DestroyCount = Get<GetIntDelegate>("fake_m2_destroy_count");
             m2LiveCount = Get<GetIntDelegate>("fake_m2_live_count");
             setShapeMode = Get<SetIntDelegate>("fake_set_shape_mode");
+            setSkipString = Get<SetStringDelegate>("fake_set_skip_string");
         }
 
         internal void Reset() => reset();
@@ -320,6 +328,7 @@ public sealed class M1NativeVerticalTests
         internal int M2DestroyCount() => m2DestroyCount();
         internal int M2LiveCount() => m2LiveCount();
         internal void SetShapeMode(int value) => setShapeMode(value);
+        internal void SetSkipString(string entryPoint) => setSkipString(entryPoint);
 
         public void Dispose() => NativeLibrary.Free(library);
 
@@ -330,6 +339,9 @@ public sealed class M1NativeVerticalTests
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate void SetIntDelegate(int value);
+
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl, CharSet = CharSet.Ansi)]
+        private delegate void SetStringDelegate([MarshalAs(UnmanagedType.LPUTF8Str)] string value);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
         private delegate int GetIntDelegate();

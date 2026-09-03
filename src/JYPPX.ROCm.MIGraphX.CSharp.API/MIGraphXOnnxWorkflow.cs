@@ -185,6 +185,7 @@ public static class MIGraphXOnnxWorkflow
         var names = Marshal.AllocHGlobal(IntPtr.Size);
         try
         {
+            Marshal.WriteIntPtr(names, IntPtr.Zero);
             NativeStatus.ThrowIfFailed(NativeMethods.ProgramParameterShapesNames(names, shapes.DangerousGetHandle()), "migraphx_program_parameter_shapes_names");
             return StrictUtf8String.Decode(Marshal.ReadIntPtr(names), "migraphx_program_parameter_shapes_names");
         }
