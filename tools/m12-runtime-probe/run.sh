@@ -57,7 +57,7 @@ done
 [[ "$core_sha" =~ ^[a-f0-9]{64}$ ]] || usage
 if [[ -n "$case_id" ]]; then
   case "$case_id" in
-    m12-shape-argument-factories|m12-argument-persistence-clone|m12-assign-to-clone|m12-graph-parent-lease|m12-graph-editing|m12-operation-materialized-attributes|m12-context-lifetime|m12-negative-variadic-operation|m12-negative-module-owner|m12-tensorflow-parse|m12-quantization-options|m12-custom-op-registration|m12-concurrent-dispose) ;;
+    m12-shape-argument-factories|m12-argument-persistence-clone|m12-assign-to-clone|m12-graph-parent-lease|m12-graph-editing|m12-operation-materialized-attributes|m12-context-lifetime|m12-negative-variadic-operation|m12-negative-module-owner|m12-negative-borrowed-device-clone|m12-tensorflow-parse|m12-quantization-options|m12-custom-op-registration|m12-concurrent-dispose) ;;
     *) usage ;;
   esac
 fi

@@ -2,7 +2,7 @@
 
 `provider-callback-probe.sh` is an opt-in diagnostic for the M12 custom-op deferred boundary. It registers a managed custom op, creates an operation with the same name, inserts it into a program, and installs a shape callback that returns `UnknownError` after incrementing a managed counter. A successful probe therefore proves that the provider reached the managed callback and that the native graph path observed the controlled rejection.
 
-The probe is deliberately separate from `tools/m12-runtime-probe/run.sh`. It is not part of the default 13-case candidate count and cannot promote `m12-custom-op-registration`. `review.ps1` requires a source/package-bound record, a non-zero shape-callback count, the controlled native status, and `promotionState: not-requested`; a missing callback is a diagnostic failure rather than a deferred success.
+The probe is deliberately separate from `tools/m12-runtime-probe/run.sh`. It is not part of the default 14-functional-case candidate count and cannot promote `m12-custom-op-registration`. `review.ps1` requires a source/package-bound record, a non-zero shape-callback count, the controlled native status, and `promotionState: not-requested`; a missing callback is a diagnostic failure rather than a deferred success.
 
 The callback returns `UnknownError` before touching opaque output handles. This establishes provider invocation and exception/status containment only. It does not claim a numerical custom operation, GPU execution, callback output ownership, or cross-target ABI equivalence. A future promotion record must add a provider-owned operation fixture with independently reviewed output semantics.
 

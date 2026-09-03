@@ -270,7 +270,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Clone rejects with the documented managed exception and leaves the source lease unchanged.",
-      "evidenceBoundary": "No official borrowed device argument or GPU memory clone-rejection path was executed."
+      "evidenceBoundary": "The package-only negative probe uses a guarded caller-owned host buffer to exercise the adapter-internal borrowed state; no official GPU allocation or device-memory clone-rejection path was executed."
     },
     {
       "id": "m12-negative-variadic-operation",

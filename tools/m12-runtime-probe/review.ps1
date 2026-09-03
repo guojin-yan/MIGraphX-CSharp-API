@@ -66,6 +66,7 @@ if ($includeDeferred) {
         'm12-tensorflow-parse',
         'm12-quantization-options',
         'm12-custom-op-registration',
+        'm12-negative-borrowed-device-clone',
         'm12-concurrent-dispose'
     )
 }
@@ -147,6 +148,12 @@ $expectedNegativeBoundaries = @(
     'variadic-operation|two-constrained-create-overloads|no-object-pointer-or-params-object|boolean-array-materialized|all-typed-scalars-and-arrays-materialized',
     'module-owner|no-public-module-constructor-or-static-factory|program-bound-create-module-only'
 )
+if ($includeDeferred) {
+    $expectedNegativeBoundaries += 'borrowed-device-clone|internal-external-buffer-construction|managed-not-supported-rejection|source-lease-unchanged|no-gpu-allocation'
+    if ($result.artifacts.borrowedExternalLeaseSha256 -ne '503563c1bda45327ff4617750a06bd8143fcd4e7929934b7cf1e826c1ba60c90') {
+        throw 'Borrowed external-buffer lease identity is missing or drifted.'
+    }
+}
 if (Compare-Object $expectedNegativeBoundaries @(Get-Content -LiteralPath $negativeBoundariesPath)) {
     throw 'Negative-boundary observations drifted.'
 }

@@ -405,13 +405,15 @@ public sealed class RepositoryQualityTests
         var cloudTest = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
         Assert.Contains("MIGRAPHX_CLOUD_RECORD_ROOT", cloudTest, StringComparison.Ordinal);
         Assert.Contains("/workspace/migraphx-cloud-records/${COMMIT_SHA}", cloudTest, StringComparison.Ordinal);
-        Assert.Contains("\"m12ExecutedCases\":14", cloudTest, StringComparison.Ordinal);
-        Assert.Contains("\"m12FunctionalCases\":13", cloudTest, StringComparison.Ordinal);
+        Assert.Contains("\"m12ExecutedCases\":15", cloudTest, StringComparison.Ordinal);
+        Assert.Contains("\"m12FunctionalCases\":14", cloudTest, StringComparison.Ordinal);
         Assert.Contains("\"m12CrossTargetFrameworks\":3", cloudTest, StringComparison.Ordinal);
         Assert.DoesNotContain("m12_record=\"${results}/m12-candidate\"", cloudTest, StringComparison.Ordinal);
         Assert.Contains("m12-negative-variadic-operation", runner, StringComparison.Ordinal);
         Assert.Contains("m12-negative-module-owner", runner, StringComparison.Ordinal);
+        Assert.Contains("m12-negative-borrowed-device-clone", runner, StringComparison.Ordinal);
         Assert.Contains("negative-boundaries.txt", review, StringComparison.Ordinal);
+        Assert.Contains("borrowedExternalLeaseSha256", review, StringComparison.Ordinal);
         Assert.Contains("Artifact manifest path must be absolute", review, StringComparison.Ordinal);
         Assert.Contains("Artifact manifest path escapes evidence record", review, StringComparison.Ordinal);
         Assert.Contains("Duplicate artifact manifest path", review, StringComparison.Ordinal);

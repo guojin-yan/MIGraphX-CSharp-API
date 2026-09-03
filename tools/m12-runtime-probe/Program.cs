@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using JYPPX.ROCm.MIGraphXSharp;
@@ -140,6 +141,7 @@ internal sealed class ProbeRunner
             ("m12-context-lifetime", RunContextLifetime),
             ("m12-negative-variadic-operation", RunNegativeVariadicOperationBoundary),
             ("m12-negative-module-owner", RunNegativeModuleOwnerBoundary),
+            ("m12-negative-borrowed-device-clone", RunNegativeBorrowedDeviceCloneBoundary),
             ("m12-tensorflow-parse", RunTensorFlowParse),
             ("m12-quantization-options", RunQuantizationOptions),
             ("m12-custom-op-registration", RunCustomOpRegistration),
@@ -428,6 +430,69 @@ internal sealed class ProbeRunner
             "Program-bound module factory contract drifted.");
 
         AppendNegativeBoundaryObservation("module-owner|no-public-module-constructor-or-static-factory|program-bound-create-module-only");
+        WriteStage(id, "teardown", "entered");
+    }
+
+    private void RunNegativeBorrowedDeviceCloneBoundary()
+    {
+        const string id = "m12-negative-borrowed-device-clone";
+        var assembly = typeof(MIGraphXArgument).Assembly;
+        var runtimeType = assembly.GetType("JYPPX.ROCm.MIGraphXSharp.Interop.NativeRuntime", throwOnError: true)!;
+        var loadRuntime = runtimeType.GetMethod(
+            "Load",
+            BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            types: new[] { typeof(string) },
+            modifiers: null)
+            ?? throw new InvalidOperationException("The internal native-runtime loader is missing.");
+        var createExternal = typeof(MIGraphXArgument).GetMethod(
+            "CreateExternal",
+            BindingFlags.NonPublic | BindingFlags.Static,
+            binder: null,
+            types: new[] { runtimeType, typeof(MIGraphXShape), typeof(IntPtr) },
+            modifiers: null)
+            ?? throw new InvalidOperationException("The internal borrowed-argument factory is missing.");
+
+        var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+        var expected = Enumerable.Range(0, checked((int)shape.ByteCount)).Select(index => checked((byte)(0xa0 + index))).ToArray();
+        var pointer = Marshal.AllocHGlobal(expected.Length);
+        try
+        {
+            Marshal.Copy(expected, 0, pointer, expected.Length);
+            WriteStage(id, "external-buffer", "entered");
+            var runtime = loadRuntime.Invoke(null, new object[] { options.NativePath })
+                ?? throw new InvalidOperationException("The internal native-runtime loader returned null.");
+            using var borrowed = createExternal.Invoke(null, new[] { runtime, shape, pointer }) as MIGraphXArgument
+                ?? throw new InvalidOperationException("The internal borrowed-argument factory returned null.");
+
+            WriteStage(id, "clone", "entered");
+            try
+            {
+                using var unexpected = borrowed.Clone();
+                throw new InvalidOperationException("Borrowed argument clone unexpectedly succeeded.");
+            }
+            catch (NotSupportedException exception)
+            {
+                Require(exception.Message == "A borrowed device argument cannot be cloned into an independent host buffer.",
+                    "Borrowed argument clone rejection changed.");
+            }
+
+            var afterRejection = new byte[expected.Length];
+            Marshal.Copy(pointer, afterRejection, 0, afterRejection.Length);
+            Require(afterRejection.SequenceEqual(expected), "Borrowed external buffer changed after clone rejection.");
+            WriteStage(id, "source-dispose", "entered");
+            borrowed.Dispose();
+            var afterDispose = new byte[expected.Length];
+            Marshal.Copy(pointer, afterDispose, 0, afterDispose.Length);
+            Require(afterDispose.SequenceEqual(expected), "Borrowed external buffer changed after source disposal.");
+            report.Artifacts["borrowedExternalLeaseSha256"] = Program.HashBytes(afterDispose);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(pointer);
+        }
+
+        AppendNegativeBoundaryObservation("borrowed-device-clone|internal-external-buffer-construction|managed-not-supported-rejection|source-lease-unchanged|no-gpu-allocation");
         WriteStage(id, "teardown", "entered");
     }
 
