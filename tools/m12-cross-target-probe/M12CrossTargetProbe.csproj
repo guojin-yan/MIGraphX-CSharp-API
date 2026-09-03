@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>netcoreapp3.1;net7.0;net10.0</TargetFrameworks>
+    <AssemblyName>M12CrossTargetProbe</AssemblyName>
+    <RootNamespace>M12CrossTargetProbe</RootNamespace>
+    <RollForward>Major</RollForward>
+    <IsPackable>false</IsPackable>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <M12PackageVersion Condition="'$(M12PackageVersion)' == ''">0.0.0</M12PackageVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="JYPPX.ROCm.MIGraphX.CSharp.API" Version="[$(M12PackageVersion)]" />
+  </ItemGroup>
+</Project>

@@ -397,11 +397,17 @@ public sealed class RepositoryQualityTests
         Assert.Contains("realpath -m", runner, StringComparison.Ordinal);
         Assert.Contains("evidence record must be isolated from repository and package feed", runner, StringComparison.Ordinal);
         Assert.Contains("evidence record directory must be new or empty before a new run", runner, StringComparison.Ordinal);
+        Assert.Contains("packageSourceMapping", runner, StringComparison.Ordinal);
+        Assert.Contains("JYPPX.ROCm.MIGraphX.*", runner, StringComparison.Ordinal);
+        Assert.Contains("Microsoft.*", runner, StringComparison.Ordinal);
+        Assert.Contains("NETStandard.Library", runner, StringComparison.Ordinal);
 
         var cloudTest = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
         Assert.Contains("MIGRAPHX_CLOUD_RECORD_ROOT", cloudTest, StringComparison.Ordinal);
         Assert.Contains("/workspace/migraphx-cloud-records/${COMMIT_SHA}", cloudTest, StringComparison.Ordinal);
-        Assert.Contains("\"m12ExecutedCases\":13", cloudTest, StringComparison.Ordinal);
+        Assert.Contains("\"m12ExecutedCases\":14", cloudTest, StringComparison.Ordinal);
+        Assert.Contains("\"m12FunctionalCases\":13", cloudTest, StringComparison.Ordinal);
+        Assert.Contains("\"m12CrossTargetFrameworks\":3", cloudTest, StringComparison.Ordinal);
         Assert.DoesNotContain("m12_record=\"${results}/m12-candidate\"", cloudTest, StringComparison.Ordinal);
         Assert.Contains("m12-negative-variadic-operation", runner, StringComparison.Ordinal);
         Assert.Contains("m12-negative-module-owner", runner, StringComparison.Ordinal);
@@ -413,6 +419,19 @@ public sealed class RepositoryQualityTests
         Assert.Contains("HashSet", review, StringComparison.Ordinal);
         Assert.DoesNotContain("runtime-executed", review, StringComparison.Ordinal);
         Assert.DoesNotContain("|| true", runner, StringComparison.Ordinal);
+
+        var crossTargetRoot = Path.Combine(RepositoryRoot, "tools", "m12-cross-target-probe");
+        var crossTargetProject = File.ReadAllText(Path.Combine(crossTargetRoot, "M12CrossTargetProbe.csproj"));
+        var crossTargetProbe = File.ReadAllText(Path.Combine(crossTargetRoot, "Program.cs"));
+        Assert.Contains("netcoreapp3.1;net7.0;net10.0", crossTargetProject, StringComparison.Ordinal);
+        Assert.Contains("PackageReference", crossTargetProject, StringComparison.Ordinal);
+        Assert.DoesNotContain("ProjectReference", crossTargetProject, StringComparison.Ordinal);
+        Assert.Contains("m12-cross-target-abi", crossTargetProbe, StringComparison.Ordinal);
+        Assert.Contains("InteropCompilationProbe", crossTargetProbe, StringComparison.Ordinal);
+        Assert.Contains("DllImport", crossTargetProbe, StringComparison.Ordinal);
+        Assert.Contains("LibraryImport", crossTargetProbe, StringComparison.Ordinal);
+        Assert.Contains("m12-cross-target-$framework.json", runner, StringComparison.Ordinal);
+        Assert.Contains("crossTargetFrameworkCount", review, StringComparison.Ordinal);
 
         var providerRoot = Path.Combine(RepositoryRoot, "tools", "m12-provider-callback-probe");
         var providerRunner = File.ReadAllText(Path.Combine(providerRoot, "provider-callback-probe.sh"));

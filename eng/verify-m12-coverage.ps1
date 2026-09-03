@@ -190,12 +190,14 @@ $sourceChecks = @{
     'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\Program.cs' = @('m12-cross-target', 'm12Passed')
     'tools\m12-runtime-probe\M12RuntimeProbe.csproj' = @('PackageReference', 'M12PackageVersion')
     'tools\m12-runtime-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-shape-argument-factories', 'scalar-empty', 'source-dispose', 'collection-clone', 'assignToCloneSha256', 'module-collections', 'Edited graph output', 'RunTensorFlowParse', 'RunQuantizationOptions', 'RunCustomOpRegistration', 'RunConcurrentDispose', 'RunNegativeVariadicOperationBoundary', 'RunNegativeModuleOwnerBoundary', 'cases.Take(9)', 'IncludeDeferred', '--include-deferred cannot be combined with --case', 'DeferredCases', 'case-stages.jsonl', 'TensorFlowFixture', 'CalibrationMap', 'tensorflowFixtureSha256', 'calibrationFixtureSha256', 'negativeBoundariesSha256')
-    'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'M12PackageVersion', '--no-cache --force-evaluate', 'environmentChanged', '--tensorflow-fixture', '--calibration-map', '--include-deferred', 'all-candidate', 'includeDeferred', 'm12-negative-variadic-operation', 'm12-negative-module-owner', 'evidence record must be isolated from repository and package feed', 'evidence record directory must be new or empty before a new run')
-    'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'promotionState', 'TensorFlowFixturePath', 'CalibrationMapPath', 'tensorflowFixtureSha256', 'calibrationFixtureSha256', 'negative-boundaries.txt', 'Artifact manifest path must be absolute', 'Artifact manifest path escapes evidence record', 'Duplicate artifact manifest path', 'Artifact manifest is missing required review input')
+    'tools\m12-cross-target-probe\M12CrossTargetProbe.csproj' = @('netcoreapp3.1;net7.0;net10.0', 'PackageReference', 'M12PackageVersion')
+    'tools\m12-cross-target-probe\Program.cs' = @('runtime-candidate-executed-review-required', 'm12-cross-target-abi', 'InteropCompilationProbe', 'DllImport', 'LibraryImport', 'Identity output differs', 'M12 materialized operation creation or clone differs')
+    'tools\m12-runtime-probe\run.sh' = @('timeout --kill-after=10s 300s', 'timeout --kill-after=10s 180s', 'M12PackageVersion', 'm12-cross-target-probe', '--no-cache --force-evaluate', 'packageSourceMapping', 'JYPPX.ROCm.MIGraphX.*', 'Microsoft.*', 'NETStandard.Library', 'environmentChanged', '--tensorflow-fixture', '--calibration-map', '--include-deferred', 'all-candidate', 'includeDeferred', 'm12-negative-variadic-operation', 'm12-negative-module-owner', 'm12-cross-target-$framework.json', 'crossTargetFrameworks', 'evidence record must be isolated from repository and package feed', 'evidence record directory must be new or empty before a new run')
+    'tools\m12-runtime-probe\review.ps1' = @('candidate-record-verified', 'm12-cross-target-abi', 'crossTargetFrameworkCount', 'DllImport', 'LibraryImport', 'promotionState', 'TensorFlowFixturePath', 'CalibrationMapPath', 'tensorflowFixtureSha256', 'calibrationFixtureSha256', 'negative-boundaries.txt', 'Artifact manifest path must be absolute', 'Artifact manifest path escapes evidence record', 'Duplicate artifact manifest path', 'Artifact manifest is missing required review input')
     'tools\m12-provider-callback-probe\Program.cs' = @('fake-native-provider-dispatch', '--provider-fixture', 'm12_runtime_provider_callback_probe', 'callback-invoked-controlled-rejection', 'callback-not-observed', 'expectedInformational')
     'tools\m12-provider-callback-probe\provider-callback-probe.sh' = @('provider-callback-invocation', 'fake-native-provider-dispatch', 'promotionRequested=false')
     'tools\m12-provider-callback-probe\review.ps1' = @('provider-callback-record-verified', 'providerFixture', 'promotionState', 'Artifact manifest path escapes evidence record')
-    'tools\radeon\cloud-test.sh' = @('m12-runtime-probe/run.sh', '--include-deferred', 'm12-candidate', 'm12-review.txt', 'm12CaseFilter', 'm12ExecutedCases', '"m12ExecutedCases":13', 'candidate-record-verified')
+    'tools\radeon\cloud-test.sh' = @('m12-runtime-probe/run.sh', '--include-deferred', 'm12-candidate', 'm12-review.txt', 'm12CaseFilter', 'm12ExecutedCases', '"m12ExecutedCases":14', '"m12FunctionalCases":13', '"m12CrossTargetFrameworks":3', 'candidate-record-verified')
 }
 foreach ($relativePath in $sourceChecks.Keys) {
     $path = Join-Path $root $relativePath
@@ -232,6 +234,10 @@ foreach ($framework in $packageConsumerFrameworks) {
 $probeProject = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m12-runtime-probe\M12RuntimeProbe.csproj')
 if ($probeProject.Contains('ProjectReference', [StringComparison]::Ordinal)) {
     throw 'M12 runtime probe must remain package-only and cannot add a ProjectReference.'
+}
+$crossTargetProbeProject = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m12-cross-target-probe\M12CrossTargetProbe.csproj')
+if ($crossTargetProbeProject.Contains('ProjectReference', [StringComparison]::Ordinal)) {
+    throw 'M12 cross-target probe must remain package-only and cannot add a ProjectReference.'
 }
 
 $design = Get-Content -Raw -LiteralPath (Join-Path $root 'docs\design\m12-local-interface-expansion.md')

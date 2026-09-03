@@ -98,7 +98,18 @@ started_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 cat > "$record/build/NuGet.Config" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
-  <packageSources><clear /><add key="m12-feed" value="$feed" /></packageSources>
+  <packageSources>
+    <clear />
+    <add key="m12-feed" value="$feed" />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+  </packageSources>
+  <packageSourceMapping>
+    <packageSource key="m12-feed"><package pattern="JYPPX.ROCm.MIGraphX.*" /></packageSource>
+    <packageSource key="nuget.org">
+      <package pattern="Microsoft.*" />
+      <package pattern="NETStandard.Library" />
+    </packageSource>
+  </packageSourceMapping>
 </configuration>
 EOF
 
@@ -127,6 +138,11 @@ done
 project="$repo/tools/m12-runtime-probe/M12RuntimeProbe.csproj"
 dotnet restore "$project" --configfile "$record/build/NuGet.Config" --packages "$record/packages" --no-cache --force-evaluate -p:M12PackageVersion="$version" > "$record/raw/restore.log" 2>&1
 dotnet build "$project" -c Release --no-restore -p:M12PackageVersion="$version" > "$record/raw/build.log" 2>&1
+cross_target_project="$repo/tools/m12-cross-target-probe/M12CrossTargetProbe.csproj"
+if [[ "$include_deferred" = true ]]; then
+  dotnet restore "$cross_target_project" --configfile "$record/build/NuGet.Config" --packages "$record/packages" --no-cache --force-evaluate -p:M12PackageVersion="$version" > "$record/raw/cross-target-restore.log" 2>&1
+  dotnet build "$cross_target_project" -c Release --no-restore -p:M12PackageVersion="$version" > "$record/raw/cross-target-build.log" 2>&1
+fi
 
 command -v timeout >/dev/null 2>&1 || { echo 'GNU timeout is required for the bounded M12 session' >&2; exit 1; }
 probe_case_args=()
@@ -142,6 +158,27 @@ timeout --kill-after=10s 300s dotnet run --project "$project" -c Release --no-bu
 functional_exit=$?
 set -e
 
+cross_target_exit=0
+cross_target_executed=false
+cross_target_frameworks='[]'
+if [[ "$include_deferred" = true && $functional_exit -eq 0 ]]; then
+  cross_target_executed=true
+  cross_target_frameworks='["netcoreapp3.1","net7.0","net10.0"]'
+  for framework in netcoreapp3.1 net7.0 net10.0; do
+    set +e
+    timeout --kill-after=10s 180s dotnet run --project "$cross_target_project" -c Release -f "$framework" --no-build -p:M12PackageVersion="$version" -- \
+      --native "$resolved_native" --identity "$identity" --output "$record/raw/m12-cross-target-$framework.json" \
+      --source-sha "$source_sha" --expected-version "$version" \
+      > "$record/raw/cross-target-$framework-stdout.log" 2> "$record/raw/cross-target-$framework-stderr.log"
+    framework_exit=$?
+    set -e
+    if [[ $framework_exit -ne 0 ]]; then
+      cross_target_exit=$framework_exit
+      break
+    fi
+  done
+fi
+
 completed_utc="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 case_filter="${case_id:-all}"
 if [[ "$include_deferred" = true ]]; then case_filter='all-candidate'; fi
@@ -156,6 +193,10 @@ cat > "$record/raw/run-metadata.json" <<EOF
   "functionalExitCode": $functional_exit,
   "functionalSessionTimeoutSeconds": 300,
   "sessionKillAfterSeconds": 10,
+  "crossTargetExecuted": $cross_target_executed,
+  "crossTargetExitCode": $cross_target_exit,
+  "crossTargetSessionTimeoutSeconds": 180,
+  "crossTargetFrameworks": $cross_target_frameworks,
   "caseFilter": "$case_filter",
   "includeDeferred": $include_deferred,
   "environmentChanged": false,
@@ -164,4 +205,4 @@ cat > "$record/raw/run-metadata.json" <<EOF
 EOF
 find "$record" -type f ! -name artifact-hashes.txt -print0 | sort -z | xargs -0 sha256sum > "$record/raw/artifact-hashes.txt"
 
-[[ $functional_exit -eq 0 ]]
+[[ $functional_exit -eq 0 && $cross_target_exit -eq 0 ]]

@@ -339,10 +339,10 @@
       "timeoutSeconds": 180,
       "prerequisites": ["all 15 managed framework builds", "identity fixture", "verified native root"],
       "environmentChangeRequired": false,
-      "localEvidence": "statically-verified",
+      "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "At minimum net46, netcoreapp3.1, net7.0, and net10.0 produce equivalent real-runtime observations.",
-      "evidenceBoundary": "The reviewed official run used net10.0 only; representative DllImport and LibraryImport runtime equivalence remains deferred."
+      "resultCriteria": "The same exact package produces equivalent real-runtime Identity and materialized-operation observations under the netcoreapp3.1 DllImport path and the net7.0/net10.0 LibraryImport paths; net46 remains covered by compile and Windows fake-native execution because the required official provider is Linux-only.",
+      "evidenceBoundary": "The exact package passed local fake-native execution under netcoreapp3.1, net7.0, and net10.0 with the expected DllImport/LibraryImport strategies. The reviewed official run used net10.0 only, so representative real-provider equivalence remains runtime-deferred."
     }
   ]
 }

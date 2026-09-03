@@ -43,6 +43,12 @@ if ($metadata.evidence -ne 'runtime-candidate-executed-review-required' -or $met
     $metadata.environmentChanged -ne $false -or $metadata.promotionRequested -ne $false) {
     throw 'M12 runner metadata is invalid or requests an unauthorized promotion.'
 }
+$expectedCrossTargetFrameworks = @('netcoreapp3.1', 'net7.0', 'net10.0')
+if ($metadata.crossTargetExecuted -ne $includeDeferred -or $metadata.crossTargetExitCode -ne 0 -or
+    $metadata.crossTargetSessionTimeoutSeconds -ne 180 -or
+    (@($metadata.crossTargetFrameworks) -join ';') -ne ($(if ($includeDeferred) { $expectedCrossTargetFrameworks -join ';' } else { '' }))) {
+    throw 'M12 cross-target runner metadata is invalid or incomplete.'
+}
 
 $expectedCases = @(
     'm12-shape-argument-factories',
@@ -80,6 +86,36 @@ if (Compare-Object $expectedDeferred @($result.deferredCaseIds)) { throw 'M12 de
 if ($includeDeferred -and ($null -eq $result.artifacts -or
     $result.artifacts.customOpCallbackExecutionVerified -ne 'false')) {
     throw 'Full M12 candidate must keep custom-op callback execution explicitly unverified.'
+}
+$crossTargetResults = @()
+if ($includeDeferred) {
+    $expectedCrossTargetDetails = @(
+        @('netcoreapp3.1', '.NETCoreApp,Version=v3.1', 'DllImport'),
+        @('net7.0', '.NETCoreApp,Version=v7.0', 'LibraryImport'),
+        @('net10.0', '.NETCoreApp,Version=v10.0', 'LibraryImport')
+    )
+    foreach ($expected in $expectedCrossTargetDetails) {
+        $path = Join-Path $raw "m12-cross-target-$($expected[0]).json"
+        if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "M12 cross-target result is missing: $($expected[0])" }
+        $crossTarget = Get-Content -Raw -LiteralPath $path | ConvertFrom-Json
+        if ($crossTarget.schemaVersion -ne '1.0.0' -or
+            $crossTarget.evidence -ne 'runtime-candidate-executed-review-required' -or
+            $crossTarget.caseId -ne 'm12-cross-target-abi' -or
+            $crossTarget.state -ne 'executed' -or
+            $crossTarget.sourceSha -ne $SourceSha -or
+            $crossTarget.packageVersion -ne '0.0.0' -or
+            $crossTarget.targetFramework -ne $expected[1] -or
+            $crossTarget.interopStrategy -ne $expected[2] -or
+            $crossTarget.identityFixtureSha256 -ne '0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9' -or
+            $crossTarget.referenceMatched -ne $true -or
+            $crossTarget.operationName -ne 'reshape' -or
+            $crossTarget.operationCloneName -ne 'reshape' -or
+            [string]::IsNullOrWhiteSpace($crossTarget.runtimeFramework) -or
+            [string]::IsNullOrWhiteSpace($crossTarget.processArchitecture)) {
+            throw "M12 cross-target result is invalid: $($expected[0])"
+        }
+        $crossTargetResults += [pscustomobject]@{ Framework = $expected[0]; Path = $path; Result = $crossTarget }
+    }
 }
 $stages = @(Get-Content -LiteralPath $stagePath | ForEach-Object { $_ | ConvertFrom-Json })
 foreach ($caseId in $expectedCases) {
@@ -160,6 +196,12 @@ foreach ($requiredPath in @($resultPath, $metadataPath, $stagePath, $identitiesP
         throw "Artifact manifest is missing required review input: $requiredPath"
     }
 }
+foreach ($crossTargetResult in $crossTargetResults) {
+    $resolvedCrossTargetPath = [IO.Path]::GetFullPath((Resolve-Path -LiteralPath $crossTargetResult.Path).Path)
+    if (-not $manifestPaths.Contains($resolvedCrossTargetPath)) {
+        throw "Artifact manifest is missing M12 cross-target result: $($crossTargetResult.Framework)"
+    }
+}
 
 $review = [ordered]@{
     schemaVersion = '1.0.0'
@@ -173,7 +215,10 @@ $review = [ordered]@{
     corePackageSha256 = $CoreSha256
     tensorflowFixtureSha256 = $expectedTensorFlowFixtureSha
     calibrationFixtureSha256 = $expectedCalibrationFixtureSha
-    executedCaseCount = @($result.cases).Count
+    executedCaseCount = @($result.cases).Count + $(if ($includeDeferred) { 1 } else { 0 })
+    functionalCaseCount = @($result.cases).Count
+    crossTargetAbiExecuted = $includeDeferred
+    crossTargetFrameworkCount = $crossTargetResults.Count
     deferredCaseCount = @($result.deferredCaseIds).Count
     candidateResultSha256 = Get-Sha256 $resultPath
     artifactHashesRecomputed = $true
