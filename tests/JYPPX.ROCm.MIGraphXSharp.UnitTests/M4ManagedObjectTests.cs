@@ -241,6 +241,22 @@ public sealed class M4ManagedObjectTests
         }
 
         controls.SetShapeMode(0);
+        foreach (var borrowedEntryPoint in new[]
+        {
+            "migraphx_program_parameter_shapes_get",
+            "migraphx_shapes_get",
+        })
+        {
+            controls.SetNullOutput(borrowedEntryPoint);
+            var nullBorrowed = Assert.Throws<MIGraphXException>(() =>
+            {
+                if (borrowedEntryPoint == "migraphx_shapes_get") { program.GetOutputShapes(); }
+                else { program.GetParameterShapes(); }
+            });
+            Assert.Contains(borrowedEntryPoint, nullBorrowed.Operation, StringComparison.Ordinal);
+            Assert.Contains("success with null borrowed handle", nullBorrowed.Operation, StringComparison.Ordinal);
+        }
+
         controls.SetSkipOutput("migraphx_program_parameter_shapes_size");
         Assert.Throws<MIGraphXException>(() => program.GetParameterShapes());
         controls.SetSkipOutput("migraphx_shapes_size");
@@ -387,6 +403,19 @@ public sealed class M4ManagedObjectTests
         {
             controls.SetFailure(entryPoint, (int)MIGraphXStatus.UnknownError);
             Assert.Equal(entryPoint, Assert.Throws<MIGraphXException>(() => program.Run(parameters)).Operation);
+        }
+
+        foreach (var nullOutput in new[]
+        {
+            (EntryPoint: "migraphx_arguments_get", Reason: "success with null borrowed handle"),
+            (EntryPoint: "migraphx_argument_shape", Reason: "success with null borrowed handle"),
+            (EntryPoint: "migraphx_argument_buffer", Reason: "success with null buffer"),
+        })
+        {
+            controls.SetNullOutput(nullOutput.EntryPoint);
+            var error = Assert.Throws<MIGraphXException>(() => program.Run(parameters));
+            Assert.Contains(nullOutput.EntryPoint, error.Operation, StringComparison.Ordinal);
+            Assert.Contains(nullOutput.Reason, error.Operation, StringComparison.Ordinal);
         }
 
         controls.SetFailure("migraphx_arguments_destroy", (int)MIGraphXStatus.UnknownError);

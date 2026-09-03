@@ -110,6 +110,7 @@ public static class MIGraphXOnnxWorkflow
             using (var utf8Name = new StrictUtf8String(inputName, nameof(inputName)))
             {
                 NativeStatus.ThrowIfFailed(NativeMethods.ProgramParameterShapesGet(out var inputShape, parameterShapes.DangerousGetHandle(), utf8Name.Pointer), "migraphx_program_parameter_shapes_get");
+                inputShape = NativeBorrowedOutput.RequireHandle(inputShape, "migraphx_program_parameter_shapes_get");
                 var inputSnapshot = NativeShapeSnapshot.Create(inputShape, "input");
                 inputSnapshot.RequireFloat32StaticStandard();
                 if (inputSnapshot.Elements != input.Length) { throw new ArgumentException($"Input element count {input.Length} does not match model shape element count {inputSnapshot.Elements}.", nameof(input)); }
@@ -125,6 +126,7 @@ public static class MIGraphXOnnxWorkflow
                     var outputCount = NativeShapeSnapshot.ToInt(GetSize(outputShapes), "output shape count");
                     if (outputCount != 1) { throw new NotSupportedException($"M2 supports exactly one model output; the model has {outputCount}."); }
                     NativeStatus.ThrowIfFailed(NativeMethods.ShapesGet(out var outputShape, outputShapes.DangerousGetHandle(), UIntPtr.Zero), "migraphx_shapes_get");
+                    outputShape = NativeBorrowedOutput.RequireHandle(outputShape, "migraphx_shapes_get");
                     var outputSnapshot = NativeShapeSnapshot.Create(outputShape, "output");
                     outputSnapshot.RequireFloat32StaticStandard();
 
@@ -140,7 +142,9 @@ public static class MIGraphXOnnxWorkflow
                                 var runOutputCount = NativeShapeSnapshot.ToInt(GetSize(outputs), "run output count");
                                 if (runOutputCount != 1) { throw new NotSupportedException($"M2 supports exactly one run output; MIGraphX returned {runOutputCount}."); }
                                 NativeStatus.ThrowIfFailed(NativeMethods.ArgumentsGet(out var outputArgument, outputs.DangerousGetHandle(), UIntPtr.Zero), "migraphx_arguments_get");
+                                outputArgument = NativeBorrowedOutput.RequireHandle(outputArgument, "migraphx_arguments_get");
                                 NativeStatus.ThrowIfFailed(NativeMethods.ArgumentShape(out var runShape, outputArgument), "migraphx_argument_shape");
+                                runShape = NativeBorrowedOutput.RequireHandle(runShape, "migraphx_argument_shape");
                                 var runSnapshot = NativeShapeSnapshot.Create(runShape, "run output");
                                 runSnapshot.RequireFloat32StaticStandard();
                                 if (runSnapshot.Elements != outputSnapshot.Elements || !DimensionsEqual(runSnapshot.Dimensions, outputSnapshot.Dimensions))

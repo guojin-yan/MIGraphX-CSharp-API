@@ -276,6 +276,7 @@ public sealed class MIGraphXArgument : IDisposable
             throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{context} (null borrowed argument)");
         }
         NativeStatus.ThrowIfFailed(NativeMethods.ArgumentShape(out var shapeHandle, argument), "migraphx_argument_shape");
+        shapeHandle = NativeBorrowedOutput.RequireHandle(shapeHandle, "migraphx_argument_shape");
         var shape = MIGraphXShape.FromNative(shapeHandle, context);
         if (!shape.IsStandard || !shape.IsPacked)
         {

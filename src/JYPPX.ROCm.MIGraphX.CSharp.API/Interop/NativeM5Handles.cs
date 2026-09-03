@@ -158,8 +158,7 @@ internal sealed class NativeDynamicDimensionsHandle : NativeOwnedHandle
             {
                 Marshal.WriteIntPtr(slot, IntPtr.Zero);
                 NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionsGet(slot, DangerousGetHandle(), NativeSizeTArray.Count(index)), "migraphx_dynamic_dimensions_get");
-                var borrowed = Marshal.ReadIntPtr(slot);
-                if (borrowed == IntPtr.Zero) { throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_dynamic_dimensions_get (success with null borrowed handle)"); }
+                var borrowed = NativeBorrowedOutput.RequireHandle(Marshal.ReadIntPtr(slot), "migraphx_dynamic_dimensions_get");
                 var probe = new NativeDynamicDimensionBorrowed(borrowed);
                 flags[index] = probe.IsFixedValue();
             }

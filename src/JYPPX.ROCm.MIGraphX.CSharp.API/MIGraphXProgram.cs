@@ -425,6 +425,7 @@ public sealed class MIGraphXProgram : IDisposable
                             NativeStatus.ThrowIfFailed(
                                 NativeMethods.ArgumentsGet(out var argument, outputs.DangerousGetHandle(), new UIntPtr((uint)index)),
                                 "migraphx_arguments_get");
+                            argument = NativeBorrowedOutput.RequireHandle(argument, "migraphx_arguments_get");
                             copied.Add(MIGraphXArgument.CopyFromNative(owner.Runtime, argument, $"run output {index}"));
                         }
                         EnsureStableSize(() => GetArgumentsSize(outputs.DangerousGetHandle()), count, "run output count");
@@ -590,8 +591,9 @@ public sealed class MIGraphXProgram : IDisposable
                         NativeStatus.ThrowIfFailed(
                             NativeMethods.ProgramParameterShapesGet(out var shape, nativeShapes.DangerousGetHandle(), utf8.Pointer),
                             "migraphx_program_parameter_shapes_get");
-                            dynamicOverrides.TryGetValue(name, out var fallback);
-                            result.Add(new KeyValuePair<string, MIGraphXShape>(name, MIGraphXShape.FromNative(shape, $"parameter '{name}'", fallback)));
+                        shape = NativeBorrowedOutput.RequireHandle(shape, "migraphx_program_parameter_shapes_get");
+                        dynamicOverrides.TryGetValue(name, out var fallback);
+                        result.Add(new KeyValuePair<string, MIGraphXShape>(name, MIGraphXShape.FromNative(shape, $"parameter '{name}'", fallback)));
                     }
                 }
                 return new OrderedReadOnlyDictionary<MIGraphXShape>(result);
@@ -635,6 +637,7 @@ public sealed class MIGraphXProgram : IDisposable
                 NativeStatus.ThrowIfFailed(
                     NativeMethods.ShapesGet(out var shape, nativeShapes.DangerousGetHandle(), new UIntPtr((uint)index)),
                     "migraphx_shapes_get");
+                shape = NativeBorrowedOutput.RequireHandle(shape, "migraphx_shapes_get");
                 result[index] = MIGraphXShape.FromNative(shape, $"output shape {index}");
             }
             EnsureStableSize(() => GetShapeCount(nativeShapes.DangerousGetHandle()), count, "output shape count");

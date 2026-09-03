@@ -60,6 +60,7 @@ internal sealed class MIGraphXNativeAsyncRun : IDisposable
                 NativeStatus.ThrowIfFailed(
                     NativeMethods.ArgumentsGet(out var argument, native.DangerousGetHandle(), new UIntPtr((uint)index)),
                     "migraphx_arguments_get");
+                argument = NativeBorrowedOutput.RequireHandle(argument, "migraphx_arguments_get");
                 copied.Add(MIGraphXArgument.CopyFromNative(runtime, argument, $"async output {index}", copyDeviceBuffer));
             }
             if (ReadSize(native.DangerousGetHandle()) != count)

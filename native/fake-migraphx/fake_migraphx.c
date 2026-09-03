@@ -229,13 +229,19 @@ static int take_status_for(const char* entry)
     return take_status();
 }
 
-static int take_null_for(const char* entry)
+static int take_named_null_for(const char* entry)
 {
     if(null_entry[0] != '\0' && strcmp(null_entry, entry) == 0)
     {
         null_entry[0] = '\0';
         return 1;
     }
+    return 0;
+}
+
+static int take_null_for(const char* entry)
+{
+    if(take_named_null_for(entry)) return 1;
     return ATOMIC_EXCHANGE(create_null, 0);
 }
 
@@ -749,8 +755,10 @@ EXPORT migraphx_status migraphx_program_parameter_shapes_size(size_t* out, migra
 }
 EXPORT migraphx_status migraphx_program_parameter_shapes_get(const fake_shape** out, migraphx_program_parameter_shapes_t value, const char* name)
 {
+    int null_output;
     if(out == NULL || value == NULL || name == NULL || (strcmp(name, "input") != 0 && strcmp(name, "second") != 0)) return migraphx_status_bad_param;
-    *out = shape_mode == 7 ? NULL : &value->shape;
+    null_output = take_named_null_for("migraphx_program_parameter_shapes_get");
+    *out = shape_mode == 7 || null_output ? NULL : &value->shape;
     return (migraphx_status)take_status_for("migraphx_program_parameter_shapes_get");
 }
 EXPORT migraphx_status migraphx_program_parameter_shapes_names(const char** out, migraphx_program_parameter_shapes_t value)
@@ -804,9 +812,11 @@ EXPORT migraphx_status migraphx_arguments_size(size_t* out, migraphx_arguments_t
 }
 EXPORT migraphx_status migraphx_arguments_get(const struct fake_argument** out, migraphx_arguments_t value, size_t idx)
 {
+    int null_output;
     if(out == NULL || value == NULL || idx >= (shape_mode == 6 ? 2u : 1u)) return migraphx_status_bad_param;
     if(value->pending) return migraphx_status_unknown_error;
-    *out = shape_mode == 9 ? NULL : &value->argument;
+    null_output = take_named_null_for("migraphx_arguments_get");
+    *out = shape_mode == 9 || null_output ? NULL : &value->argument;
     return (migraphx_status)take_status_for("migraphx_arguments_get");
 }
 EXPORT migraphx_status migraphx_shapes_destroy(migraphx_shapes_t value) { destroy_m2(value); return (migraphx_status)take_status_for("migraphx_shapes_destroy"); }
@@ -819,8 +829,10 @@ EXPORT migraphx_status migraphx_shapes_size(size_t* out, migraphx_shapes_t value
 }
 EXPORT migraphx_status migraphx_shapes_get(const fake_shape** out, migraphx_shapes_t value, size_t idx)
 {
+    int null_output;
     if(out == NULL || value == NULL || idx >= (shape_mode == 5 ? 2u : 1u)) return migraphx_status_bad_param;
-    *out = shape_mode == 8 ? NULL : &value->shape;
+    null_output = take_named_null_for("migraphx_shapes_get");
+    *out = shape_mode == 8 || null_output ? NULL : &value->shape;
     return (migraphx_status)take_status_for("migraphx_shapes_get");
 }
 EXPORT migraphx_status migraphx_shape_lengths(const size_t** out, size_t* out_size, const fake_shape* shape)
@@ -859,11 +871,16 @@ EXPORT migraphx_status migraphx_argument_create(migraphx_argument_t* out, const 
     status = take_status_for("migraphx_argument_create");
     return (migraphx_status)status;
 }
-EXPORT migraphx_status migraphx_argument_shape(const fake_shape** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = &value->shape; return (migraphx_status)take_status_for("migraphx_argument_shape"); }
+EXPORT migraphx_status migraphx_argument_shape(const fake_shape** out, const migraphx_argument_t value)
+{
+    if(out == NULL || value == NULL) return migraphx_status_bad_param;
+    *out = take_named_null_for("migraphx_argument_shape") ? NULL : &value->shape;
+    return (migraphx_status)take_status_for("migraphx_argument_shape");
+}
 EXPORT migraphx_status migraphx_argument_buffer(char** out, const migraphx_argument_t value)
 {
     if(out == NULL || value == NULL) return migraphx_status_bad_param;
-    if(take_null_for("migraphx_argument_buffer"))
+    if(take_named_null_for("migraphx_argument_buffer"))
     {
         *out = NULL;
         return (migraphx_status)take_status_for("migraphx_argument_buffer");
@@ -1137,7 +1154,7 @@ EXPORT migraphx_status migraphx_dynamic_dimensions_size(size_t* out, migraphx_dy
 EXPORT migraphx_status migraphx_dynamic_dimensions_get(migraphx_dynamic_dimension_t* out, migraphx_dynamic_dimensions_t value, size_t index)
 {
     if(out == NULL || value == NULL || index >= value->count) return migraphx_status_bad_param;
-    if(take_null_for("migraphx_dynamic_dimensions_get")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_get"); }
+    if(take_named_null_for("migraphx_dynamic_dimensions_get")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_get"); }
     *out = value->values[index]; return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_get");
 }
 
