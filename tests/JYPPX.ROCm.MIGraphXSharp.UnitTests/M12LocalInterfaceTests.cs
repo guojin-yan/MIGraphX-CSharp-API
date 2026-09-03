@@ -196,6 +196,10 @@ public sealed class M12LocalInterfaceTests
             using var parameter = main.AddParameter("input", shape);
             using var allocation = main.AddAllocation(shape);
             using var literal = main.AddLiteral(literalValue);
+            controls.SetNullOutput("migraphx_argument_buffer");
+            var nullBufferError = Assert.Throws<MIGraphXException>(() => main.AddLiteral(literalValue));
+            Assert.Contains("migraphx_argument_buffer", nullBufferError.Operation, StringComparison.Ordinal);
+            Assert.Contains("success with null buffer", nullBufferError.Message, StringComparison.Ordinal);
             using var inputs = new MIGraphXInstructions(nativePath, new[] { parameter, allocation, literal });
             using var inputClone = inputs.Clone();
             using var result = main.AddReturn(inputClone);

@@ -860,7 +860,17 @@ EXPORT migraphx_status migraphx_argument_create(migraphx_argument_t* out, const 
     return (migraphx_status)status;
 }
 EXPORT migraphx_status migraphx_argument_shape(const fake_shape** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = &value->shape; return (migraphx_status)take_status_for("migraphx_argument_shape"); }
-EXPORT migraphx_status migraphx_argument_buffer(char** out, const migraphx_argument_t value) { if(out == NULL || value == NULL) return migraphx_status_bad_param; *out = value->buffer; return (migraphx_status)take_status_for("migraphx_argument_buffer"); }
+EXPORT migraphx_status migraphx_argument_buffer(char** out, const migraphx_argument_t value)
+{
+    if(out == NULL || value == NULL) return migraphx_status_bad_param;
+    if(take_null_for("migraphx_argument_buffer"))
+    {
+        *out = NULL;
+        return (migraphx_status)take_status_for("migraphx_argument_buffer");
+    }
+    *out = value->buffer;
+    return (migraphx_status)take_status_for("migraphx_argument_buffer");
+}
 
 #ifndef FAKE_DISABLE_M10
 static int fake_dynamic_dimension_equal_value(const fake_dynamic_dimension* left, const fake_dynamic_dimension* right)

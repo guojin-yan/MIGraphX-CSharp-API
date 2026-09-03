@@ -288,6 +288,12 @@ public sealed class MIGraphXModule : IDisposable
                 () => AddInstructionCore((slot, _) =>
                 {
                     NativeStatus.ThrowIfFailed(NativeMethods.ArgumentBuffer(out var buffer, argument.Owner.HandleUnderLock), "migraphx_argument_buffer");
+                    if (argument.Shape.ByteCount != 0 && buffer == IntPtr.Zero)
+                    {
+                        throw new MIGraphXException(
+                            (int)NativeMIGraphXStatus.UnknownError,
+                            "migraphx_argument_buffer (success with null buffer)");
+                    }
                     return NativeMethods.ModuleAddLiteral(slot, HandleUnderLock, nativeShape.DangerousGetHandle(), buffer);
                 }, "migraphx_module_add_literal"));
         }
