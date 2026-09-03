@@ -32,7 +32,7 @@ The M10 coverage gate recomputes the aggregate map from the reviewed M5 base plu
 
 ## Executed substitute cases
 
-The registry substitute returns copied ASCII and non-ASCII names and an empty list. Fault modes cover count overflow, null name, invalid UTF-8, exact size/name status, mid-copy failure, count drift, out-of-range index, a second library root, and a full M2/M4 library missing only M10 exports. Separate isolated processes verify exact missing-export diagnostics for both the registry and adopted equality sets. Partial results do not escape and native live counts return to zero.
+The registry substitute returns copied ASCII and non-ASCII names and an empty list. Fault modes cover count overflow, null and empty names, invalid UTF-8, exact size/name status, mid-copy failure, count drift, out-of-range index, a second library root, and a full M2/M4 library missing only M10 exports. Separate isolated processes verify exact missing-export diagnostics for both the registry and adopted equality sets. Partial results do not escape and native live counts return to zero.
 
 Argument comparison covers self, independent equal content, one-element difference, shape difference, exact status, invalid or unwritten C bool, reverse concurrent calls, Dispose during a blocked comparison, and post-dispose failure. Program comparison covers empty, parsed, different input shapes, compile-state changes, independent equal structures, exact status, invalid or unwritten C bool, reverse concurrency, and Dispose races.
 

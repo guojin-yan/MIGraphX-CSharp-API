@@ -48,6 +48,11 @@ public sealed class M10CapabilityEqualityTests
         var unwrittenSize = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.GetRegisteredOperators(nativePath));
         Assert.Contains("success without writing size_t output", unwrittenSize.Operation, StringComparison.Ordinal);
 
+        controls.SetRegistryMode(7);
+        var emptyName = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.GetRegisteredOperators(nativePath));
+        Assert.Contains("migraphx_get_onnx_operator_name_at_index (index 1)", emptyName.Operation, StringComparison.Ordinal);
+        Assert.Contains("success with empty UTF-8 string", emptyName.Operation, StringComparison.Ordinal);
+
         controls.SetFailure("migraphx_get_onnx_operators_size", 3);
         var sizeFailure = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.GetRegisteredOperators(nativePath));
         Assert.Equal(3, sizeFailure.StatusCode);

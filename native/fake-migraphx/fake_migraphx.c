@@ -1273,6 +1273,7 @@ EXPORT migraphx_status migraphx_get_onnx_operator_name_at_index(char** out, size
     static char ascii_name[] = "Add";
     static char utf8_name[] = "\xE5\x8A\xA0";
     static char final_name[] = "Relu";
+    static char empty_name[] = "";
     static char invalid_utf8[] = "\xC3\x28";
     static char* names[] = { ascii_name, utf8_name, final_name };
     int status;
@@ -1285,6 +1286,7 @@ EXPORT migraphx_status migraphx_get_onnx_operator_name_at_index(char** out, size
     if(status != migraphx_status_success) return (migraphx_status)status;
     if(mode == 3 && index == 1) *out = NULL;
     else if(mode == 4 && index == 1) *out = invalid_utf8;
+    else if(mode == 7 && index == 1) *out = empty_name;
     else *out = names[index];
     return migraphx_status_success;
 }

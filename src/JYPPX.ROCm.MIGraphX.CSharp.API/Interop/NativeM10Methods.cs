@@ -47,7 +47,14 @@ internal static class NativeM10Methods
                 operation);
             try
             {
-                return StrictUtf8String.Decode(Marshal.ReadIntPtr(slot), operation);
+                var name = StrictUtf8String.Decode(Marshal.ReadIntPtr(slot), operation);
+                if (name.Length == 0)
+                {
+                    throw new MIGraphXException(
+                        (int)NativeMIGraphXStatus.UnknownError,
+                        $"{operation} (success with empty UTF-8 string)");
+                }
+                return name;
             }
             catch (DecoderFallbackException exception)
             {

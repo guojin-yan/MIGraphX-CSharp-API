@@ -18,7 +18,7 @@ The ONNX parser map is copied into a sorted vector during initialization. Manage
 
 ## Registry snapshot contract
 
-`MIGraphXOnnxWorkflow.GetRegisteredOperators` requires an explicit absolute native-library path and the fixed M2 plus M10 registry exports. It reads a checked `size_t`, copies each borrowed string immediately with strict UTF-8, and returns an `Array.AsReadOnly` snapshot. A null name, invalid UTF-8, native status failure, count above `Int32.MaxValue`, unterminated string, index failure, count drift, or second native root fails closed. A partial result is never returned.
+`MIGraphXOnnxWorkflow.GetRegisteredOperators` requires an explicit absolute native-library path and the fixed M2 plus M10 registry exports. It reads a checked `size_t`, copies each borrowed string immediately with strict UTF-8, rejects an empty name, and returns an `Array.AsReadOnly` snapshot. A null name, invalid UTF-8, native status failure, count above `Int32.MaxValue`, unterminated string, index failure, count drift, or second native root fails closed. A partial result is never returned.
 
 The result is a parser-registry capability hint for one loaded native version. It is not an ONNX opset matrix and does not prove that a model, target, device, data type, shape, or operator configuration can parse, compile, or run.
 
@@ -38,7 +38,7 @@ M10 deliberately does not override `object.Equals`, `GetHashCode`, `==`, or `!=`
 
 ## Evidence boundary
 
-Local tests execute success, difference, status failure, invalid C bool, reverse concurrency, and Dispose races for adopted comparisons. Registry tests execute non-empty/empty data, ASCII/non-ASCII names, bounds, overflow, null pointer, invalid UTF-8, mid-copy failure, count drift, second-root rejection, and exact missing-export diagnostics. Representative `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0` processes traverse the generated DllImport/LibraryImport paths.
+Local tests execute success, difference, status failure, invalid C bool, reverse concurrency, and Dispose races for adopted comparisons. Registry tests execute non-empty/empty data, ASCII/non-ASCII names, empty-name rejection, bounds, overflow, null pointer, invalid UTF-8, mid-copy failure, count drift, second-root rejection, and exact missing-export diagnostics. Representative `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0` processes traverse the generated DllImport/LibraryImport paths.
 
 No new official host authorization was available. M10 is therefore `runtime-deferred`; its adopted mappings remain `fake-native-executed`, and the official M1/M2 plus bounded M9 record at `346cdd0...` is not inherited.
 

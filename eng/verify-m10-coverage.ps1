@@ -132,12 +132,15 @@ foreach ($member in $publicSources.Keys) {
     }
 }
 $bridge = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Interop\NativeM10Methods.cs')
-foreach ($entryPoint in @('migraphx_get_onnx_operators_size', 'migraphx_get_onnx_operator_name_at_index', 'migraphx_argument_equal', 'migraphx_program_equal')) {
+foreach ($entryPoint in @('migraphx_get_onnx_operators_size', 'migraphx_get_onnx_operator_name_at_index', 'migraphx_argument_equal', 'migraphx_program_equal', 'success with empty UTF-8 string')) {
     if (-not $bridge.Contains($entryPoint, [StringComparison]::Ordinal)) { throw "M10 internal bridge is missing: $entryPoint" }
 }
 $fake = Get-Content -Raw -LiteralPath (Join-Path $root 'native\fake-migraphx\fake_migraphx.c')
 foreach ($entryPoint in @('migraphx_get_onnx_operators_size', 'migraphx_get_onnx_operator_name_at_index', 'migraphx_argument_equal', 'migraphx_program_equal')) {
     if (-not $fake.Contains("EXPORT migraphx_status $entryPoint", [StringComparison]::Ordinal)) { throw "fake-native M10 behavior is missing: $entryPoint" }
+}
+foreach ($token in @('empty_name', 'mode == 7')) {
+    if (-not $fake.Contains($token, [StringComparison]::Ordinal)) { throw "fake-native M10 empty-name injection is missing: $token" }
 }
 if ($fake.Contains('EXPORT migraphx_status migraphx_shape_equal', [StringComparison]::Ordinal)) {
     throw 'fake-native must not claim execution for retained-planned shape equality.'
@@ -145,6 +148,9 @@ if ($fake.Contains('EXPORT migraphx_status migraphx_shape_equal', [StringCompari
 $tests = Get-Content -Raw -LiteralPath (Join-Path $root 'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M10CapabilityEqualityTests.cs')
 foreach ($name in @('OnnxRegistryCopiesStableUtf8AndFailsClosedForEveryInjectedFault', 'ArgumentContentComparisonHandlesIndependentValuesFailuresConcurrencyAndDispose', 'ProgramContentComparisonUsesOrderedLocksAndKeepsHandlesAliveAgainstDispose')) {
     if (-not $tests.Contains($name, [StringComparison]::Ordinal)) { throw "M10 behavior test is missing: $name" }
+}
+foreach ($token in @('SetRegistryMode(7)', 'success with empty UTF-8 string')) {
+    if (-not $tests.Contains($token, [StringComparison]::Ordinal)) { throw "M10 empty-name regression is missing: $token" }
 }
 $interopRunner = Get-Content -Raw -LiteralPath (Join-Path $root 'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\Program.cs')
 foreach ($mode in @('--expect-m10-missing', '--expect-m10-equality-missing')) {
