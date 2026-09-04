@@ -11,6 +11,18 @@ namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
 public sealed class M5DynamicShapeCacheTests
 {
     [Fact]
+    public void NativeSizeTArrayDisposeIsIdempotent()
+    {
+        using var values = NativeSizeTArray.Alloc(new long[] { 1, 2 }, "values");
+        Assert.NotEqual(IntPtr.Zero, values.Pointer);
+
+        values.Dispose();
+        Assert.Equal(IntPtr.Zero, values.Pointer);
+        values.Dispose();
+        Assert.Equal(IntPtr.Zero, values.Pointer);
+    }
+
+    [Fact]
     public void DynamicDimensionAndShapeHaveExplicitValueSemantics()
     {
         var dimension = new MIGraphXDynamicDimension(1, 8, new long[] { 2, 4 });

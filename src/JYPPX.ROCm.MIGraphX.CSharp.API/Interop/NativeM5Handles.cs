@@ -239,8 +239,10 @@ internal sealed class NativeFileOptionsHandle : NativeOwnedHandle
 
 internal sealed class NativeSizeTArray : IDisposable
 {
-    private NativeSizeTArray(IntPtr pointer, int count) { Pointer = pointer; CountValue = count; }
-    internal IntPtr Pointer { get; }
+    private IntPtr pointer;
+
+    private NativeSizeTArray(IntPtr pointer, int count) { this.pointer = pointer; CountValue = count; }
+    internal IntPtr Pointer => System.Threading.Interlocked.CompareExchange(ref pointer, IntPtr.Zero, IntPtr.Zero);
     internal int CountValue { get; }
 
     internal static NativeSizeTArray Alloc(IReadOnlyList<long> values, string parameterName)
@@ -265,7 +267,18 @@ internal sealed class NativeSizeTArray : IDisposable
     }
 
     internal static UIntPtr Count(int count) => UIntPtr.Size == 4 ? new UIntPtr((uint)count) : new UIntPtr((ulong)count);
-    public void Dispose() { if (Pointer != IntPtr.Zero) { Marshal.FreeHGlobal(Pointer); } }
+
+    ~NativeSizeTArray()
+    {
+        Dispose();
+    }
+
+    public void Dispose()
+    {
+        var owned = System.Threading.Interlocked.Exchange(ref pointer, IntPtr.Zero);
+        if (owned != IntPtr.Zero) Marshal.FreeHGlobal(owned);
+        GC.SuppressFinalize(this);
+    }
 }
 
 internal sealed class OutHandle<T> : IDisposable where T : NativeOwnedHandle
