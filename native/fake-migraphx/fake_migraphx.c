@@ -750,7 +750,7 @@ EXPORT migraphx_status migraphx_program_parameter_shapes_size(size_t* out, migra
     if(shape_mode == 10)
         *out = (ATOMIC_INCREMENT(parameter_size_reads) % 2) == 1 ? 1 : 2;
     else
-        *out = shape_mode == 4 || shape_mode == 11 ? 2 : 1;
+        *out = shape_mode == 18 ? 0 : (shape_mode == 4 || shape_mode == 11 ? 2 : 1);
     return (migraphx_status)take_status_for("migraphx_program_parameter_shapes_size");
 }
 EXPORT migraphx_status migraphx_program_parameter_shapes_get(const fake_shape** out, migraphx_program_parameter_shapes_t value, const char* name)

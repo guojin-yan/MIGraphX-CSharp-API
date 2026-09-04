@@ -241,6 +241,9 @@ public sealed class M4ManagedObjectTests
             Assert.IsType(testCase.Exception, error);
         }
 
+        controls.SetShapeMode(18);
+        var emptyParameters = program.GetParameterShapes();
+        Assert.Empty(emptyParameters);
         controls.SetShapeMode(0);
         foreach (var borrowedEntryPoint in new[]
         {

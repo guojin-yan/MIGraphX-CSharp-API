@@ -570,6 +570,12 @@ public sealed class MIGraphXProgram : IDisposable
             var count = ReadStableSize(
                 () => GetParameterShapeCount(nativeShapes.DangerousGetHandle()),
                 "parameter count");
+            if (count == 0)
+            {
+                // A valid zero-parameter program has no names array to populate.
+                EnsureStableSize(() => GetParameterShapeCount(nativeShapes.DangerousGetHandle()), count, "parameter count");
+                return new OrderedReadOnlyDictionary<MIGraphXShape>(Array.Empty<KeyValuePair<string, MIGraphXShape>>());
+            }
             var namesBuffer = count == 0 ? IntPtr.Zero : Marshal.AllocHGlobal(checked(count * IntPtr.Size));
             try
             {
