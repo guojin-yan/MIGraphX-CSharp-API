@@ -22,6 +22,8 @@ The adapter exposes no free-form backend name. It always supplies the internal c
 
 `MIGraphXHipAsyncRun` has one pending state and one terminal state. `IsCompleted` is passive and never queries HIP. `TryComplete` queries without blocking; `Synchronize` blocks. Completion snapshots every output into an independently owned host `MIGraphXArgumentCollection`, then releases the native output collection and all input leases exactly once. `Outputs` fails before completion, and all members fail after result disposal.
 
+The lease set also has a non-blocking finalizer. This is required for abandoned pending work: its native handle leases and the adapter's borrowed device-pointer leases must be released even when the result and stream become unreachable before an explicit completion boundary. Explicit disposal remains idempotent and suppresses the finalizer.
+
 Explicit `Dispose` blocks on the stream when work is pending. A HIP query/synchronize error leaves the result retryable because no completion boundary was established. An output snapshot or D2H error becomes the primary terminal error after native collections and leases have been released; repeated completion observes the same error. The internal completion-state finalizer never queries or synchronizes a stream; it only releases an already-completed owned output snapshot and never throws.
 
 HipSharp supplies an internal, friend-only `EnqueuePending` operation. Enqueue and pending-callback registration execute under the stream lock, closing the race with stream disposal. The callback is released by existing `Query`, `Synchronize`, or `Dispose` behavior. Neither core exposes a new public raw handle or lease type.

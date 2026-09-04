@@ -136,14 +136,27 @@ internal sealed class NativeLeaseSet : IDisposable
 
     internal NativeLeaseSet(IEnumerable<IDisposable> leases) => this.leases = leases.ToArray();
 
+    ~NativeLeaseSet()
+    {
+        try { Dispose(); }
+        catch { }
+    }
+
     public void Dispose()
     {
-        var owned = Interlocked.Exchange(ref leases, null);
-        if (owned is null) return;
-        for (var index = owned.Length - 1; index >= 0; index--)
+        try
         {
-            try { owned[index].Dispose(); }
-            catch { }
+            var owned = Interlocked.Exchange(ref leases, null);
+            if (owned is null) return;
+            for (var index = owned.Length - 1; index >= 0; index--)
+            {
+                try { owned[index].Dispose(); }
+                catch { }
+            }
+        }
+        finally
+        {
+            GC.SuppressFinalize(this);
         }
     }
 }

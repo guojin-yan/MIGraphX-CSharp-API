@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using JYPPX.ROCm.MIGraphXSharp.Interop;
 using JYPPX.ROCm.HipSharp;
 using JYPPX.ROCm.HipSharp.Memory;
 using JYPPX.ROCm.HipSharp.Streams;
@@ -363,6 +364,35 @@ public sealed class M6HipAsyncTests
         Assert.False(abandoned.IsAlive);
         Assert.Equal(0, migraphx.M2LiveCount());
         Assert.Equal(0, migraphx.ProgramLiveCount());
+    }
+
+    [Fact]
+    public void AbandonedLeaseSetFinalizerReleasesExternalLeases()
+    {
+        var released = 0;
+        WeakReference abandoned = CreateAbandonedLeaseSet(() => System.Threading.Interlocked.Increment(ref released));
+        for (var attempt = 0; attempt < 5 && (abandoned.IsAlive || released == 0); attempt++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+
+        Assert.False(abandoned.IsAlive);
+        Assert.Equal(1, released);
+    }
+
+    private static WeakReference CreateAbandonedLeaseSet(Action release)
+    {
+        var set = new NativeLeaseSet(new IDisposable[] { new CallbackLease(release) });
+        return new WeakReference(set);
+    }
+
+    private sealed class CallbackLease : IDisposable
+    {
+        private Action? release;
+        internal CallbackLease(Action release) => this.release = release;
+        public void Dispose() => System.Threading.Interlocked.Exchange(ref release, null)?.Invoke();
     }
 
     private static WeakReference CreateCompletedRunWithoutDisposal(string path, MIGraphXControls migraphx, HipControls hip)
