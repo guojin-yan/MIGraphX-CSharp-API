@@ -39,9 +39,9 @@ The fake-native operation fixture additionally records the exact third argument 
 
 ## Local validation record
 
-The current local follow-up passes 27 focused M12 tests and 64/64 unit tests. It adds idempotent custom-op cleanup, unmanaged size-array cleanup, and strict UTF-8 buffer cleanup shared by explicit disposal and finalization; abandoned-wrapper GC coverage confirms that native owner release precedes callback-root release. These remain local ownership evidence and do not promote provider callback execution.
+The current local follow-up passes 27 focused M12 tests and 66/66 unit tests. It adds idempotent custom-op cleanup, unmanaged size-array cleanup, and strict UTF-8 buffer cleanup shared by explicit disposal and finalization; abandoned-wrapper GC coverage confirms that native owner release precedes callback-root release. These remain local ownership evidence and do not promote provider callback execution.
 
-The focused-count descriptions below predate the latest two local resource-boundary tests; the authoritative current count is 27 focused tests and 64/64 unit tests.
+The focused-count descriptions below predate the latest two local resource-boundary tests; the authoritative current count is 27 focused tests and 66/66 unit tests.
 
 The following local checks pass for this batch:
 
