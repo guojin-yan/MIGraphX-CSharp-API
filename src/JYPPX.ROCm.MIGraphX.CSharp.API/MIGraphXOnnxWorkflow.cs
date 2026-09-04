@@ -187,7 +187,13 @@ public static class MIGraphXOnnxWorkflow
         {
             Marshal.WriteIntPtr(names, IntPtr.Zero);
             NativeStatus.ThrowIfFailed(NativeMethods.ProgramParameterShapesNames(names, shapes.DangerousGetHandle()), "migraphx_program_parameter_shapes_names");
-            return StrictUtf8String.Decode(Marshal.ReadIntPtr(names), "migraphx_program_parameter_shapes_names");
+            const string operation = "migraphx_program_parameter_shapes_names";
+            var name = StrictUtf8String.Decode(Marshal.ReadIntPtr(names), operation);
+            if (name.Length == 0)
+            {
+                throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with empty UTF-8 string)");
+            }
+            return name;
         }
         finally { Marshal.FreeHGlobal(names); }
     }

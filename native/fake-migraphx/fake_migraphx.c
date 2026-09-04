@@ -764,9 +764,10 @@ EXPORT migraphx_status migraphx_program_parameter_shapes_get(const fake_shape** 
 EXPORT migraphx_status migraphx_program_parameter_shapes_names(const char** out, migraphx_program_parameter_shapes_t value)
 {
     static const char input_name[] = "input";
+    static const char empty_name[] = "";
     if(out == NULL || value == NULL) return migraphx_status_bad_param;
     if(skip_string_for("migraphx_program_parameter_shapes_names")) return (migraphx_status)take_status_for("migraphx_program_parameter_shapes_names");
-    out[0] = shape_mode == 12 ? NULL : input_name;
+    out[0] = shape_mode == 12 ? NULL : (shape_mode == 17 ? empty_name : input_name);
     if(shape_mode == 4 || shape_mode == 11) out[1] = shape_mode == 11 ? input_name : "second";
     return (migraphx_status)take_status_for("migraphx_program_parameter_shapes_names");
 }

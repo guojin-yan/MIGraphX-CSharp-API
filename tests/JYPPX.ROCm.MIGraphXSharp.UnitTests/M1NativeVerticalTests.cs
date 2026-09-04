@@ -211,6 +211,13 @@ public sealed class M1NativeVerticalTests
         Assert.Contains("success with null UTF-8 pointer", unwrittenName.Operation, StringComparison.Ordinal);
         AssertNoNativeLeaks(controls);
 
+        controls.SetShapeMode(17);
+        var emptyName = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Contains("migraphx_program_parameter_shapes_names", emptyName.Operation, StringComparison.Ordinal);
+        Assert.Contains("success with empty UTF-8 string", emptyName.Operation, StringComparison.Ordinal);
+        AssertNoNativeLeaks(controls);
+        controls.SetShapeMode(0);
+
         controls.SetNextStatus((int)MIGraphXStatus.UnknownError);
         var nativeFailure = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
         Assert.Equal("migraphx_onnx_options_create", nativeFailure.Operation);
