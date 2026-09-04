@@ -63,10 +63,7 @@ internal sealed class MIGraphXNativeAsyncRun : IDisposable
                 argument = NativeBorrowedOutput.RequireHandle(argument, "migraphx_arguments_get");
                 copied.Add(MIGraphXArgument.CopyFromNative(runtime, argument, $"async output {index}", copyDeviceBuffer));
             }
-            if (ReadSize(native.DangerousGetHandle()) != count)
-            {
-                throw new InvalidOperationException("Native async output count changed while creating a snapshot.");
-            }
+            EnsureStableSize(native.DangerousGetHandle(), count);
             lock (sync) outputs = new MIGraphXArgumentCollection(copied);
         }
         catch (Exception error)
@@ -121,5 +118,30 @@ internal sealed class MIGraphXNativeAsyncRun : IDisposable
             output => NativeMethods.ArgumentsSizeRaw(output, arguments),
             "migraphx_arguments_size");
         return NativeShapeSnapshot.ToInt(size, "async output count");
+    }
+
+    private static int ReadStableSize(IntPtr arguments)
+    {
+        var first = ReadSize(arguments);
+        var second = ReadSize(arguments);
+        if (second != first)
+        {
+            throw new InvalidOperationException($"Native async output count changed from {first} to {second} while creating a snapshot.");
+        }
+        return second;
+    }
+
+    private static void EnsureStableSize(IntPtr arguments, int expected)
+    {
+        var first = ReadSize(arguments);
+        var second = ReadSize(arguments);
+        if (second != first)
+        {
+            throw new InvalidOperationException($"Native async output count changed from {first} to {second} while creating a snapshot.");
+        }
+        if (first != expected)
+        {
+            throw new InvalidOperationException($"Native async output count changed from {expected} to {first} while creating a snapshot.");
+        }
     }
 }

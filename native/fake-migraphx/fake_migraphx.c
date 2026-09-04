@@ -820,6 +820,8 @@ EXPORT migraphx_status migraphx_arguments_size(size_t* out, migraphx_arguments_t
         *out = (ATOMIC_INCREMENT(argument_size_reads) % 2) == 1 ? 1 : 2;
     else if(shape_mode == 21)
         *out = ATOMIC_INCREMENT(argument_size_reads) <= 2 ? 1 : 2;
+    else if(shape_mode == 22)
+        *out = ATOMIC_INCREMENT(argument_size_reads) == 3 ? 2 : 1;
     else
         *out = shape_mode == 6 ? 2 : 1;
     return (migraphx_status)take_status_for("migraphx_arguments_size");

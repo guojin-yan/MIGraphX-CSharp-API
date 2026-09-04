@@ -30,7 +30,7 @@ The M6 tests execute:
 - enqueue failure with a returned collection, success with null, null borrowed output, and output-count drift;
 - explicit post-completion D2H and injected D2H failure as the terminal primary error;
 - all tracked native collection/program/device-memory live counts returning to their expected baselines.
-- abandoned completed results releasing owned host snapshots through a non-blocking internal finalizer.
+- abandoned completed results releasing owned host snapshots through a non-blocking internal finalizer, plus stable double-read checks that reject both persistent and transient native output-count drift.
 
 HipSharp separately executes its internal atomic enqueue tests: a pending callback remains retained across NotReady, completes after Success, is idempotent, rejects graph capture, and does not register failed enqueue work.
 

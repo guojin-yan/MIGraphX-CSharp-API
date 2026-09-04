@@ -174,6 +174,15 @@ public sealed class M6HipAsyncTests
         Assert.True(drifting.IsCompleted);
         Assert.Throws<InvalidOperationException>(() => drifting.Dispose());
         Assert.Equal(liveBefore, migraphx.M2LiveCount());
+
+        migraphx.SetShapeMode(0);
+        using MIGraphXHipAsyncRun transientDrift = program.RunHostAsync(parameters, stream);
+        migraphx.CompleteAll();
+        migraphx.SetShapeMode(22);
+        Assert.Throws<InvalidOperationException>(() => transientDrift.TryComplete());
+        Assert.True(transientDrift.IsCompleted);
+        Assert.Throws<InvalidOperationException>(() => transientDrift.Dispose());
+        Assert.Equal(liveBefore, migraphx.M2LiveCount());
     }
 
     [Fact]

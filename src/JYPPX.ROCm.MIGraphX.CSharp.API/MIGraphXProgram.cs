@@ -664,16 +664,25 @@ public sealed class MIGraphXProgram : IDisposable
     private static int ReadStableSize(Func<UIntPtr> read, string name)
     {
         var first = NativeShapeSnapshot.ToInt(read(), name);
-        EnsureStableSize(read, first, name);
-        return first;
+        var second = NativeShapeSnapshot.ToInt(read(), name);
+        if (second != first)
+        {
+            throw new InvalidOperationException($"Native {name} changed from {first} to {second} while creating a snapshot.");
+        }
+        return second;
     }
 
     private static void EnsureStableSize(Func<UIntPtr> read, int expected, string name)
     {
-        var actual = NativeShapeSnapshot.ToInt(read(), name);
-        if (actual != expected)
+        var first = NativeShapeSnapshot.ToInt(read(), name);
+        var second = NativeShapeSnapshot.ToInt(read(), name);
+        if (second != first)
         {
-            throw new InvalidOperationException($"Native {name} changed from {expected} to {actual} while creating a snapshot.");
+            throw new InvalidOperationException($"Native {name} changed from {first} to {second} while creating a snapshot.");
+        }
+        if (first != expected)
+        {
+            throw new InvalidOperationException($"Native {name} changed from {expected} to {first} while creating a snapshot.");
         }
     }
 
