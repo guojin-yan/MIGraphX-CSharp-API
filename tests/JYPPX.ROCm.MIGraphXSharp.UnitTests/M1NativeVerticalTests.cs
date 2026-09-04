@@ -218,6 +218,18 @@ public sealed class M1NativeVerticalTests
         AssertNoNativeLeaks(controls);
         controls.SetShapeMode(0);
 
+        controls.SetShapeMode(10);
+        var parameterDrift = Assert.Throws<InvalidOperationException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Contains("Native parameter count changed from 1 to 2", parameterDrift.Message, StringComparison.Ordinal);
+        AssertNoNativeLeaks(controls);
+        controls.SetShapeMode(0);
+
+        controls.SetShapeMode(16);
+        var runOutputDrift = Assert.Throws<InvalidOperationException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Contains("Native run output count changed from 1 to 2", runOutputDrift.Message, StringComparison.Ordinal);
+        AssertNoNativeLeaks(controls);
+        controls.SetShapeMode(0);
+
         controls.SetNextStatus((int)MIGraphXStatus.UnknownError);
         var nativeFailure = Assert.Throws<MIGraphXException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
         Assert.Equal("migraphx_onnx_options_create", nativeFailure.Operation);
