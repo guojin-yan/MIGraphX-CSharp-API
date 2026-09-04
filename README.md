@@ -2,7 +2,7 @@
 
 [Chinese / 中文](README.zh-CN.md)
 
-MIGraphXSharp now has an unpublished M11 `0.9.0-rc.9` local candidate plus an M12 interface-expansion batch. M12 adds managed wrappers for the remaining generated shape/argument, graph, TensorFlow, quantization, context, and experimental custom-op declarations. The batch has passed local managed compilation, fake-native fixture compilation, focused M12 tests, project-quality tests, and a package-only candidate run. The source-bound M12 record promotes two case-level decisions and retains thirteen deferred cases; the repository default remains `0.0.0` and no package is published.
+MIGraphXSharp now has an unpublished M11 `0.9.0-rc.9` local candidate plus an M12 interface-expansion batch. M12 adds managed wrappers for the remaining generated shape/argument, graph, TensorFlow, quantization, context, and experimental custom-op declarations. The current local source candidate is `489973a`; its final local baseline is 27 focused M12 tests and 66/66 unit tests, with two case-level decisions promoted and thirteen cases retained as deferred. The repository default remains `0.0.0` and no package is published.
 
 ## Status
 

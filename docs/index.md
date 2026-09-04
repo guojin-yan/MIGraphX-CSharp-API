@@ -1,6 +1,6 @@
 # MIGraphXSharp documentation
 
-MIGraphXSharp has an unpublished M11 `0.9.0-rc.9` local candidate while retaining `0.0.0` as the repository default, plus an M12 interface-expansion batch. M12 adds managed shape/argument, graph, TensorFlow, quantization, context, and custom-op projections. Local compilation, fake-native fixture compilation, focused M12 tests, project-quality tests, and a package-only candidate run pass; the reviewed M12 record promotes two case-level decisions and retains thirteen deferred cases. Final publication still requires closed release-readiness evidence.
+MIGraphXSharp has an unpublished M11 `0.9.0-rc.9` local candidate while retaining `0.0.0` as the repository default, plus an M12 interface-expansion batch. M12 adds managed shape/argument, graph, TensorFlow, quantization, context, and custom-op projections. The current local source candidate is `489973a`; 27 focused M12 tests and 66/66 unit tests pass locally, while the reviewed M12 record promotes two case-level decisions and retains thirteen deferred cases. Final publication still requires closed release-readiness evidence.
 
 Local fake-native execution remains a test substitute. Separately, unified M1/M2 official runtime validation was revalidated at pushed commit `346cdd0b01a7f8039f5deb93058928403fccc7dd` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and one gfx1100 GPU. The result covers the official loader, M1 lifecycle, and the restricted M2 Identity file/buffer parse, GPU compile, synchronous run, and reference comparison.
 
