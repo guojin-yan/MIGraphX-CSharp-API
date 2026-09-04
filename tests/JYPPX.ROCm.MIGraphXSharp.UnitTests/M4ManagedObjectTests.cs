@@ -224,7 +224,7 @@ public sealed class M4ManagedObjectTests
             (Mode: 7, Exception: typeof(MIGraphXException)),
             (Mode: 8, Exception: typeof(MIGraphXException)),
             (Mode: 10, Exception: typeof(InvalidOperationException)),
-            (Mode: 11, Exception: typeof(InvalidOperationException)),
+            (Mode: 11, Exception: typeof(MIGraphXException)),
             (Mode: 12, Exception: typeof(MIGraphXException)),
             (Mode: 13, Exception: typeof(OverflowException)),
             (Mode: 14, Exception: typeof(InvalidOperationException)),
@@ -239,6 +239,12 @@ public sealed class M4ManagedObjectTests
             });
             Assert.NotNull(error);
             Assert.IsType(testCase.Exception, error);
+            if (testCase.Mode == 11)
+            {
+                var duplicate = Assert.IsType<MIGraphXException>(error);
+                Assert.Contains("migraphx_program_parameter_shapes_names", duplicate.Operation, StringComparison.Ordinal);
+                Assert.Contains("duplicate parameter name 'input'", duplicate.Operation, StringComparison.Ordinal);
+            }
         }
 
         controls.SetShapeMode(18);

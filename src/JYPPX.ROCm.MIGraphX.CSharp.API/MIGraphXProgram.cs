@@ -595,7 +595,12 @@ public sealed class MIGraphXProgram : IDisposable
                     {
                         throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with empty UTF-8 string)");
                     }
-                    if (!unique.Add(name)) { throw new InvalidOperationException($"Native parameter name '{name}' is duplicated."); }
+                    if (!unique.Add(name))
+                    {
+                        throw new MIGraphXException(
+                            (int)NativeMIGraphXStatus.UnknownError,
+                            $"{operation} (success with duplicate parameter name '{name}')");
+                    }
                     using (var utf8 = new StrictUtf8String(name, nameof(name)))
                     {
                         NativeStatus.ThrowIfFailed(

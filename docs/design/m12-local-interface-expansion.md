@@ -23,7 +23,7 @@ Generated declarations remain source-of-truth and were not edited by hand. Inter
 
 ## Local completion boundary
 
-The ordinary `MIGraphXProgram.GetParameterShapes` snapshot now uses the same fail-closed native output contract as the restricted ONNX workflow: a successful empty parameter name is reported as `MIGraphXException` with the producing entry point, before any subsequent shape lookup. This keeps native string-output failures attributable to the getter that produced them.
+The ordinary `MIGraphXProgram.GetParameterShapes` snapshot now uses the same fail-closed native output contract as the restricted ONNX workflow: a successful empty parameter name or a duplicate name that cannot form a valid map is reported as `MIGraphXException` with the producing entry point, before any subsequent shape lookup. This keeps native string-output failures attributable to the getter that produced them.
 
 Zero-parameter programs are also handled as a valid empty snapshot: after a second stable count read, the managed path returns without calling the native names writer with a null buffer. This preserves the native collection boundary for graphs that do not expose input parameters.
 
