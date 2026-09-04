@@ -116,6 +116,7 @@ public static class MIGraphXOnnxWorkflow
                 var inputSnapshot = NativeShapeSnapshot.Create(inputShape, "input");
                 inputSnapshot.RequireFloat32StaticStandard();
                 if (inputSnapshot.Elements != input.Length) { throw new ArgumentException($"Input element count {input.Length} does not match model shape element count {inputSnapshot.Elements}.", nameof(input)); }
+                EnsureStableSize(() => GetSize(parameterShapes), parameterCount, "parameter count");
 
                 using (var target = NativeTargetHandle.Create(targetName))
                 using (var compileOptions = NativeCompileOptionsHandle.Create(offloadCopy: true))
@@ -133,6 +134,7 @@ public static class MIGraphXOnnxWorkflow
                     outputShape = NativeBorrowedOutput.RequireHandle(outputShape, "migraphx_shapes_get");
                     var outputSnapshot = NativeShapeSnapshot.Create(outputShape, "output");
                     outputSnapshot.RequireFloat32StaticStandard();
+                    EnsureStableSize(() => GetSize(outputShapes), outputCount, "output shape count");
 
                     var pinnedInput = GCHandle.Alloc(input, GCHandleType.Pinned);
                     try
@@ -161,6 +163,7 @@ public static class MIGraphXOnnxWorkflow
                                 if (outputBuffer == IntPtr.Zero) { throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_argument_buffer (success with null buffer)"); }
                                 var copied = new float[NativeShapeSnapshot.ToInt(runSnapshot.Elements, "run output element count")];
                                 Marshal.Copy(outputBuffer, copied, 0, copied.Length);
+                                EnsureStableSize(() => GetSize(outputs), runOutputCount, "run output count");
                                 return new MIGraphXOnnxExecutionResult(inputName, inputSnapshot.Dimensions, runSnapshot.Dimensions, copied);
                             }
                         }
@@ -195,6 +198,15 @@ public static class MIGraphXOnnxWorkflow
             throw new InvalidOperationException($"Native {name} changed from {first} to {second} while creating a snapshot.");
         }
         return first;
+    }
+
+    private static void EnsureStableSize(Func<UIntPtr> read, int expected, string name)
+    {
+        var observed = ReadStableSize(read, name);
+        if (observed != expected)
+        {
+            throw new InvalidOperationException($"Native {name} changed from {expected} to {observed} while creating a snapshot.");
+        }
     }
 
     private static string GetSingleParameterName(NativeProgramParameterShapesHandle shapes)

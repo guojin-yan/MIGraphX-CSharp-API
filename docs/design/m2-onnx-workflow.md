@@ -12,6 +12,8 @@ Dynamic dimensions, multiple inputs or outputs, non-float32 tensors, non-standar
 
 ONNX options, program, target, compile options, parameter-shape collection, input argument, parameter map, output-shape collection, and run-result collection are owned and disposed in reverse lifetime order. Shapes returned from collections and arguments returned from run results are borrowed and never destroyed independently. Parameter-map add copies the native argument value; the managed input array stays pinned until the synchronous run returns.
 
+The restricted workflow reads parameter, compiled-output, and run-output collection sizes twice before indexing them, then rechecks each size after the borrowed shape or argument has been materialized and the run buffer has been copied. A collection that changes during either phase fails closed with the producing collection's operation name; a partial managed result is never returned. The local fake-native fixture injects all three post-materialization drift cases in addition to the existing first-read drift cases.
+
 ## Reproducible model and evidence
 
 `eng/generate-m2-model.ps1` writes a 128-byte ONNX IR 8, opset 13 Identity graph with `float32[1,4]` input/output. Its SHA-256 is `0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9`. The generated binary is ignored and excluded from packages.

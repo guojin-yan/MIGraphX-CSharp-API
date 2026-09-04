@@ -174,6 +174,7 @@ static volatile int32_t shape_mode;
 static volatile int32_t shape_type_override = -1;
 static volatile int32_t parameter_size_reads;
 static volatile int32_t argument_size_reads;
+static volatile int32_t output_shape_size_reads;
 static volatile int32_t last_parameter_count;
 static volatile int64_t last_default_loop_iterations;
 static volatile int64_t last_limit_loop_iterations;
@@ -345,6 +346,7 @@ EXPORT void fake_reset(void)
     shape_type_override = -1;
     parameter_size_reads = 0;
     argument_size_reads = 0;
+    output_shape_size_reads = 0;
     last_parameter_count = 0;
     last_default_loop_iterations = 0;
     last_limit_loop_iterations = 0;
@@ -442,7 +444,13 @@ EXPORT void fake_complete_all_streams(void)
     for(index = 0; index < sizeof(async_runs) / sizeof(async_runs[0]); ++index)
         if(async_runs[index] != NULL && async_runs[index]->pending) fake_complete_stream(async_runs[index]->stream);
 }
-EXPORT void fake_set_shape_mode(int value) { ATOMIC_EXCHANGE(shape_mode, value); }
+EXPORT void fake_set_shape_mode(int value)
+{
+    ATOMIC_EXCHANGE(shape_mode, value);
+    ATOMIC_EXCHANGE(parameter_size_reads, 0);
+    ATOMIC_EXCHANGE(argument_size_reads, 0);
+    ATOMIC_EXCHANGE(output_shape_size_reads, 0);
+}
 EXPORT void fake_set_shape_type(int value) { ATOMIC_EXCHANGE(shape_type_override, value); }
 EXPORT void fake_set_failure(const char* entry, int status)
 {
@@ -810,6 +818,8 @@ EXPORT migraphx_status migraphx_arguments_size(size_t* out, migraphx_arguments_t
     if(skip_output_for("migraphx_arguments_size")) return (migraphx_status)take_status_for("migraphx_arguments_size");
     if(shape_mode == 16)
         *out = (ATOMIC_INCREMENT(argument_size_reads) % 2) == 1 ? 1 : 2;
+    else if(shape_mode == 21)
+        *out = ATOMIC_INCREMENT(argument_size_reads) <= 2 ? 1 : 2;
     else
         *out = shape_mode == 6 ? 2 : 1;
     return (migraphx_status)take_status_for("migraphx_arguments_size");
@@ -828,7 +838,10 @@ EXPORT migraphx_status migraphx_shapes_size(size_t* out, migraphx_shapes_t value
 {
     if(out == NULL || value == NULL) return migraphx_status_bad_param;
     if(skip_output_for("migraphx_shapes_size")) return (migraphx_status)take_status_for("migraphx_shapes_size");
-    *out = shape_mode == 5 ? 2 : 1;
+    if(shape_mode == 20)
+        *out = ATOMIC_INCREMENT(output_shape_size_reads) <= 2 ? 1 : 2;
+    else
+        *out = shape_mode == 5 ? 2 : 1;
     return (migraphx_status)take_status_for("migraphx_shapes_size");
 }
 EXPORT migraphx_status migraphx_shapes_get(const fake_shape** out, migraphx_shapes_t value, size_t idx)

@@ -224,9 +224,27 @@ public sealed class M1NativeVerticalTests
         AssertNoNativeLeaks(controls);
         controls.SetShapeMode(0);
 
+        controls.SetShapeMode(19);
+        var parameterSnapshotDrift = Assert.Throws<InvalidOperationException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Contains("Native parameter count changed from 1 to 2", parameterSnapshotDrift.Message, StringComparison.Ordinal);
+        AssertNoNativeLeaks(controls);
+        controls.SetShapeMode(0);
+
+        controls.SetShapeMode(20);
+        var outputShapeSnapshotDrift = Assert.Throws<InvalidOperationException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Contains("Native output shape count changed from 1 to 2", outputShapeSnapshotDrift.Message, StringComparison.Ordinal);
+        AssertNoNativeLeaks(controls);
+        controls.SetShapeMode(0);
+
         controls.SetShapeMode(16);
         var runOutputDrift = Assert.Throws<InvalidOperationException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
         Assert.Contains("Native run output count changed from 1 to 2", runOutputDrift.Message, StringComparison.Ordinal);
+        AssertNoNativeLeaks(controls);
+        controls.SetShapeMode(0);
+
+        controls.SetShapeMode(21);
+        var runOutputSnapshotDrift = Assert.Throws<InvalidOperationException>(() => MIGraphXOnnxWorkflow.RunBuffer(completePath, model, input));
+        Assert.Contains("Native run output count changed from 1 to 2", runOutputSnapshotDrift.Message, StringComparison.Ordinal);
         AssertNoNativeLeaks(controls);
         controls.SetShapeMode(0);
 
