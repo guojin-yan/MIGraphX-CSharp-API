@@ -477,6 +477,26 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void AbandonedCustomOpFinalizerReleasesNativeOwnerAndCallbackRoots()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        var references = CreateAbandonedCustomOpWithCallbackCapture(nativePath);
+        for (var attempt = 0; attempt < 16; attempt++)
+        {
+            CollectGarbage();
+            if (!references.Operation.IsAlive && !references.Capture.IsAlive && controls.M12LiveCount() == 0) return;
+        }
+
+        Assert.False(references.Operation.IsAlive);
+        Assert.False(references.Capture.IsAlive);
+        Assert.Equal(0, controls.M12LiveCount());
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void CustomOpCallbackSetterFailurePreservesPreviousCallbackAndReplay()
     {
         var nativePath = FakePath();
@@ -1161,6 +1181,19 @@ public sealed class M12LocalInterfaceTests
                 operation.Owner.WithHandle(static handle => handle)));
         }
         return captureReference;
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (WeakReference Operation, WeakReference Capture) CreateAbandonedCustomOpWithCallbackCapture(string nativePath)
+    {
+        var capture = new CallbackLifetimeCapture();
+        var operation = new MIGraphXExperimentalCustomOp(nativePath, "managed_abandoned_callback_lifetime_test");
+        operation.SetCompute((_, _, _, _, _, _, _) =>
+        {
+            capture.InvocationCount++;
+            return MIGraphXStatus.Success;
+        });
+        return (new WeakReference(operation), new WeakReference(capture));
     }
 
     [MethodImpl(MethodImplOptions.NoInlining)]

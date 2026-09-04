@@ -210,6 +210,17 @@ foreach ($relativePath in $sourceChecks.Keys) {
     }
 }
 
+$customOpSource = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXExperimentalCustomOp.cs')
+foreach ($token in @('DisposeCore', 'GC.SuppressFinalize(this)', 'Keep callback thunks rooted until native destroy has finished consuming the owner.')) {
+    if (-not $customOpSource.Contains($token, [StringComparison]::Ordinal)) {
+        throw "Custom-op finalization source contract is missing '$token'."
+    }
+}
+$customOpTests = Get-Content -Raw -LiteralPath (Join-Path $root 'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs')
+if (-not $customOpTests.Contains('AbandonedCustomOpFinalizerReleasesNativeOwnerAndCallbackRoots', [StringComparison]::Ordinal)) {
+    throw 'M12 custom-op finalization regression is missing.'
+}
+
 $operationAttributesSource = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\MIGraphXOperationAttributes.cs')
 foreach ($forbiddenToken in @('params object', 'object[]', 'IntPtr', 'UnmanagedCallersOnly')) {
     if ($operationAttributesSource.Contains($forbiddenToken, [StringComparison]::Ordinal)) {

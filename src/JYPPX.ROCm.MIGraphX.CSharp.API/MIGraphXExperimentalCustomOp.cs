@@ -69,6 +69,13 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     private Delegate? outputAliasThunk;
     private Delegate? runsOnOffloadTargetThunk;
 
+    /// <summary>在遗漏显式 Dispose 时释放 native custom-op。 Releases the native custom-op when explicit Dispose is omitted.</summary>
+    ~MIGraphXExperimentalCustomOp()
+    {
+        try { DisposeCore(); }
+        catch { }
+    }
+
     /// <summary>创建实验 custom-op。 Creates an experimental custom-op.</summary>
     /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute MIGraphX C native-library path.</param>
     /// <param name="name">注册名称。 Registration name.</param>
@@ -190,6 +197,12 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     internal NativeResourceOwner<NativeExperimentalCustomOpHandle> Owner => owner;
     /// <summary>释放 native custom-op。 Releases the native custom-op.</summary>
     public void Dispose()
+    {
+        try { DisposeCore(); }
+        finally { GC.SuppressFinalize(this); }
+    }
+
+    private void DisposeCore()
     {
         // Keep callback thunks rooted until native destroy has finished consuming the owner.
         owner.Dispose();
