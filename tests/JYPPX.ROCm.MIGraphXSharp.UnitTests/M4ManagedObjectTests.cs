@@ -228,6 +228,7 @@ public sealed class M4ManagedObjectTests
             (Mode: 12, Exception: typeof(MIGraphXException)),
             (Mode: 13, Exception: typeof(OverflowException)),
             (Mode: 14, Exception: typeof(InvalidOperationException)),
+            (Mode: 17, Exception: typeof(MIGraphXException)),
         })
         {
             controls.SetShapeMode(testCase.Mode);

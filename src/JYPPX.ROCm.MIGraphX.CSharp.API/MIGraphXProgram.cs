@@ -583,8 +583,12 @@ public sealed class MIGraphXProgram : IDisposable
                 var unique = new HashSet<string>(StringComparer.Ordinal);
                 for (var index = 0; index < count; index++)
                 {
-                    var name = StrictUtf8String.Decode(Marshal.ReadIntPtr(namesBuffer, index * IntPtr.Size), "migraphx_program_parameter_shapes_names");
-                    if (name.Length == 0) { throw new InvalidOperationException("Native parameter name must not be empty."); }
+                    const string operation = "migraphx_program_parameter_shapes_names";
+                    var name = StrictUtf8String.Decode(Marshal.ReadIntPtr(namesBuffer, index * IntPtr.Size), operation);
+                    if (name.Length == 0)
+                    {
+                        throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, $"{operation} (success with empty UTF-8 string)");
+                    }
                     if (!unique.Add(name)) { throw new InvalidOperationException($"Native parameter name '{name}' is duplicated."); }
                     using (var utf8 = new StrictUtf8String(name, nameof(name)))
                     {
