@@ -611,6 +611,7 @@ public sealed class MIGraphXProgram : IDisposable
                         result.Add(new KeyValuePair<string, MIGraphXShape>(name, MIGraphXShape.FromNative(shape, $"parameter '{name}'", fallback)));
                     }
                 }
+                EnsureStableSize(() => GetParameterShapeCount(nativeShapes.DangerousGetHandle()), count, "parameter count");
                 return new OrderedReadOnlyDictionary<MIGraphXShape>(result);
             }
             finally

@@ -27,6 +27,8 @@ The ordinary `MIGraphXProgram.GetParameterShapes` snapshot now uses the same fai
 
 Zero-parameter programs are also handled as a valid empty snapshot: after a second stable count read, the managed path returns without calling the native names writer with a null buffer. This preserves the native collection boundary for graphs that do not expose input parameters.
 
+After indexed parameter-shape reads, the snapshot performs one final count check as well. A collection that changes after name enumeration or during shape materialization is rejected before the partially built managed map is exposed, matching the existing output-shape and run-output snapshot contract.
+
 The restricted single-input ONNX workflow applies the same two-read stability check to parameter, compiled-output, and run-output collection counts before allocating or indexing native buffers. A count drift therefore fails at the producing collection instead of allowing a later names or element getter to observe an undersized managed buffer.
 
 For the frozen declarations that have an ownership-safe public boundary, the local surface now has a managed projection, a value-semantic clone/equality alias, or an explicit immutable snapshot boundary. The one non-variadic declaration intentionally kept out of the public owner surface is `migraphx_module_create`: the frozen C header exposes no matching `migraphx_module_destroy`, and the manifest classifies its returned pointer as having no inferable public managed lifetime. Module views therefore enter through program-owned main/create-module paths. The compatibility maps still remain unchanged because this statement is an implementation inventory, not runtime evidence.

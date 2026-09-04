@@ -251,6 +251,12 @@ public sealed class M4ManagedObjectTests
         var emptyParameters = program.GetParameterShapes();
         Assert.Empty(emptyParameters);
         controls.SetShapeMode(0);
+
+        controls.SetShapeMode(19);
+        var parameterSnapshotDrift = Assert.Throws<InvalidOperationException>(() => program.GetParameterShapes());
+        Assert.Contains("Native parameter count changed from 1 to 2", parameterSnapshotDrift.Message, StringComparison.Ordinal);
+        controls.SetShapeMode(0);
+
         foreach (var borrowedEntryPoint in new[]
         {
             "migraphx_program_parameter_shapes_get",
