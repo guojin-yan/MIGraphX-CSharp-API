@@ -11,6 +11,18 @@ namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
 public sealed class M12LocalInterfaceTests
 {
     [Fact]
+    public void StrictUtf8StringDisposeIsIdempotent()
+    {
+        using var value = new StrictUtf8String("migraphx", "value");
+        Assert.NotEqual(IntPtr.Zero, value.Pointer);
+
+        value.Dispose();
+        Assert.Equal(IntPtr.Zero, value.Pointer);
+        value.Dispose();
+        Assert.Equal(IntPtr.Zero, value.Pointer);
+    }
+
+    [Fact]
     public void ShapeAndArgumentFactoriesPreserveDetachedValueSemantics()
     {
         var nativePath = FakePath();

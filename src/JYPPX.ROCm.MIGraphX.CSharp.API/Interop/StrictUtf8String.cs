@@ -38,7 +38,12 @@ internal sealed class StrictUtf8String : IDisposable
         Marshal.WriteByte(pointer, bytes.Length, 0);
     }
 
-    internal IntPtr Pointer => pointer;
+    internal IntPtr Pointer => System.Threading.Interlocked.CompareExchange(ref pointer, IntPtr.Zero, IntPtr.Zero);
+
+    ~StrictUtf8String()
+    {
+        Dispose();
+    }
 
     internal static string Decode(IntPtr value, string operation)
     {
@@ -82,11 +87,11 @@ internal sealed class StrictUtf8String : IDisposable
 
     public void Dispose()
     {
-        var value = pointer;
-        pointer = IntPtr.Zero;
+        var value = System.Threading.Interlocked.Exchange(ref pointer, IntPtr.Zero);
         if (value != IntPtr.Zero)
         {
             Marshal.FreeHGlobal(value);
         }
+        GC.SuppressFinalize(this);
     }
 }
