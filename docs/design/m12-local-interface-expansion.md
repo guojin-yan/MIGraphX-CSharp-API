@@ -41,6 +41,8 @@ The fake-native operation fixture additionally records the exact third argument 
 
 The current local follow-up passes 27 focused M12 tests and 66/66 unit tests. It adds idempotent custom-op cleanup, unmanaged size-array cleanup, and strict UTF-8 buffer cleanup shared by explicit disposal and finalization; abandoned-wrapper GC coverage confirms that native owner release precedes callback-root release. These remain local ownership evidence and do not promote provider callback execution.
 
+The authorized cloud session bound to `c435cd0fa1f87496dbb8612e14654b6665eb5ee7` completed the managed gates and M12 package-only candidate review. A separate official provider diagnostic observed one managed `computeShape` callback invocation and a controlled `UnknownError` rejection; this confirms callback reachability only, keeps promotion `not-requested`, and does not establish numerical custom-op output or complete provider semantics. The redacted evidence is retained at `Radeon_Cloud/records/20260910-c435cd0-m12-runtime/` outside the source tree.
+
 The authoritative current count is 27 focused tests and 66/66 unit tests. Any older count in the historical inventory below is superseded by this baseline.
 
 The following local checks pass for this batch:
