@@ -1,0 +1,22 @@
+{
+  "$schema": "./schemas/m12-provider-callback-diagnostic.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M12",
+  "kind": "provider-callback-diagnostic",
+  "sourceSha": "c435cd0fa1f87496dbb8612e14654b6665eb5ee7",
+  "externalRecord": "Radeon_Cloud/records/20260910-c435cd0-m12-runtime/provider-callback-official",
+  "reviewState": "provider-callback-record-verified",
+  "evidence": "runtime-candidate-executed-review-required",
+  "promotionState": "not-requested",
+  "caseId": "m12-custom-op-registration",
+  "officialEvidence": "runtime-deferred",
+  "callbackInvocationObserved": true,
+  "callbackInvocations": {
+    "computeShape": 1
+  },
+  "controlledFailure": true,
+  "nativeFailureOperation": "migraphx_module_add_instruction",
+  "nativeFailureStatus": 4,
+  "nativeFailureKnownStatus": "UnknownError",
+  "scope": "The official provider reached the managed shape callback and observed its controlled rejection; numerical custom-op output, full provider semantics, and promotion remain unverified."
+}

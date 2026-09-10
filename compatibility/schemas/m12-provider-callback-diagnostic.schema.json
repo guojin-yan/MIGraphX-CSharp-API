@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "stage",
+    "kind",
+    "sourceSha",
+    "externalRecord",
+    "reviewState",
+    "evidence",
+    "promotionState",
+    "caseId",
+    "officialEvidence",
+    "callbackInvocationObserved",
+    "callbackInvocations",
+    "controlledFailure",
+    "nativeFailureOperation",
+    "nativeFailureStatus",
+    "nativeFailureKnownStatus",
+    "scope"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M12" },
+    "kind": { "const": "provider-callback-diagnostic" },
+    "sourceSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "externalRecord": { "type": "string", "minLength": 1 },
+    "reviewState": { "const": "provider-callback-record-verified" },
+    "evidence": { "const": "runtime-candidate-executed-review-required" },
+    "promotionState": { "const": "not-requested" },
+    "caseId": { "const": "m12-custom-op-registration" },
+    "officialEvidence": { "const": "runtime-deferred" },
+    "callbackInvocationObserved": { "const": true },
+    "callbackInvocations": {
+      "type": "object",
+      "required": ["computeShape"],
+      "properties": { "computeShape": { "const": 1 } },
+      "additionalProperties": false
+    },
+    "controlledFailure": { "const": true },
+    "nativeFailureOperation": { "const": "migraphx_module_add_instruction" },
+    "nativeFailureStatus": { "const": 4 },
+    "nativeFailureKnownStatus": { "const": "UnknownError" },
+    "scope": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

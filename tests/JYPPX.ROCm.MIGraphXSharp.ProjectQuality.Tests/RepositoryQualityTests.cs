@@ -379,6 +379,17 @@ public sealed class RepositoryQualityTests
         Assert.True(promotedIds.SetEquals(evidence.GetProperty("promotions").EnumerateArray().Select(item => item.GetProperty("id").GetString()!)));
         Assert.Equal(13, evidence.GetProperty("retained").GetArrayLength());
 
+        using var callbackDiagnostic = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-provider-callback-diagnostic.json")));
+        var diagnostic = callbackDiagnostic.RootElement;
+        Assert.Equal("provider-callback-diagnostic", diagnostic.GetProperty("kind").GetString());
+        Assert.Equal("c435cd0fa1f87496dbb8612e14654b6665eb5ee7", diagnostic.GetProperty("sourceSha").GetString());
+        Assert.Equal("m12-custom-op-registration", diagnostic.GetProperty("caseId").GetString());
+        Assert.Equal("runtime-deferred", diagnostic.GetProperty("officialEvidence").GetString());
+        Assert.True(diagnostic.GetProperty("callbackInvocationObserved").GetBoolean());
+        Assert.Equal(1, diagnostic.GetProperty("callbackInvocations").GetProperty("computeShape").GetInt32());
+        Assert.True(diagnostic.GetProperty("controlledFailure").GetBoolean());
+        Assert.Equal("not-requested", diagnostic.GetProperty("promotionState").GetString());
+
         var runner = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "Program.cs"));
         var review = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "review.ps1"));
         Assert.Contains("runtime-candidate-executed-review-required", runner, StringComparison.Ordinal);

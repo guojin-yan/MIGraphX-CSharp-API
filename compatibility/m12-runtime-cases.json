@@ -252,7 +252,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Callback invocations, exception conversion, copy/delete balance, and clone replay match the reviewed contract.",
-      "evidenceBoundary": "The reviewed candidate executed create, clone, and registration, but native callback invocation remained zero."
+      "evidenceBoundary": "The official diagnostic record observed one managed shape-callback invocation followed by the intentional UnknownError rejection; numerical custom-op output, complete provider semantics, and promotion remain runtime-deferred."
     },
     {
       "id": "m12-negative-borrowed-device-clone",
