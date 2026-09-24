@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -881,6 +882,18 @@ public sealed class M12LocalInterfaceTests
     [Fact]
     public void OperationAttributeBuilderMaterializesCommonValuesAndRejectsUnsafeInput()
     {
+        var originalCulture = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+            Assert.Equal("{value: 0.5, values: [1.25, -2.5]}",
+                new MIGraphXOperationAttributes().SetSingle("value", 0.5f).SetDoubleArray("values", new[] { 1.25, -2.5 }).Build());
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
+
         Assert.Equal("{dims: [1, 4]}", MIGraphXOperationAttributes.ForReshape(1, 4).Build());
         Assert.Equal("{permutation: [1, 0]}", MIGraphXOperationAttributes.ForTranspose(1, 0).Build());
         Assert.Equal("{axes: [0], starts: [0], ends: [1]}",
