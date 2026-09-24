@@ -287,7 +287,7 @@ public enum MIGraphXCacheLookupKind
 /// </summary>
 public sealed class MIGraphXModelCache
 {
-    private static readonly ConcurrentDictionary<string, object> KeyLocks = new ConcurrentDictionary<string, object>(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, CacheKeyLock> KeyLocks = new ConcurrentDictionary<string, CacheKeyLock>(StringComparer.Ordinal);
     private readonly string rootDirectory;
 
     /// <summary>使用显式绝对根目录创建缓存。 Creates a cache with an explicit absolute root.</summary>
@@ -317,34 +317,69 @@ public sealed class MIGraphXModelCache
         if (builder is null) { throw new ArgumentNullException(nameof(builder)); }
         if (!string.Equals(metadata.FileFormat, fileOptions.FileFormat, StringComparison.Ordinal)) { throw new ArgumentException("Metadata and file options use different file formats.", nameof(fileOptions)); }
         var key = metadata.ComputeKey();
-        var gate = KeyLocks.GetOrAdd(rootDirectory + "\0" + key, _ => new object());
-        lock (gate)
+        var lockIdentity = rootDirectory + "\0" + key;
+        var keyLock = AcquireKeyLock(lockIdentity);
+        try
         {
-            var lookup = TryLoad(metadata, fileOptions, key, out var corrupt);
-            if (lookup is not null) { return lookup; }
-            using (var built = builder())
+            lock (keyLock.OperationSync)
             {
-                if (built is null) { throw new InvalidOperationException("The cache builder returned null."); }
-                var payload = Path.Combine(rootDirectory, key + ".migraphx");
-                var sidecar = Path.Combine(rootDirectory, key + ".json");
-                var temporaryPayload = Path.Combine(rootDirectory, key + "." + Guid.NewGuid().ToString("N") + ".tmp");
-                var temporarySidecar = Path.Combine(rootDirectory, key + "." + Guid.NewGuid().ToString("N") + ".tmp");
-                try
+                var lookup = TryLoad(metadata, fileOptions, key, out var corrupt);
+                if (lookup is not null) { return lookup; }
+                using (var built = builder())
                 {
-                    built.Save(temporaryPayload, fileOptions);
-                    var payloadHash = HashFile(temporaryPayload);
-                    File.WriteAllText(temporarySidecar, metadata.CanonicalJsonWithPayload(payloadHash), new UTF8Encoding(false));
-                    AtomicReplace(temporaryPayload, payload);
-                    AtomicReplace(temporarySidecar, sidecar);
+                    if (built is null) { throw new InvalidOperationException("The cache builder returned null."); }
+                    var payload = Path.Combine(rootDirectory, key + ".migraphx");
+                    var sidecar = Path.Combine(rootDirectory, key + ".json");
+                    var temporaryPayload = Path.Combine(rootDirectory, key + "." + Guid.NewGuid().ToString("N") + ".tmp");
+                    var temporarySidecar = Path.Combine(rootDirectory, key + "." + Guid.NewGuid().ToString("N") + ".tmp");
+                    try
+                    {
+                        built.Save(temporaryPayload, fileOptions);
+                        var payloadHash = HashFile(temporaryPayload);
+                        File.WriteAllText(temporarySidecar, metadata.CanonicalJsonWithPayload(payloadHash), new UTF8Encoding(false));
+                        AtomicReplace(temporaryPayload, payload);
+                        AtomicReplace(temporarySidecar, sidecar);
+                    }
+                    finally
+                    {
+                        DeleteIfExists(temporaryPayload);
+                        DeleteIfExists(temporarySidecar);
+                    }
+                    return new MIGraphXCacheResult(MIGraphXCacheLookupKind.Rebuilt, MIGraphXProgram.Load(payload, fileOptions), key, corrupt ? MIGraphXCacheLookupKind.Corrupt : MIGraphXCacheLookupKind.Miss);
                 }
-                finally
-                {
-                    DeleteIfExists(temporaryPayload);
-                    DeleteIfExists(temporarySidecar);
-                }
-                return new MIGraphXCacheResult(MIGraphXCacheLookupKind.Rebuilt, MIGraphXProgram.Load(payload, fileOptions), key, corrupt ? MIGraphXCacheLookupKind.Corrupt : MIGraphXCacheLookupKind.Miss);
             }
         }
+        finally { ReleaseKeyLock(lockIdentity, keyLock); }
+    }
+
+    private static CacheKeyLock AcquireKeyLock(string identity)
+    {
+        while (true)
+        {
+            var keyLock = KeyLocks.GetOrAdd(identity, _ => new CacheKeyLock());
+            lock (keyLock.ReferenceSync)
+            {
+                if (keyLock.Removed) { continue; }
+                checked { keyLock.ReferenceCount++; }
+                return keyLock;
+            }
+        }
+    }
+
+    private static void ReleaseKeyLock(string identity, CacheKeyLock keyLock)
+    {
+        var remove = false;
+        lock (keyLock.ReferenceSync)
+        {
+            keyLock.ReferenceCount--;
+            if (keyLock.ReferenceCount == 0)
+            {
+                keyLock.Removed = true;
+                remove = true;
+            }
+        }
+
+        if (remove) _ = KeyLocks.TryRemove(identity, out _);
     }
 
     private MIGraphXCacheResult? TryLoad(MIGraphXCacheMetadata metadata, MIGraphXFileOptions options, string key, out bool corrupt)
@@ -392,6 +427,14 @@ public sealed class MIGraphXModelCache
     private static void DeleteIfExists(string path)
     {
         if (File.Exists(path)) { File.Delete(path); }
+    }
+
+    private sealed class CacheKeyLock
+    {
+        internal object ReferenceSync { get; } = new object();
+        internal object OperationSync { get; } = new object();
+        internal int ReferenceCount { get; set; }
+        internal bool Removed { get; set; }
     }
 }
 
