@@ -28,7 +28,7 @@ public sealed class MIGraphXCacheOverride
         IsDynamic = false;
         for (var index = 0; index < this.dimensions.Length; index++)
         {
-            if (this.dimensions[index] < 0) { throw new ArgumentOutOfRangeException(nameof(dimensions)); }
+            if (this.dimensions[index] <= 0) { throw new ArgumentOutOfRangeException(nameof(dimensions), "Static cache override dimensions must be positive."); }
             MIGraphXDynamicDimension.ValidateSizeT(this.dimensions[index], nameof(dimensions));
         }
     }

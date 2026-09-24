@@ -263,6 +263,7 @@ public sealed class M5DynamicShapeCacheTests
             Assert.False(loaded.IsCompiled);
 
             var metadata = new MIGraphXCacheMetadata(new string('0', 64), "gpu", "offloadCopy=true", "msgpack", new string('1', 64));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new MIGraphXCacheOverride("input", new long[] { 0 }));
             var staticScalar = new MIGraphXCacheMetadata(new string('0', 64), "gpu", "offloadCopy=true", "msgpack", new string('1', 64), new[] { new MIGraphXCacheOverride("input", Array.Empty<long>()) });
             var dynamicScalar = new MIGraphXCacheMetadata(new string('0', 64), "gpu", "offloadCopy=true", "msgpack", new string('1', 64), new[] { new MIGraphXCacheOverride("input", Array.Empty<MIGraphXDynamicDimension>()) });
             Assert.NotEqual(staticScalar.ComputeKey(), dynamicScalar.ComputeKey());
