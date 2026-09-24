@@ -145,7 +145,12 @@ public sealed class M12LocalInterfaceTests
             Assert.True(compileClone.ExhaustiveTune);
             Assert.Equal("msgpack", fileClone.FileFormat);
             Assert.True(programClone.HasSameNativeContent(programClone));
-            Assert.Empty(namesClone.Names);
+            namesClone.Add("convolution");
+            programClone.QuantizeFp16(namesClone);
+            Assert.False(programClone.IsCompiled);
+            programClone.Compile(targetClone, compileClone);
+            Assert.True(programClone.IsCompiled);
+            Assert.Equal(new[] { "convolution" }, namesClone.Names);
             Assert.Empty(int8Clone.OpNames);
             using (var parsedWithClone = MIGraphXProgram.ParseOnnxBuffer(new byte[] { 1, 2 }, onnxClone))
             using (var parsedTfWithClone = MIGraphXProgram.ParseTfBuffer(new byte[] { 3, 4 }, tfClone))
@@ -156,7 +161,7 @@ public sealed class M12LocalInterfaceTests
 
             names.Add("convolution");
             int8.AddOpName("dot");
-            Assert.Empty(namesClone.Names);
+            Assert.Equal(new[] { "convolution" }, namesClone.Names);
             Assert.Empty(int8Clone.OpNames);
 
             var liveBeforeFailure = controls.M12LiveCount();
@@ -173,8 +178,9 @@ public sealed class M12LocalInterfaceTests
             names.Dispose();
             int8.Dispose();
 
-            Assert.Empty(namesClone.Names);
-            Assert.Empty(int8Clone.OpNames);
+            Assert.Equal(new[] { "convolution" }, namesClone.Names);
+            int8Clone.AddOpName("dot");
+            Assert.Equal(new[] { "dot" }, int8Clone.OpNames);
             using var cloneCalibration = new MIGraphXParameterMap(nativePath);
             int8Clone.AddCalibrationData(cloneCalibration);
             fp8Clone.AddCalibrationData(cloneCalibration);
