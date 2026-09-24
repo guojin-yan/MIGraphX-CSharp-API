@@ -241,6 +241,11 @@ public sealed class RepositoryQualityTests
             "unsupported",
             mappings.Single(item => item.GetProperty("id").GetString() == "function:migraphx_operation_create")
                 .GetProperty("supportStatus").GetString());
+
+        var cacheSource = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.MIGraphX.CSharp.API", "MIGraphXModelCache.cs"));
+        Assert.Contains("Static cache override dimensions must be positive.", cacheSource, StringComparison.Ordinal);
+        var reportSource = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.MIGraphX.CSharp.API", "Diagnostics", "MIGraphXEnvironmentReport.cs"));
+        Assert.Contains("new List<MIGraphXNativeDiagnostic>(diagnostics).AsReadOnly()", reportSource, StringComparison.Ordinal);
     }
 
     [Fact]
