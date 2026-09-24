@@ -401,6 +401,19 @@ public sealed class RepositoryQualityTests
         Assert.Equal(new[] { 1.25, 0d, 3d, 10d }, numerical.GetProperty("actualOutput").EnumerateArray().Select(value => value.GetDouble()));
         Assert.False(numerical.GetProperty("runsOnOffloadTarget").GetBoolean());
 
+        using var latestNumericalDiagnostic = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-provider-custom-op-numerical-diagnostic-59ee097.json")));
+        var latestNumerical = latestNumericalDiagnostic.RootElement;
+        Assert.Equal("provider-custom-op-numerical-diagnostic", latestNumerical.GetProperty("kind").GetString());
+        Assert.Equal("59ee097de7f2eaef15d81ade24a40a6ac62a1af1", latestNumerical.GetProperty("sourceSha").GetString());
+        Assert.Equal("Radeon_Cloud/records/20260924-59ee097-m12-custom-op-numeric", latestNumerical.GetProperty("externalRecord").GetString());
+        Assert.Equal("ref", latestNumerical.GetProperty("target").GetString());
+        Assert.Equal("not-observed", latestNumerical.GetProperty("provider").GetProperty("gpuArchitecture").GetString());
+        Assert.Equal(JsonValueKind.Null, latestNumerical.GetProperty("provider").GetProperty("headerSha256").ValueKind);
+        Assert.True(latestNumerical.GetProperty("numericalOutputMatched").GetBoolean());
+        Assert.Equal(new[] { 1.25, 0d, 3d, 10d }, latestNumerical.GetProperty("actualOutput").EnumerateArray().Select(value => value.GetDouble()));
+        Assert.Equal("runtime-deferred", latestNumerical.GetProperty("officialEvidence").GetString());
+        Assert.Equal("not-requested", latestNumerical.GetProperty("promotionState").GetString());
+
         var runner = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "Program.cs"));
         var review = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "review.ps1"));
         Assert.Contains("runtime-candidate-executed-review-required", runner, StringComparison.Ordinal);
