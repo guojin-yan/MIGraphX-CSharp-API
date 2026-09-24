@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: provider-callback-probe.sh --repo DIR --feed DIR --record DIR --native FILE --source-sha SHA --version VERSION --core-sha SHA256 [--mode reachability|numerical-output] [--fixture none|fake-native-provider-dispatch]" >&2
+  echo "Usage: provider-callback-probe.sh --repo DIR --feed DIR --record DIR --native FILE --source-sha SHA --version VERSION --core-sha SHA256 [--mode reachability|numerical-output] [--fixture none|fake-native-provider-dispatch] [--prebuilt-probe FILE --defer-review]" >&2
   exit 2
 }
 
@@ -15,7 +15,15 @@ version=''
 core_sha=''
 fixture='none'
 mode='reachability'
+prebuilt_probe=''
+defer_review=false
 while [[ $# -gt 0 ]]; do
+  if [[ "$1" = '--defer-review' ]]; then
+    [[ "$defer_review" = false ]] || usage
+    defer_review=true
+    shift
+    continue
+  fi
   [[ $# -ge 2 ]] || usage
   case "$1" in
     --repo) repo="$2" ;;
@@ -27,6 +35,7 @@ while [[ $# -gt 0 ]]; do
     --core-sha) core_sha="$2" ;;
     --fixture) fixture="$2" ;;
     --mode) mode="$2" ;;
+    --prebuilt-probe) prebuilt_probe="$2" ;;
     *) usage ;;
   esac
   shift 2
@@ -41,14 +50,21 @@ for directory in "$repo" "$feed"; do [[ "$directory" = /* && -d "$directory" ]] 
 [[ "$fixture" = 'none' || "$fixture" = 'fake-native-provider-dispatch' ]] || usage
 [[ "$mode" = 'reachability' || "$mode" = 'numerical-output' ]] || usage
 [[ "$mode" != 'numerical-output' || "$fixture" = 'none' ]] || usage
+if [[ -n "$prebuilt_probe" ]]; then [[ "$prebuilt_probe" = /* && -f "$prebuilt_probe" && -x "$prebuilt_probe" ]] || usage; fi
+if [[ "$defer_review" = true ]]; then [[ -n "$prebuilt_probe" ]] || usage; fi
 
 repo="$(realpath "$repo")"
 feed="$(realpath "$feed")"
+if [[ -n "$prebuilt_probe" ]]; then prebuilt_probe="$(realpath "$prebuilt_probe")"; fi
 record="$(realpath -m "$record")"
 is_same_or_child() { [[ "$1" == "$2" || "$1" == "$2"/* ]]; }
 if is_same_or_child "$record" "$repo" || is_same_or_child "$repo" "$record" ||
    is_same_or_child "$record" "$feed" || is_same_or_child "$feed" "$record"; then
   echo 'evidence record must be isolated from repository and package feed' >&2
+  exit 1
+fi
+if [[ -n "$prebuilt_probe" ]] && { is_same_or_child "$prebuilt_probe" "$repo" || is_same_or_child "$prebuilt_probe" "$feed" || is_same_or_child "$prebuilt_probe" "$record"; }; then
+  echo 'prebuilt probe must be isolated from repository, package feed, and evidence record' >&2
   exit 1
 fi
 if [[ -e "$record" ]]; then
@@ -75,26 +91,36 @@ cat > "$record/build/NuGet.Config" <<EOF
   <packageSources><clear /><add key="provider-feed" value="$feed" /></packageSources>
 </configuration>
 EOF
+project="$repo/tools/m12-provider-callback-probe/M12ProviderCallbackProbe.csproj"
+probe_host='dotnet-run'
+probe_sha256=''
+if [[ -n "$prebuilt_probe" ]]; then
+  probe_host='self-contained-linux-x64'
+  probe_sha256="$(sha256sum "$prebuilt_probe" | awk '{print $1}')"
+  probe_command=("$prebuilt_probe")
+else
+  dotnet restore "$project" --configfile "$record/build/NuGet.Config" --packages "$record/packages" --no-cache --force-evaluate > "$record/raw/restore.log" 2>&1
+  dotnet build "$project" -c Release --no-restore -p:M12PackageVersion="$version" > "$record/raw/build.log" 2>&1
+  probe_command=(dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" --)
+fi
 {
   echo "sourceSha=$source_sha"
   echo "version=$version"
   echo "coreSha256=$core_sha"
   echo "nativeSha256=$(sha256sum "$native" | awk '{print $1}')"
+  echo "probeSha256=$probe_sha256"
+  echo "probeHost=$probe_host"
   echo 'cleanDetached=true'
   echo 'promotionRequested=false'
 } > "$record/raw/identities.txt"
 { readelf -d "$native"; ldd "$native"; } > "$record/raw/native-library.txt"
 ! ldd "$native" | grep -q 'not found' || { echo 'native dependency closure is incomplete' >&2; exit 1; }
 
-project="$repo/tools/m12-provider-callback-probe/M12ProviderCallbackProbe.csproj"
-dotnet restore "$project" --configfile "$record/build/NuGet.Config" --packages "$record/packages" --no-cache --force-evaluate > "$record/raw/restore.log" 2>&1
-dotnet build "$project" -c Release --no-restore -p:M12PackageVersion="$version" > "$record/raw/build.log" 2>&1
-
 set +e
 probe_args=(--native "$native" --source-sha "$source_sha" --expected-version "$version" --output "$record/raw/provider-callback.json")
 probe_args+=(--mode "$mode")
 if [[ "$fixture" = 'fake-native-provider-dispatch' ]]; then probe_args+=(--provider-fixture); fi
-dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" -- "${probe_args[@]}" \
+"${probe_command[@]}" "${probe_args[@]}" \
   > "$record/raw/provider-callback-stdout.log" 2> "$record/raw/provider-callback-stderr.log"
 probe_exit=$?
 set -e
@@ -116,18 +142,25 @@ cat > "$record/raw/run-metadata.json" <<EOF
   "providerFixture": "$fixture",
   "probeExitCode": $probe_exit,
   "promotionRequested": false,
+  "probeHost": "$probe_host",
   "probeKind": "$probe_kind",
   "controlledRejection": $controlled_rejection,
   "numericalOutputRequested": $numerical_output_requested
 }
 EOF
-find "$record" -type f ! -name artifact-hashes.txt -print0 | sort -z | xargs -0 sha256sum > "$record/raw/artifact-hashes.txt"
+if [[ "$defer_review" = true ]]; then
+  printf '%s\n' 'review-deferred-to-source-host' > "$record/raw/review-status.txt"
+fi
+(cd "$record" && find . -type f ! -name artifact-hashes.txt -print0 | sort -z | xargs -0 sha256sum) > "$record/raw/artifact-hashes.txt"
 
-set +e
-pwsh -NoProfile -File "$repo/tools/m12-provider-callback-probe/review.ps1" \
-  -RecordDirectory "$record" -CorePackagePath "$core" -SourceSha "$source_sha" -CoreSha256 "$core_sha" \
-  > "$record/raw/review.log" 2>&1
-review_exit=$?
-set -e
+review_exit=0
+if [[ "$defer_review" = false ]]; then
+  set +e
+  pwsh -NoProfile -File "$repo/tools/m12-provider-callback-probe/review.ps1" \
+    -RecordDirectory "$record" -CorePackagePath "$core" -SourceSha "$source_sha" -CoreSha256 "$core_sha" \
+    > "$record/raw/review.log" 2>&1
+  review_exit=$?
+  set -e
+fi
 if [[ $probe_exit -ne 0 ]]; then exit $probe_exit; fi
 exit $review_exit

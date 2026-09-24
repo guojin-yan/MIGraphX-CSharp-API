@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Container })][string] $RecordDirectory,
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $CorePackagePath,
     [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{40}$')][string] $SourceSha,
-    [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{64}$')][string] $CoreSha256
+    [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{64}$')][string] $CoreSha256,
+    [Parameter()][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $PrebuiltProbePath
 )
 
 Set-StrictMode -Version Latest
@@ -28,15 +29,16 @@ function Test-NumericVector([object[]] $Actual, [double[]] $Expected) {
     return $true
 }
 function Resolve-ManifestPath([string] $Path) {
-    if (-not [IO.Path]::IsPathRooted($Path)) { throw "Artifact manifest path must be absolute: $Path" }
-    if (-not (Test-Path -LiteralPath $Path -PathType Leaf)) { throw "Artifact manifest path is missing: $Path" }
-    $resolved = (Resolve-Path -LiteralPath $Path).Path
+    $candidate = if ([IO.Path]::IsPathRooted($Path)) { $Path } else { Join-Path $record $Path }
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) { throw "Artifact manifest path is missing: $Path" }
+    $resolved = (Resolve-Path -LiteralPath $candidate).Path
     if (-not $resolved.StartsWith($recordRoot, [StringComparison]::OrdinalIgnoreCase)) { throw "Artifact manifest path escapes evidence record: $Path" }
     return [IO.Path]::GetFullPath($resolved)
 }
 
 $result = Get-Content -Raw -LiteralPath $resultPath | ConvertFrom-Json
 $metadata = Get-Content -Raw -LiteralPath $metadataPath | ConvertFrom-Json
+$probeHost = if ($null -ne $metadata.PSObject.Properties['probeHost'] -and -not [string]::IsNullOrWhiteSpace($metadata.probeHost)) { $metadata.probeHost } else { 'dotnet-run' }
 if ($result.evidence -ne 'runtime-candidate-executed-review-required' -or
     $result.sourceSha -ne $SourceSha -or $result.expectedVersion -ne '0.0.0' -or
     $result.operationName -ne 'm12_runtime_provider_callback_probe' -or
@@ -45,7 +47,8 @@ if ($result.evidence -ne 'runtime-candidate-executed-review-required' -or
     throw 'Provider callback result identity or non-promotion boundary is invalid.'
 }
 if ($metadata.sourceSha -ne $SourceSha -or $metadata.version -ne '0.0.0' -or
-    $metadata.probeExitCode -ne 0 -or $metadata.promotionRequested -ne $false) {
+    $metadata.probeExitCode -ne 0 -or $metadata.promotionRequested -ne $false -or
+    ($probeHost -ne 'dotnet-run' -and $probeHost -ne 'self-contained-linux-x64')) {
     throw 'Provider callback probe metadata is invalid or requests promotion.'
 }
 if ($metadata.providerFixture -ne $result.providerFixture -or
@@ -86,6 +89,14 @@ switch ($metadata.probeKind) {
 if ((Get-Sha256 $CorePackagePath) -ne $CoreSha256) { throw 'Core package hash mismatch.' }
 if (-not ((Get-Content -LiteralPath $identityPath) -contains "sourceSha=$SourceSha")) { throw 'Source identity is missing.' }
 if (-not ((Get-Content -LiteralPath $identityPath) -contains "coreSha256=$CoreSha256")) { throw 'Core package identity is missing.' }
+$prebuiltProbeSha256 = ''
+if ($probeHost -eq 'self-contained-linux-x64') {
+    if ([string]::IsNullOrWhiteSpace($PrebuiltProbePath)) { throw 'A locally preserved prebuilt probe is required for source-host review.' }
+    $prebuiltProbeSha256 = Get-Sha256 $PrebuiltProbePath
+    if (-not ((Get-Content -LiteralPath $identityPath) -contains "probeSha256=$prebuiltProbeSha256")) {
+        throw 'Prebuilt probe identity is missing or does not match the preserved binary.'
+    }
+}
 
 $manifestPaths = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $manifestFailures = [Collections.Generic.List[string]]::new()
@@ -108,6 +119,8 @@ $review = [ordered]@{
     promotionState = 'not-requested'
     sourceSha = $SourceSha
     packageVersion = '0.0.0'
+    probeHost = $probeHost
+    prebuiltProbeSha256 = $prebuiltProbeSha256
     callbackInvocationObserved = $true
     probeKind = $metadata.probeKind
     controlledFailure = [bool]$result.controlledFailure
