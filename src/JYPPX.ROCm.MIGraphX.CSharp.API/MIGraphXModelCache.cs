@@ -134,7 +134,7 @@ public sealed class MIGraphXCacheMetadata
     public static string ComputeModelSha256(byte[] model)
     {
         if (model is null) { throw new ArgumentNullException(nameof(model)); }
-        return Hex(SHA256.Create().ComputeHash(model));
+        using (var sha = SHA256.Create()) { return Hex(sha.ComputeHash(model)); }
     }
 
     /// <summary>计算 native 文件指纹，不把路径写入 metadata。 Computes a native-file fingerprint without persisting its path.</summary>
