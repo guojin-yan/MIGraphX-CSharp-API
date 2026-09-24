@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,17 @@ public sealed class M5DynamicShapeCacheTests
     {
         var dimension = new MIGraphXDynamicDimension(1, 8, new long[] { 2, 4 });
         Assert.False(dimension.IsFixed);
+        var originalCulture = CultureInfo.CurrentCulture;
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("fr-FR");
+            Assert.Equal("1..8", dimension.ToString());
+            Assert.Equal("4", MIGraphXDynamicDimension.Fixed(4).ToString());
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+        }
         Assert.Equal(new long[] { 2, 4 }, dimension.Optimals);
         Assert.Equal(dimension, new MIGraphXDynamicDimension(1, 8, new long[] { 2, 4 }));
         Assert.Throws<ArgumentOutOfRangeException>(() => new MIGraphXDynamicDimension(8, 1));
@@ -44,6 +56,8 @@ public sealed class M5DynamicShapeCacheTests
         Assert.Throws<InvalidOperationException>(() => _ = shape.Lengths);
 
         var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
         using var native = NativeShapeHandle.CreateDynamic(shape);
         var snapshot = MIGraphXShape.FromNative(native.DangerousGetHandle(), "dynamic shape", shape.DynamicDimensions);
         Assert.True(snapshot.IsDynamic);
