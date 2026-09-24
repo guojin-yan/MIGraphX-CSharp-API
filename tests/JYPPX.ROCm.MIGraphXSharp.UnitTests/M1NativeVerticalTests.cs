@@ -12,6 +12,18 @@ public sealed class M1NativeVerticalTests
     [Fact]
     public void FakeNativeExercisesLoaderStatusUtf8OwnershipAssignAndConcurrency()
     {
+        var sourceDiagnostics = new System.Collections.Generic.List<MIGraphXNativeDiagnostic>
+        {
+            new MIGraphXNativeDiagnostic("candidate", "test", true, MIGraphXNativeDiagnosticKind.Loaded, "loaded"),
+        };
+        var reportSnapshot = new MIGraphXEnvironmentReport("loaded", "candidate", true, false, sourceDiagnostics);
+        sourceDiagnostics.Clear();
+        Assert.Single(reportSnapshot.Diagnostics);
+        var diagnosticCollection = Assert.IsAssignableFrom<System.Collections.Generic.ICollection<MIGraphXNativeDiagnostic>>(reportSnapshot.Diagnostics);
+        Assert.True(diagnosticCollection.IsReadOnly);
+        Assert.Throws<NotSupportedException>(() => diagnosticCollection.Add(
+            new MIGraphXNativeDiagnostic("other", "test", true, MIGraphXNativeDiagnosticKind.LoadFailure, "failure")));
+
         var fakeDirectory = Path.Combine(FindRepositoryRoot(), "artifacts", "fake-native", "Release");
         var completePath = Path.Combine(fakeDirectory, OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so");
         var missingExportPath = Path.Combine(fakeDirectory, OperatingSystem.IsWindows() ? "migraphx_c_missing_export.dll" : "libmigraphx_c_missing_export.so");

@@ -14,7 +14,7 @@ public sealed class MIGraphXEnvironmentReport
         LoadedPath = loadedPath;
         ExportsComplete = exportsComplete;
         ObjectsExecuted = objectsExecuted;
-        Diagnostics = diagnostics;
+        Diagnostics = new List<MIGraphXNativeDiagnostic>(diagnostics).AsReadOnly();
     }
 
     /// <summary>获取 `not-available`、`loaded`、`executed` 或 `failed` 状态。 Gets the `not-available`, `loaded`, `executed`, or `failed` state.</summary>
