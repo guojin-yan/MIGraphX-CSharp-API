@@ -265,6 +265,18 @@ public sealed class M12LocalInterfaceTests
             program.Dispose();
             Assert.Equal(1, controls.ProgramLiveCount());
             main.Print();
+            branch.Print();
+            Assert.Equal(2, modules.Count);
+            Assert.Equal(2, moduleClone.Count);
+            main.Dispose();
+            branch.Dispose();
+            Assert.Equal(1, controls.ProgramLiveCount());
+            Assert.Equal(2, modules.Count);
+            Assert.Equal(2, moduleClone.Count);
+            modules.Dispose();
+            Assert.Equal(1, controls.ProgramLiveCount());
+            moduleClone.Dispose();
+            Assert.Equal(0, controls.ProgramLiveCount());
         }
         program.Dispose();
 

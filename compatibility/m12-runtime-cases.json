@@ -139,7 +139,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Main and child module printing plus original/cloned module collections remain usable across caller disposal of the parent program.",
-      "evidenceBoundary": "Main and child module views remained usable after caller disposal of the parent program, but the complete borrowed metadata criteria remain runtime-deferred."
+      "evidenceBoundary": "The reviewed candidate printed the main and child module views and read both original/cloned module collection counts after caller disposal of the parent program. Borrowed graph metadata snapshots and independent migraphx_module_create ownership remain outside this evidence; the case is still runtime-deferred."
     },
     {
       "id": "m12-graph-editing",
@@ -157,7 +157,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "A managed add-zero graph containing parameter, literal, allocation, operation, and return edits compiles and exactly preserves the reviewed input values.",
-      "evidenceBoundary": "Parameter, allocation, return, and print edits executed, but the edited graph was not compiled and run; independent migraphx_module_create ownership remains excluded."
+      "evidenceBoundary": "The package-only candidate compiles and runs the edited add-zero graph and preserves the reviewed input values. The official record does not promote graph-editing semantics, and independent migraphx_module_create ownership remains excluded."
     },
     {
       "id": "m12-tensorflow-parse",
