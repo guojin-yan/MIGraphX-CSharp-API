@@ -1,10 +1,10 @@
 # API reference
 
-M1 exposes diagnostics through `MIGraphXEnvironment`, `MIGraphXEnvironmentReport`, `MIGraphXNativeDiagnostic`, `MIGraphXStatus`, and `MIGraphXException`. M2 adds `MIGraphXOnnxWorkflow`, `MIGraphXOnnxExecutionResult`, and structured `MIGraphXNativeLoadException` diagnostics.
+M1 exposes diagnostics through `MIGraphXEnvironment`, `MIGraphXEnvironmentReport`, `MIGraphXNativeDiagnostic`, `MIGraphXStatus`, and `MIGraphXException`. Environment reports and native-load exceptions copy diagnostic lists into read-only snapshots, so temporary loader lists cannot mutate a returned report. M2 adds `MIGraphXOnnxWorkflow`, `MIGraphXOnnxExecutionResult`, and structured `MIGraphXNativeLoadException` diagnostics.
 
 `Probe` accepts only an absolute caller path. `RunFile` accepts absolute native/model paths, while `RunBuffer` accepts an absolute native path and non-empty ONNX bytes. Those M1/M2 signatures and restrictions remain unchanged.
 
-M4 adds `MIGraphXProgram`, immutable `MIGraphXShape`, `MIGraphXArgument`, `MIGraphXTarget`, `MIGraphXOnnxOptions`, `MIGraphXCompileOptions`, `MIGraphXParameterMap`, `MIGraphXArgumentCollection`, and `MIGraphXShapeDataType`. M5 adds dynamic dimensions and ONNX shape overrides, fixed-version `msgpack` program save/load, and an explicit-root cache with deterministic metadata and corruption recovery.
+M4 adds `MIGraphXProgram`, immutable `MIGraphXShape`, `MIGraphXArgument`, `MIGraphXTarget`, `MIGraphXOnnxOptions`, `MIGraphXCompileOptions`, `MIGraphXParameterMap`, `MIGraphXArgumentCollection`, and `MIGraphXShapeDataType`. M5 adds dynamic dimensions and ONNX shape overrides, fixed-version `msgpack` program save/load, and an explicit-root cache with deterministic metadata and corruption recovery. Cache metadata copies constructor arrays and exposes read-only override snapshots; an empty static override is a scalar and supplied static dimensions must be positive.
 
 The optional M6 adapter adds `MIGraphXHipAsyncRun`, `MIGraphXHipDeviceInput`, and `MIGraphXHipExecution`. Host and device-input submissions use `RunHostAsync` and `RunDeviceAsync`; completion is explicit through `TryComplete` or `Synchronize`. The adapter exposes no raw pointer, SafeHandle, generated delegate, backend-name string, or internal HIP API type.
 
