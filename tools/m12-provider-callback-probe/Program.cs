@@ -49,6 +49,7 @@ internal static class Program
             if (options.NumericalOutput)
             {
                 result.CallbackInvocations["compute"] = state.ComputeInvocations;
+                result.CallbackInvocations["outputAlias"] = state.OutputAliasInvocations;
                 result.CallbackInvocations["runsOnOffloadTarget"] = state.RunsOnOffloadTargetInvocations;
             }
         }
@@ -108,6 +109,13 @@ internal static class Program
                 Marshal.Copy(inputBuffer, values, 0, values.Length);
                 for (var index = 0; index < values.Length; index++) values[index] += 1.0f;
                 Marshal.Copy(values, 0, outputBuffer, values.Length);
+                return MIGraphXStatus.Success;
+            });
+            customOp.SetOutputAlias((_, outputSize, _, _, _, _) =>
+            {
+                Interlocked.Increment(ref state.OutputAliasInvocations);
+                if (outputSize == IntPtr.Zero) throw new InvalidOperationException("MIGraphX supplied a null output-alias size pointer.");
+                Marshal.WriteIntPtr(outputSize, IntPtr.Zero);
                 return MIGraphXStatus.Success;
             });
             customOp.SetRunsOnOffloadTarget((output, _, _, _) =>
@@ -209,6 +217,7 @@ internal static class Program
     {
         internal int ComputeShapeInvocations;
         internal int ComputeInvocations;
+        internal int OutputAliasInvocations;
         internal int RunsOnOffloadTargetInvocations;
         internal NativeMigraphXApi? NativeApi;
     }

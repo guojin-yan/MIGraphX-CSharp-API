@@ -76,6 +76,7 @@ switch ($metadata.probeKind) {
             $result.graphState -ne 'executed' -or
             $result.controlledFailure -ne $false -or
             $result.callbackInvocations.computeShape -le 0 -or $result.callbackInvocations.compute -le 0 -or
+            $result.callbackInvocations.outputAlias -le 0 -or
             $result.callbackInvocations.runsOnOffloadTarget -le 0 -or $result.runsOnOffloadTarget -ne $false -or
             $result.numericalOutputMatched -ne $true -or
             -not $inputMatches -or -not $expectedMatches -or -not $actualMatches -or
