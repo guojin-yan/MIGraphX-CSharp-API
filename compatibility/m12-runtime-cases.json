@@ -108,7 +108,7 @@
     {
       "id": "m12-assign-to-clone",
       "area": "lifecycle",
-      "publicSurface": "MIGraphXTarget, MIGraphXCompileOptions, MIGraphXFileOptions, MIGraphXOnnxOptions, and MIGraphXProgram Clone",
+      "publicSurface": "MIGraphXTarget, MIGraphXCompileOptions, MIGraphXFileOptions, MIGraphXOnnxOptions, MIGraphXTfOptions, MIGraphXProgram, and quantization option Clone APIs",
       "fixtureIds": ["m12-no-artifact"],
       "expectation": "success",
       "synchronizationBoundary": "assign-to returns before the destination is exposed",
@@ -120,8 +120,8 @@
       "environmentChangeRequired": false,
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
-      "resultCriteria": "Target, compile, file, ONNX, and program clones preserve their reviewed fields and remain usable for parse, compile, save, and metadata access after source disposal.",
-      "evidenceBoundary": "The reviewed candidate created every clone and compared selected fields, but did not verify every field, destination use after source disposal, or provider failure cleanup."
+      "resultCriteria": "Target, compile, file, ONNX, TensorFlow, program, and quantization-option clones remain usable after their source owners are disposed; the package candidate also compiles and saves with applicable clones.",
+      "evidenceBoundary": "Local focused coverage disposes source owners before continuing to use target, compile, file, ONNX, TensorFlow, program, and quantization-option clones. The package candidate covers compile/save flows with applicable clones; repeated official-provider ownership observations, exhaustive field equivalence, and provider failure cleanup remain runtime-deferred."
     },
     {
       "id": "m12-graph-parent-lease",

@@ -131,6 +131,29 @@ public sealed class M12LocalInterfaceTests
             Assert.Equal(1, controls.TargetAssignCopied());
             Assert.Equal(1, controls.ProgramAssignCopied());
 
+            target.Dispose();
+            compileOptions.Dispose();
+            onnxOptions.Dispose();
+            fileOptions.Dispose();
+            program.Dispose();
+            tfOptions.Dispose();
+            fp8.Dispose();
+
+            Assert.Equal("gpu", targetClone.Name);
+            Assert.False(compileClone.OffloadCopy);
+            Assert.True(compileClone.FastMath);
+            Assert.True(compileClone.ExhaustiveTune);
+            Assert.Equal("msgpack", fileClone.FileFormat);
+            Assert.True(programClone.HasSameNativeContent(programClone));
+            Assert.Empty(namesClone.Names);
+            Assert.Empty(int8Clone.OpNames);
+            using (var parsedWithClone = MIGraphXProgram.ParseOnnxBuffer(new byte[] { 1, 2 }, onnxClone))
+            using (var parsedTfWithClone = MIGraphXProgram.ParseTfBuffer(new byte[] { 3, 4 }, tfClone))
+            {
+                Assert.False(parsedWithClone.IsCompiled);
+                Assert.False(parsedTfWithClone.IsCompiled);
+            }
+
             names.Add("convolution");
             int8.AddOpName("dot");
             Assert.Empty(namesClone.Names);
@@ -146,6 +169,15 @@ public sealed class M12LocalInterfaceTests
             var nullCreate = Assert.Throws<MIGraphXException>(() => new MIGraphXQuantizeFp8Options(nativePath));
             Assert.Contains("success with null handle", nullCreate.Operation, StringComparison.Ordinal);
             Assert.Equal(liveBeforeFailure, controls.M12LiveCount());
+
+            names.Dispose();
+            int8.Dispose();
+
+            Assert.Empty(namesClone.Names);
+            Assert.Empty(int8Clone.OpNames);
+            using var cloneCalibration = new MIGraphXParameterMap(nativePath);
+            int8Clone.AddCalibrationData(cloneCalibration);
+            fp8Clone.AddCalibrationData(cloneCalibration);
         }
 
         AssertNoNativeLeaks(controls);
