@@ -98,17 +98,16 @@ internal static class Program
         });
         if (options.NumericalOutput)
         {
-            customOp.SetCompute((outputArgument, _, _, _, _, _, inputs) =>
+            customOp.SetCompute((outputArgument, _, _, _, _, outputShape, inputs) =>
             {
                 Interlocked.Increment(ref state.ComputeInvocations);
                 var api = state.NativeApi ?? throw new InvalidOperationException("The official C API helper was not initialized.");
                 var inputArgument = api.GetArgument(inputs);
-                var inputBuffer = api.GetArgumentBuffer(inputArgument);
-                var outputBuffer = api.GetArgumentBuffer(outputArgument);
+                var inputBuffer = api.GetArgumentBuffer(inputArgument, "input");
                 var values = new float[] { 0, 0, 0, 0 };
                 Marshal.Copy(inputBuffer, values, 0, values.Length);
                 for (var index = 0; index < values.Length; index++) values[index] += 1.0f;
-                Marshal.Copy(values, 0, outputBuffer, values.Length);
+                api.AssignOutputArgument(outputArgument, outputShape, values);
                 return MIGraphXStatus.Success;
             });
             customOp.SetOutputAlias((_, outputSize, _, _, _, _) =>
@@ -229,6 +228,11 @@ internal static class Program
         private readonly CollectionGet shapesGet;
         private readonly CollectionGet argumentsGet;
         private readonly ArgumentBuffer argumentBuffer;
+        private readonly ArgumentCreate argumentCreate;
+        private readonly ArgumentAssignTo argumentAssignTo;
+        private readonly ArgumentDestroy argumentDestroy;
+        private readonly object retainedBufferSync = new();
+        private readonly List<IntPtr> retainedBuffers = new();
 
         internal NativeMigraphXApi(string nativePath)
         {
@@ -239,6 +243,9 @@ internal static class Program
                 shapesGet = Load<CollectionGet>("migraphx_shapes_get");
                 argumentsGet = Load<CollectionGet>("migraphx_arguments_get");
                 argumentBuffer = Load<ArgumentBuffer>("migraphx_argument_buffer");
+                argumentCreate = Load<ArgumentCreate>("migraphx_argument_create");
+                argumentAssignTo = Load<ArgumentAssignTo>("migraphx_argument_assign_to");
+                argumentDestroy = Load<ArgumentDestroy>("migraphx_argument_destroy");
             }
             catch
             {
@@ -256,14 +263,33 @@ internal static class Program
             Check(shapeAssignTo(output, input), "migraphx_shape_assign_to");
         }
 
-        internal IntPtr GetArgumentBuffer(IntPtr argument)
+        internal IntPtr GetArgumentBuffer(IntPtr argument, string label)
         {
             if (argument == IntPtr.Zero) throw new InvalidOperationException("MIGraphX supplied a null argument handle to the callback.");
-            var buffer = GetBorrowedHandle(slot => argumentBuffer(slot, argument), "migraphx_argument_buffer");
+            var buffer = GetBorrowedHandle(slot => argumentBuffer(slot, argument), $"migraphx_argument_buffer({label})");
             return buffer != IntPtr.Zero ? buffer : throw new InvalidOperationException("MIGraphX returned a null host argument buffer.");
         }
 
-        public void Dispose() => NativeLibrary.Free(library);
+        internal void AssignOutputArgument(IntPtr output, IntPtr shape, float[] values)
+        {
+            if (output == IntPtr.Zero || shape == IntPtr.Zero) throw new InvalidOperationException("MIGraphX supplied a null output argument or shape handle.");
+            var buffer = Marshal.AllocHGlobal(checked(values.Length * sizeof(float)));
+            lock (retainedBufferSync) retainedBuffers.Add(buffer);
+            Marshal.Copy(values, 0, buffer, values.Length);
+            var source = CreateArgument(shape, buffer);
+            try { Check(argumentAssignTo(output, source), "migraphx_argument_assign_to"); }
+            finally { Check(argumentDestroy(source), "migraphx_argument_destroy"); }
+        }
+
+        public void Dispose()
+        {
+            lock (retainedBufferSync)
+            {
+                foreach (var buffer in retainedBuffers) Marshal.FreeHGlobal(buffer);
+                retainedBuffers.Clear();
+            }
+            NativeLibrary.Free(library);
+        }
 
         private T Load<T>(string name) where T : Delegate
             => Marshal.GetDelegateForFunctionPointer<T>(NativeLibrary.GetExport(library, name));
@@ -281,6 +307,19 @@ internal static class Program
             finally { Marshal.FreeHGlobal(slot); }
         }
 
+        private IntPtr CreateArgument(IntPtr shape, IntPtr buffer)
+        {
+            var slot = Marshal.AllocHGlobal(IntPtr.Size);
+            try
+            {
+                Marshal.WriteIntPtr(slot, IntPtr.Zero);
+                Check(argumentCreate(slot, shape, buffer), "migraphx_argument_create");
+                var value = Marshal.ReadIntPtr(slot);
+                return value != IntPtr.Zero ? value : throw new InvalidOperationException("migraphx_argument_create returned a null handle.");
+            }
+            finally { Marshal.FreeHGlobal(slot); }
+        }
+
         private static void Check(int status, string operation)
         {
             if (status != (int)MIGraphXStatus.Success)
@@ -290,6 +329,9 @@ internal static class Program
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int ShapeAssignTo(IntPtr output, IntPtr input);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CollectionGet(IntPtr output, IntPtr collection, UIntPtr index);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int ArgumentBuffer(IntPtr output, IntPtr argument);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int ArgumentCreate(IntPtr output, IntPtr shape, IntPtr buffer);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int ArgumentAssignTo(IntPtr output, IntPtr input);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int ArgumentDestroy(IntPtr argument);
     }
 
     private sealed class FakeProviderFixture : IDisposable
