@@ -154,7 +154,7 @@ internal static class Program
             using (instruction)
             using (var returnedArguments = new MIGraphXInstructions(options.NativePath, new[] { instruction }))
             using (var returned = module.AddReturn(returnedArguments))
-            using (var target = new MIGraphXTarget(options.NativePath))
+            using (var target = new MIGraphXTarget(options.NativePath, options.NumericalOutput ? "cpu" : "gpu"))
             using (var compileOptions = new MIGraphXCompileOptions(options.NativePath))
             {
                 try
