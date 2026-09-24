@@ -26,8 +26,14 @@ public sealed class M5DynamicShapeCacheTests
     [Fact]
     public void DynamicDimensionAndShapeHaveExplicitValueSemantics()
     {
-        var dimension = new MIGraphXDynamicDimension(1, 8, new long[] { 2, 4 });
+        var sourceOptimals = new long[] { 2, 4 };
+        var dimension = new MIGraphXDynamicDimension(1, 8, sourceOptimals);
+        sourceOptimals[0] = 3;
         Assert.False(dimension.IsFixed);
+        Assert.Equal(new long[] { 2, 4 }, dimension.Optimals);
+        var optimalView = Assert.IsAssignableFrom<System.Collections.Generic.IList<long>>(dimension.Optimals);
+        Assert.True(optimalView.IsReadOnly);
+        Assert.Throws<NotSupportedException>(() => optimalView[0] = 7);
         var originalCulture = CultureInfo.CurrentCulture;
         try
         {
@@ -69,6 +75,22 @@ public sealed class M5DynamicShapeCacheTests
         var scalar = MIGraphXShape.CreateDynamic(MIGraphXShapeDataType.Float32, Array.Empty<MIGraphXDynamicDimension>());
         using var nativeScalar = NativeShapeHandle.CreateDynamic(scalar);
         Assert.Empty(MIGraphXShape.FromNative(nativeScalar.DangerousGetHandle(), "dynamic scalar", scalar.DynamicDimensions).DynamicDimensions);
+
+        var sourceDimensions = new long[] { 2, 4 };
+        var cacheOverride = new MIGraphXCacheOverride("input", sourceDimensions);
+        sourceDimensions[0] = 9;
+        Assert.Equal(new long[] { 2, 4 }, cacheOverride.Dimensions);
+        var dimensionView = Assert.IsAssignableFrom<System.Collections.Generic.IList<long>>(cacheOverride.Dimensions);
+        Assert.True(dimensionView.IsReadOnly);
+        Assert.Throws<NotSupportedException>(() => dimensionView[0] = 7);
+
+        var sourceOverrides = new[] { cacheOverride };
+        var metadata = new MIGraphXCacheMetadata(new string('a', 64), "gpu", "default", "msgpack", new string('b', 64), sourceOverrides);
+        sourceOverrides[0] = new MIGraphXCacheOverride("other", new long[] { 1 });
+        Assert.Equal("input", Assert.Single(metadata.InputOverrides).InputName);
+        var overrideView = Assert.IsAssignableFrom<System.Collections.Generic.IList<MIGraphXCacheOverride>>(metadata.InputOverrides);
+        Assert.True(overrideView.IsReadOnly);
+        Assert.Throws<NotSupportedException>(() => overrideView[0] = sourceOverrides[0]);
     }
 
     [Fact]
