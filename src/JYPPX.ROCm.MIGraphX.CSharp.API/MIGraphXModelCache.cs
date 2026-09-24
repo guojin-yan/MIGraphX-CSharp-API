@@ -287,7 +287,10 @@ public enum MIGraphXCacheLookupKind
 /// </summary>
 public sealed class MIGraphXModelCache
 {
-    private static readonly ConcurrentDictionary<string, CacheKeyLock> KeyLocks = new ConcurrentDictionary<string, CacheKeyLock>(StringComparer.Ordinal);
+    private static readonly StringComparer KeyLockComparer = Path.DirectorySeparatorChar == '\\'
+        ? StringComparer.OrdinalIgnoreCase
+        : StringComparer.Ordinal;
+    private static readonly ConcurrentDictionary<string, CacheKeyLock> KeyLocks = new ConcurrentDictionary<string, CacheKeyLock>(KeyLockComparer);
     private readonly string rootDirectory;
 
     /// <summary>使用显式绝对根目录创建缓存。 Creates a cache with an explicit absolute root.</summary>
