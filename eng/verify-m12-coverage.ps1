@@ -11,12 +11,14 @@ $schemaPath = Join-Path $root 'compatibility\schemas\m12-runtime-cases.schema.js
 $promotionPath = Join-Path $root 'compatibility\m12-post-build-runtime-evidence.json'
 $promotionSchemaPath = Join-Path $root 'compatibility\schemas\m12-post-build-runtime-evidence.schema.json'
 $numericalDiagnosticPath = Join-Path $root 'compatibility\m12-provider-custom-op-numerical-diagnostic.json'
+$latestNumericalDiagnosticPath = Join-Path $root 'compatibility\m12-provider-custom-op-numerical-diagnostic-59ee097.json'
 $numericalDiagnosticSchemaPath = Join-Path $root 'compatibility\schemas\m12-provider-custom-op-numerical-diagnostic.schema.json'
 if (-not (Test-Path -LiteralPath $matrixPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $schemaPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $promotionPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $promotionSchemaPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $numericalDiagnosticPath -PathType Leaf) -or
+    -not (Test-Path -LiteralPath $latestNumericalDiagnosticPath -PathType Leaf) -or
     -not (Test-Path -LiteralPath $numericalDiagnosticSchemaPath -PathType Leaf)) {
     throw 'M12 runtime matrix, promotion record, or schema is missing.'
 }
@@ -31,6 +33,11 @@ if (-not ($numericalDiagnosticText | Test-Json -SchemaFile $numericalDiagnosticS
     throw 'M12 provider custom-op numerical diagnostic does not match its JSON schema.'
 }
 $numericalDiagnostic = $numericalDiagnosticText | ConvertFrom-Json
+$latestNumericalDiagnosticText = Get-Content -Raw -LiteralPath $latestNumericalDiagnosticPath
+if (-not ($latestNumericalDiagnosticText | Test-Json -SchemaFile $numericalDiagnosticSchemaPath)) {
+    throw 'Latest M12 provider custom-op numerical diagnostic does not match its JSON schema.'
+}
+$latestNumericalDiagnostic = $latestNumericalDiagnosticText | ConvertFrom-Json
 
 if ($matrix.stage -ne 'M12' -or $matrix.candidateVersion -ne '0.0.0' -or $matrix.validationStatus -ne 'partially-runtime-executed') {
     throw 'M12 matrix identity or validation status drifted.'
@@ -106,6 +113,16 @@ if ($numericalDiagnostic.sourceSha -ne '2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d
     $numericalDiagnostic.officialEvidence -ne 'runtime-deferred' -or
     (@($numericalDiagnostic.actualOutput) -join ',') -ne '1.25,0,3,10') {
     throw 'M12 host-reference numerical diagnostic identity, result, or deferred boundary drifted.'
+}
+if ($latestNumericalDiagnostic.sourceSha -ne '59ee097de7f2eaef15d81ade24a40a6ac62a1af1' -or
+    $latestNumericalDiagnostic.externalRecord -ne 'Radeon_Cloud/records/20260924-59ee097-m12-custom-op-numeric' -or
+    $latestNumericalDiagnostic.reviewState -ne 'provider-callback-record-verified' -or
+    $latestNumericalDiagnostic.target -ne 'ref' -or
+    $latestNumericalDiagnostic.numericalOutputMatched -ne $true -or
+    $latestNumericalDiagnostic.promotionState -ne 'not-requested' -or
+    $latestNumericalDiagnostic.officialEvidence -ne 'runtime-deferred' -or
+    (@($latestNumericalDiagnostic.actualOutput) -join ',') -ne '1.25,0,3,10') {
+    throw 'Latest M12 host-reference numerical diagnostic identity, result, or deferred boundary drifted.'
 }
 
 if ($promotion.stage -ne 'M12' -or
@@ -204,6 +221,7 @@ $sourceChecks = @{
     'compatibility\m12-post-build-runtime-evidence.json' = @('b53689ba3831ce721875d3e5bb4d370ae8a737e6', 'candidate-record-verified', 'm12-context-lifetime', 'm12-operation-materialized-attributes', 'runtime-executed', 'runtime-deferred')
     'compatibility\schemas\m12-post-build-runtime-evidence.schema.json' = @('post-build-external-runtime-promotion', 'candidateExecutedCaseCount', 'candidateDeferredCaseCount')
     'compatibility\m12-provider-custom-op-numerical-diagnostic.json' = @('2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d', 'provider-custom-op-numerical-diagnostic', 'callbackInvocations', 'numericalOutputMatched', 'not-requested', 'runtime-deferred', 'host-reference target')
+    'compatibility\m12-provider-custom-op-numerical-diagnostic-59ee097.json' = @('59ee097de7f2eaef15d81ade24a40a6ac62a1af1', 'provider-custom-op-numerical-diagnostic', 'callbackInvocations', 'numericalOutputMatched', 'not-requested', 'runtime-deferred', 'host-reference target')
     'compatibility\schemas\m12-provider-custom-op-numerical-diagnostic.schema.json' = @('provider-custom-op-numerical-diagnostic', 'provider-custom-op-numerical-output', 'm12-custom-op-registration', 'not-requested', 'actualOutput', 'additionalProperties')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs' = @('ShapeAndArgumentFactories', 'ClonedParameterMapsAndOutputCollectionsSurviveSourceDisposal', 'sourceParameters.Dispose()', 'outputs.Dispose()', 'clonedOutputs[0].ToArray<float>()', 'GraphEditingAndContextViews', 'TensorFlowAndQuantization', 'CustomOpClone', 'CustomOpStateCopyDeletePreservesManagedIdentity', 'CustomOpReplacingAndClearingComputeCallbackKeepsReplayCurrent', 'CustomOpCallbackRootLastsThroughNativeOwnerLifetime', 'DisposedCustomOpReleasesCallbackRootsWhileWrapperRemainsAlive', 'CallbackLifetimeCapture', 'CustomOpCallbackSetterFailurePreservesPreviousCallbackAndReplay', 'FakeProviderDispatchInvokesRegisteredShapeCallbackThroughGraphPath', 'FakeProviderDispatchContainsShapeCallbackExceptionThroughGraphPath', 'FakeProviderDispatchIgnoresUnrelatedOperationName', 'CustomOpRegisterFailureLeavesRegistryUnchangedAndRetryWorks', 'CustomOpCallbackExceptionsBecomeNativeStatusAndUtf8Message', 'CustomOpCallbacksNormalizeUndefinedStatusValues', 'managed_utf8_exception_test', 'new UTF8Encoding(false, true)', 'InvokeCustomCallbacks', 'callbackInvocations', 'ProviderCallbackMessage', 'CustomOpCallbackSettersRaceDisposeRemainFailClosed', 'DeferredNegativeBoundariesAndConcurrentDispose', 'OperationAttributeSurfaceRemainsClosedOverArbitraryVariadicAbi', 'ModuleSurfaceRemainsProgramBoundWithoutIndependentOwner', 'QuantizeInt8OptionSnapshotFailsAfterDispose', 'TensorFlowOutputNameSnapshotFailsAfterDispose', 'SetSkipString', 'success with unwritten or unterminated UTF-8 buffer', 'SetNullOutput("migraphx_argument_buffer")', 'success with null buffer')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M4ManagedObjectTests.cs' = @('SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections', 'SetSkipOutput', 'SetNullOutput', 'success with null borrowed handle', 'migraphx_arguments_get', 'migraphx_argument_shape', 'migraphx_shape_type', 'migraphx_shape_lengths', 'migraphx_shape_strides', 'migraphx_shape_elements', 'migraphx_shape_bytes', 'migraphx_arguments_size', 'migraphx_program_parameter_shapes_size', 'migraphx_shapes_size')
