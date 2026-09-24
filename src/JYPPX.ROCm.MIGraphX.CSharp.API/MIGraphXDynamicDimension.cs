@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace JYPPX.ROCm.MIGraphXSharp;
@@ -114,7 +115,9 @@ public sealed class MIGraphXDynamicDimension : IEquatable<MIGraphXDynamicDimensi
         => other is not null && Equals(other);
 
     /// <summary>获取范围文本。 Gets a range representation.</summary>
-    public override string ToString() => IsFixed ? Minimum.ToString() : $"{Minimum}..{Maximum}";
+    public override string ToString() => IsFixed
+        ? Minimum.ToString(CultureInfo.InvariantCulture)
+        : Minimum.ToString(CultureInfo.InvariantCulture) + ".." + Maximum.ToString(CultureInfo.InvariantCulture);
 
     internal static void ValidateSizeT(long value, string parameterName)
     {
