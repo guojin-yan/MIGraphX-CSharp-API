@@ -390,6 +390,17 @@ public sealed class RepositoryQualityTests
         Assert.True(diagnostic.GetProperty("controlledFailure").GetBoolean());
         Assert.Equal("not-requested", diagnostic.GetProperty("promotionState").GetString());
 
+        using var numericalDiagnostic = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-provider-custom-op-numerical-diagnostic.json")));
+        var numerical = numericalDiagnostic.RootElement;
+        Assert.Equal("provider-custom-op-numerical-diagnostic", numerical.GetProperty("kind").GetString());
+        Assert.Equal("2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d", numerical.GetProperty("sourceSha").GetString());
+        Assert.Equal("ref", numerical.GetProperty("target").GetString());
+        Assert.Equal("runtime-deferred", numerical.GetProperty("officialEvidence").GetString());
+        Assert.Equal("not-requested", numerical.GetProperty("promotionState").GetString());
+        Assert.True(numerical.GetProperty("numericalOutputMatched").GetBoolean());
+        Assert.Equal(new[] { 1.25, 0d, 3d, 10d }, numerical.GetProperty("actualOutput").EnumerateArray().Select(value => value.GetDouble()));
+        Assert.False(numerical.GetProperty("runsOnOffloadTarget").GetBoolean());
+
         var runner = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "Program.cs"));
         var review = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "review.ps1"));
         Assert.Contains("runtime-candidate-executed-review-required", runner, StringComparison.Ordinal);

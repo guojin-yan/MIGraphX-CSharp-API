@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": [
+    "$schema", "schemaVersion", "stage", "kind", "sourceSha", "externalRecord",
+    "reviewState", "evidence", "promotionState", "caseId", "officialEvidence",
+    "probeKind", "probeHost", "target", "provider", "package", "prebuiltProbeSha256",
+    "graphState", "callbackInvocationObserved", "callbackInvocations", "runsOnOffloadTarget",
+    "input", "expectedOutput", "actualOutput", "numericalOutputMatched", "controlledFailure", "scope"
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "schemaVersion": { "const": "1.0.0" },
+    "stage": { "const": "M12" },
+    "kind": { "const": "provider-custom-op-numerical-diagnostic" },
+    "sourceSha": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "externalRecord": { "type": "string", "minLength": 1 },
+    "reviewState": { "const": "provider-callback-record-verified" },
+    "evidence": { "const": "runtime-candidate-executed-review-required" },
+    "promotionState": { "const": "not-requested" },
+    "caseId": { "const": "m12-custom-op-registration" },
+    "officialEvidence": { "const": "runtime-deferred" },
+    "probeKind": { "const": "provider-custom-op-numerical-output" },
+    "probeHost": { "const": "self-contained-linux-x64" },
+    "target": { "const": "ref" },
+    "provider": {
+      "type": "object",
+      "required": ["rocmVersion", "migraphxVersion", "gpuArchitecture", "headerSha256", "librarySha256", "librarySoname"],
+      "properties": {
+        "rocmVersion": { "const": "7.2.1" },
+        "migraphxVersion": { "const": "2.15.0" },
+        "gpuArchitecture": { "const": "gfx1100" },
+        "headerSha256": { "const": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2" },
+        "librarySha256": { "const": "3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff" },
+        "librarySoname": { "const": "libmigraphx_c.so.3" }
+      },
+      "additionalProperties": false
+    },
+    "package": {
+      "type": "object",
+      "required": ["id", "version", "sha256"],
+      "properties": {
+        "id": { "const": "JYPPX.ROCm.MIGraphX.CSharp.API" },
+        "version": { "const": "0.0.0" },
+        "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" }
+      },
+      "additionalProperties": false
+    },
+    "prebuiltProbeSha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "graphState": { "const": "executed" },
+    "callbackInvocationObserved": { "const": true },
+    "callbackInvocations": {
+      "type": "object",
+      "required": ["computeShape", "compute", "outputAlias", "runsOnOffloadTarget"],
+      "properties": {
+        "computeShape": { "const": 2 },
+        "compute": { "const": 1 },
+        "outputAlias": { "const": 2 },
+        "runsOnOffloadTarget": { "const": 2 }
+      },
+      "additionalProperties": false
+    },
+    "runsOnOffloadTarget": { "const": false },
+    "input": { "const": [0.25, -1, 2, 9] },
+    "expectedOutput": { "const": [1.25, 0, 3, 10] },
+    "actualOutput": { "const": [1.25, 0, 3, 10] },
+    "numericalOutputMatched": { "const": true },
+    "controlledFailure": { "const": false },
+    "scope": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

@@ -74,7 +74,7 @@
     {
       "id": "m12-custom-op-registration",
       "status": "runtime-deferred",
-      "scope": "Create, clone, and registration passed in the reviewed candidate, whose provider path invoked none of the registered callbacks. A later separate official diagnostic at source SHA c435cd0 observed one managed shape-callback invocation followed by the intentional UnknownError rejection; complete custom-op semantics and promotion remain deferred."
+      "scope": "Create, clone, and registration passed in the reviewed candidate, whose provider path invoked none of the registered callbacks. Separate official diagnostics observed controlled shape-callback rejection at c435cd0 and one exact float32 elementwise +1 result through the host-reference target at 2418aa5. GPU/device-buffer semantics, exception conversion on successful compute, copy/delete balance, clone replay under provider execution, repeated/concurrent calls, complete custom-op semantics, and promotion remain deferred."
     },
     {
       "id": "m12-negative-borrowed-device-clone",
