@@ -105,6 +105,8 @@ if ($matrix.review.candidateResultLabel -ne 'runtime-candidate-executed-review-r
     throw 'M12 review and promotion boundary is incomplete.'
 }
 if ($numericalDiagnostic.sourceSha -ne '2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d' -or
+    $numericalDiagnostic.provider.gpuArchitecture -ne 'gfx1100' -or
+    $numericalDiagnostic.provider.headerSha256 -ne 'a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2' -or
     $numericalDiagnostic.externalRecord -ne 'Radeon_Cloud/records/20260924-2418aa5-m12-custom-op-numeric/evidence/provider-callback-numerical-output' -or
     $numericalDiagnostic.reviewState -ne 'provider-callback-record-verified' -or
     $numericalDiagnostic.target -ne 'ref' -or
@@ -115,6 +117,8 @@ if ($numericalDiagnostic.sourceSha -ne '2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d
     throw 'M12 host-reference numerical diagnostic identity, result, or deferred boundary drifted.'
 }
 if ($latestNumericalDiagnostic.sourceSha -ne '59ee097de7f2eaef15d81ade24a40a6ac62a1af1' -or
+    $latestNumericalDiagnostic.provider.gpuArchitecture -ne 'not-observed' -or
+    $null -ne $latestNumericalDiagnostic.provider.headerSha256 -or
     $latestNumericalDiagnostic.externalRecord -ne 'Radeon_Cloud/records/20260924-59ee097-m12-custom-op-numeric' -or
     $latestNumericalDiagnostic.reviewState -ne 'provider-callback-record-verified' -or
     $latestNumericalDiagnostic.target -ne 'ref' -or

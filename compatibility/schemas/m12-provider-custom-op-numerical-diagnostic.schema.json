@@ -29,8 +29,8 @@
       "properties": {
         "rocmVersion": { "const": "7.2.1" },
         "migraphxVersion": { "const": "2.15.0" },
-        "gpuArchitecture": { "const": "gfx1100" },
-        "headerSha256": { "const": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2" },
+        "gpuArchitecture": { "enum": ["gfx1100", "not-observed"] },
+        "headerSha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
         "librarySha256": { "const": "3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff" },
         "librarySoname": { "const": "libmigraphx_c.so.3" }
       },
