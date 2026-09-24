@@ -1,0 +1,45 @@
+{
+  "$schema": "./schemas/m12-provider-custom-op-numerical-diagnostic.schema.json",
+  "schemaVersion": "1.0.0",
+  "stage": "M12",
+  "kind": "provider-custom-op-numerical-diagnostic",
+  "sourceSha": "59ee097de7f2eaef15d81ade24a40a6ac62a1af1",
+  "externalRecord": "Radeon_Cloud/records/20260924-59ee097-m12-custom-op-numeric",
+  "reviewState": "provider-callback-record-verified",
+  "evidence": "runtime-candidate-executed-review-required",
+  "promotionState": "not-requested",
+  "caseId": "m12-custom-op-registration",
+  "officialEvidence": "runtime-deferred",
+  "probeKind": "provider-custom-op-numerical-output",
+  "probeHost": "self-contained-linux-x64",
+  "target": "ref",
+  "provider": {
+    "rocmVersion": "7.2.1",
+    "migraphxVersion": "2.15.0",
+    "gpuArchitecture": "gfx1100",
+    "headerSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+    "librarySha256": "3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff",
+    "librarySoname": "libmigraphx_c.so.3"
+  },
+  "package": {
+    "id": "JYPPX.ROCm.MIGraphX.CSharp.API",
+    "version": "0.0.0",
+    "sha256": "a4583d670e7d4dc2ee68bece4b48740cdbed2104de9f66f5ecf1c089322c0953"
+  },
+  "prebuiltProbeSha256": "4c7f5dc7cd4c2dab3e3739b4319a4b1fc9e8fd068dc5a20da13fa9f8eafc35d1",
+  "graphState": "executed",
+  "callbackInvocationObserved": true,
+  "callbackInvocations": {
+    "computeShape": 2,
+    "compute": 1,
+    "outputAlias": 2,
+    "runsOnOffloadTarget": 2
+  },
+  "runsOnOffloadTarget": false,
+  "input": [0.25, -1, 2, 9],
+  "expectedOutput": [1.25, 0, 3, 10],
+  "actualOutput": [1.25, 0, 3, 10],
+  "numericalOutputMatched": true,
+  "controlledFailure": false,
+  "scope": "A source/package-bound official C API diagnostic executed one float32 custom-op through the managed compute-shape, compute, empty output-alias, and runs-on-offload-target callbacks on the host-reference target. The callback output exactly matched elementwise +1. This separate diagnostic does not satisfy the full M12 case criteria: GPU target/device-buffer execution, non-empty aliasing, exception conversion on successful compute, native copy/delete balance, clone replay under provider execution, repeated/concurrent calls, and promotion remain unverified."
+}
