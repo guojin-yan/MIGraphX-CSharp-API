@@ -2,7 +2,7 @@
 set -euo pipefail
 
 usage() {
-  echo "Usage: provider-callback-probe.sh --repo DIR --feed DIR --record DIR --native FILE --source-sha SHA --version VERSION --core-sha SHA256 [--fixture none|fake-native-provider-dispatch]" >&2
+  echo "Usage: provider-callback-probe.sh --repo DIR --feed DIR --record DIR --native FILE --source-sha SHA --version VERSION --core-sha SHA256 [--mode reachability|numerical-output] [--fixture none|fake-native-provider-dispatch]" >&2
   exit 2
 }
 
@@ -14,6 +14,7 @@ source_sha=''
 version=''
 core_sha=''
 fixture='none'
+mode='reachability'
 while [[ $# -gt 0 ]]; do
   [[ $# -ge 2 ]] || usage
   case "$1" in
@@ -25,6 +26,7 @@ while [[ $# -gt 0 ]]; do
     --version) version="$2" ;;
     --core-sha) core_sha="$2" ;;
     --fixture) fixture="$2" ;;
+    --mode) mode="$2" ;;
     *) usage ;;
   esac
   shift 2
@@ -37,6 +39,8 @@ for directory in "$repo" "$feed"; do [[ "$directory" = /* && -d "$directory" ]] 
 [[ "$version" = '0.0.0' ]] || usage
 [[ "$core_sha" =~ ^[a-f0-9]{64}$ ]] || usage
 [[ "$fixture" = 'none' || "$fixture" = 'fake-native-provider-dispatch' ]] || usage
+[[ "$mode" = 'reachability' || "$mode" = 'numerical-output' ]] || usage
+[[ "$mode" != 'numerical-output' || "$fixture" = 'none' ]] || usage
 
 repo="$(realpath "$repo")"
 feed="$(realpath "$feed")"
@@ -88,11 +92,21 @@ dotnet build "$project" -c Release --no-restore -p:M12PackageVersion="$version" 
 
 set +e
 probe_args=(--native "$native" --source-sha "$source_sha" --expected-version "$version" --output "$record/raw/provider-callback.json")
+probe_args+=(--mode "$mode")
 if [[ "$fixture" = 'fake-native-provider-dispatch' ]]; then probe_args+=(--provider-fixture); fi
 dotnet run --project "$project" -c Release --no-build -p:M12PackageVersion="$version" -- "${probe_args[@]}" \
   > "$record/raw/provider-callback-stdout.log" 2> "$record/raw/provider-callback-stderr.log"
 probe_exit=$?
 set -e
+if [[ "$mode" = 'numerical-output' ]]; then
+  probe_kind='provider-custom-op-numerical-output'
+  controlled_rejection=false
+  numerical_output_requested=true
+else
+  probe_kind='provider-callback-invocation'
+  controlled_rejection=true
+  numerical_output_requested=false
+fi
 cat > "$record/raw/run-metadata.json" <<EOF
 {
   "schemaVersion": "1.0.0",
@@ -102,8 +116,9 @@ cat > "$record/raw/run-metadata.json" <<EOF
   "providerFixture": "$fixture",
   "probeExitCode": $probe_exit,
   "promotionRequested": false,
-  "probeKind": "provider-callback-invocation",
-  "controlledRejection": true
+  "probeKind": "$probe_kind",
+  "controlledRejection": $controlled_rejection,
+  "numericalOutputRequested": $numerical_output_requested
 }
 EOF
 find "$record" -type f ! -name artifact-hashes.txt -print0 | sort -z | xargs -0 sha256sum > "$record/raw/artifact-hashes.txt"
