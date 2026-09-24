@@ -103,7 +103,7 @@
       "localEvidence": "fake-native-executed",
       "officialEvidence": "runtime-deferred",
       "resultCriteria": "Round-tripped argument values, cloned parameter maps, and cloned output collections remain exact after their source owners are disposed.",
-      "evidenceBoundary": "The reviewed candidate executed Save, Load, Clone, and value readback, but did not prove clone use after source disposal; the complete case remains runtime-deferred."
+      "evidenceBoundary": "Local focused coverage and the package-only candidate execute cloned argument, parameter-map, and output-collection readback after their source owners are disposed. Repeated official-provider ownership observations and promotion remain runtime-deferred."
     },
     {
       "id": "m12-assign-to-clone",

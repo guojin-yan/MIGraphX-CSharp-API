@@ -152,6 +152,40 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void ClonedParameterMapsAndOutputCollectionsSurviveSourceDisposal()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+
+        var expected = new[] { 0.25f, -1f, 2f, 9f };
+        var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+        using (var options = new MIGraphXOnnxOptions(nativePath))
+        using (var program = MIGraphXProgram.ParseOnnxBuffer(new byte[] { 1, 2, 3 }, options))
+        using (var target = new MIGraphXTarget(nativePath))
+        using (var compileOptions = new MIGraphXCompileOptions(nativePath))
+        {
+            program.Compile(target, compileOptions);
+
+            using var sourceArgument = MIGraphXArgument.Create(nativePath, shape, expected);
+            using var sourceParameters = new MIGraphXParameterMap(nativePath);
+            sourceParameters.Add("input", sourceArgument);
+            using var clonedParameters = sourceParameters.Clone();
+
+            sourceArgument.Dispose();
+            sourceParameters.Dispose();
+
+            using var outputs = program.Run(clonedParameters);
+            using var clonedOutputs = outputs.Clone();
+            outputs.Dispose();
+
+            Assert.Equal(expected, clonedOutputs[0].ToArray<float>());
+        }
+
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void QuantizeInt8OptionSnapshotFailsAfterDispose()
     {
         var nativePath = FakePath();
