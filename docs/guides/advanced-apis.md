@@ -8,6 +8,8 @@ Create a `MIGraphXProgram`, obtain its `GetMainModule()` or `CreateModule(name)`
 
 `MIGraphXModule`, `MIGraphXInstruction` and their collections retain program leases. Dispose views when finished. The wrapper exposes program-owned modules because the fixed C ABI provides no matching destroy/ownership contract for an independently created `migraphx_module_create` owner.
 
+Instruction and module collections can be cloned after the original item wrappers or caller's program have been disposed; their retained leases keep the native resources alive. Each clone retains its own leases. The instruction indexer returns the original wrapper, so it does not restore a disposed instruction object.
+
 Module views from the same program share its lock for graph edits and native calls. Adding parameters, allocations, literals, returns or instructions invalidates `IsCompiled`; compile again before running or acquiring a context. Native mutation failures also invalidate the compiled flag because the provider may have partially changed the program. A cloned program has independent state. This serialization covers managed API calls; wait for pending asynchronous work before editing or recompiling its program.
 
 ## TensorFlow

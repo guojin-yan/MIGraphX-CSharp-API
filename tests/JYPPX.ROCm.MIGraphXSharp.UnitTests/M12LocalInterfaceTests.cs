@@ -386,6 +386,72 @@ public sealed class M12LocalInterfaceTests
         AssertNoNativeLeaks(controls);
     }
 
+    [Fact]
+    public void InstructionCollectionsCloneAfterSourceInstructionAndProgramDisposal()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        using (var program = new MIGraphXProgram(nativePath))
+        using (var main = program.GetMainModule())
+        using (var instruction = main.AddAllocation(MIGraphXShape.CreateScalar(MIGraphXShapeDataType.Float32)))
+        using (var source = new MIGraphXInstructions(nativePath, new[] { instruction, instruction }))
+        {
+            instruction.Dispose();
+            main.Dispose();
+            program.Dispose();
+            Assert.Equal(1, controls.ProgramLiveCount());
+            var liveBeforeFailure = controls.M12LiveCount();
+            controls.SetFailure("migraphx_instructions_assign_to", (int)MIGraphXStatus.UnknownError);
+            Assert.Throws<MIGraphXException>(() => source.Clone());
+            Assert.Equal(liveBeforeFailure, controls.M12LiveCount());
+            using var clone = source.Clone();
+            source.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => source.Clone());
+            Assert.Equal(2, clone.Count);
+            using var secondClone = clone.Clone();
+            clone.Dispose();
+            Assert.Equal(2, secondClone.Count);
+            Assert.Equal(1, controls.ProgramLiveCount());
+            secondClone.Dispose();
+            Assert.Equal(0, controls.ProgramLiveCount());
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public void ModuleCollectionsCloneAfterSourceModuleAndProgramDisposal()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        using (var program = new MIGraphXProgram(nativePath))
+        using (var main = program.GetMainModule())
+        using (var child = program.CreateModule("child"))
+        using (var source = new MIGraphXModules(nativePath, new[] { main, child, main }))
+        {
+            main.Dispose();
+            child.Dispose();
+            program.Dispose();
+            Assert.Equal(1, controls.ProgramLiveCount());
+            var liveBeforeFailure = controls.M12LiveCount();
+            controls.SetFailure("migraphx_modules_assign_to", (int)MIGraphXStatus.UnknownError);
+            Assert.Throws<MIGraphXException>(() => source.Clone());
+            Assert.Equal(liveBeforeFailure, controls.M12LiveCount());
+            using var clone = source.Clone();
+            source.Dispose();
+            Assert.Throws<ObjectDisposedException>(() => source.Clone());
+            Assert.Equal(3, clone.Count);
+            using var secondClone = clone.Clone();
+            clone.Dispose();
+            Assert.Equal(3, secondClone.Count);
+            Assert.Equal(1, controls.ProgramLiveCount());
+            secondClone.Dispose();
+            Assert.Equal(0, controls.ProgramLiveCount());
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
     [Theory]
     [InlineData("parameter")]
     [InlineData("allocation")]

@@ -102,6 +102,22 @@ internal sealed class NativeHandleLease : IDisposable
 
     internal IntPtr Pointer { get; }
 
+    internal static NativeHandleLease[] DuplicateAll(IReadOnlyList<NativeHandleLease> leases)
+    {
+        var copied = new NativeHandleLease[leases.Count];
+        var count = 0;
+        try
+        {
+            for (; count < copied.Length; count++) copied[count] = leases[count].Duplicate();
+            return copied;
+        }
+        catch
+        {
+            while (count > 0) copied[--count].Dispose();
+            throw;
+        }
+    }
+
     internal NativeHandleLease Duplicate()
     {
         var owned = handle ?? throw new ObjectDisposedException(nameof(NativeHandleLease));

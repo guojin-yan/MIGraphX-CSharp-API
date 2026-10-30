@@ -54,16 +54,13 @@ public sealed class MIGraphXInstructions : IDisposable
     /// <summary>复制 instruction 集合。 Creates an independent native instruction-list clone.</summary>
     public MIGraphXInstructions Clone()
     {
-        var resources = new[] { NativeResourceLock.Target(owner.Id, owner.Sync) }
-            .Concat(instructions.Select(value => NativeResourceLock.Target(value.Owner.Id, value.Owner.Sync)))
-            .ToArray();
-        return NativeResourceLock.With(resources, () =>
+        return owner.WithHandle(source =>
         {
-            var leases = AcquireInstructionLeases(instructions);
+            var leases = NativeHandleLease.DuplicateAll(instructionLeases!);
             try
             {
-                var pointers = instructions.Select(value => value.Owner.HandleUnderLock).ToArray();
-                var handle = NativeInstructionsHandle.CloneFrom(owner.HandleUnderLock, pointers);
+                var pointers = leases.Select(lease => lease.Pointer).ToArray();
+                var handle = NativeInstructionsHandle.CloneFrom(source, pointers);
                 return new MIGraphXInstructions(owner.Runtime, handle, instructions.ToArray(), leases);
             }
             catch
@@ -381,7 +378,7 @@ public sealed class MIGraphXModule : IDisposable
 public sealed class MIGraphXModules : IDisposable
 {
     private readonly NativeResourceOwner<NativeModulesHandle> owner;
-    private readonly MIGraphXModule[] modules;
+    private readonly IntPtr[] modulePointers;
     private NativeHandleLease[]? programLeases;
 
     /// <summary>从 module 列表创建集合。 Creates a native module list from managed modules.</summary>
@@ -390,32 +387,30 @@ public sealed class MIGraphXModules : IDisposable
     public MIGraphXModules(string nativeLibraryPath, IReadOnlyList<MIGraphXModule> modules)
     {
         if (modules is null) throw new ArgumentNullException(nameof(modules));
-        this.modules = modules.ToArray();
+        var copied = modules.ToArray();
         var runtime = NativeRuntime.Load(nativeLibraryPath);
-        if (this.modules.Any(module => module is null)) throw new ArgumentException("Modules must not contain null values.", nameof(modules));
-        foreach (var module in this.modules) runtime.RequireSame(module.Runtime, nameof(modules));
-        var created = CreateWithLeases(this.modules);
+        if (copied.Any(module => module is null)) throw new ArgumentException("Modules must not contain null values.", nameof(modules));
+        foreach (var module in copied) runtime.RequireSame(module.Runtime, nameof(modules));
+        var created = CreateWithLeases(copied);
         owner = new NativeResourceOwner<NativeModulesHandle>(runtime, created.Handle);
+        modulePointers = created.Pointers;
         programLeases = created.Leases;
     }
 
     internal NativeResourceOwner<NativeModulesHandle> Owner => owner;
     /// <summary>获取 module 数量。 Gets the number of modules.</summary>
-    public int Count => owner.WithHandle(_ => modules.Length);
+    public int Count => owner.WithHandle(_ => modulePointers.Length);
     /// <summary>复制 module 集合。 Creates an independent native module-list clone.</summary>
     public MIGraphXModules Clone()
     {
-        var resources = new[] { NativeResourceLock.Target(owner.Id, owner.Sync) }
-            .Concat(modules.Select(module => NativeResourceLock.Target(module.Id, module.Sync)))
-            .ToArray();
-        return NativeResourceLock.With(resources, () =>
+        return owner.WithHandle(source =>
         {
-            var leases = AcquireProgramLeases(modules);
+            var leases = NativeHandleLease.DuplicateAll(programLeases!);
             try
             {
-                var pointers = modules.Select(module => module.HandleUnderLock).ToArray();
-                var handle = NativeModulesHandle.CloneFrom(owner.HandleUnderLock, pointers);
-                return new MIGraphXModules(owner.Runtime, handle, modules.ToArray(), leases);
+                var pointers = (IntPtr[])modulePointers.Clone();
+                var handle = NativeModulesHandle.CloneFrom(source, pointers);
+                return new MIGraphXModules(owner.Runtime, handle, pointers, leases);
             }
             catch
             {
@@ -424,10 +419,10 @@ public sealed class MIGraphXModules : IDisposable
             }
         });
     }
-    private MIGraphXModules(NativeRuntime runtime, NativeModulesHandle handle, MIGraphXModule[] modules, NativeHandleLease[] leases)
+    private MIGraphXModules(NativeRuntime runtime, NativeModulesHandle handle, IntPtr[] pointers, NativeHandleLease[] leases)
     {
         owner = new NativeResourceOwner<NativeModulesHandle>(runtime, handle);
-        this.modules = modules;
+        modulePointers = pointers;
         programLeases = leases;
     }
     /// <summary>释放 native module 集合。 Releases the native module-list handle.</summary>
@@ -449,7 +444,7 @@ public sealed class MIGraphXModules : IDisposable
             try
             {
                 var pointers = values.Select(module => module.HandleUnderLock).ToArray();
-                return new LeasedModules(NativeModulesHandle.Create(pointers), leases);
+                return new LeasedModules(NativeModulesHandle.Create(pointers), pointers, leases);
             }
             catch
             {
@@ -482,8 +477,9 @@ public sealed class MIGraphXModules : IDisposable
 
     private sealed class LeasedModules
     {
-        internal LeasedModules(NativeModulesHandle handle, NativeHandleLease[] leases) { Handle = handle; Leases = leases; }
+        internal LeasedModules(NativeModulesHandle handle, IntPtr[] pointers, NativeHandleLease[] leases) { Handle = handle; Pointers = pointers; Leases = leases; }
         internal NativeModulesHandle Handle { get; }
+        internal IntPtr[] Pointers { get; }
         internal NativeHandleLease[] Leases { get; }
     }
 }
