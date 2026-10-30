@@ -226,16 +226,18 @@ public sealed class MIGraphXModule : IDisposable
 {
     private readonly NativeRuntime runtime;
     private NativeHandleLease? programLease;
-    private readonly object sync = new object();
+    private readonly NativeProgramState state;
+    private object sync => state.Sync;
     private readonly IntPtr handle;
-    private readonly long id = NativeResourceIds.Next();
+    private long id => state.Id;
 
-    internal MIGraphXModule(NativeRuntime runtime, NativeHandleLease programLease, IntPtr handle)
+    internal MIGraphXModule(NativeRuntime runtime, NativeHandleLease programLease, IntPtr handle, NativeProgramState state)
     {
         if (handle == IntPtr.Zero) throw new ArgumentException("The native module handle must not be null.", nameof(handle));
         this.runtime = runtime;
         this.programLease = programLease;
         this.handle = handle;
+        this.state = state;
     }
 
     internal NativeRuntime Runtime => runtime;
@@ -354,10 +356,13 @@ public sealed class MIGraphXModule : IDisposable
     {
         lock (sync)
         {
+            var module = HandleUnderLock;
             var output = OutHandle<NativeInstructionHandle>.Create(operation);
             try
             {
-                output.Complete(create(output.OutSlot, HandleUnderLock));
+                state.InvalidateCompilation();
+                output.Complete(create(output.OutSlot, module));
+                output.Handle.RetainProgram(AcquireProgramLeaseUnderLock());
                 return new MIGraphXInstruction(runtime, output.Handle);
             }
             catch

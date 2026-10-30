@@ -315,6 +315,15 @@ public sealed class M12LocalInterfaceTests
             modules.Dispose();
             Assert.Equal(1, controls.ProgramLiveCount());
             moduleClone.Dispose();
+            Assert.Equal(1, controls.ProgramLiveCount());
+            result.Dispose();
+            parameter.Dispose();
+            allocation.Dispose();
+            literal.Dispose();
+            Assert.Equal(1, controls.ProgramLiveCount());
+            inputs.Dispose();
+            Assert.Equal(1, controls.ProgramLiveCount());
+            inputClone.Dispose();
             Assert.Equal(0, controls.ProgramLiveCount());
         }
         program.Dispose();
@@ -335,6 +344,152 @@ public sealed class M12LocalInterfaceTests
         target.Dispose();
         compileOptions.Dispose();
 
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Theory]
+    [InlineData("parameter")]
+    [InlineData("allocation")]
+    [InlineData("literal")]
+    [InlineData("return")]
+    [InlineData("instruction")]
+    [InlineData("module-arguments")]
+    public void EveryGraphEditInvalidatesCompilationAndPreviouslyAcquiredContexts(string edit)
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        using (var program = new MIGraphXProgram(nativePath))
+        using (var main = program.GetMainModule())
+        using (var otherView = program.GetMainModule())
+        using (var branch = program.CreateModule("child"))
+        using (var modules = new MIGraphXModules(nativePath, new[] { branch }))
+        using (var target = new MIGraphXTarget(nativePath))
+        using (var compile = new MIGraphXCompileOptions(nativePath))
+        using (var operation = MIGraphXOperation.Create(nativePath, "identity"))
+        using (var map = new MIGraphXParameterMap(nativePath))
+        {
+            var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 });
+            using var parameter = main.AddParameter("input", shape);
+            using var arguments = new MIGraphXInstructions(nativePath, new[] { parameter });
+            using var literal = MIGraphXArgument.Create(nativePath, shape, new[] { 1f, 2f, 3f, 4f });
+            program.Compile(target, compile);
+            using var clone = program.Clone();
+            using var oldContext = program.GetExperimentalContext();
+            oldContext.Finish();
+
+            using var added = edit switch
+            {
+                "parameter" => otherView.AddParameter("extra", shape),
+                "allocation" => otherView.AddAllocation(shape),
+                "literal" => otherView.AddLiteral(literal),
+                "return" => otherView.AddReturn(arguments),
+                "instruction" => otherView.AddInstruction(operation, arguments),
+                _ => otherView.AddInstructionWithModuleArgs(operation, arguments, modules),
+            };
+
+            Assert.False(program.IsCompiled);
+            Assert.True(clone.IsCompiled);
+            Assert.Throws<InvalidOperationException>(() => program.Run(map));
+            Assert.Throws<InvalidOperationException>(() => program.EnqueueNativeAsync(map, new IntPtr(1), requireOffloadCopy: true));
+            Assert.Throws<InvalidOperationException>(() => program.GetExperimentalContext());
+            Assert.Throws<InvalidOperationException>(oldContext.Finish);
+            program.Compile(target, compile);
+            Assert.True(program.IsCompiled);
+            Assert.Throws<InvalidOperationException>(() => _ = oldContext.Queue);
+            using var currentContext = program.GetExperimentalContext();
+            currentContext.Finish();
+            Assert.NotEqual(IntPtr.Zero, currentContext.Queue);
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Theory]
+    [InlineData("migraphx_program_compile")]
+    [InlineData("migraphx_program_sort")]
+    [InlineData("migraphx_program_create_module")]
+    [InlineData("migraphx_module_add_allocation")]
+    public void NativeMutationFailuresDoNotKeepAStaleCompiledState(string entryPoint)
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        using (var program = new MIGraphXProgram(nativePath))
+        using (var main = program.GetMainModule())
+        using (var target = new MIGraphXTarget(nativePath))
+        using (var compile = new MIGraphXCompileOptions(nativePath))
+        {
+            program.Compile(target, compile);
+            using var context = program.GetExperimentalContext();
+            controls.SetFailure(entryPoint, (int)MIGraphXStatus.UnknownError);
+            var error = Assert.Throws<MIGraphXException>(() =>
+            {
+                switch (entryPoint)
+                {
+                    case "migraphx_program_compile": program.Compile(target, compile); break;
+                    case "migraphx_program_sort": program.Sort(); break;
+                    case "migraphx_program_create_module": using (program.CreateModule("failed")) { } break;
+                    default: using (main.AddAllocation(MIGraphXShape.CreateScalar(MIGraphXShapeDataType.Float32))) { } break;
+                }
+            });
+            Assert.Equal(entryPoint, error.Operation);
+            Assert.False(program.IsCompiled);
+            Assert.Throws<InvalidOperationException>(context.Finish);
+            program.Compile(target, compile);
+            Assert.True(program.IsCompiled);
+            Assert.Throws<InvalidOperationException>(context.Finish);
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public async System.Threading.Tasks.Task GraphMutationAndCompilationShareTheParentProgramLock()
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        controls.EnableProviderCallbackDispatch(true);
+        using var entered = new System.Threading.ManualResetEventSlim();
+        using var release = new System.Threading.ManualResetEventSlim();
+        using var compileStarting = new System.Threading.ManualResetEventSlim();
+        try
+        {
+            using var customOp = new MIGraphXExperimentalCustomOp(nativePath, "serialized_graph_mutation");
+            customOp.SetComputeShape((_, _, _, _, _) =>
+            {
+                entered.Set();
+                return release.Wait(TimeSpan.FromSeconds(5)) ? MIGraphXStatus.Success : MIGraphXStatus.UnknownError;
+            });
+            customOp.Register();
+            using var program = new MIGraphXProgram(nativePath);
+            using var main = program.GetMainModule();
+            using var operation = MIGraphXOperation.Create(nativePath, "serialized_graph_mutation");
+            using var arguments = new MIGraphXInstructions(nativePath, Array.Empty<MIGraphXInstruction>());
+            using var target = new MIGraphXTarget(nativePath);
+            using var compile = new MIGraphXCompileOptions(nativePath);
+            var mutation = System.Threading.Tasks.Task.Run(() => main.AddInstruction(operation, arguments));
+            System.Threading.Tasks.Task? compilation = null;
+            try
+            {
+                Assert.True(entered.Wait(TimeSpan.FromSeconds(5)));
+                compilation = System.Threading.Tasks.Task.Run(() =>
+                {
+                    compileStarting.Set();
+                    program.Compile(target, compile);
+                });
+                Assert.True(compileStarting.Wait(TimeSpan.FromSeconds(5)));
+                var firstCompleted = await System.Threading.Tasks.Task.WhenAny(compilation, System.Threading.Tasks.Task.Delay(100));
+                Assert.NotSame(compilation, firstCompleted);
+            }
+            finally
+            {
+                release.Set();
+                using var instruction = await mutation.WaitAsync(TimeSpan.FromSeconds(5));
+                if (compilation is not null) await compilation.WaitAsync(TimeSpan.FromSeconds(5));
+            }
+            Assert.True(program.IsCompiled);
+        }
+        finally { controls.EnableProviderCallbackDispatch(false); }
         AssertNoNativeLeaks(controls);
     }
 

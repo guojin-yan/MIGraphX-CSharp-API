@@ -15,8 +15,7 @@ public sealed class MIGraphXProgram : IDisposable
 {
     private readonly NativeResourceOwner<NativeProgramHandle> owner;
     private readonly IReadOnlyDictionary<string, MIGraphXDynamicDimension[]> dynamicOverrides;
-    private bool compiled;
-    private bool compiledOffloadCopy;
+    private readonly NativeProgramState state;
 
     /// <summary>
     /// 使用显式原生库创建空 program。
@@ -27,17 +26,19 @@ public sealed class MIGraphXProgram : IDisposable
     {
         var runtime = NativeRuntime.Load(nativeLibraryPath);
         owner = new NativeResourceOwner<NativeProgramHandle>(runtime, NativeProgramHandle.Create());
+        state = new NativeProgramState(owner.Id, owner.Sync);
         dynamicOverrides = new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
     }
 
     private MIGraphXProgram(NativeRuntime runtime, NativeProgramHandle handle, IReadOnlyDictionary<string, MIGraphXDynamicDimension[]>? dynamicOverrides = null)
     {
         owner = new NativeResourceOwner<NativeProgramHandle>(runtime, handle);
+        state = new NativeProgramState(owner.Id, owner.Sync);
         this.dynamicOverrides = dynamicOverrides ?? new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
     }
 
     /// <summary>获取 program 是否已由此对象成功编译；Dispose 后访问会失败。 Gets whether this object successfully compiled the program; access fails after disposal.</summary>
-    public bool IsCompiled => owner.WithHandle(_ => compiled);
+    public bool IsCompiled => owner.WithHandle(_ => state.IsCompiled);
 
     /// <summary>
     /// 从绝对 ONNX 文件路径解析 owned program。
@@ -135,7 +136,7 @@ public sealed class MIGraphXProgram : IDisposable
                 var pointer = Marshal.ReadIntPtr(slot);
                 if (pointer == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_get_main_module (success with null module)");
                 var lease = owner.AcquireLease();
-                try { return new MIGraphXModule(owner.Runtime, lease, pointer); }
+                try { return new MIGraphXModule(owner.Runtime, lease, pointer, state); }
                 catch { lease.Dispose(); throw; }
             }
             finally { Marshal.FreeHGlobal(slot); }
@@ -155,14 +156,14 @@ public sealed class MIGraphXProgram : IDisposable
                 try
                 {
                     Marshal.WriteIntPtr(slot, IntPtr.Zero);
+                    state.InvalidateCompilation();
                     NativeStatus.ThrowIfFailed(NativeMethods.ProgramCreateModule(slot, program, utf8.Pointer), "migraphx_program_create_module");
                     var pointer = Marshal.ReadIntPtr(slot);
                     if (pointer == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_create_module (success with null module)");
                     var lease = owner.AcquireLease();
                     try
                     {
-                        var result = new MIGraphXModule(owner.Runtime, lease, pointer);
-                        compiled = false;
+                        var result = new MIGraphXModule(owner.Runtime, lease, pointer, state);
                         return result;
                     }
                     catch { lease.Dispose(); throw; }
@@ -194,11 +195,15 @@ public sealed class MIGraphXProgram : IDisposable
             },
             () =>
             {
+                var programHandle = owner.HandleUnderLock;
+                var targetHandle = target.Owner.HandleUnderLock;
+                var optionsHandle = options.Owner.HandleUnderLock;
+                state.InvalidateCompilation();
                 NativeStatus.ThrowIfFailed(
-                    NativeMethods.ProgramCompile(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock),
+                    NativeMethods.ProgramCompile(programHandle, targetHandle, optionsHandle),
                     "migraphx_program_compile");
-                compiled = true;
-                compiledOffloadCopy = options.OffloadCopy;
+                state.IsCompiled = true;
+                state.OffloadCopy = options.OffloadCopy;
                 return 0;
             });
     }
@@ -211,8 +216,8 @@ public sealed class MIGraphXProgram : IDisposable
     {
         owner.WithHandle(handle =>
         {
+            state.InvalidateCompilation();
             NativeStatus.ThrowIfFailed(NativeMethods.ProgramSort(handle), "migraphx_program_sort");
-            compiled = false;
         });
     }
 
@@ -239,7 +244,7 @@ public sealed class MIGraphXProgram : IDisposable
             {
                 RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp16(handle), "migraphx_quantize_fp16");
-                compiled = false;
+                state.IsCompiled = false;
             });
         }
         else
@@ -251,7 +256,7 @@ public sealed class MIGraphXProgram : IDisposable
                 {
                     RequireUncompiledForQuantizationUnderLock();
                     NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp16WithOpNames(owner.HandleUnderLock, opNames.Owner.HandleUnderLock), "migraphx_quantize_fp16_with_op_names");
-                    compiled = false;
+                    state.IsCompiled = false;
                 });
         }
     }
@@ -267,7 +272,7 @@ public sealed class MIGraphXProgram : IDisposable
             {
                 RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeBf16(handle), "migraphx_quantize_bf16");
-                compiled = false;
+                state.IsCompiled = false;
             });
         }
         else
@@ -279,7 +284,7 @@ public sealed class MIGraphXProgram : IDisposable
                 {
                     RequireUncompiledForQuantizationUnderLock();
                     NativeStatus.ThrowIfFailed(NativeMethods.QuantizeBf16WithOpNames(owner.HandleUnderLock, opNames.Owner.HandleUnderLock), "migraphx_quantize_bf16_with_op_names");
-                    compiled = false;
+                    state.IsCompiled = false;
                 });
         }
     }
@@ -305,7 +310,7 @@ public sealed class MIGraphXProgram : IDisposable
             {
                 RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeInt8(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock), "migraphx_quantize_int8");
-                compiled = false;
+                state.IsCompiled = false;
             });
     }
 
@@ -330,7 +335,7 @@ public sealed class MIGraphXProgram : IDisposable
             {
                 RequireUncompiledForQuantizationUnderLock();
                 NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp8(owner.HandleUnderLock, target.Owner.HandleUnderLock, options.Owner.HandleUnderLock), "migraphx_quantize_fp8");
-                compiled = false;
+                state.IsCompiled = false;
             });
     }
 
@@ -401,7 +406,7 @@ public sealed class MIGraphXProgram : IDisposable
             },
             () =>
             {
-                if (!compiled) { throw new InvalidOperationException("The program must be compiled before Run."); }
+                if (!state.IsCompiled) { throw new InvalidOperationException("The program must be compiled before Run."); }
                 var required = GetParameterShapesUnderLock(owner.HandleUnderLock).Keys.ToArray();
                 var supplied = parameters.NamesUnderLock;
                 var requiredSet = new HashSet<string>(required, StringComparer.Ordinal);
@@ -478,11 +483,9 @@ public sealed class MIGraphXProgram : IDisposable
                 pair => pair.Key,
                 pair => pair.Value.ToArray(),
                 StringComparer.Ordinal);
-            var result = new MIGraphXProgram(owner.Runtime, NativeProgramHandle.CloneFrom(handle), overrides)
-            {
-                compiled = compiled,
-                compiledOffloadCopy = compiledOffloadCopy,
-            };
+            var result = new MIGraphXProgram(owner.Runtime, NativeProgramHandle.CloneFrom(handle), overrides);
+            result.state.IsCompiled = state.IsCompiled;
+            result.state.OffloadCopy = state.OffloadCopy;
             return result;
         });
     }
@@ -493,7 +496,7 @@ public sealed class MIGraphXProgram : IDisposable
     {
         return owner.WithHandle(program =>
         {
-            if (!compiled) throw new InvalidOperationException("The program must be compiled before acquiring its experimental context.");
+            if (!state.IsCompiled) throw new InvalidOperationException("The program must be compiled before acquiring its experimental context.");
             var slot = Marshal.AllocHGlobal(IntPtr.Size);
             try
             {
@@ -502,7 +505,7 @@ public sealed class MIGraphXProgram : IDisposable
                 var context = Marshal.ReadIntPtr(slot);
                 if (context == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_experimental_get_context (success with null context)");
                 var lease = owner.AcquireLease();
-                try { return new MIGraphXContext(lease, context); }
+                try { return new MIGraphXContext(lease, context, state); }
                 catch { lease.Dispose(); throw; }
             }
             finally { Marshal.FreeHGlobal(slot); }
@@ -530,8 +533,8 @@ public sealed class MIGraphXProgram : IDisposable
             },
             () =>
             {
-                if (!compiled) throw new InvalidOperationException("The program must be compiled before asynchronous execution.");
-                if (compiledOffloadCopy != requireOffloadCopy)
+                if (!state.IsCompiled) throw new InvalidOperationException("The program must be compiled before asynchronous execution.");
+                if (state.OffloadCopy != requireOffloadCopy)
                 {
                     throw new InvalidOperationException(requireOffloadCopy
                         ? "Host async execution requires a program compiled with offloadCopy=true."
@@ -623,7 +626,7 @@ public sealed class MIGraphXProgram : IDisposable
 
     private void RequireUncompiledForQuantizationUnderLock()
     {
-        if (compiled)
+        if (state.IsCompiled)
         {
             throw new InvalidOperationException("Quantization must be applied before program compilation.");
         }

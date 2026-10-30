@@ -24,8 +24,8 @@
     {
       "type": "MIGraphXProgram",
       "nativeOwnership": "owned migraphx_program_t SafeHandle",
-      "managedOwnership": "compiled state stored per instance",
-      "threadSafety": "same-instance operations and Dispose are serialized; no general upstream thread-safety claim",
+      "managedOwnership": "compiled state and revision shared with program-owned graph/context views; clones have independent state",
+      "threadSafety": "same-program operations, graph-view native calls and Dispose share one lock; no general upstream or pending asynchronous mutation safety claim",
       "disposeBehavior": "idempotent; collection snapshots remain valid",
       "failureCleanup": "parse success-null and failure-non-null paths fail closed and release",
       "afterOwnerDispose": "all instance members throw ObjectDisposedException except repeated Dispose"

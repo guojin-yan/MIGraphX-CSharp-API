@@ -6,6 +6,10 @@ namespace JYPPX.ROCm.MIGraphXSharp.Interop;
 
 internal sealed class NativeInstructionHandle : NativeOwnedHandle
 {
+    private NativeHandleLease? programLease;
+
+    internal void RetainProgram(NativeHandleLease lease) => programLease = lease;
+
     internal static NativeInstructionHandle FromOut(IntPtr slot, string operation)
     {
         var raw = Marshal.ReadIntPtr(slot);
@@ -14,7 +18,11 @@ internal sealed class NativeInstructionHandle : NativeOwnedHandle
         return NativeHandleFactory.CompleteCreate(owned, NativeMIGraphXStatus.Success, operation);
     }
 
-    protected override bool ReleaseHandle() { NativeMethods.InstructionDestroy(handle); return true; }
+    protected override bool ReleaseHandle()
+    {
+        try { NativeMethods.InstructionDestroy(handle); return true; }
+        finally { System.Threading.Interlocked.Exchange(ref programLease, null)?.Dispose(); }
+    }
 }
 
 internal sealed class NativeInstructionsHandle : NativeOwnedHandle
