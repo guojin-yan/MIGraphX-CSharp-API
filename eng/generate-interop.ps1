@@ -35,18 +35,18 @@ if ((Get-Item -LiteralPath $HeaderPath).Length -ne $manifest.source.headerByteLe
 }
 
 $temporaryBase = [IO.Path]::GetFullPath([IO.Path]::GetTempPath())
-$temporaryRoot = Join-Path $temporaryBase ("migraphxsharp-m3-" + [Guid]::NewGuid().ToString('N'))
+$temporaryRoot = Join-Path $temporaryBase ("migraphxsharp-bindings-" + [Guid]::NewGuid().ToString('N'))
 $preprocessedPath = Join-Path $temporaryRoot 'migraphx.preprocessed.c'
 $outputRoot = Join-Path $temporaryRoot 'output'
-$includeRoot = Join-Path $root 'eng\m3-include'
+$includeRoot = Join-Path $root 'eng\include\preprocess'
 
 try {
     New-Item -ItemType Directory -Force -Path $temporaryRoot, $outputRoot | Out-Null
     if ($IsWindows -or $env:OS -eq 'Windows_NT') {
         $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-        if (-not (Test-Path -LiteralPath $vswhere)) { throw 'Visual Studio C++ tools were not found for M3 preprocessing.' }
+        if (-not (Test-Path -LiteralPath $vswhere)) { throw 'Visual Studio C++ tools were not found for header preprocessing.' }
         $installation = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1)
-        if (-not $installation) { throw 'Visual Studio C++ tools were not found for M3 preprocessing.' }
+        if (-not $installation) { throw 'Visual Studio C++ tools were not found for header preprocessing.' }
         $toolsVersion = Get-ChildItem -LiteralPath (Join-Path $installation 'VC\Tools\MSVC') -Directory | Sort-Object Name -Descending | Select-Object -First 1
         $compiler = Join-Path $toolsVersion.FullName 'bin\Hostx64\x64\cl.exe'
         $compilerOutput = @(& $compiler /nologo /P /EP /TC /X "/I$includeRoot" "/Fi$preprocessedPath" $HeaderPath 2>&1)
@@ -54,7 +54,7 @@ try {
     else {
         $compilerCommand = Get-Command cc -ErrorAction SilentlyContinue
         if (-not $compilerCommand) { $compilerCommand = Get-Command gcc -ErrorAction SilentlyContinue }
-        if (-not $compilerCommand) { throw 'A C compiler (cc or gcc) is required for M3 preprocessing.' }
+        if (-not $compilerCommand) { throw 'A C compiler (cc or gcc) is required for header preprocessing.' }
         $preprocessed = @(& $compilerCommand.Source -E -P -nostdinc -I $includeRoot -x c $HeaderPath 2>&1)
     }
     if ($LASTEXITCODE -ne 0) {
@@ -73,7 +73,7 @@ try {
         --classification $classificationPath `
         --unsupported $unsupportedPath `
         --output $outputRoot
-    if ($LASTEXITCODE -ne 0) { throw 'The structured M3 binding generator failed.' }
+    if ($LASTEXITCODE -ne 0) { throw 'The structured binding generator failed.' }
 
     $relativeOutputs = @(
         'compatibility/m3-normalized-api.json',
@@ -97,7 +97,7 @@ try {
         }
     }
     else {
-        $suffix = '.m3tmp-' + [Guid]::NewGuid().ToString('N')
+        $suffix = '.binding-tmp-' + [Guid]::NewGuid().ToString('N')
         $staged = @()
         try {
             foreach ($relativePath in $relativeOutputs) {
@@ -153,4 +153,4 @@ finally {
     }
 }
 
-Write-Output "M3 structured interop generation $($(if ($Verify) { 'verification' } else { 'update' })) passed for $actualHash."
+Write-Output "Structured interop generation $($(if ($Verify) { 'verification' } else { 'update' })) passed for $actualHash."

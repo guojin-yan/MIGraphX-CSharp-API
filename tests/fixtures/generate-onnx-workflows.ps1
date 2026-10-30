@@ -5,10 +5,10 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-. (Join-Path $PSScriptRoot 'common.ps1')
+. (Join-Path $PSScriptRoot '../../eng/common.ps1')
 $root = Get-RepositoryRoot
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
-    $OutputDirectory = Join-Path (Get-ArtifactsRoot) 'models\m11'
+    $OutputDirectory = Join-Path (Get-ArtifactsRoot) 'models\onnx-workflows'
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
@@ -158,7 +158,7 @@ $dynamicIdentity = New-Model `
     -Outputs (,$dynamicOutput)
 
 $identityPath = Join-Path $OutputDirectory 'm2-identity-float32.onnx'
-& (Join-Path $PSScriptRoot 'generate-m2-model.ps1') -OutputPath $identityPath | Out-Null
+& (Join-Path $PSScriptRoot 'generate-onnx-identity.ps1') -OutputPath $identityPath | Out-Null
 $fixtures = @(
     [ordered]@{ Name = 'identity'; FileName = 'm2-identity-float32.onnx'; Graph = 'Identity(float32[1,4])'; Bytes = [IO.File]::ReadAllBytes($identityPath) },
     [ordered]@{ Name = 'multi-output'; FileName = 'm11-multi-output-float32.onnx'; Graph = 'Identity+Neg(float32[2,2], ordered outputs)'; Bytes = $multiOutput },

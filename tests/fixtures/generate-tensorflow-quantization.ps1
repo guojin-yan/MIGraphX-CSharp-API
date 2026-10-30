@@ -5,10 +5,10 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-. (Join-Path $PSScriptRoot 'common.ps1')
+. (Join-Path $PSScriptRoot '../../eng/common.ps1')
 $root = Get-RepositoryRoot
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
-    $OutputDirectory = Join-Path (Get-ArtifactsRoot) 'models\m12'
+    $OutputDirectory = Join-Path (Get-ArtifactsRoot) 'models\tensorflow-quantization'
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
@@ -152,6 +152,8 @@ $tensorflowPath = Join-Path $OutputDirectory 'm12-tensorflow-minimal.pb'
 [IO.File]::WriteAllBytes($tensorflowPath, (New-TensorFlowGraph))
 
 $calibrationPath = Join-Path $OutputDirectory 'm12-calibration-map.json'
+# Preserve the frozen fixture bytes, including its original generator identity.
+# This metadata is an artifact identity, not the current script invocation path.
 $json = @'
 {
   "schemaVersion": "1.0.0",

@@ -12,6 +12,11 @@ foreach ($name in $reservedDirectories) {
 foreach ($name in @('design', 'validation', 'articles')) {
     if (Test-Path -LiteralPath (Join-Path $root "docs/$name")) { $violations.Add("docs/$name (development record)") }
 }
+foreach ($entry in Get-ChildItem -LiteralPath (Join-Path $root 'eng') -Recurse -Force) {
+    if ($entry.Name -match '(?i)(?:^|-)m\d+(?:-|\.)') {
+        $violations.Add([IO.Path]::GetRelativePath($root, $entry.FullName) + ' (development stage name)')
+    }
+}
 $pending = [Collections.Generic.Stack[string]]::new()
 $pending.Push($root)
 while ($pending.Count -gt 0) {

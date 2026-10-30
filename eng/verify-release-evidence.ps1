@@ -36,12 +36,14 @@ foreach ($evidence in $index.evidence) {
     }
 }
 
-$sbom = Get-Content -Raw -LiteralPath (Join-Path $directory 'm8-managed.sbom.cdx.json') | ConvertFrom-Json
+$sbomName = if (Test-Path -LiteralPath (Join-Path $directory 'managed.sbom.cdx.json')) { 'managed.sbom.cdx.json' } else { 'm8-managed.sbom.cdx.json' }
+$sbom = Get-Content -Raw -LiteralPath (Join-Path $directory $sbomName) | ConvertFrom-Json
 if ($sbom.bomFormat -ne 'CycloneDX' -or $sbom.specVersion -ne '1.5' -or @($sbom.components | Where-Object type -eq 'file').Count -eq 0) {
     throw 'Managed product SBOM is incomplete.'
 }
-$provenance = Get-Content -Raw -LiteralPath (Join-Path $directory 'm8-managed.provenance.json') | ConvertFrom-Json
+$provenanceName = if (Test-Path -LiteralPath (Join-Path $directory 'managed.provenance.json')) { 'managed.provenance.json' } else { 'm8-managed.provenance.json' }
+$provenance = Get-Content -Raw -LiteralPath (Join-Path $directory $provenanceName) | ConvertFrom-Json
 if ($provenance.predicateType -ne 'https://slsa.dev/provenance/v1' -or $provenance.predicate.runDetails.metadata.publicationAuthorized -ne $false) {
     throw 'Managed provenance boundary is incorrect.'
 }
-Write-Output "M8 managed release evidence verified: $indexPath"
+Write-Output "Managed release evidence verified: $indexPath"

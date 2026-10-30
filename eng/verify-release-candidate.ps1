@@ -67,7 +67,7 @@ function Get-VulnerabilityCount {
 $vulnerabilityCount = Get-VulnerabilityCount -Value $scan
 if ($vulnerabilityCount -ne 0) { throw "NuGet vulnerability scan found $vulnerabilityCount vulnerable package record(s)." }
 $evidenceDirectory = Join-Path (Get-ArtifactsRoot) "release-evidence\$Version\$RepositoryCommit"
-$scanPath = Join-Path $evidenceDirectory 'm8-vulnerability-scan.json'
+$scanPath = Join-Path $evidenceDirectory 'vulnerability-scan.json'
 $scanSummary = [ordered]@{
     schemaVersion = '1.0.0'
     command = 'dotnet list adapter-package-consumer package --vulnerable --include-transitive --format json --output-version 1 --no-restore'

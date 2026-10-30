@@ -43,8 +43,7 @@ jobs:
         shell: pwsh
         run: |
           ./eng/generate-interop.ps1 -AcquireHeader -Verify
-          ./eng/verify-m2-abi.ps1 -AcquireInputs
-          ./eng/verify-m3-abi.ps1 -AcquireInputs
+          ./eng/verify-native-abi.ps1 -AcquireInputs
       - name: Test and smoke
         shell: pwsh
         run: ./eng/test.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"

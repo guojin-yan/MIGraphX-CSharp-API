@@ -27,16 +27,8 @@ if (-not [string]::IsNullOrWhiteSpace($HipSharpRepositoryRoot)) {
 }
 Push-Location $root
 try {
-    & (Join-Path $PSScriptRoot 'verify-m3-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m4-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m5-coverage.ps1') | Out-Host
-    $m6Arguments = @{}
-    if (-not [string]::IsNullOrWhiteSpace($HipSharpRepositoryRoot)) { $m6Arguments.HipSharpRepositoryRoot = $HipSharpRepositoryRoot }
-    & (Join-Path $PSScriptRoot 'verify-m6-coverage.ps1') @m6Arguments | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m9-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m10-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m11-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m12-coverage.ps1') | Out-Host
+    & (Join-Path $PSScriptRoot 'verify-binding-contract.ps1') | Out-Host
+    & (Join-Path $PSScriptRoot 'verify-hipsharp-source.ps1') -HipSharpRepositoryRoot $HipSharpRepositoryRoot | Out-Host
     if (-not $NoRestore) {
         Invoke-DotNet -Arguments (@('restore', '.\MIGraphXSharp.sln') + $properties)
     }

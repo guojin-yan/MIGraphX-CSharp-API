@@ -771,7 +771,7 @@ internal static class BindingGenerator
                 expectedPublicFunctions = 159,
                 observedMigraphxExports = 160,
                 knownPrivateExtras = new[] { "migraphx_test_private_disable_exception_catch" },
-                evidence = "statically-verified by eng/verify-m3-abi.ps1; no new runtime execution",
+                evidence = "statically-verified by eng/verify-native-abi.ps1; no new runtime execution",
             },
             runtimeBoundary = $"Reviewed official execution is bounded to the M1/M2 workflow plus five M9 option setters at {RuntimeSha}; the rest of the M3 inventory remains static ABI evidence.",
         };

@@ -6,7 +6,7 @@ Keep library code, user documentation, reproducible scripts and reviewed source 
 
 - `src/`, `samples/`, `tests/`, `smoke/` and `native/`: source code and test fixtures expressed as source.
 - `docs/`: installation, usage, API and compatibility documentation for users.
-- `eng/` and `tools/`: build, generation, packaging and diagnostic tooling with usage instructions.
+- `eng/` and `tools/`: build, generation, packaging and diagnostic tooling with usage instructions. Name active tooling by function; keep historical stage acceptance scripts outside the checkout.
 - `compatibility/`: frozen generator inputs, public API snapshots, ownership contracts, runtime case specifications and support disclosure policy.
 - `pack/`: package distribution policy.
 
@@ -49,7 +49,7 @@ Run checks appropriate to the change. The standard entry points are:
 .\eng\docs.ps1 -Configuration Release -NoBuild
 ```
 
-Native declarations are generated from the frozen header and normalized model; do not hand-edit `src/**/Generated/*.cs`. Use `eng/generate-interop.ps1 -AcquireHeader -Verify` to check reproducibility. ABI, coverage, public API and package checks live under `eng/`.
+Native declarations are generated from the frozen header and normalized model; do not hand-edit `src/**/Generated/*.cs`. Use `eng/generate-interop.ps1 -AcquireHeader -Verify` to check reproducibility. See [engineering commands](eng/README.md) for native ABI, public API and package checks. Reproducible model generators live in [tests/fixtures](tests/fixtures/README.md).
 
 Keep substitute-library tests separate from official runtime qualification. Runtime probes require an explicit isolated output record and source/package/native identities. Preserve failures outside the checkout. `compatibility/runtime-support-policy.json` describes declared support; it is not a new execution report.
 

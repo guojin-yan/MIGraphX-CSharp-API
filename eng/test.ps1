@@ -19,7 +19,8 @@ try {
         & (Join-Path $PSScriptRoot 'build.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $RepositoryCommit -HipSharpRepositoryRoot $HipSharpRepositoryRoot
     }
     & (Join-Path $PSScriptRoot 'build-fake-native.ps1') -Configuration $Configuration
-    & (Join-Path $PSScriptRoot 'generate-m2-model.ps1') | Out-Host
+    & (Join-Path $PSScriptRoot 'verify-test-native-exports.ps1') -Configuration $Configuration | Out-Host
+    & (Join-Path $root 'tests/fixtures/generate-onnx-identity.ps1') | Out-Host
     Invoke-DotNet -Arguments @('test', '.\MIGraphXSharp.sln', '-c', $Configuration, '--no-build', '--logger', 'console;verbosity=normal')
     Invoke-DotNet -Arguments @('run', '--project', './smoke/EnvironmentSmokeRunner/EnvironmentSmokeRunner.csproj', '-c', $Configuration, '--no-build')
     $fakeName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c.dll' } else { 'libmigraphx_c.so' }

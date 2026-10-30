@@ -32,7 +32,7 @@
     "semanticSource": "this manifest"
   },
   "reproducibleModel": {
-    "generator": "eng/generate-m2-model.ps1",
+    "generator": "tests/fixtures/generate-onnx-identity.ps1",
     "sha256": "0b6fa0302a08a3fccf375d8ce4f84b7da59ccfa742fc59a0baa5f31722ae75f9",
     "byteLength": 128,
     "graph": "Identity(float32[1,4] -> float32[1,4]); ONNX IR 8; opset 13",

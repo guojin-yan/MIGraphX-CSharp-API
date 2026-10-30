@@ -11,7 +11,6 @@ param(
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
-& (Join-Path $PSScriptRoot 'verify-m4-coverage.ps1') | Out-Host
 $packagePath = (Resolve-Path -LiteralPath $PackagePath).Path
 $expectedFrameworks = @(
     'net46', 'net461', 'net462', 'net47', 'net471', 'net472', 'net48', 'net481',
@@ -125,7 +124,7 @@ if (-not $SkipConsumers) {
 
     # Execute one managed-only consumer on the current SDK runtime. The program
     # intentionally touches no native entry point; this proves that the packed
-    # assembly can load and run its value-level M12 surface after clean restore.
+    # assembly can load and run its value-level API after clean restore.
     $managedConsumer = Join-Path (Get-ArtifactsRoot) 'package-consumers\net10.0\bin\Release\net10.0\Consumer.dll'
     if (-not (Test-Path -LiteralPath $managedConsumer -PathType Leaf)) {
         throw "Managed consumer output is missing: $managedConsumer"

@@ -3,7 +3,7 @@ param(
     [string] $OutputPath
 )
 
-. (Join-Path $PSScriptRoot 'common.ps1')
+. (Join-Path $PSScriptRoot '../../eng/common.ps1')
 $root = Get-RepositoryRoot
 if (-not $OutputPath) {
     $OutputPath = Join-Path (Get-ArtifactsRoot) 'models\m2-identity-float32.onnx'

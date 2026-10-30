@@ -598,15 +598,12 @@ public sealed class RepositoryQualityTests
         {
             Assert.Contains("$(HipSharpRepositoryRoot)/src/JYPPX.ROCm.HipSharp/", File.ReadAllText(projectFile), StringComparison.Ordinal);
         }
-        var m6Coverage = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-m6-coverage.ps1"));
-        Assert.Contains("HipSharpRepositoryRoot", m6Coverage, StringComparison.Ordinal);
-        Assert.Contains("M6 requires a HIP-CSharp-API source root", m6Coverage, StringComparison.Ordinal);
-        foreach (var gateScript in new[] { "build.ps1" })
-        {
-            var gateText = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", gateScript));
-            Assert.Contains("m6Arguments", gateText, StringComparison.Ordinal);
-            Assert.Contains("verify-m6-coverage.ps1", gateText, StringComparison.Ordinal);
-        }
+        var hipSourceCheck = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-hipsharp-source.ps1"));
+        Assert.Contains("HipSharpRepositoryRoot", hipSourceCheck, StringComparison.Ordinal);
+        Assert.Contains("HIPSHARP_REPOSITORY_ROOT", hipSourceCheck, StringComparison.Ordinal);
+        var buildScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "build.ps1"));
+        Assert.Contains("verify-hipsharp-source.ps1", buildScript, StringComparison.Ordinal);
+        Assert.Contains("verify-binding-contract.ps1", buildScript, StringComparison.Ordinal);
         var buildShell = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "build.sh"));
         Assert.Contains("HIPSHARP_REPOSITORY_ROOT", buildShell, StringComparison.Ordinal);
         Assert.Contains("-HipSharpRepositoryRoot", buildShell, StringComparison.Ordinal);
@@ -731,8 +728,7 @@ public sealed class RepositoryQualityTests
         Assert.Contains("actions/setup-dotnet@v6", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-package.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/generate-interop.ps1", buildWorkflow, StringComparison.Ordinal);
-        Assert.Contains("eng/verify-m2-abi.ps1", buildWorkflow, StringComparison.Ordinal);
-        Assert.Contains("eng/verify-m3-abi.ps1", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("eng/verify-native-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);
@@ -753,7 +749,9 @@ public sealed class RepositoryQualityTests
         Assert.Contains("build.ps1", docsScript, StringComparison.Ordinal);
         Assert.Contains("Get-WorkspaceRoot", docsScript, StringComparison.Ordinal);
         Assert.DoesNotContain("verify-public-api.ps1", docsScript, StringComparison.Ordinal);
-        Assert.DoesNotContain("verify-m12-coverage.ps1", docsScript, StringComparison.Ordinal);
+        Assert.DoesNotMatch(@"verify-m\d+-", docsScript);
+        Assert.DoesNotContain(Directory.EnumerateFileSystemEntries(Path.Combine(RepositoryRoot, "eng"), "*", SearchOption.AllDirectories),
+            path => Regex.IsMatch(Path.GetFileName(path), @"(?:^|-)m\d+(?:-|\.)", RegexOptions.IgnoreCase));
         Assert.True(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-repository-layout.ps1")));
         Assert.False(Directory.Exists(Path.Combine(RepositoryRoot, "docs", "validation")));
         Assert.False(Directory.Exists(Path.Combine(RepositoryRoot, "docs", "design")));

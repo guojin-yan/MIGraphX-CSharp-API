@@ -36,10 +36,10 @@ if ($hip.sha256 -ne 'e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2
     throw "HipSharp package hash mismatch: $($hip.sha256)"
 }
 
-$manifestPath = Join-Path $OutputDirectory 'm8-managed-package-manifest.json'
-$sbomPath = Join-Path $OutputDirectory 'm8-managed.sbom.cdx.json'
-$provenancePath = Join-Path $OutputDirectory 'm8-managed.provenance.json'
-$indexPath = Join-Path $OutputDirectory 'm8-release-evidence.json'
+$manifestPath = Join-Path $OutputDirectory 'managed-package-manifest.json'
+$sbomPath = Join-Path $OutputDirectory 'managed.sbom.cdx.json'
+$provenancePath = Join-Path $OutputDirectory 'managed.provenance.json'
+$indexPath = Join-Path $OutputDirectory 'release-evidence.json'
 $inputScanPath = (Resolve-Path -LiteralPath $VulnerabilityScanPath).Path
 $scanPath = Join-Path $OutputDirectory ([IO.Path]::GetFileName($inputScanPath))
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
@@ -56,7 +56,7 @@ $manifestPackages = @(@($core, $adapter) | ForEach-Object {
 })
 $manifest = [ordered]@{
     schemaVersion = '1.0.0'
-    scope = 'M8 managed release candidate; no native payload'
+    scope = 'Managed package release candidate; no native payload'
     source = [ordered]@{ repository = 'https://github.com/guojin-yan/MIGraphX-CSharp-API'; commit = $RepositoryCommit }
     version = $Version
     packageIdentityPolicy = 'NuGet ZIP SHA-256 and normalized content SHA-256 are distinct identities.'

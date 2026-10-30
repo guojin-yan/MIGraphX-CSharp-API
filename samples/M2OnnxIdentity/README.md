@@ -3,7 +3,7 @@
 Generate the deterministic Identity model, then pass absolute paths for both the native MIGraphX C library and model:
 
 ```powershell
-.\eng\generate-m2-model.ps1
+.\tests\fixtures\generate-onnx-identity.ps1
 dotnet run --project .\samples\M2OnnxIdentity\M2OnnxIdentity.csproj -c Release -- `
   C:\absolute\path\to\migraphx_c.dll `
   $PWD\..\MIGraphXSharp.Workspace\artifacts\models\m2-identity-float32.onnx

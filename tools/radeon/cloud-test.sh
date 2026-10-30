@@ -36,10 +36,10 @@ mkdir -p "${results}"
 } | tee "${results}/official-library.txt"
 ./eng/build.sh 2>&1 | tee "${results}/managed-gates.txt"
 pwsh ./eng/generate-interop.ps1 -HeaderPath "${header_path}" -Verify 2>&1 | tee "${results}/generator.txt"
-pwsh ./eng/verify-m2-abi.ps1 -HeaderPath "${header_path}" -OfficialElfPath "${resolved_library}" 2>&1 | tee "${results}/abi-exports-model.txt"
+pwsh ./eng/verify-native-abi.ps1 -HeaderPath "${header_path}" -OfficialElfPath "${resolved_library}" 2>&1 | tee "${results}/abi-exports-model.txt"
 dotnet run --project ./smoke/EnvironmentSmokeRunner/EnvironmentSmokeRunner.csproj -c Release --no-build -- --utf8-probe "${resolved_library}" 2>&1 | tee "${results}/official-m1-smoke.json"
 model_path="${results}/m2-identity-float32.onnx"
-pwsh ./eng/generate-m2-model.ps1 -OutputPath "${model_path}" 2>&1 | tee "${results}/model.txt"
+pwsh ./tests/fixtures/generate-onnx-identity.ps1 -OutputPath "${model_path}" 2>&1 | tee "${results}/model.txt"
 dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj -c Release --no-build -- --runtime-candidate "${resolved_library}" "${model_path}" 2>&1 | tee "${results}/official-m2-smoke.json"
 dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj -c Release --no-build -- --runtime-options-candidate "${resolved_library}" "${model_path}" 2>&1 | tee "${results}/official-m9-options-smoke.json"
 
@@ -48,7 +48,7 @@ dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csp
 # and the independent reviewer below must pass before it is summarized as complete.
 m12_fixture_directory="${workspace_root}/artifacts/models/m12"
 pwsh ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild 2>&1 | tee "${results}/m12-package.txt"
-pwsh ./eng/generate-m12-fixtures.ps1 -OutputDirectory "${m12_fixture_directory}" 2>&1 | tee "${results}/m12-fixtures.txt"
+pwsh ./tests/fixtures/generate-tensorflow-quantization.ps1 -OutputDirectory "${m12_fixture_directory}" 2>&1 | tee "${results}/m12-fixtures.txt"
 m12_package="${workspace_root}/artifacts/packages/JYPPX.ROCm.MIGraphX.CSharp.API.0.0.0.nupkg"
 cloud_record_root="${MIGRAPHX_CLOUD_RECORD_ROOT:-/workspace/migraphx-cloud-records/${COMMIT_SHA}}"
 [[ "${cloud_record_root}" = /* ]] || { echo 'MIGRAPHX_CLOUD_RECORD_ROOT must be absolute' >&2; exit 1; }
