@@ -45,6 +45,7 @@ try {
     # Rebuild the direct consumer project so the test binary uses the same configuration as the candidate.
     Invoke-DotNet -Arguments (@('build', '.\tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\JYPPX.ROCm.MIGraphXSharp.UnitTests.csproj', '-c', $Configuration, '--no-restore') + $properties)
     & (Join-Path $PSScriptRoot 'verify-public-api.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $RepositoryCommit -SkipToolBuild
+    & (Join-Path $PSScriptRoot 'verify-repository-layout.ps1') | Out-Host
 }
 finally {
     Pop-Location

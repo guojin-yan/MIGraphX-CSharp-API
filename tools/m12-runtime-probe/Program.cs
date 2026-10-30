@@ -38,8 +38,11 @@ internal static class Program
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
-        Directory.CreateDirectory(options?.RecordDirectory ?? Directory.GetCurrentDirectory());
-        File.WriteAllText(options?.OutputPath ?? "m12-runtime.json", json + Environment.NewLine);
+        if (options is not null)
+        {
+            Directory.CreateDirectory(options.RecordDirectory);
+            File.WriteAllText(options.OutputPath, json + Environment.NewLine);
+        }
         Console.WriteLine(json);
         return report.State == "executed" ? 0 : 1;
     }

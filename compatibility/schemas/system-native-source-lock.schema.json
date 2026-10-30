@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "rid",
+    "nativeVersion",
+    "source",
+    "packages"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "rid": {
+      "const": "linux-x64"
+    },
+    "nativeVersion": {
+      "const": "2.15.0.70201-81~24.04"
+    },
+    "source": {
+      "type": "object"
+    },
+    "packages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "version",
+          "architecture",
+          "url",
+          "size",
+          "sha256",
+          "role",
+          "acquisition"
+        ]
+      }
+    }
+  }
+}

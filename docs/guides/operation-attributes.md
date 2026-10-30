@@ -1,6 +1,14 @@
-# M12 typed operation attributes
+# Typed operation attributes
 
-The [`M12TypedOperationAttributes` sample](https://github.com/guojin-yan/MIGraphX-CSharp-API/tree/main/samples/M12TypedOperationAttributes) materializes the five reviewed operation forms without passing arbitrary C format placeholders or general C variadic values through the native ABI: `reshape`, `transpose`, `slice`, `multibroadcast`, and `topk`.
+`MIGraphXOperationAttributes` builds ordinary managed values for operation attributes. The named factories cover `reshape`, `transpose`, `slice`, `multibroadcast`, and `topk`. The general builder accepts integral, finite floating-point, Boolean, string, null, and array values, including Boolean arrays. It materializes the complete attribute text before calling native code; arbitrary C format placeholders and C variadic values are excluded.
+
+```csharp
+var attributes = MIGraphXOperationAttributes.ForReshape(new long[] { 1, 4 });
+using var operation = MIGraphXOperation.Create(nativePath, "reshape", attributes);
+using var clone = operation.Clone();
+```
+
+Use attributes valid for the selected native operation and model shape. Managed serialization does not establish every operation's semantics on every target. See the [`M12TypedOperationAttributes` sample](https://github.com/guojin-yan/MIGraphX-CSharp-API/tree/main/samples/M12TypedOperationAttributes) for all five named forms.
 
 Run it without arguments to inspect the managed serialization path on a development machine without MIGraphX installed:
 

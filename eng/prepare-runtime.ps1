@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string] $Manifest = 'nuget/runtime-manifests/linux-x64.json',
+    [string] $Manifest = 'compatibility/system-native-source-lock.json',
     [string] $CacheDirectory = '.cache/runtime/rocm-7.2.1-noble',
     [switch] $Offline,
     [string] $TarPath = 'tar',
@@ -12,19 +12,20 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
+$workspace = Get-WorkspaceRoot
 Import-Module (Join-Path $PSScriptRoot 'runtime-source-lock.psm1') -Force
 Import-Module (Join-Path $PSScriptRoot 'runtime-archive.psm1') -Force
 $manifestPath = if ([IO.Path]::IsPathRooted($Manifest)) { [IO.Path]::GetFullPath($Manifest) } else { [IO.Path]::GetFullPath((Join-Path $root $Manifest)) }
 $runtime = (Get-MIGraphXSystemRuntimeSourceLock $manifestPath).Value
 Assert-MIGraphXSystemRuntimeSourceLock $runtime
 
-function Resolve-UnderRepository([string] $Value) {
-    $path = if ([IO.Path]::IsPathRooted($Value)) { [IO.Path]::GetFullPath($Value) } else { [IO.Path]::GetFullPath((Join-Path $root $Value)) }
-    if (-not $path.StartsWith($root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
-        throw "Runtime audit cache paths must remain under the repository: $path"
+function Resolve-UnderWorkspace([string] $Value) {
+    $path = if ([IO.Path]::IsPathRooted($Value)) { [IO.Path]::GetFullPath($Value) } else { [IO.Path]::GetFullPath((Join-Path $workspace $Value)) }
+    if (-not $path.StartsWith($workspace + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw "Runtime audit cache paths must remain under the external workspace: $path"
     }
-    $relative = [IO.Path]::GetRelativePath($root, $path)
-    $current = $root
+    $relative = [IO.Path]::GetRelativePath($workspace, $path)
+    $current = $workspace
     foreach ($segment in $relative.Split([IO.Path]::DirectorySeparatorChar, [StringSplitOptions]::RemoveEmptyEntries)) {
         $current = Join-Path $current $segment
         if (Test-Path -LiteralPath $current) {
@@ -146,13 +147,13 @@ function Invoke-SignatureVerification([string] $KeyPath, [string] $KeyringPath, 
     if (-not (Test-Path -LiteralPath $KeyringPath -PathType Leaf)) {
         throw "A dearmored archive keyring is required when only Docker gpgv is available: $KeyringPath"
     }
-    $relativeKeyring = [IO.Path]::GetRelativePath($root, $KeyringPath).Replace('\', '/')
-    $relativeRelease = [IO.Path]::GetRelativePath($root, $InReleasePath).Replace('\', '/')
-    $signature = @(& $docker.Source run --rm -v "${root}:/work" -w /work ubuntu:24.04 gpgv --keyring "/work/$relativeKeyring" "/work/$relativeRelease" 2>&1)
+    $relativeKeyring = [IO.Path]::GetRelativePath($workspace, $KeyringPath).Replace('\', '/')
+    $relativeRelease = [IO.Path]::GetRelativePath($workspace, $InReleasePath).Replace('\', '/')
+    $signature = @(& $docker.Source run --rm -v "${workspace}:/work" -w /work ubuntu:24.04 gpgv --keyring "/work/$relativeKeyring" "/work/$relativeRelease" 2>&1)
     if ($LASTEXITCODE -ne 0 -or ($signature -join "`n") -notmatch [regex]::Escape($runtime.source.signingKeyFingerprint)) { throw 'Docker gpgv rejected the AMD InRelease signature.' }
 }
 
-$cache = Resolve-UnderRepository $CacheDirectory
+$cache = Resolve-UnderWorkspace $CacheDirectory
 New-Item -ItemType Directory -Force -Path $cache | Out-Null
 $key = Join-Path $cache 'rocm.gpg.key'
 $keyring = Join-Path $cache 'rocm-archive-keyring.gpg'
@@ -169,7 +170,7 @@ if ($releaseText -notmatch "(?m)^\s*$escapedHash\s+\d+\s+main/binary-amd64/Packa
     throw 'The signed InRelease metadata does not bind the pinned Packages.gz hash.'
 }
 $index = Read-PackagesIndex $packagesIndex
-$downloads = Resolve-UnderRepository (Join-Path $cache 'downloads')
+$downloads = Resolve-UnderWorkspace (Join-Path $cache 'downloads')
 foreach ($package in @($runtime.packages)) {
     if (-not $index.ContainsKey([string]$package.name)) { throw "Pinned package is missing from the signed index: $($package.name)" }
     $record = $index[[string]$package.name]
@@ -181,9 +182,9 @@ foreach ($package in @($runtime.packages)) {
     if ($package.acquisition -eq 'required') {
         $fileName = [IO.Path]::GetFileName(([Uri]$package.url).AbsolutePath)
         if ($fileName -notmatch '^[A-Za-z0-9.+_~-]+\.deb$') { throw "Unsafe Debian package file name: $fileName" }
-        $downloadPath = Resolve-UnderRepository (Join-Path $downloads $fileName)
+        $downloadPath = Resolve-UnderWorkspace (Join-Path $downloads $fileName)
         Download-Verified $package.url $downloadPath $package.sha256 ([int64]$package.size)
-        $inspection = Resolve-UnderRepository (Join-Path $cache ("archive-inspection/" + $package.sha256))
+        $inspection = Resolve-UnderWorkspace (Join-Path $cache ("archive-inspection/" + $package.sha256))
         Assert-MIGraphXDebArchive -DebPath $downloadPath -InspectionDirectory $inspection -TarPath $TarPath
     }
 }

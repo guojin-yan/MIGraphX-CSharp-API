@@ -12,7 +12,7 @@ $root = Get-RepositoryRoot
 $manifest = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m2-binding-subset.json') | ConvertFrom-Json
 $model = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-normalized-api.json') | ConvertFrom-Json
 $baseline = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-abi-export-baseline.json') | ConvertFrom-Json
-$cache = Join-Path $root '.cache\m1'
+$cache = Join-Path (Get-CacheRoot) 'm1'
 
 if ($AcquireInputs) {
     New-Item -ItemType Directory -Force -Path $cache | Out-Null
@@ -59,7 +59,7 @@ if (Compare-Object @($baseline.exports.officialNonFunctionSymbols) $nonFunctionS
 if ($officialAll.Count -ne $baseline.exports.officialMigraphxSymbolCount) { throw 'Official ELF migraphx-prefixed symbol count drifted.' }
 if ($expected.Count -ne ($managed.Count + $unsupported.Count)) { throw 'Managed plus unsupported functions do not close over the header.' }
 
-$probeDirectory = Join-Path $root "artifacts\m3-abi\$Configuration"
+$probeDirectory = Join-Path (Get-ArtifactsRoot) "m3-abi\$Configuration"
 New-Item -ItemType Directory -Force -Path $probeDirectory | Out-Null
 $probeSource = Join-Path $root 'native\m3-abi-probe\probe.c'
 $headerDirectory = Split-Path -Parent $HeaderPath
@@ -73,15 +73,15 @@ if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $vcvars = Join-Path $installation 'VC\Auxiliary\Build\vcvars64.bat'
     $originalEnvironment = @{}
     Get-ChildItem Env: | ForEach-Object { $originalEnvironment[$_.Name] = $_.Value }
-    $environmentLines = & $env:ComSpec /d /s /c "`"$vcvars`" >nul && set"
-    if ($LASTEXITCODE -ne 0) { throw 'Failed to initialize the Visual Studio C++ environment.' }
+    $environmentLines = @(Get-VisualCppEnvironment -VcvarsPath $vcvars)
     foreach ($line in $environmentLines) {
         $separator = $line.IndexOf('=')
         if ($separator -gt 0) { [Environment]::SetEnvironmentVariable($line.Substring(0, $separator), $line.Substring($separator + 1), 'Process') }
     }
     try {
         $compiler = (Get-Command cl.exe -ErrorAction Stop).Source
-        & $compiler /nologo /TC /W4 /WX /O2 "/I$headerDirectory" "/I$exportInclude" $probeSource "/Fe:$probePath"
+        $objectPath = Join-Path $probeDirectory 'probe.obj'
+        & $compiler /nologo /TC /W4 /WX /O2 "/I$headerDirectory" "/I$exportInclude" $probeSource "/Fo:$objectPath" "/Fe:$probePath"
         if ($LASTEXITCODE -ne 0) { throw 'Failed to compile the M3 ABI probe.' }
     }
     finally {

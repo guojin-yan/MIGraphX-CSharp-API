@@ -11,7 +11,8 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$root = Split-Path -Parent $PSScriptRoot
+. (Join-Path $PSScriptRoot 'common.ps1')
+$root = Get-RepositoryRoot
 $package = (Resolve-Path -LiteralPath $PackagePath).Path
 if (-not [string]::IsNullOrWhiteSpace($HipSharpPackagePath)) {
     $HipSharpPackagePath = (Resolve-Path -LiteralPath $HipSharpPackagePath).Path
@@ -84,8 +85,8 @@ finally { $archive.Dispose() }
 
 $corePackageDirectory = Split-Path -Parent $package
 $consumer = Join-Path $root 'tests\fixtures\adapter-package-consumer\Consumer.csproj'
-$packages = Join-Path $root "artifacts\adapter-consumer\$([Guid]::NewGuid().ToString('N'))"
-$feed = Join-Path $root "artifacts\adapter-consumer-feed\$([Guid]::NewGuid().ToString('N'))"
+$packages = Join-Path (Get-ArtifactsRoot) "adapter-consumer\$([Guid]::NewGuid().ToString('N'))"
+$feed = Join-Path (Get-ArtifactsRoot) "adapter-consumer-feed\$([Guid]::NewGuid().ToString('N'))"
 New-Item -ItemType Directory -Force -Path $feed | Out-Null
 Copy-Item -LiteralPath $package -Destination $feed -Force
 Copy-Item -LiteralPath (Join-Path $corePackageDirectory "JYPPX.ROCm.MIGraphX.CSharp.API.$Version.nupkg") -Destination $feed -Force
@@ -114,7 +115,7 @@ $configText = @"
 if ($LASTEXITCODE -ne 0) { throw 'Adapter clean-consumer restore failed.' }
 & dotnet build $consumer --configuration Release --no-restore -p:MIGraphXConsumerVersion=$Version
 if ($LASTEXITCODE -ne 0) { throw 'Adapter clean-consumer build failed.' }
-$managedConsumer = Join-Path $root 'artifacts\bin\Consumer\Release\net10.0\Consumer.dll'
+$managedConsumer = Join-Path (Get-ArtifactsRoot) 'bin\Consumer\Release\net10.0\Consumer.dll'
 if (-not (Test-Path -LiteralPath $managedConsumer -PathType Leaf)) { throw "Adapter managed consumer output is missing: $managedConsumer" }
 & dotnet $managedConsumer
 if ($LASTEXITCODE -ne 0) { throw 'Adapter managed-only package consumer execution failed.' }

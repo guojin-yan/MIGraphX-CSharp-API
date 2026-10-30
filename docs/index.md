@@ -1,17 +1,17 @@
 # MIGraphXSharp documentation
 
-MIGraphXSharp has an unpublished M11 `0.9.0-rc.9` local candidate while retaining `0.0.0` as the repository default, plus an M12 interface-expansion batch. M12 adds managed shape/argument, graph, TensorFlow, quantization, context, and custom-op projections. The current local baseline is 28 focused M12 tests and 67/67 unit tests, while the reviewed M12 record promotes two case-level decisions and retains thirteen deferred cases. Final publication still requires closed release-readiness evidence.
+MIGraphXSharp is a managed API for AMD MIGraphX. Start with the [installation and first inference guide](guides/getting-started.md), then use the [managed object workflow](guides/managed-objects.md) to compose explicit model, target, argument and output resources.
 
-Local fake-native execution remains a test substitute. The latest authorized unified cloud session is bound to pushed commit `c435cd0fa1f87496dbb8612e14654b6665eb5ee7` on Ubuntu 24.04 x86-64, ROCm 7.2.1, the frozen MIGraphX package, and an AMD gfx1100 GPU. The latest source-bound diagnostic at `59ee097de7f2eaef15d81ade24a40a6ac62a1af1` observed exact custom-op numerical output on MIGraphX's host-side `ref` target; it is not GPU evidence and does not request promotion. The M12 custom-op case remains deferred pending GPU/device and full lifecycle semantics.
+| Task | Guide |
+| --- | --- |
+| Install the native runtime or diagnose loading | [Deployment](guides/runtime-deployment.md) |
+| Configure dynamic inputs and reuse compiled programs | [Dynamic shapes and cache](guides/dynamic-shapes-cache.md) |
+| Construct typed operation attributes | [Operation attributes](guides/operation-attributes.md) |
+| Submit work on a HipSharp stream | [HIP integration](guides/hip-interop.md) |
+| Use graph, TensorFlow or quantization APIs | [Advanced APIs](guides/advanced-apis.md) |
+| Choose a framework or assess support | [Frameworks](compatibility/frameworks.md), [platforms](compatibility/platforms.md) |
+| Look up types and methods | [API reference](api/index.md) |
 
-Start with [Getting started](guides/getting-started.md), [API compatibility and versioning](guides/api-versioning.md), and [Runtime deployment](guides/runtime-deployment.md), then review the [M8 design](design/m8-api-release-readiness.md), [M8 local validation](validation/m8-local-validation.md), [platform evidence](compatibility/platforms.md), [official M1/M2 runtime summary](validation/m1-m2-official-runtime.md), and [M0-M8 retrospective](articles/m0-m8-evidence-driven-wrapper.md).
+Packages are currently unpublished. Install the coherent ROCm 7.2.1 / MIGraphX 2.15.0 system runtime separately. Real-runtime qualification is partial; the platform guide describes the limits that affect application choices.
 
-The current M9 interface batch adds five ONNX/compile options and moves the aggregate map to 80 supported, 111 planned, and one unsupported item. Its [design](design/m9-inference-options.md), [reviewed cloud validation](validation/m9-cloud-validation.md), and [article draft](articles/m9-interface-options-cloud-record.md) keep local failure/cleanup evidence separate from the bounded official setter-acceptance and Identity result.
-
-M10 adds a copied ONNX parser-registry snapshot and explicit host-argument/program native content comparison. Shape equality remains planned. Its later post-build record independently promoted the four adopted entry points to `runtime-executed` for one exact host/build. Review the [M10 design](design/m10-onnx-registry-native-comparison.md), [local validation](validation/m10-local-validation.md), [runtime plan](validation/m10-runtime-plan.md), and [engineering article](articles/m10-explainable-c-api-introspection.md).
-
-M11 synchronizes that external promotion and freezes deterministic M4-M6 fixtures, cases, thresholds, package-only probe, cache restart, review, and Windows policy. The rc.6 official functional session completed 20 cases with 18 passing and two dynamic-shape failures; it remains immutable diagnostic evidence and promotes no individual case. Rc.7 repairs the native shape snapshot ordering, and rc.8 aligns SDK selection to the available .NET 10.0.110 baseline. M11 remains `runtime-deferred` and M8 remains `release-candidate-local`. See the [M11 runtime hardening plan](validation/m11-runtime-hardening-plan.md).
-
-M12 is the current interface-expansion batch. Managed custom-op callback exceptions are contained at the ABI boundary and translated to `UnknownError` plus a bounded UTF-8 message when a native buffer is supplied. The latest opt-in official callback diagnostic produced one exact elementwise `+1` result on the `ref` target, but it does not establish GPU/device-buffer behavior or full provider lifecycle semantics and cannot promote the custom-op case. Review the [M12 local interface expansion](design/m12-local-interface-expansion.md) and the [M12 real-runtime validation plan](validation/m12-runtime-validation-plan.md); the latest machine-readable evidence is `compatibility/m12-provider-custom-op-numerical-diagnostic-59ee097.json`.
-
-中文摘要：M11 `0.9.0-rc.9` 不新增公开 API；它在 rc.8 基础上增加隔离、计时和长跑的 package-only 执行入口。官方运行结果仍需绑定最终提交、包身份并经独立复核；M8 仍为 `release-candidate-local`。
+中文提示：请先阅读入门和部署指南；高级 API 的存在不代表所有真实运行语义已经验证。

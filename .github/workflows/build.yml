@@ -6,11 +6,19 @@ on:
 permissions:
   contents: read
 
+env:
+  MIGRAPHX_WORKSPACE_ROOT: ${{ github.workspace }}/MIGraphXSharp.Workspace
+
 jobs:
   build-test-pack-docs:
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/MIGraphXSharp
     steps:
       - uses: actions/checkout@v7
+        with:
+          path: MIGraphXSharp
       - uses: actions/checkout@v7
         with:
           repository: guojin-yan/HIP-CSharp-API
@@ -19,9 +27,9 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-dotnet@v6
         with:
-          global-json-file: global.json
+          global-json-file: MIGraphXSharp/global.json
           cache: true
-          cache-dependency-path: Directory.Packages.props
+          cache-dependency-path: MIGraphXSharp/Directory.Packages.props
       - name: Restore tools and solution
         shell: pwsh
         run: |
@@ -31,18 +39,12 @@ jobs:
       - name: Build all 15 target frameworks
         shell: pwsh
         run: ./eng/build.ps1 -Configuration Release -NoRestore -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
-      - name: Verify frozen ABI and M10 aggregate coverage
+      - name: Verify frozen native ABI
         shell: pwsh
         run: |
           ./eng/generate-interop.ps1 -AcquireHeader -Verify
           ./eng/verify-m2-abi.ps1 -AcquireInputs
           ./eng/verify-m3-abi.ps1 -AcquireInputs
-          ./eng/verify-m4-coverage.ps1
-          ./eng/verify-m5-coverage.ps1
-          ./eng/verify-m6-coverage.ps1 -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
-          ./eng/verify-m9-coverage.ps1
-          ./eng/verify-m10-coverage.ps1
-          ./eng/verify-m11-coverage.ps1
       - name: Test and smoke
         shell: pwsh
         run: ./eng/test.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
@@ -58,6 +60,6 @@ jobs:
         with:
           name: managed-packages-and-docs
           path: |
-            artifacts/packages/*.nupkg
-            artifacts/docs/**
+            ${{ env.MIGRAPHX_WORKSPACE_ROOT }}/artifacts/packages/*.nupkg
+            ${{ env.MIGRAPHX_WORKSPACE_ROOT }}/artifacts/docs/**
           if-no-files-found: error

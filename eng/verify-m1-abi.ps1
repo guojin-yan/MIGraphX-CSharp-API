@@ -11,7 +11,7 @@ param(
 $root = Get-RepositoryRoot
 $manifestPath = Join-Path $root 'compatibility\m1-binding-subset.json'
 $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
-$cache = Join-Path $root '.cache\m1'
+$cache = Join-Path (Get-CacheRoot) 'm1'
 
 if ($AcquireInputs) {
     New-Item -ItemType Directory -Force -Path $cache | Out-Null
@@ -52,13 +52,13 @@ $generatedText = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.
 $generatedText += Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Generated\NativeMethods.DllImport.g.cs')
 $managed = @([regex]::Matches($generatedText, 'EntryPoint\s*=\s*"(?<name>migraphx_[a-z0-9_]+)"') | ForEach-Object { $_.Groups['name'].Value } | Where-Object { $_ -in $expected } | Sort-Object -Unique)
 
-if (-not (Test-Path -LiteralPath (Join-Path $root "artifacts\fake-native\$Configuration\migraphx_c.dll")) -and $env:OS -eq 'Windows_NT') {
+if (-not (Test-Path -LiteralPath (Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\migraphx_c.dll")) -and $env:OS -eq 'Windows_NT') {
     & (Join-Path $root 'eng\build-fake-native.ps1') -Configuration $Configuration
 }
 $fakePath = if ($env:OS -eq 'Windows_NT') {
-    Join-Path $root "artifacts\fake-native\$Configuration\migraphx_c.dll"
+    Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\migraphx_c.dll"
 } else {
-    Join-Path $root "artifacts\fake-native\$Configuration\libmigraphx_c.so"
+    Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\libmigraphx_c.so"
 }
 if ($env:OS -eq 'Windows_NT') {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'

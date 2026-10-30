@@ -15,7 +15,7 @@ $ErrorActionPreference = 'Stop'
 Import-Module (Join-Path $PSScriptRoot 'release-evidence.psm1') -Force
 $root = Get-RepositoryRoot
 if ([string]::IsNullOrWhiteSpace($OutputDirectory)) {
-    $OutputDirectory = Join-Path $root "artifacts\release-evidence\$Version\$RepositoryCommit"
+    $OutputDirectory = Join-Path (Get-ArtifactsRoot) "release-evidence\$Version\$RepositoryCommit"
 }
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 
@@ -124,7 +124,7 @@ $provenance = [ordered]@{
     predicateType = 'https://slsa.dev/provenance/v1'
     predicate = [ordered]@{
         buildDefinition = [ordered]@{
-            buildType = 'https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/docs/design/m8-api-release-readiness.md'
+            buildType = 'https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/eng/verify-release-candidate.ps1'
             externalParameters = [ordered]@{ version = $Version; repositoryCommit = $RepositoryCommit; configuration = 'Release' }
             resolvedDependencies = @([ordered]@{ uri = "pkg:nuget/$($hip.id)@$($hip.version)"; digest = [ordered]@{ sha256 = $hip.sha256 } })
         }

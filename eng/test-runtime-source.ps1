@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string] $Manifest = 'nuget/runtime-manifests/linux-x64.json',
+    [string] $Manifest = 'compatibility/system-native-source-lock.json',
     [string] $CacheDirectory = '.cache/runtime/rocm-7.2.1-noble'
 )
 
@@ -10,7 +10,7 @@ $ErrorActionPreference = 'Stop'
 $root = Get-RepositoryRoot
 Import-Module (Join-Path $PSScriptRoot 'runtime-archive.psm1') -Force
 $manifestPath = Join-Path $root $Manifest
-$testRoot = Join-Path $root 'artifacts/runtime-source-tests'
+$testRoot = Join-Path (Get-ArtifactsRoot) 'runtime-source-tests'
 
 function Assert-Rejected([string] $Name, [scriptblock] $Mutation) {
     $value = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable

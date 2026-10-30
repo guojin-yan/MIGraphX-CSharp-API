@@ -16,7 +16,7 @@ $SourceRepository = (Resolve-Path -LiteralPath $SourceRepository).Path
 $resolvedCommit = (& git -C $SourceRepository rev-parse "$Commit^{commit}").Trim()
 if ($LASTEXITCODE -ne 0 -or $resolvedCommit -ne $Commit) { throw "HipSharp commit is unavailable: $Commit" }
 
-$parent = Join-Path $root 'artifacts\dependency-source\hipsharp'
+$parent = Join-Path (Get-ArtifactsRoot) 'dependency-source\hipsharp'
 $destination = Join-Path $parent $Commit
 $marker = Join-Path $destination '.hipsharp-source-commit'
 if (Test-Path -LiteralPath $destination) {

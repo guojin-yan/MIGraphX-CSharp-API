@@ -14,7 +14,7 @@ $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
 
 if ($AcquireHeader) {
     if (-not $HeaderPath) {
-        $HeaderPath = Join-Path $root '.cache\m1\migraphx.h'
+        $HeaderPath = Join-Path (Get-CacheRoot) 'm1\migraphx.h'
     }
     if (-not (Test-Path -LiteralPath $HeaderPath)) {
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $HeaderPath) | Out-Null

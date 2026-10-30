@@ -161,13 +161,8 @@ if (-not $abiGate.Contains('compatibility\m10-high-level-api-map.json', [StringC
     -not $abiGate.Contains('$allowedM10FakeExports', [StringComparison]::Ordinal)) {
     throw 'M10 fake-native exports are not wired into the strict ABI export review.'
 }
-foreach ($path in @(
-    'docs\design\m10-onnx-registry-native-comparison.md',
-    'docs\validation\m10-local-validation.md',
-    'docs\validation\m10-runtime-plan.md',
-    'docs\articles\m10-explainable-c-api-introspection.md'
-)) {
-    if (-not (Test-Path -LiteralPath (Join-Path $root $path) -PathType Leaf)) { throw "M10 documentation is missing: $path" }
+foreach ($path in @('docs\guides\managed-objects.md', 'docs\compatibility\platforms.md')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $root $path) -PathType Leaf)) { throw "API documentation is missing: $path" }
 }
 
 Write-Output 'M10 coverage gate passed: four adopted entry points, one retained-planned equality decision, 84/107/1 computed closure, and ownership/test evidence are closed.'

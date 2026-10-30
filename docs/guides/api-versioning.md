@@ -1,17 +1,13 @@
 # API compatibility and versioning
 
-The public contract is the schema 2 snapshot under `compatibility/`. It includes signatures, defaults, generic constraints, nullable metadata, assembly/package identity, and identical availability across all 15 managed TFMs. A public addition, removal, rename, accessibility change, default change, or nullable change requires review and a deliberate baseline update.
+The package/project/assembly name is `JYPPX.ROCm.MIGraphX.CSharp.API`; the core C# namespace is `JYPPX.ROCm.MIGraphXSharp`. The optional adapter is `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop`.
 
-Build a candidate with an explicit prerelease version and source commit:
+Packages are currently unpublished and the repository default is `0.0.0`. During `0.x.x` development, intentional public API changes require review of the compatibility snapshots. Do not treat an engineering candidate as a stable release.
 
-```powershell
-$commit = git rev-parse HEAD
-.\eng\build.ps1 -Configuration Release -Version 0.9.0-rc.9 -RepositoryCommit $commit
-.\eng\verify-public-api.ps1 -Configuration Release -Version 0.9.0-rc.9 -RepositoryCommit $commit -SkipToolBuild
-```
+The managed package version is independent of the installed ROCm/MIGraphX version. Updating the managed package does not update AMD system packages. Changing native versions requires a separate compatibility check even when the SONAME is unchanged.
 
-Do not edit the default `0.0.0` to `1.0.0` during prerelease work. Development stays on `0.x.x`; intentional interface additions update the compatibility snapshots through review. A final version bump requires completed Windows runtime validation, `release-ready` evidence, and separate Owner approval, followed by a complete rebuild and new package hashes.
+Core and adapter expose the same public contract across all [15 target frameworks](../compatibility/frameworks.md). The adapter references the matching exact core package and exact HipSharp `0.9.1` dependency. Keep these dependencies coherent.
 
-The supported native baseline is separate: Ubuntu 24.04 amd64, ROCm 7.2.1, and MIGraphX `2.15.0.70201-81~24.04`. Validate any native upgrade independently. Managed TFM assets, especially end-of-support .NET versions, do not imply runtime servicing from Microsoft or this project.
+Program serialization and model cache entries are version- and provider-bound. Rebuild cache data when the native fingerprint, managed build identity, target, compile options, model or input overrides change.
 
-中文摘要：schema 2 快照是公开契约基线门禁；预发布构建显式传入版本和源码 SHA。托管版本不会自动改变系统 ROCm/MIGraphX；开发保持 `0.x.x`，最终 `1.0.0` bump 还需要 Windows 实机验证、单独冻结授权并重建全部证据。
+中文提示：托管版本与系统 ROCm/MIGraphX 版本独立；开发期公开接口可能变化。升级时检查依赖版本并重建不兼容的缓存。

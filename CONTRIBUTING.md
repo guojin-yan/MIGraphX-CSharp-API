@@ -1,18 +1,62 @@
 # Contributing
 
-MIGraphXSharp is evidence-driven. Keep changes scoped, preserve the repository boundary, and run the managed M0 gates before opening a pull request.
+Keep library code, user documentation, reproducible scripts and reviewed source contracts in this repository. Public APIs require equivalent Chinese and English XML documentation and the same public contract on all 15 target frameworks.
 
-## Development rules
+## Repository boundaries
 
-- Use `JYPPX.ROCm.MIGraphXSharp` as the top-level namespace.
-- Keep the 15-TFM matrix centralized in `Directory.Build.props`.
-- Give every public API equivalent Chinese and English XML documentation.
-- Generate native declarations only from the fixed manifest/header workflow; do not handwrite files under `Generated`.
-- Keep build, package, native-loader, runtime, ONNX, and GPU claims at their actual evidence level.
-- Do not add native binaries, private models, credentials, IP addresses, ports, hostnames, device identifiers, or raw cloud logs.
+- `src/`, `samples/`, `tests/`, `smoke/` and `native/`: source code and test fixtures expressed as source.
+- `docs/`: installation, usage, API and compatibility documentation for users.
+- `eng/` and `tools/`: build, generation, packaging and diagnostic tooling with usage instructions.
+- `compatibility/`: frozen generator inputs, public API snapshots, ownership contracts, runtime case specifications and support disclosure policy.
+- `pack/`: package distribution policy.
 
-## Local gates
+Keep development plans, stage reports, article drafts, cloud session notes, raw logs, test results, downloaded binaries, generated model files and packages outside the checkout. Do not require archived development records to build or test a fresh clone. Only published user-facing changes belong in release notes; unpublished candidate diaries are development records.
 
-Run `eng/generate-interop.ps1 -AcquireHeader -Verify`, all M1-M3 ABI gates, `eng/test.ps1`, core/adapter pack and package audits, `eng/docs.ps1`, and `eng/verify-release-candidate.ps1` in Release configuration. Public API snapshots must match all 15 TFMs. A Runtime NuGet request must continue to fail because the permanent deployment policy is system-native.
+All scripts default to the sibling `../MIGraphXSharp.Workspace/` directory:
 
-The project is licensed under Apache-2.0. Unless explicitly stated otherwise, intentionally submitted contributions are provided under that license. The repository default is `0.0.0`; `0.9.0-rc.1` is an unpublished local prerelease candidate. Keep development on the `0.x.x` line. Do not publish a NuGet package, bump final `1.0.0`, tag, deploy Pages, or create a release without explicit owner authorization. Final `1.0.0` additionally requires completed Windows runtime validation.
+| Path under the workspace | Content |
+| --- | --- |
+| `artifacts/bin`, `artifacts/obj` | Managed build output and intermediates |
+| `artifacts/packages` | Local packages and restore cache |
+| `artifacts/models` | Generated model fixtures |
+| `artifacts/docs`, `api` | Generated documentation site and API metadata |
+| `artifacts/release-evidence`, `test-results` | Local validation output |
+| `.cache` | Downloaded header, official runtime audit inputs and other caches |
+
+Set `MIGRAPHX_WORKSPACE_ROOT` to an absolute directory outside the checkout to override the default. Use the same value across build, test, pack and docs commands. Avoid changing only `BaseOutputPath` or `RestorePackagesPath`, which would desynchronize tooling. IDE state such as `.vs/` remains ignored local metadata.
+
+## Build prerequisites
+
+Install the .NET SDK selected by `global.json`, PowerShell 7 and a C compiler. The solution's optional adapter and tests also need the HipSharp source baseline:
+
+```powershell
+git clone https://github.com/guojin-yan/HIP-CSharp-API.git ../HipSharpSource
+git -C ../HipSharpSource checkout --detach 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+$env:HIPSHARP_REPOSITORY_ROOT = (Resolve-Path ../HipSharpSource).Path
+.\eng\build.ps1 -Configuration Release
+```
+
+You may point `HIPSHARP_REPOSITORY_ROOT` at an existing compatible checkout instead. The core has no HipSharp package dependency; the full solution builds the adapter and test projects.
+
+## Local checks
+
+Run checks appropriate to the change. The standard entry points are:
+
+```powershell
+.\eng\verify-repository-layout.ps1
+.\eng\build.ps1 -Configuration Release
+.\eng\test.ps1 -Configuration Release -NoBuild
+.\eng\docs.ps1 -Configuration Release -NoBuild
+```
+
+Native declarations are generated from the frozen header and normalized model; do not hand-edit `src/**/Generated/*.cs`. Use `eng/generate-interop.ps1 -AcquireHeader -Verify` to check reproducibility. ABI, coverage, public API and package checks live under `eng/`.
+
+Keep substitute-library tests separate from official runtime qualification. Runtime probes require an explicit isolated output record and source/package/native identities. Preserve failures outside the checkout. `compatibility/runtime-support-policy.json` describes declared support; it is not a new execution report.
+
+## Distribution and security
+
+The project ships managed packages only. Install a coherent MIGraphX/ROCm native environment from AMD's official system repository. Do not commit native binaries, model binaries, credentials, host addresses or raw cloud output.
+
+The default version is `0.0.0`. Package publication, release tags and Pages deployment require separate owner authorization. Intentional API changes require review of the compatibility snapshots. See [SECURITY.md](SECURITY.md).
+
+Contributions are provided under [Apache-2.0](LICENSE).

@@ -1,4 +1,4 @@
-# Build, test, package, and documentation output
+# Legacy output paths; scripts now write to ../MIGraphXSharp.Workspace/
 artifacts/
 **/bin/
 **/obj/

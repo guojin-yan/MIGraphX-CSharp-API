@@ -356,17 +356,10 @@ public sealed class M5DynamicShapeCacheTests
     private static string FakePath()
     {
         var root = FindRoot();
-        return Path.Combine(root, "artifacts", "fake-native", "Release", OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so");
+        return Path.Combine(RepositoryPaths.Artifacts, "fake-native", "Release", OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so");
     }
 
-    private static string FindRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "MIGraphXSharp.sln"))) { return directory.FullName; }
-        }
-        throw new DirectoryNotFoundException();
-    }
+    private static string FindRoot() => RepositoryPaths.Root;
 
     private sealed class FakeControls : IDisposable
     {

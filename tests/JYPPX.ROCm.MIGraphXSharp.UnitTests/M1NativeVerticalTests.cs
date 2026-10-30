@@ -24,7 +24,7 @@ public sealed class M1NativeVerticalTests
         Assert.Throws<NotSupportedException>(() => diagnosticCollection.Add(
             new MIGraphXNativeDiagnostic("other", "test", true, MIGraphXNativeDiagnosticKind.LoadFailure, "failure")));
 
-        var fakeDirectory = Path.Combine(FindRepositoryRoot(), "artifacts", "fake-native", "Release");
+        var fakeDirectory = Path.Combine(RepositoryPaths.Artifacts, "fake-native", "Release");
         var completePath = Path.Combine(fakeDirectory, OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so");
         var missingExportPath = Path.Combine(fakeDirectory, OperatingSystem.IsWindows() ? "migraphx_c_missing_export.dll" : "libmigraphx_c_missing_export.so");
 
@@ -281,18 +281,7 @@ public sealed class M1NativeVerticalTests
         Assert.Equal(0, controls.TargetLiveCount());
     }
 
-    private static string FindRepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "MIGraphXSharp.sln")))
-            {
-                return directory.FullName;
-            }
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the MIGraphXSharp repository root.");
-    }
+    private static string FindRepositoryRoot() => RepositoryPaths.Root;
 
     private sealed class FakeControls : IDisposable
     {

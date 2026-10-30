@@ -1,11 +1,7 @@
 # MIGraphX HIP interop adapter
 
-`JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` is an optional managed adapter. It depends on the matching MIGraphX core candidate and exact HIP core `0.9.1`; neither core package depends on the other. The unpublished candidate contains DLL/XML assets for 15 target frameworks plus this README and the Apache-2.0 license, with no native runtime.
+This optional adapter depends on the matching MIGraphX core version and HipSharp `0.9.1`, while keeping both core packages independent. It exposes `MIGraphXHipExecution`, `MIGraphXHipAsyncRun` and `MIGraphXHipDeviceInput`.
 
-The adapter exposes three public types: `MIGraphXHipExecution`, `MIGraphXHipAsyncRun`, and `MIGraphXHipDeviceInput`. `RunHostAsync` requires `offloadCopy=true`. `RunDeviceAsync` accepts validated `HipDeviceMemory` inputs and requires `offloadCopy=false`.
+Compile with `offloadCopy=true` for `RunHostAsync`, or `offloadCopy=false` for `RunDeviceAsync` with validated `HipDeviceMemory`. Resources remain leased until stream completion. Outputs are independent host copies after completion.
 
-Native submission always uses the fixed `ihipStream_t` backend name required by the ROCm 7.2.1 MIGraphX C ABI. The result remains pending until `HipStream.Query`, `Synchronize`, or disposal establishes stream completion. Program, parameter map, arguments, native outputs, device pointers, and the stream callback remain leased during that interval. Outputs are independent owned host arguments after completion.
-
-Device input does not imply zero-copy. Completion performs an explicit device-to-host output copy; the adapter does not use `Marshal.Copy` on device addresses and exposes no raw stream or memory pointer. Graph capture, arbitrary external pointers, pooled/async allocations, and runtime binaries are not supported by this candidate.
-
-M6 evidence is limited to fixed-source inspection plus local fake MIGraphX/HIP execution. It does not prove official GPU execution, overlap, performance, or zero-copy behavior.
+See [HIP integration](../../docs/guides/hip-interop.md) for submission, synchronization, disposal and runtime limitations. The adapter contains no native runtime and makes no zero-copy or performance guarantee.

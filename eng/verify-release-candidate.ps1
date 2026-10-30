@@ -66,7 +66,7 @@ function Get-VulnerabilityCount {
 
 $vulnerabilityCount = Get-VulnerabilityCount -Value $scan
 if ($vulnerabilityCount -ne 0) { throw "NuGet vulnerability scan found $vulnerabilityCount vulnerable package record(s)." }
-$evidenceDirectory = Join-Path $root "artifacts\release-evidence\$Version\$RepositoryCommit"
+$evidenceDirectory = Join-Path (Get-ArtifactsRoot) "release-evidence\$Version\$RepositoryCommit"
 $scanPath = Join-Path $evidenceDirectory 'm8-vulnerability-scan.json'
 $scanSummary = [ordered]@{
     schemaVersion = '1.0.0'

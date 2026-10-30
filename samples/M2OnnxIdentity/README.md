@@ -1,4 +1,4 @@
-# M2 ONNX Identity sample
+# ONNX Identity sample
 
 Generate the deterministic Identity model, then pass absolute paths for both the native MIGraphX C library and model:
 
@@ -6,7 +6,7 @@ Generate the deterministic Identity model, then pass absolute paths for both the
 .\eng\generate-m2-model.ps1
 dotnet run --project .\samples\M2OnnxIdentity\M2OnnxIdentity.csproj -c Release -- `
   C:\absolute\path\to\migraphx_c.dll `
-  $PWD\artifacts\models\m2-identity-float32.onnx
+  $PWD\..\MIGraphXSharp.Workspace\artifacts\models\m2-identity-float32.onnx
 ```
 
 The sample executes the restricted single-input, single-output, static float32 synchronous workflow. It does not download native binaries, modify loader environment variables, or imply official GPU validation.

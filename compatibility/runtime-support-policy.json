@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schemaVersion": "2.0.0",
+  "m8Status": "release-candidate-local",
+  "m9Status": "runtime-executed",
+  "m10Status": "completed",
+  "m11Status": "runtime-deferred",
+  "m12Status": "partially-runtime-executed",
+  "description": "Checked-in support and release disclosure policy. Concrete run outputs and development history are stored outside the source repository. Historical execution applies only to the named source revision and recorded configuration.",
+  "nativeBaseline": {
+    "os": "Ubuntu 24.04 x86-64",
+    "rocm": "7.2.1",
+    "migraphx": "2.15.0.70201-81~24.04"
+  },
+  "validations": [
+    {
+      "id": "official-native-loader",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at 346cdd0b01a7f8039f5deb93058928403fccc7dd: loading the fixed official Linux provider."
+    },
+    {
+      "id": "official-target-program-lifecycle",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at 346cdd0b01a7f8039f5deb93058928403fccc7dd: target/program lifetime and UTF-8 argument forwarding."
+    },
+    {
+      "id": "official-onnx-parse-compile-run",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at 346cdd0b01a7f8039f5deb93058928403fccc7dd: static float32[1,4] Identity file/buffer, synchronous GPU offload-copy."
+    },
+    {
+      "id": "amd-gpu-execution",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at 346cdd0b01a7f8039f5deb93058928403fccc7dd: one gfx1100 device and the restricted Identity model; no general GPU or performance guarantee."
+    },
+    {
+      "id": "m9-official-option-smoke",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at 346cdd0b01a7f8039f5deb93058928403fccc7dd: option setter acceptance and Identity integration; dedicated Loop, external-data, tuning and accuracy semantics remain deferred."
+    },
+    {
+      "id": "m10-official-onnx-registry",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at e2386dc69e7640f8ff12d95284e56c3f02c87938: copied parser-name registry; no model/opset/device compatibility guarantee."
+    },
+    {
+      "id": "m10-official-argument-comparison",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at e2386dc69e7640f8ff12d95284e56c3f02c87938: exact host argument content comparison."
+    },
+    {
+      "id": "m10-official-program-comparison",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at e2386dc69e7640f8ff12d95284e56c3f02c87938: native printed-structure comparison; no inference equivalence guarantee."
+    },
+    {
+      "id": "m12-official-context-lifetime",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at b53689ba3831ce721875d3e5bb4d370ae8a737e6: context Finish and queue access while retaining a parent lease."
+    },
+    {
+      "id": "m12-official-materialized-operation-attributes",
+      "status": "runtime-executed",
+      "evidence": "Historical scope at b53689ba3831ce721875d3e5bb4d370ae8a737e6: create/clone for five materialized typed attribute forms; general C varargs excluded."
+    },
+    {
+      "id": "m7-runtime-package",
+      "status": "not-applicable",
+      "evidence": "Managed-only distribution with AMD official system-native installation; no Runtime NuGet package."
+    },
+    {
+      "id": "m8-public-api-freeze",
+      "status": "statically-verified",
+      "evidence": "Versioned managed API snapshots are reviewable source contracts; public API changes require explicit baseline review."
+    },
+    {
+      "id": "m8-official-system-native-session",
+      "status": "runtime-deferred",
+      "evidence": "Full release qualification remains incomplete. Historical focused runs do not qualify the current source revision or all runtime paths."
+    },
+    {
+      "id": "m11-full-runtime-hardening",
+      "status": "runtime-deferred",
+      "evidence": "Historical functional, isolation, timing and partial long-run sessions exist. Full promotion, including restart and resource-observation requirements, remains incomplete."
+    },
+    {
+      "id": "m12-remaining-runtime-semantics",
+      "status": "runtime-deferred",
+      "evidence": "Thirteen matrix cases remain deferred. Host-reference custom-op diagnostics do not qualify GPU/device callbacks or complete provider lifetimes."
+    },
+    {
+      "id": "windows-native-provider",
+      "status": "not-applicable",
+      "evidence": "The fixed official MIGraphX baseline targets Linux. Managed Windows builds do not provide an official Windows native runtime."
+    }
+  ]
+}

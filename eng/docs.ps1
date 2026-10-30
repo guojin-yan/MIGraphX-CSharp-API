@@ -23,38 +23,38 @@ if (-not [string]::IsNullOrWhiteSpace($resolvedHipSharpRepositoryRoot)) {
     [Environment]::SetEnvironmentVariable('HipSharpRepositoryRoot', $resolvedHipSharpRepositoryRoot, 'Process')
 }
 try {
-    & (Join-Path $PSScriptRoot 'verify-m3-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m4-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m5-coverage.ps1') | Out-Host
-    $m6Arguments = @{}
-    if (-not [string]::IsNullOrWhiteSpace($resolvedHipSharpRepositoryRoot)) { $m6Arguments.HipSharpRepositoryRoot = $resolvedHipSharpRepositoryRoot }
-    & (Join-Path $PSScriptRoot 'verify-m6-coverage.ps1') @m6Arguments | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m9-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m10-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m11-coverage.ps1') | Out-Host
-    & (Join-Path $PSScriptRoot 'verify-m12-coverage.ps1') | Out-Host
     if (-not $NoBuild) {
         & (Join-Path $PSScriptRoot 'build.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $RepositoryCommit -HipSharpRepositoryRoot $resolvedHipSharpRepositoryRoot
     }
-    else {
-        & (Join-Path $PSScriptRoot 'verify-public-api.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $RepositoryCommit -SkipToolBuild
-    }
     Invoke-DotNet -Arguments @('tool', 'restore')
+    $workspace = Get-WorkspaceRoot
+    $apiDirectory = Join-Path $workspace 'api'
+    $siteDirectory = Join-Path (Get-ArtifactsRoot) 'docs'
+    $configDirectory = Join-Path (Get-ArtifactsRoot) 'docfx'
+    New-Item -ItemType Directory -Path $configDirectory -Force | Out-Null
+    $config = Get-Content -Raw -LiteralPath (Join-Path $root 'docfx.json') | ConvertFrom-Json
+    $config.metadata[0].src[0].src = $root
+    $config.metadata[0].dest = $apiDirectory
+    $config.build.content[0].src = [IO.Path]::GetRelativePath($configDirectory, (Join-Path $root 'docs')).Replace('\', '/')
+    $config.build.content[1].src = [IO.Path]::GetRelativePath($configDirectory, $workspace).Replace('\', '/')
+    $config.build.dest = $siteDirectory
+    $configPath = Join-Path $configDirectory 'docfx.json'
+    [IO.File]::WriteAllText($configPath, ($config | ConvertTo-Json -Depth 30), [Text.UTF8Encoding]::new($false))
     $docfxVersion = ((Get-Content -LiteralPath (Join-Path $root '.config\dotnet-tools.json') -Raw | ConvertFrom-Json).tools.docfx.version)
     $nugetPackages = if ([string]::IsNullOrWhiteSpace($env:NUGET_PACKAGES)) { Join-Path $HOME '.nuget\packages' } else { $env:NUGET_PACKAGES }
     $docfxDll = Join-Path $nugetPackages (Join-Path 'docfx' (Join-Path $docfxVersion 'tools/net10.0/any/docfx.dll'))
     if (Test-Path -LiteralPath $docfxDll) {
-        Invoke-DotNet -Arguments @($docfxDll, (Join-Path $root 'docfx.json'), '--warningsAsErrors')
+        Invoke-DotNet -Arguments @($docfxDll, $configPath, '--warningsAsErrors')
     }
     else {
-        Invoke-DotNet -Arguments @('tool', 'run', 'docfx', (Join-Path $root 'docfx.json'), '--warningsAsErrors')
+        Invoke-DotNet -Arguments @('tool', 'run', 'docfx', $configPath, '--warningsAsErrors')
     }
     foreach ($relativePath in @(
-        'artifacts/docs/index.html',
-        'artifacts/docs/api/index.html',
-        'artifacts/docs/api/JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo.html'
+        'index.html',
+        'api/index.html',
+        'api/JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo.html'
     )) {
-        $path = Join-Path $root $relativePath
+        $path = Join-Path $siteDirectory $relativePath
         if (-not (Test-Path -LiteralPath $path)) { throw "DocFX output is missing $relativePath." }
     }
 }

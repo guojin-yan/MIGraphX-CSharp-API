@@ -1,29 +1,25 @@
-# Platforms and evidence levels
+# Platform support and limitations
 
-| Claim | Status | Meaning |
-| --- | --- | --- |
-| Managed build/API | M1 through M12 local validation | Core and adapter compile all 15 exact TFMs; the current schema 2 snapshots contain 45/309 and 3/11 records; M12 has two reviewed case-level runtime decisions and retains thirteen deferred cases |
-| Package assets | M11 local candidate | Each rc.3 core/adapter TFM has a DLL and XML document; neither candidate contains native binaries |
-| Clean managed consumer | M11 local candidate | Four representative core consumers, one adapter consumer, and the M11 runtime probe restore exact JYPPX dependencies from mapped local feeds |
-| Managed SBOM/provenance | Statically verified | Source-SHA-specific product evidence records every managed package entry, exact dependencies/licenses/source commit, ZIP hash, and normalized content identity; provenance is local and unsigned |
-| Frozen header and official ELF | Statically verified | All 159 header functions match the official Linux ELF; 158 have managed EntryPoints and one C-variadic declaration is explicitly unsupported |
-| M3 normalized inventory | Statically verified | 159 functions, 2 enums, 25 handles, and 6 callbacks close over 192 mutually exclusive classifications |
-| M3 critical ABI patterns | Fake-native executed | Callback lifetime/exception boundary, bool, size_t, UTF-8, borrowed/out pointers, array length, and cleanup ran against a minimal test substitute |
-| Lifecycle and restricted ONNX workflow | Fake-native executed | A local C substitute ran loader, parse, shape, compile, run, output-copy, cleanup, and concurrency tests |
-| M4 resource-safe objects | Fake-native executed | Owned handles, copied shapes, typed host buffers, parameter maps, multi-item output copying, failure injection, and Dispose behavior ran against the local substitute |
-| M5 dynamic shape and cache | Fake-native executed | Dynamic ranges, overrides, Save/Load, cache integrity/corruption recovery, and concurrency ran against the local substitute |
-| M6 async and HipSharp adapter | Fake-native executed | Native enqueue state, stream completion, early disposal, pointer leases, stream isolation, explicit D2H, and completion failures ran against local substitutes |
-| M7 signed source/root ELF | Statically verified | AMD key, signed repository metadata, exact root package, six canonical ELF files plus aliases, dependency edges, one license, SBOM, and provenance are pinned |
-| Official M1/M2 runtime | Runtime-executed | Revalidated at `346cdd0b01a7f8039f5deb93058928403fccc7dd` on the single recorded Ubuntu/ROCm/MIGraphX/gfx1100 environment |
-| Windows native MIGraphX 2.15.0 | Not applicable | Fixed MIGraphX documentation applies to Linux; AMD's Windows HIP SDK component table marks AI libraries unavailable. HIP availability is not MIGraphX availability |
-| macOS native runtime | Unverified diagnostic candidate | The candidate is an honest loader diagnostic, not an official MIGraphX build/support claim |
-| Official ONNX parse/compile/run | Runtime-executed | Generated Identity file and buffer paths compiled and ran synchronously with matching reference output |
-| AMD GPU | Runtime-executed | One gfx1100 GPU executed the restricted static float32 Identity graph; this is not a general device claim |
-| Official M9 option smoke | Runtime-executed | At `346cdd0...`, the official runtime accepted five recorded option values and the reviewed Identity compile/run exactly matched the reference; dedicated option semantics remain planned |
-| M10 registry and comparisons | Runtime-executed | The post-build external record at clean detached `e2386dc...` reviewed registry stability plus argument/program true/false/Dispose cases; shape equality remains planned |
-| M11 M4-M6 hardening | Runtime-deferred | Deterministic fixtures, package-only probe, safe negative boundaries, fresh-process cache, long-run/timing budgets, and review gates are frozen but have no rc.3 official authorization |
-| Runtime NuGet | Not applicable | Owner selected managed-only distribution and AMD official system installation; no Runtime package project, staging/promotion path, marker loader, or native payload exists |
+Install the coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packages on Ubuntu 24.04 x86-64. MIGraphXSharp packages contain managed assemblies only.
 
-The system-native policy targets the audited Ubuntu 24.04 amd64 metadata and Linux SONAME `libmigraphx_c.so.3`. The latest reviewed M10 record proves registry and native-comparison behavior on one exact system-installed configuration: Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX `2.15.0.70201-81~24.04`, and gfx1100. It does not establish other distributions, versions, devices, models, M4-M6 dynamic/async/device-buffer behavior, zero-copy, dedicated M9 semantics, long-run, or performance paths.
+| Area | Application boundary |
+| --- | --- |
+| Linux native runtime | The fixed baseline has historical official execution for a restricted static float32 Identity workload on one gfx1100 GPU. Other models, distributions, versions and devices need application validation. |
+| Windows native runtime | The fixed official MIGraphX baseline targets Linux. Windows managed builds and loader diagnostics do not supply an official Windows MIGraphX runtime. |
+| macOS | No official native runtime support claim. |
+| ONNX options | Loop limits/defaults, external-data roots, fast-math and tuning setters are exposed. Historical setter acceptance does not qualify dedicated model semantics, tuning or accuracy. |
+| Registry and comparison | Copied ONNX parser names and exact host argument/native printed-program comparison are available. Parser names do not guarantee model support; comparison does not prove inference equivalence. |
+| Dynamic shapes and cache | Managed APIs are implemented. Complete real-runtime shape, persistence, restart and resource-lifetime qualification remains pending. |
+| HIP async/device input | Implemented optional adapter; full official runtime qualification is pending. Outputs are copied to host at completion. No zero-copy, overlap or performance guarantee. |
+| Graph, TensorFlow and quantization | APIs are implemented; complete model semantics and lifecycle qualification remain pending. |
+| Context and typed operation attributes | Historical focused execution covers context parent lifetime and five materialized attribute forms. This is limited to the tested source/provider configuration. |
+| Custom operations | Experimental callbacks are exposed. Host-reference numerical diagnostics do not qualify GPU/device callback memory or complete provider lifetimes. |
+| Reliability and performance | Historical functional, isolation, timing and partial long-run records exist. Full restart/resource-observation qualification remains incomplete; no performance comparison is claimed. |
 
-中文摘要：M10 的 post-build 官方记录已把 registry 与 argument/program comparison 提升为 `runtime-executed`；M11 不扩张 84/107/1 映射，只冻结 M4-M6 package-only 鲁棒性方案。固定 MIGraphX 2.15.0 的 Windows provider 依据 AMD 资料标为 `not-applicable`；M4-M6、其他环境、长跑与性能仍未执行。
+Local substitute-library tests check managed ownership, validation and ABI handling. They are distinct from execution against the official native runtime. Historical results do not automatically qualify the current source revision.
+
+General C variadic values are excluded; use [typed materialized operation attributes](../guides/operation-attributes.md). Independently owned `migraphx_module_create` is excluded because the frozen C ABI has no matching destroy/ownership contract; use program-owned module views. Arbitrary device pointers and graph capture are outside the supported managed boundary.
+
+For installation and errors, see [deployment](../guides/runtime-deployment.md).
+
+中文提示：目前真实 runtime 支持范围有限。高级 API 已实现与完整语义已经验证是两件事；请按本页边界选择功能，并对实际模型、设备和版本进行验证。

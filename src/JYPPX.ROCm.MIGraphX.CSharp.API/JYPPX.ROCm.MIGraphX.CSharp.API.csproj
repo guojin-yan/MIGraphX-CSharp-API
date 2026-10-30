@@ -5,12 +5,12 @@
     <RootNamespace>JYPPX.ROCm.MIGraphXSharp</RootNamespace>
     <PackageId>$(MIGraphXSharpPackageId)</PackageId>
     <Title>MIGraphXSharp</Title>
-    <Description>Managed Direct P/Invoke subset for the AMD MIGraphX C API. Core packages do not include AMD native binaries.</Description>
+    <Description>Managed bindings and resource wrappers for the AMD MIGraphX C API. Native MIGraphX and ROCm are installed separately.</Description>
     <PackageTags>AMD;ROCm;MIGraphX;interop;inference</PackageTags>
     <PackageProjectUrl>$(MIGraphXSharpRepositoryUrl)</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>M8 0.9 prerelease line: versioned managed API baseline, system-native deployment, and evidence-scoped validation. Publication is not authorized.</PackageReleaseNotes>
+    <PackageReleaseNotes>Unpublished managed build. Install the matching AMD system runtime separately and review the documented platform and experimental API limitations.</PackageReleaseNotes>
     <IsPackable>true</IsPackable>
     <IncludeSymbols>false</IncludeSymbols>
     <IncludeSource>false</IncludeSource>

@@ -39,7 +39,7 @@ if (-not $abiGate.Contains('compatibility\m9-high-level-api-map.json', [StringCo
     -not $abiGate.Contains('$allowedM9FakeExports', [StringComparison]::Ordinal)) {
     throw 'M9 fake-native exports are not wired into the strict ABI export review.'
 }
-$runtimeMatrix = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\runtime-validation-matrix.json') | ConvertFrom-Json
+$runtimeMatrix = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\runtime-support-policy.json') | ConvertFrom-Json
 $officialOptionSmoke = @($runtimeMatrix.validations | Where-Object id -eq 'm9-official-option-smoke')
 $reviewedCommit = '346cdd0b01a7f8039f5deb93058928403fccc7dd'
 if ($runtimeMatrix.m9Status -ne 'runtime-executed' -or

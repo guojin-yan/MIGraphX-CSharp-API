@@ -44,7 +44,7 @@ $surfaces = @(
 foreach ($surface in $surfaces) {
     $written = $false
     foreach ($framework in $frameworks) {
-        $assemblyPath = Join-Path $root "artifacts\bin\$($surface.Assembly)\$Configuration\$framework\$($surface.Assembly).dll"
+        $assemblyPath = Join-Path (Get-ArtifactsRoot) "bin\$($surface.Assembly)\$Configuration\$framework\$($surface.Assembly).dll"
         if (-not (Test-Path -LiteralPath $assemblyPath -PathType Leaf)) {
             throw "Public API assembly is missing: $assemblyPath"
         }

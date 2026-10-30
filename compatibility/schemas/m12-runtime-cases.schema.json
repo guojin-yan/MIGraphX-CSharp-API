@@ -72,7 +72,7 @@
       "properties": {
         "candidateResultLabel": { "const": "runtime-candidate-executed-review-required" },
         "promotionRule": { "const": "Only an independent review of a clean, authorized, source/package-bound record may promote a case to runtime-executed." },
-        "promotionRecord": { "const": "m12-post-build-runtime-evidence.json" },
+        "promotionRecord": { "const": "runtime-support-policy.json" },
         "historicalMapsRemainUnchanged": { "const": true }
       }
     },

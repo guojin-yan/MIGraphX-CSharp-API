@@ -11,7 +11,7 @@ param(
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
 $project = Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop\JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.csproj'
-$output = Join-Path $root 'artifacts\packages'
+$output = Join-Path (Get-ArtifactsRoot) 'packages'
 $repositoryCommit = (& git -C $root rev-parse HEAD).Trim()
 if ($repositoryCommit -notmatch '^[a-f0-9]{40}$') { throw 'Adapter packaging requires a lowercase 40-character Git SHA.' }
 if (-not $NoBuild) {
@@ -40,7 +40,7 @@ try {
 finally { $coreArchive.Dispose() }
 if ([string]::IsNullOrWhiteSpace($HipSharpPackagePath)) {
     $expectedName = "JYPPX.ROCm.HIP.CSharp.API.$HipSharpVersion.nupkg"
-    $HipSharpPackagePath = Get-ChildItem -LiteralPath (Join-Path $root 'artifacts') -Filter $expectedName -File -Recurse -ErrorAction SilentlyContinue |
+    $HipSharpPackagePath = Get-ChildItem -LiteralPath (Get-ArtifactsRoot) -Filter $expectedName -File -Recurse -ErrorAction SilentlyContinue |
         Where-Object { (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash -eq 'E71398538D7FF5DB91C018CAC3A2FF57C4D89E71AA77B50942182BD90A2A5FD2' } |
         Select-Object -First 1 -ExpandProperty FullName
 }
@@ -53,9 +53,9 @@ if ($HipSharpVersion -ne '0.9.1' -or $hipHash -ne 'e71398538d7ff5db91c018cac3a2f
     throw "HipSharp dependency identity mismatch: $HipSharpVersion / $hipHash"
 }
 
-$feed = Join-Path $root "artifacts\release-feed\$Version\$repositoryCommit"
-$restorePackages = Join-Path $root "artifacts\adapter-pack-restore\$Version\$repositoryCommit"
-$restoreIntermediate = Join-Path $root "artifacts\adapter-pack-obj\$Version\$repositoryCommit"
+$feed = Join-Path (Get-ArtifactsRoot) "release-feed\$Version\$repositoryCommit"
+$restorePackages = Join-Path (Get-ArtifactsRoot) "adapter-pack-restore\$Version\$repositoryCommit"
+$restoreIntermediate = Join-Path (Get-ArtifactsRoot) "adapter-pack-obj\$Version\$repositoryCommit"
 $restoreIntermediateWithSlash = "$restoreIntermediate\"
 New-Item -ItemType Directory -Force -Path $feed | Out-Null
 Copy-Item -LiteralPath $corePackage -Destination $feed -Force

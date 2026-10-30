@@ -11,7 +11,7 @@
           "src": "."
         }
       ],
-      "dest": "api",
+      "dest": "../MIGraphXSharp.Workspace/api",
       "properties": {
         "TargetFramework": "net10.0",
         "Configuration": "Release"
@@ -32,10 +32,10 @@
         "files": [
           "api/*.yml"
         ],
-        "src": "."
+        "src": "../MIGraphXSharp.Workspace"
       }
     ],
-    "dest": "artifacts/docs",
+    "dest": "../MIGraphXSharp.Workspace/artifacts/docs",
     "globalMetadata": {
       "_appName": "MIGraphXSharp",
       "_appTitle": "MIGraphXSharp Documentation",

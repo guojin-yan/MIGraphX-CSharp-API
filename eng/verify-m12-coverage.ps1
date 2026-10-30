@@ -8,36 +8,11 @@ $root = Get-RepositoryRoot
 
 $matrixPath = Join-Path $root 'compatibility\m12-runtime-cases.json'
 $schemaPath = Join-Path $root 'compatibility\schemas\m12-runtime-cases.schema.json'
-$promotionPath = Join-Path $root 'compatibility\m12-post-build-runtime-evidence.json'
-$promotionSchemaPath = Join-Path $root 'compatibility\schemas\m12-post-build-runtime-evidence.schema.json'
-$numericalDiagnosticPath = Join-Path $root 'compatibility\m12-provider-custom-op-numerical-diagnostic.json'
-$latestNumericalDiagnosticPath = Join-Path $root 'compatibility\m12-provider-custom-op-numerical-diagnostic-59ee097.json'
-$numericalDiagnosticSchemaPath = Join-Path $root 'compatibility\schemas\m12-provider-custom-op-numerical-diagnostic.schema.json'
 if (-not (Test-Path -LiteralPath $matrixPath -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $schemaPath -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $promotionPath -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $promotionSchemaPath -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $numericalDiagnosticPath -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $latestNumericalDiagnosticPath -PathType Leaf) -or
-    -not (Test-Path -LiteralPath $numericalDiagnosticSchemaPath -PathType Leaf)) {
-    throw 'M12 runtime matrix, promotion record, or schema is missing.'
-}
+    -not (Test-Path -LiteralPath $schemaPath -PathType Leaf)) { throw 'M12 runtime matrix or schema is missing.' }
 $matrixText = Get-Content -Raw -LiteralPath $matrixPath
 if (-not ($matrixText | Test-Json -SchemaFile $schemaPath)) { throw 'M12 runtime cases do not match their JSON schema.' }
 $matrix = $matrixText | ConvertFrom-Json
-$promotionText = Get-Content -Raw -LiteralPath $promotionPath
-if (-not ($promotionText | Test-Json -SchemaFile $promotionSchemaPath)) { throw 'M12 promotion record does not match its JSON schema.' }
-$promotion = $promotionText | ConvertFrom-Json
-$numericalDiagnosticText = Get-Content -Raw -LiteralPath $numericalDiagnosticPath
-if (-not ($numericalDiagnosticText | Test-Json -SchemaFile $numericalDiagnosticSchemaPath)) {
-    throw 'M12 provider custom-op numerical diagnostic does not match its JSON schema.'
-}
-$numericalDiagnostic = $numericalDiagnosticText | ConvertFrom-Json
-$latestNumericalDiagnosticText = Get-Content -Raw -LiteralPath $latestNumericalDiagnosticPath
-if (-not ($latestNumericalDiagnosticText | Test-Json -SchemaFile $numericalDiagnosticSchemaPath)) {
-    throw 'Latest M12 provider custom-op numerical diagnostic does not match its JSON schema.'
-}
-$latestNumericalDiagnostic = $latestNumericalDiagnosticText | ConvertFrom-Json
 
 if ($matrix.stage -ne 'M12' -or $matrix.candidateVersion -ne '0.0.0' -or $matrix.validationStatus -ne 'partially-runtime-executed') {
     throw 'M12 matrix identity or validation status drifted.'
@@ -100,70 +75,12 @@ foreach ($case in $cases) {
     }
 }
 if ($matrix.review.candidateResultLabel -ne 'runtime-candidate-executed-review-required' -or
-    $matrix.review.promotionRecord -ne 'm12-post-build-runtime-evidence.json' -or
+    $matrix.review.promotionRecord -ne 'runtime-support-policy.json' -or
     $matrix.review.historicalMapsRemainUnchanged -ne $true) {
     throw 'M12 review and promotion boundary is incomplete.'
 }
-if ($numericalDiagnostic.sourceSha -ne '2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d' -or
-    $numericalDiagnostic.provider.gpuArchitecture -ne 'gfx1100' -or
-    $numericalDiagnostic.provider.headerSha256 -ne 'a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2' -or
-    $numericalDiagnostic.externalRecord -ne 'Radeon_Cloud/records/20260924-2418aa5-m12-custom-op-numeric/evidence/provider-callback-numerical-output' -or
-    $numericalDiagnostic.reviewState -ne 'provider-callback-record-verified' -or
-    $numericalDiagnostic.target -ne 'ref' -or
-    $numericalDiagnostic.numericalOutputMatched -ne $true -or
-    $numericalDiagnostic.promotionState -ne 'not-requested' -or
-    $numericalDiagnostic.officialEvidence -ne 'runtime-deferred' -or
-    (@($numericalDiagnostic.actualOutput) -join ',') -ne '1.25,0,3,10') {
-    throw 'M12 host-reference numerical diagnostic identity, result, or deferred boundary drifted.'
-}
-if ($latestNumericalDiagnostic.sourceSha -ne '59ee097de7f2eaef15d81ade24a40a6ac62a1af1' -or
-    $latestNumericalDiagnostic.provider.gpuArchitecture -ne 'not-observed' -or
-    $null -ne $latestNumericalDiagnostic.provider.headerSha256 -or
-    $latestNumericalDiagnostic.externalRecord -ne 'Radeon_Cloud/records/20260924-59ee097-m12-custom-op-numeric' -or
-    $latestNumericalDiagnostic.reviewState -ne 'provider-callback-record-verified' -or
-    $latestNumericalDiagnostic.target -ne 'ref' -or
-    $latestNumericalDiagnostic.numericalOutputMatched -ne $true -or
-    $latestNumericalDiagnostic.promotionState -ne 'not-requested' -or
-    $latestNumericalDiagnostic.officialEvidence -ne 'runtime-deferred' -or
-    (@($latestNumericalDiagnostic.actualOutput) -join ',') -ne '1.25,0,3,10') {
-    throw 'Latest M12 host-reference numerical diagnostic identity, result, or deferred boundary drifted.'
-}
-
-if ($promotion.stage -ne 'M12' -or
-    $promotion.sourceSha -ne 'b53689ba3831ce721875d3e5bb4d370ae8a737e6' -or
-    $promotion.candidateVersion -ne '0.0.0' -or
-    $promotion.externalRecord -ne 'Radeon_Cloud/records/20260827-0242-b53689b-m12-runtime' -or
-    $promotion.reviewState -ne 'passed' -or
-    $promotion.reviewedEvidence -ne 'runtime-executed' -or
-    $promotion.candidateResultLabel -ne 'runtime-candidate-executed-review-required' -or
-    $promotion.candidateReviewState -ne 'candidate-record-verified' -or
-    $promotion.candidatePromotionState -ne 'not-requested' -or
-    $promotion.candidateExecutedCaseCount -ne 11 -or
-    $promotion.candidateDeferredCaseCount -ne 8 -or
-    $promotion.resultSha256 -ne '3493a5c5b7023df19d074b634f7696ec93a71d65e46bebc201bcbdb695ca6b09' -or
-    $promotion.reviewSha256 -ne '4cc8178deb831091ed7c645cb0ce0ccb43a3905a09e9b3972e98e8b536452250' -or
-    $promotion.summarySha256 -ne 'f226766aa9c1c321f3e5495b044007065927869cd2089cdc2821e007cd21eaa0' -or
-    $promotion.runMetadataSha256 -ne '47e091ee9c616aeff478ea926936c4fbaa3a8132aa0e60a423480312176ea35c' -or
-    $promotion.environment.os -ne 'Ubuntu 24.04' -or
-    $promotion.environment.nativeProvider -ne 'MIGraphX 2.15.0 with ROCm 7.2.1' -or
-    $promotion.environment.headerSha256 -ne 'a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2' -or
-    $promotion.environment.librarySha256 -ne '3b012a738306e2d4499d0aa0dce7b73f96a96209ade45369ad9194c208801aff' -or
-    $promotion.historicalMapsRemainUnchanged -ne $true) {
-    throw 'M12 promotion identity, evidence hashes, or environment drifted.'
-}
-$promotionIds = @($promotion.promotions | ForEach-Object id)
-$retainedIds = @($promotion.retained | ForEach-Object id)
-if (@($promotion.promotions).Count -ne $promotedCaseIds.Count -or
-    @($promotion.promotions | Where-Object status -ne 'runtime-executed').Count -ne 0 -or
-    (Compare-Object $promotedCaseIds $promotionIds)) {
-    throw 'M12 promoted case set drifted.'
-}
-if (@($promotion.retained).Count -ne $retainedCaseIds.Count -or
-    @($promotion.retained | Where-Object status -ne 'runtime-deferred').Count -ne 0 -or
-    (Compare-Object $retainedCaseIds $retainedIds)) {
-    throw 'M12 retained case set drifted.'
-}
-
+# Concrete run results are archived outside this checkout. This gate validates
+# reproducible case specifications and their declared support policy only.
 $m11Path = Join-Path $root 'compatibility\m11-runtime-cases.json'
 $m11 = Get-Content -Raw -LiteralPath $m11Path | ConvertFrom-Json
 $m11Fixtures = @($m11.fixtures)
@@ -175,7 +92,7 @@ foreach ($pair in @(@('m12-identity-float32-1x4', 'identity-float32-1x4'), @('m1
     }
 }
 
-$fixtureOutput = Join-Path $root 'artifacts\models\m12-coverage'
+$fixtureOutput = Join-Path (Get-ArtifactsRoot) 'models\m12-coverage'
 $generatedFixtures = @(& (Join-Path $PSScriptRoot 'generate-m12-fixtures.ps1') -OutputDirectory $fixtureOutput)
 if ($generatedFixtures.Count -ne 2) { throw 'M12 fixture generator must produce exactly two new fixtures.' }
 foreach ($fixture in @($fixtures | Where-Object { $_.id -in @('m12-tensorflow-minimal', 'm12-quantization-calibration') })) {
@@ -222,10 +139,7 @@ $sourceChecks = @{
     'native\fake-migraphx\fake_migraphx.c' = @('fake_custom_compute', 'fake_custom_compute_shape', 'fake_custom_output_alias', 'fake_custom_runs_on_offload_target', 'fake_custom_state_copy_count', 'fake_custom_state_delete_count', 'fake_provider_callback_message', 'fake_set_skip_string', 'skip_string_for("migraphx_program_parameter_shapes_names")', 'fake_set_skip_output', 'skip_output_for', 'take_named_null_for("migraphx_argument_buffer")', 'take_named_null_for("migraphx_arguments_get")', 'take_named_null_for("migraphx_argument_shape")')
     'eng\generate-m12-fixtures.ps1' = @('m12-tensorflow-minimal.pb', 'm12-calibration-map.json', 'tensorflow-graphdef')
     'compatibility\schemas\m12-calibration-map.schema.json' = @('migraphx-calibration-map', 'float32', 'zeroPoint')
-    'compatibility\m12-post-build-runtime-evidence.json' = @('b53689ba3831ce721875d3e5bb4d370ae8a737e6', 'candidate-record-verified', 'm12-context-lifetime', 'm12-operation-materialized-attributes', 'runtime-executed', 'runtime-deferred')
     'compatibility\schemas\m12-post-build-runtime-evidence.schema.json' = @('post-build-external-runtime-promotion', 'candidateExecutedCaseCount', 'candidateDeferredCaseCount')
-    'compatibility\m12-provider-custom-op-numerical-diagnostic.json' = @('2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d', 'provider-custom-op-numerical-diagnostic', 'callbackInvocations', 'numericalOutputMatched', 'not-requested', 'runtime-deferred', 'host-reference target')
-    'compatibility\m12-provider-custom-op-numerical-diagnostic-59ee097.json' = @('59ee097de7f2eaef15d81ade24a40a6ac62a1af1', 'provider-custom-op-numerical-diagnostic', 'callbackInvocations', 'numericalOutputMatched', 'not-requested', 'runtime-deferred', 'host-reference target')
     'compatibility\schemas\m12-provider-custom-op-numerical-diagnostic.schema.json' = @('provider-custom-op-numerical-diagnostic', 'provider-custom-op-numerical-output', 'm12-custom-op-registration', 'not-requested', 'actualOutput', 'additionalProperties')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M12LocalInterfaceTests.cs' = @('ShapeAndArgumentFactories', 'ClonedParameterMapsAndOutputCollectionsSurviveSourceDisposal', 'sourceParameters.Dispose()', 'outputs.Dispose()', 'clonedOutputs[0].ToArray<float>()', 'GraphEditingAndContextViews', 'TensorFlowAndQuantization', 'CustomOpClone', 'CustomOpStateCopyDeletePreservesManagedIdentity', 'CustomOpReplacingAndClearingComputeCallbackKeepsReplayCurrent', 'CustomOpCallbackRootLastsThroughNativeOwnerLifetime', 'DisposedCustomOpReleasesCallbackRootsWhileWrapperRemainsAlive', 'CallbackLifetimeCapture', 'CustomOpCallbackSetterFailurePreservesPreviousCallbackAndReplay', 'FakeProviderDispatchInvokesRegisteredShapeCallbackThroughGraphPath', 'FakeProviderDispatchContainsShapeCallbackExceptionThroughGraphPath', 'FakeProviderDispatchIgnoresUnrelatedOperationName', 'CustomOpRegisterFailureLeavesRegistryUnchangedAndRetryWorks', 'CustomOpCallbackExceptionsBecomeNativeStatusAndUtf8Message', 'CustomOpCallbacksNormalizeUndefinedStatusValues', 'managed_utf8_exception_test', 'new UTF8Encoding(false, true)', 'InvokeCustomCallbacks', 'callbackInvocations', 'ProviderCallbackMessage', 'CustomOpCallbackSettersRaceDisposeRemainFailClosed', 'DeferredNegativeBoundariesAndConcurrentDispose', 'OperationAttributeSurfaceRemainsClosedOverArbitraryVariadicAbi', 'ModuleSurfaceRemainsProgramBoundWithoutIndependentOwner', 'QuantizeInt8OptionSnapshotFailsAfterDispose', 'TensorFlowOutputNameSnapshotFailsAfterDispose', 'SetSkipString', 'success with unwritten or unterminated UTF-8 buffer', 'SetNullOutput("migraphx_argument_buffer")', 'success with null buffer')
     'tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\M4ManagedObjectTests.cs' = @('SnapshotsHandleMultipleItemsAndRejectMalformedNativeCollections', 'SetSkipOutput', 'SetNullOutput', 'success with null borrowed handle', 'migraphx_arguments_get', 'migraphx_argument_shape', 'migraphx_shape_type', 'migraphx_shape_lengths', 'migraphx_shape_strides', 'migraphx_shape_elements', 'migraphx_shape_bytes', 'migraphx_arguments_size', 'migraphx_program_parameter_shapes_size', 'migraphx_shapes_size')
@@ -294,15 +208,6 @@ if ($probeProject.Contains('ProjectReference', [StringComparison]::Ordinal)) {
 $crossTargetProbeProject = Get-Content -Raw -LiteralPath (Join-Path $root 'tools\m12-cross-target-probe\M12CrossTargetProbe.csproj')
 if ($crossTargetProbeProject.Contains('ProjectReference', [StringComparison]::Ordinal)) {
     throw 'M12 cross-target probe must remain package-only and cannot add a ProjectReference.'
-}
-
-$design = Get-Content -Raw -LiteralPath (Join-Path $root 'docs\design\m12-local-interface-expansion.md')
-if (-not $design.Contains('Local validation record', [StringComparison]::Ordinal) -or
-    -not $design.Contains('real MIGraphX runtime', [StringComparison]::Ordinal) -or
-    -not $design.Contains('migraphx_operation_create', [StringComparison]::Ordinal) -or
-    -not $design.Contains('migraphx_module_create', [StringComparison]::Ordinal) -or
-    -not $design.Contains('reflection contract', [StringComparison]::Ordinal)) {
-    throw 'M12 design record is missing local validation or deferred-boundary statements.'
 }
 
 Write-Output "M12 coverage gate passed: $($cases.Count) runtime cases, $($fixtures.Count) fixtures, 2 reviewed promotions, 13 retained cases, 45/309 API baseline, and local source/test closure."

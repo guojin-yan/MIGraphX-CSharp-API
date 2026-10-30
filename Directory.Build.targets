@@ -26,5 +26,13 @@
   <Target Name="ValidateRepositoryBoundary" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(RepositoryRoot)' != '' and !Exists('$(RepositoryRoot)MIGraphXSharp.sln')"
            Text="The build must run from the MIGraphXSharp source repository." />
+    <Error Condition="$([System.String]::Copy('$(MIGraphXWorkspaceRoot)').ToUpperInvariant().StartsWith($([System.String]::Copy('$(RepositoryRoot)').ToUpperInvariant())))"
+           Text="MIGraphXWorkspaceRoot must be outside the source repository." />
   </Target>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <Compile Include="$(RepositoryRoot)tests/RepositoryPaths.cs" Link="RepositoryPaths.cs" />
+    <AssemblyMetadata Include="MIGraphXRepositoryRoot" Value="$(RepositoryRoot)" />
+    <AssemblyMetadata Include="MIGraphXArtifactsRoot" Value="$(MIGraphXArtifactsRoot)" />
+  </ItemGroup>
 </Project>

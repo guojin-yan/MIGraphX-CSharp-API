@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "${repo_root}/eng/workspace.sh"
 test "${repo_root}" = "/workspace/MIGraphX-CSharp-API"
 cd "${repo_root}"
 test -f global.json
@@ -19,7 +20,7 @@ printf 'tool-baseline=git,dotnet,pwsh,cmake,gcc\n'
 if test -d /persistent; then
   cache_root=/persistent/projects/MIGraphX-CSharp-API/cache/nuget
 else
-  cache_root=/workspace/MIGraphX-CSharp-API/.cache/nuget
+  cache_root="${workspace_root}/.cache/nuget"
   printf 'persistent-volume=unavailable; cache is ephemeral\n'
 fi
 mkdir -p "${cache_root}"

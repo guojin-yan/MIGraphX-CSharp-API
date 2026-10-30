@@ -1,11 +1,11 @@
 # MIGraphX HIP interop adapter
 
-`JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` is an optional managed adapter. Each candidate depends on the matching exact MIGraphX core version and exact `[0.9.1]` HIP core range; neither core package depends on the other. It contains DLL/XML assets for 15 target frameworks plus README, LICENSE, and NOTICE, with no native runtime.
+`JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` is an optional managed adapter. It depends on the matching MIGraphX core version and exact HipSharp `[0.9.1]`; neither core package depends on the other. It contains managed DLL/XML assets for 15 frameworks and no native runtime.
 
-The adapter exposes three public types: `MIGraphXHipExecution`, `MIGraphXHipAsyncRun`, and `MIGraphXHipDeviceInput`. `RunHostAsync` requires `offloadCopy=true`. `RunDeviceAsync` accepts validated `HipDeviceMemory` inputs and requires `offloadCopy=false`.
+`MIGraphXHipExecution` provides `RunHostAsync` for programs compiled with `offloadCopy=true` and `RunDeviceAsync` for validated `HipDeviceMemory` input with `offloadCopy=false`. Both return a `MIGraphXHipAsyncRun`.
 
-Native submission always uses the fixed `ihipStream_t` backend name required by the ROCm 7.2.1 MIGraphX C ABI. The result remains pending until `HipStream.Query`, `Synchronize`, or disposal establishes stream completion. Program, parameter map, arguments, native outputs, device pointers, and the stream callback remain leased during that interval. Outputs are independent owned host arguments after completion.
+Native submission uses the fixed `ihipStream_t` backend. `TryComplete` polls; `Synchronize` waits; disposing a pending run also waits. Outputs become available only after completion. Program, parameter map, argument and device-buffer leases remain held until then.
 
-Device input does not imply zero-copy. Completion performs an explicit device-to-host output copy; the adapter does not use `Marshal.Copy` on device addresses and exposes no raw stream or memory pointer. Graph capture, arbitrary external pointers, pooled/async allocations, and runtime binaries are not supported by this candidate.
+Device completion explicitly copies outputs to owned host arguments. Arbitrary external pointers, graph capture and pooled/async allocations are excluded. Full official async/device-buffer runtime qualification is pending; no zero-copy, overlap or performance guarantee is made.
 
-M6 evidence is limited to fixed-source inspection plus local fake MIGraphX/HIP execution. It does not prove official GPU execution, overlap, performance, or zero-copy behavior.
+Use the same coherent AMD ROCm system installation and device for both cores. See [the HIP integration guide](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/docs/guides/hip-interop.md).

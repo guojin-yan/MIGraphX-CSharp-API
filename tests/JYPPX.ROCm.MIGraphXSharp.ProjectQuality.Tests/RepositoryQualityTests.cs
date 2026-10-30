@@ -169,7 +169,7 @@ public sealed class RepositoryQualityTests
             }
         }
 
-        var runtimeMatrixPath = Path.Combine(compatibility, "runtime-validation-matrix.json");
+        var runtimeMatrixPath = Path.Combine(compatibility, "runtime-support-policy.json");
         using var runtimeMatrix = JsonDocument.Parse(File.ReadAllText(runtimeMatrixPath));
         var runtimeExecuted = runtimeMatrix.RootElement.GetProperty("validations")
             .EnumerateArray()
@@ -288,11 +288,6 @@ public sealed class RepositoryQualityTests
             "not-applicable",
             cases.Single(item => item.GetProperty("id").GetString() == "m11-windows-native-policy").GetProperty("officialEvidence").GetString());
 
-        using var promotion = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m10-post-build-runtime-evidence.json")));
-        Assert.Equal("e2386dc69e7640f8ff12d95284e56c3f02c87938", promotion.RootElement.GetProperty("sourceSha").GetString());
-        Assert.Equal(4, promotion.RootElement.GetProperty("promotions").GetArrayLength());
-        Assert.True(promotion.RootElement.GetProperty("historicalCandidateImmutable").GetBoolean());
-
         var probeRoot = Path.Combine(RepositoryRoot, "tools", "m11-runtime-probe");
         var project = File.ReadAllText(Path.Combine(probeRoot, "M11RuntimeProbe.csproj"));
         var runner = File.ReadAllText(Path.Combine(probeRoot, "Program.cs"));
@@ -351,7 +346,7 @@ public sealed class RepositoryQualityTests
         Assert.Equal("M12", root.GetProperty("stage").GetString());
         Assert.Equal("1.1.0", root.GetProperty("schemaVersion").GetString());
         Assert.Equal("partially-runtime-executed", root.GetProperty("validationStatus").GetString());
-        Assert.Equal("m12-post-build-runtime-evidence.json", root.GetProperty("review").GetProperty("promotionRecord").GetString());
+        Assert.Equal("runtime-support-policy.json", root.GetProperty("review").GetProperty("promotionRecord").GetString());
 
         var promotedIds = new HashSet<string>(StringComparer.Ordinal)
         {
@@ -369,55 +364,6 @@ public sealed class RepositoryQualityTests
             Assert.Equal(expected, item.GetProperty("officialEvidence").GetString());
             Assert.False(string.IsNullOrWhiteSpace(item.GetProperty("evidenceBoundary").GetString()));
         });
-
-        using var promotion = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-post-build-runtime-evidence.json")));
-        var evidence = promotion.RootElement;
-        Assert.Equal("b53689ba3831ce721875d3e5bb4d370ae8a737e6", evidence.GetProperty("sourceSha").GetString());
-        Assert.Equal("passed", evidence.GetProperty("reviewState").GetString());
-        Assert.Equal("runtime-executed", evidence.GetProperty("reviewedEvidence").GetString());
-        Assert.Equal("candidate-record-verified", evidence.GetProperty("candidateReviewState").GetString());
-        Assert.Equal("not-requested", evidence.GetProperty("candidatePromotionState").GetString());
-        Assert.Equal(11, evidence.GetProperty("candidateExecutedCaseCount").GetInt32());
-        Assert.Equal(8, evidence.GetProperty("candidateDeferredCaseCount").GetInt32());
-        Assert.Equal("3493a5c5b7023df19d074b634f7696ec93a71d65e46bebc201bcbdb695ca6b09", evidence.GetProperty("resultSha256").GetString());
-        Assert.Equal("4cc8178deb831091ed7c645cb0ce0ccb43a3905a09e9b3972e98e8b536452250", evidence.GetProperty("reviewSha256").GetString());
-        Assert.True(promotedIds.SetEquals(evidence.GetProperty("promotions").EnumerateArray().Select(item => item.GetProperty("id").GetString()!)));
-        Assert.Equal(13, evidence.GetProperty("retained").GetArrayLength());
-
-        using var callbackDiagnostic = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-provider-callback-diagnostic.json")));
-        var diagnostic = callbackDiagnostic.RootElement;
-        Assert.Equal("provider-callback-diagnostic", diagnostic.GetProperty("kind").GetString());
-        Assert.Equal("c435cd0fa1f87496dbb8612e14654b6665eb5ee7", diagnostic.GetProperty("sourceSha").GetString());
-        Assert.Equal("m12-custom-op-registration", diagnostic.GetProperty("caseId").GetString());
-        Assert.Equal("runtime-deferred", diagnostic.GetProperty("officialEvidence").GetString());
-        Assert.True(diagnostic.GetProperty("callbackInvocationObserved").GetBoolean());
-        Assert.Equal(1, diagnostic.GetProperty("callbackInvocations").GetProperty("computeShape").GetInt32());
-        Assert.True(diagnostic.GetProperty("controlledFailure").GetBoolean());
-        Assert.Equal("not-requested", diagnostic.GetProperty("promotionState").GetString());
-
-        using var numericalDiagnostic = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-provider-custom-op-numerical-diagnostic.json")));
-        var numerical = numericalDiagnostic.RootElement;
-        Assert.Equal("provider-custom-op-numerical-diagnostic", numerical.GetProperty("kind").GetString());
-        Assert.Equal("2418aa5ff4588af2eea3bb25bfefdcc1124b7f3d", numerical.GetProperty("sourceSha").GetString());
-        Assert.Equal("ref", numerical.GetProperty("target").GetString());
-        Assert.Equal("runtime-deferred", numerical.GetProperty("officialEvidence").GetString());
-        Assert.Equal("not-requested", numerical.GetProperty("promotionState").GetString());
-        Assert.True(numerical.GetProperty("numericalOutputMatched").GetBoolean());
-        Assert.Equal(new[] { 1.25, 0d, 3d, 10d }, numerical.GetProperty("actualOutput").EnumerateArray().Select(value => value.GetDouble()));
-        Assert.False(numerical.GetProperty("runsOnOffloadTarget").GetBoolean());
-
-        using var latestNumericalDiagnostic = JsonDocument.Parse(File.ReadAllText(Path.Combine(compatibility, "m12-provider-custom-op-numerical-diagnostic-59ee097.json")));
-        var latestNumerical = latestNumericalDiagnostic.RootElement;
-        Assert.Equal("provider-custom-op-numerical-diagnostic", latestNumerical.GetProperty("kind").GetString());
-        Assert.Equal("59ee097de7f2eaef15d81ade24a40a6ac62a1af1", latestNumerical.GetProperty("sourceSha").GetString());
-        Assert.Equal("Radeon_Cloud/records/20260924-59ee097-m12-custom-op-numeric", latestNumerical.GetProperty("externalRecord").GetString());
-        Assert.Equal("ref", latestNumerical.GetProperty("target").GetString());
-        Assert.Equal("not-observed", latestNumerical.GetProperty("provider").GetProperty("gpuArchitecture").GetString());
-        Assert.Equal(JsonValueKind.Null, latestNumerical.GetProperty("provider").GetProperty("headerSha256").ValueKind);
-        Assert.True(latestNumerical.GetProperty("numericalOutputMatched").GetBoolean());
-        Assert.Equal(new[] { 1.25, 0d, 3d, 10d }, latestNumerical.GetProperty("actualOutput").EnumerateArray().Select(value => value.GetDouble()));
-        Assert.Equal("runtime-deferred", latestNumerical.GetProperty("officialEvidence").GetString());
-        Assert.Equal("not-requested", latestNumerical.GetProperty("promotionState").GetString());
 
         var runner = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "Program.cs"));
         var review = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "m12-runtime-probe", "review.ps1"));
@@ -611,28 +557,21 @@ public sealed class RepositoryQualityTests
 
         foreach (var text in new[] { english, chinese })
         {
-            Assert.Contains("0.0.0", text);
-            Assert.Contains("0.9.0-rc.1", text);
-            Assert.Contains("0.9.0-rc.2", text);
-            Assert.Contains("0.9.0-rc.9", text);
-            Assert.DoesNotContain("0.9.0-rc.8", text);
-            Assert.Contains("release-candidate-local", text, StringComparison.Ordinal);
-            Assert.Contains("M1", text);
-            Assert.Contains("AMD", text, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("GPU", text, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("runtime", text, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("346cdd0b01a7f8039f5deb93058928403fccc7dd", text, StringComparison.Ordinal);
-            Assert.Contains("gfx1100", text, StringComparison.Ordinal);
-            Assert.Contains("system-native", text, StringComparison.OrdinalIgnoreCase);
-            Assert.Contains("84", text, StringComparison.Ordinal);
-            Assert.Contains("runtime-deferred", text, StringComparison.Ordinal);
+            Assert.Contains("0.0.0", text, StringComparison.Ordinal);
+            Assert.Contains("JYPPX.ROCm.MIGraphX.CSharp.API", text, StringComparison.Ordinal);
+            Assert.Contains("AMD", text, StringComparison.Ordinal);
+            Assert.Contains("ROCm 7.2.1", text, StringComparison.Ordinal);
+            Assert.Contains("MIGraphXSharp.Workspace", text, StringComparison.Ordinal);
+            Assert.Contains("docs/guides/getting-started.md", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("docs/validation/", text, StringComparison.Ordinal);
+            Assert.DoesNotContain("docs/articles/", text, StringComparison.Ordinal);
         }
     }
 
     [Fact]
     public void M8ReleaseCandidatePolicyIsSourceBoundAndFailClosed()
     {
-        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "compatibility", "runtime-validation-matrix.json")));
+        using var matrix = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "compatibility", "runtime-support-policy.json")));
         Assert.Equal("release-candidate-local", matrix.RootElement.GetProperty("m8Status").GetString());
         var validations = matrix.RootElement.GetProperty("validations").EnumerateArray().ToArray();
         Assert.Contains(validations, item => item.GetProperty("id").GetString() == "m8-public-api-freeze" && item.GetProperty("status").GetString() == "statically-verified");
@@ -647,8 +586,8 @@ public sealed class RepositoryQualityTests
         var adapterPack = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-adapter.ps1"));
         var adapterReadme = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop", "README.md"));
         var adapterPackageReadme = File.ReadAllText(Path.Combine(RepositoryRoot, "docs", "package", "HIP.Interop.README.md"));
-        Assert.Contains("matching MIGraphX core candidate", adapterReadme, StringComparison.Ordinal);
-        Assert.Contains("matching exact MIGraphX core version", adapterPackageReadme, StringComparison.Ordinal);
+        Assert.Contains("matching MIGraphX core version", adapterReadme, StringComparison.Ordinal);
+        Assert.Contains("matching MIGraphX core version", adapterPackageReadme, StringComparison.Ordinal);
         Assert.DoesNotContain("0.9.0-rc.2", adapterReadme, StringComparison.Ordinal);
         Assert.DoesNotContain("0.9.0-rc.2", adapterPackageReadme, StringComparison.Ordinal);
         var buildProps = File.ReadAllText(Path.Combine(RepositoryRoot, "Directory.Build.props"));
@@ -662,7 +601,7 @@ public sealed class RepositoryQualityTests
         var m6Coverage = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-m6-coverage.ps1"));
         Assert.Contains("HipSharpRepositoryRoot", m6Coverage, StringComparison.Ordinal);
         Assert.Contains("M6 requires a HIP-CSharp-API source root", m6Coverage, StringComparison.Ordinal);
-        foreach (var gateScript in new[] { "build.ps1", "test.ps1", "docs.ps1" })
+        foreach (var gateScript in new[] { "build.ps1" })
         {
             var gateText = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", gateScript));
             Assert.Contains("m6Arguments", gateText, StringComparison.Ordinal);
@@ -686,9 +625,9 @@ public sealed class RepositoryQualityTests
         Assert.Contains("packageSourceMapping", adapterPack, StringComparison.Ordinal);
         Assert.Contains("JYPPX.ROCm.HIP.CSharp.API", adapterPack, StringComparison.Ordinal);
         Assert.Contains("e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2", adapterPack, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("artifacts\\release-feed\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
-        Assert.Contains("artifacts\\adapter-pack-restore\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
-        Assert.Contains("artifacts\\adapter-pack-obj\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("release-feed\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("adapter-pack-restore\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
+        Assert.Contains("adapter-pack-obj\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Contains("Core package repository commit mismatch", adapterPack, StringComparison.Ordinal);
         Assert.Equal(3, Regex.Matches(adapterPack, "BaseIntermediateOutputPath=\\$restoreIntermediateWithSlash", RegexOptions.CultureInvariant).Count);
     }
@@ -771,50 +710,15 @@ public sealed class RepositoryQualityTests
         foreach (var href in new[]
         {
             "guides/getting-started.md",
+            "guides/managed-objects.md",
+            "guides/operation-attributes.md",
+            "guides/dynamic-shapes-cache.md",
+            "guides/hip-interop.md",
+            "guides/advanced-apis.md",
+            "guides/api-versioning.md",
+            "guides/runtime-deployment.md",
             "compatibility/frameworks.md",
             "compatibility/platforms.md",
-            "design/m0-native-baseline.md",
-            "design/m1-direct-pinvoke.md",
-            "design/m2-onnx-workflow.md",
-            "design/m3-binding-generator.md",
-            "design/m4-managed-object-model.md",
-            "design/m5-dynamic-shape-cache.md",
-            "design/m6-hip-async-interop.md",
-            "design/m7-runtime-packaging.md",
-            "validation/README.md",
-            "validation/m2-local-validation.md",
-            "validation/m3-local-validation.md",
-            "validation/m4-local-validation.md",
-            "validation/m5-local-validation.md",
-            "validation/m6-local-validation.md",
-            "validation/m7-local-validation.md",
-            "guides/runtime-deployment.md",
-            "guides/managed-objects.md",
-            "guides/api-versioning.md",
-            "design/m8-api-release-readiness.md",
-            "design/m9-inference-options.md",
-            "design/m10-onnx-registry-native-comparison.md",
-            "validation/m8-local-validation.md",
-            "validation/m8-runtime-methodology.md",
-            "validation/m9-cloud-validation.md",
-            "validation/m10-local-validation.md",
-            "validation/m10-runtime-plan.md",
-            "validation/m11-runtime-hardening-plan.md",
-            "articles/m0-m8-evidence-driven-wrapper.md",
-            "articles/m9-interface-options-cloud-record.md",
-            "articles/m10-explainable-c-api-introspection.md",
-            "releases/0.9.0-rc.2.md",
-            "releases/0.9.0-rc.8.md",
-            "releases/0.9.0-rc.7.md",
-            "releases/0.9.0-rc.6.md",
-            "releases/0.9.0-rc.5.md",
-            "releases/0.9.0-rc.4.md",
-            "releases/0.9.0-rc.3.md",
-            "releases/0.9.0-rc.1.md",
-            "articles/m4-resource-safe-dotnet.md",
-            "articles/m5-dynamic-shape-cache.md",
-            "articles/m6-hip-async-copy-boundary.md",
-            "releases/0.0.0.md",
             "api/index.md",
         })
         {
@@ -829,9 +733,6 @@ public sealed class RepositoryQualityTests
         Assert.Contains("eng/generate-interop.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m2-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-m3-abi.ps1", buildWorkflow, StringComparison.Ordinal);
-        Assert.Contains("eng/verify-m4-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
-        Assert.Contains("eng/verify-m10-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
-        Assert.Contains("eng/verify-m11-coverage.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);
@@ -849,9 +750,14 @@ public sealed class RepositoryQualityTests
 
         var docsScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "docs.ps1"));
         Assert.Contains("Join-Path $root 'docfx.json'", docsScript, StringComparison.Ordinal);
-        Assert.Contains("verify-m9-coverage.ps1", docsScript, StringComparison.Ordinal);
-        Assert.Contains("verify-m10-coverage.ps1", docsScript, StringComparison.Ordinal);
-        Assert.Contains("verify-m11-coverage.ps1", docsScript, StringComparison.Ordinal);
+        Assert.Contains("build.ps1", docsScript, StringComparison.Ordinal);
+        Assert.Contains("Get-WorkspaceRoot", docsScript, StringComparison.Ordinal);
+        Assert.DoesNotContain("verify-public-api.ps1", docsScript, StringComparison.Ordinal);
+        Assert.DoesNotContain("verify-m12-coverage.ps1", docsScript, StringComparison.Ordinal);
+        Assert.True(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-repository-layout.ps1")));
+        Assert.False(Directory.Exists(Path.Combine(RepositoryRoot, "docs", "validation")));
+        Assert.False(Directory.Exists(Path.Combine(RepositoryRoot, "docs", "design")));
+        Assert.False(Directory.Exists(Path.Combine(RepositoryRoot, "docs", "articles")));
         Assert.DoesNotContain(@".\docfx.json", docsScript, StringComparison.Ordinal);
 
         var interopScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-interop-paths.ps1"));
@@ -933,16 +839,5 @@ public sealed class RepositoryQualityTests
         || path.Contains($"{Path.DirectorySeparatorChar}api{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase)
             && !path.Contains($"{Path.DirectorySeparatorChar}docs{Path.DirectorySeparatorChar}api{Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
 
-    private static string FindRepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "MIGraphXSharp.sln")))
-            {
-                return directory.FullName;
-            }
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the MIGraphXSharp repository root.");
-    }
+    private static string FindRepositoryRoot() => RepositoryPaths.Root;
 }

@@ -1,7 +1,11 @@
 <Project>
+  <Import Project="../../../Directory.Build.props" />
   <PropertyGroup>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
-    <RestorePackagesPath>$(MSBuildThisFileDirectory)..\..\..\artifacts\packages\consumers</RestorePackagesPath>
+    <ConsumerFrameworkDirectory>$([System.IO.Path]::GetFileName('$(MSBuildProjectDirectory)'))</ConsumerFrameworkDirectory>
+    <BaseOutputPath>$(MIGraphXArtifactsRoot)package-consumers\$(ConsumerFrameworkDirectory)\bin\</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MIGraphXArtifactsRoot)package-consumers\$(ConsumerFrameworkDirectory)\obj\</BaseIntermediateOutputPath>
+    <RestorePackagesPath>$(MIGraphXArtifactsRoot)packages\consumers</RestorePackagesPath>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <MIGraphXConsumerVersion Condition="'$(MIGraphXConsumerVersion)' == ''">0.0.0</MIGraphXConsumerVersion>
   </PropertyGroup>

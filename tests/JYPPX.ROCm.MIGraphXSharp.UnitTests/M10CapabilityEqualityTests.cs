@@ -228,17 +228,10 @@ public sealed class M10CapabilityEqualityTests
     private static string GetFakeNativePath()
     {
         var name = OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so";
-        return Path.Combine(FindRepositoryRoot(), "artifacts", "fake-native", "Release", name);
+        return Path.Combine(RepositoryPaths.Artifacts, "fake-native", "Release", name);
     }
 
-    private static string FindRepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "MIGraphXSharp.sln"))) return directory.FullName;
-        }
-        throw new DirectoryNotFoundException("Could not locate the MIGraphXSharp repository root.");
-    }
+    private static string FindRepositoryRoot() => RepositoryPaths.Root;
 
     private sealed class FakeControls : IDisposable
     {

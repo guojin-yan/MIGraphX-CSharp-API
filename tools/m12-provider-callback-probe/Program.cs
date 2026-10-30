@@ -9,7 +9,7 @@ internal static class Program
 {
     public static int Main(string[] args)
     {
-        var outputPath = TryGet(args, "--output") ?? Path.Combine(Directory.GetCurrentDirectory(), "provider-callback.json");
+        var outputPath = TryGet(args, "--output");
         var result = new ProbeResult { SchemaVersion = "1.0.0", Evidence = "runtime-candidate-executed-review-required" };
         var exitCode = 1;
         try
@@ -59,13 +59,17 @@ internal static class Program
             result.Error = exception.GetType().FullName + ": " + exception.Message;
         }
 
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
-        File.WriteAllText(outputPath, JsonSerializer.Serialize(result, new JsonSerializerOptions
+        var json = JsonSerializer.Serialize(result, new JsonSerializerOptions
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        }) + Environment.NewLine);
-        Console.WriteLine(File.ReadAllText(outputPath));
+        }) + Environment.NewLine;
+        if (outputPath is not null)
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(outputPath))!);
+            File.WriteAllText(outputPath, json);
+        }
+        Console.WriteLine(json);
         return exitCode;
     }
 

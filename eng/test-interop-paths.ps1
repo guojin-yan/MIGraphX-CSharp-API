@@ -13,10 +13,10 @@ if (-not $NoBuild) {
 & (Join-Path $PSScriptRoot 'generate-m2-model.ps1') | Out-Host
 
 $extension = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c.dll' } else { 'libmigraphx_c.so' }
-$nativePath = Join-Path $root "artifacts\fake-native\$Configuration\$extension"
+$nativePath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$extension"
 $m10MissingName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c_m10_missing.dll' } else { 'libmigraphx_c_m10_missing.so' }
-$m10MissingPath = Join-Path $root "artifacts\fake-native\$Configuration\$m10MissingName"
-$modelPath = Join-Path $root 'artifacts\models\m2-identity-float32.onnx'
+$m10MissingPath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$m10MissingName"
+$modelPath = Join-Path (Get-ArtifactsRoot) 'models\m2-identity-float32.onnx'
 $project = Join-Path $root 'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\JYPPX.ROCm.MIGraphXSharp.InteropRunner.csproj'
 
 foreach ($framework in @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')) {

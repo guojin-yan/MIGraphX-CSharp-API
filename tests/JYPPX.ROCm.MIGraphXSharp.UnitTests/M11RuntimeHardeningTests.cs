@@ -50,18 +50,8 @@ public sealed class M11RuntimeHardeningTests
         Assert.Throws<ArgumentException>(() => new MIGraphXModelCache("relative-cache"));
     }
 
-    private static string FakePath()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "MIGraphXSharp.sln")))
-            {
-                var name = OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so";
-                return Path.Combine(directory.FullName, "artifacts", "fake-native", "Release", name);
-            }
-        }
-        throw new DirectoryNotFoundException();
-    }
+    private static string FakePath() => Path.Combine(RepositoryPaths.Artifacts,
+        "fake-native", "Release", OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so");
 
     private sealed class FakeControls : IDisposable
     {

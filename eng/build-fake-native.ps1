@@ -7,9 +7,9 @@ param(
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
 $sourceDirectory = Join-Path $root 'native\fake-migraphx'
-$outputDirectory = Join-Path $root "artifacts\fake-native\$Configuration"
+$outputDirectory = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration"
 $hipSource = Join-Path $root 'native\fake-hip\fake_hip.c'
-$hipOutputDirectory = Join-Path $root "artifacts\fake-hip\$Configuration"
+$hipOutputDirectory = Join-Path (Get-ArtifactsRoot) "fake-hip\$Configuration"
 New-Item -ItemType Directory -Force -Path $outputDirectory | Out-Null
 New-Item -ItemType Directory -Force -Path $hipOutputDirectory | Out-Null
 
@@ -21,8 +21,7 @@ if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $vcvars = Join-Path $installation 'VC\Auxiliary\Build\vcvars64.bat'
     $originalEnvironment = @{}
     Get-ChildItem Env: | ForEach-Object { $originalEnvironment[$_.Name] = $_.Value }
-    $environmentLines = & $env:ComSpec /d /s /c "`"$vcvars`" >nul && set"
-    if ($LASTEXITCODE -ne 0) { throw 'Failed to initialize the Visual Studio C++ environment.' }
+    $environmentLines = @(Get-VisualCppEnvironment -VcvarsPath $vcvars)
     foreach ($line in $environmentLines) {
         $separator = $line.IndexOf('=')
         if ($separator -gt 0) {

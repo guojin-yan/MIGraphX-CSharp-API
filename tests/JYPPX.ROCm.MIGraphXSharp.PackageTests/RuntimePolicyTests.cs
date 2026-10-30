@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Security.Cryptography;
 using Xunit;
 
 namespace JYPPX.ROCm.MIGraphXSharp.PackageTests;
@@ -28,10 +27,10 @@ public sealed class RuntimePolicyTests
     }
 
     [Fact]
-    public void ArchivedFeasibilityEvidencePinsTheOfficialSystemSource()
+    public void OfficialSystemSourceLockPinsTheNativeBaseline()
     {
         var root = FindRepositoryRoot();
-        var manifestPath = Path.Combine(root, "nuget", "runtime-manifests", "linux-x64.json");
+        var manifestPath = Path.Combine(root, "compatibility", "system-native-source-lock.json");
         using var document = JsonDocument.Parse(File.ReadAllText(manifestPath));
         var manifest = document.RootElement;
 
@@ -45,17 +44,12 @@ public sealed class RuntimePolicyTests
             new[] { "repositoryUrl", "inReleaseUrl", "packagesIndexUrl", "signingKeyUrl" },
             property => Assert.Equal("repo.radeon.com", new Uri(source.GetProperty(property).GetString()!).Host));
         Assert.Equal(12, manifest.GetProperty("packages").GetArrayLength());
-        Assert.Equal(12, manifest.GetProperty("files").GetArrayLength());
-        Assert.Equal(1, manifest.GetProperty("licenses").GetArrayLength());
-
-        var closure = manifest.GetProperty("closure");
-        Assert.Equal(closure.GetProperty("sha256").GetString(), Sha256(Path.Combine(root, closure.GetProperty("path").GetString()!.Replace('/', Path.DirectorySeparatorChar))));
-        var sbom = manifest.GetProperty("metadata").GetProperty("sbom");
-        Assert.Equal(sbom.GetProperty("sha256").GetString(), Sha256(Path.Combine(root, sbom.GetProperty("path").GetString()!.Replace('/', Path.DirectorySeparatorChar))));
-
-        using var bom = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, sbom.GetProperty("path").GetString()!.Replace('/', Path.DirectorySeparatorChar))));
-        Assert.Equal("CycloneDX", bom.RootElement.GetProperty("bomFormat").GetString());
-        Assert.Equal("1.5", bom.RootElement.GetProperty("specVersion").GetString());
+        Assert.All(manifest.GetProperty("packages").EnumerateArray(), package =>
+        {
+            Assert.Equal("amd64", package.GetProperty("architecture").GetString());
+            Assert.Equal("repo.radeon.com", new Uri(package.GetProperty("url").GetString()!).Host);
+            Assert.Matches("^[0-9a-f]{64}$", package.GetProperty("sha256").GetString()!);
+        });
     }
 
     [Fact]
@@ -72,22 +66,5 @@ public sealed class RuntimePolicyTests
         Assert.Contains("AMD official system repository", script, StringComparison.Ordinal);
     }
 
-    private static string Sha256(string path)
-    {
-        using var stream = File.OpenRead(path);
-        return Convert.ToHexString(SHA256.HashData(stream)).ToLowerInvariant();
-    }
-
-    private static string FindRepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-        {
-            if (File.Exists(Path.Combine(directory.FullName, "MIGraphXSharp.sln")))
-            {
-                return directory.FullName;
-            }
-        }
-
-        throw new DirectoryNotFoundException("Could not locate the MIGraphXSharp repository root.");
-    }
+    private static string FindRepositoryRoot() => RepositoryPaths.Root;
 }

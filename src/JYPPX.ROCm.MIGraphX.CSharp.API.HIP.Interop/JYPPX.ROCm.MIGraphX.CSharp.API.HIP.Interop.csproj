@@ -13,7 +13,7 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>M8 0.9 prerelease adapter with exact core dependencies and unchanged three-type async/device-input surface. Publication is not authorized.</PackageReleaseNotes>
+    <PackageReleaseNotes>Unpublished managed adapter with exact core dependencies. Review the documented async and device-input runtime limitations before use.</PackageReleaseNotes>
     <UseAdapterPackageReferences Condition="'$(UseAdapterPackageReferences)' == ''">false</UseAdapterPackageReferences>
     <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
   </PropertyGroup>

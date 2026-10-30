@@ -65,7 +65,7 @@
   "review": {
     "candidateResultLabel": "runtime-candidate-executed-review-required",
     "promotionRule": "Only an independent review of a clean, authorized, source/package-bound record may promote a case to runtime-executed.",
-    "promotionRecord": "m12-post-build-runtime-evidence.json",
+    "promotionRecord": "runtime-support-policy.json",
     "historicalMapsRemainUnchanged": true
   },
   "cases": [

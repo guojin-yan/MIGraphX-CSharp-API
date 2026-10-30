@@ -12,7 +12,7 @@ $root = Get-RepositoryRoot
 $manifest = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m2-binding-subset.json') | ConvertFrom-Json
 $m9Map = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m9-high-level-api-map.json') | ConvertFrom-Json
 $m10Map = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m10-high-level-api-map.json') | ConvertFrom-Json
-$cache = Join-Path $root '.cache\m1'
+$cache = Join-Path (Get-CacheRoot) 'm1'
 
 if ($AcquireInputs) {
     New-Item -ItemType Directory -Force -Path $cache | Out-Null
@@ -56,9 +56,9 @@ $managedSubset = @($managed | Where-Object { $_ -in $expected })
 
 & (Join-Path $root 'eng\build-fake-native.ps1') -Configuration $Configuration | Out-Host
 $fakePath = if ($IsWindows -or $env:OS -eq 'Windows_NT') {
-    Join-Path $root "artifacts\fake-native\$Configuration\migraphx_c.dll"
+    Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\migraphx_c.dll"
 } else {
-    Join-Path $root "artifacts\fake-native\$Configuration\libmigraphx_c.so"
+    Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\libmigraphx_c.so"
 }
 if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'

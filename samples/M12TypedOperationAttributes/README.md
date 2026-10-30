@@ -1,4 +1,4 @@
-# M12 typed operation attributes sample
+# Typed operation attributes sample
 
 The sample materializes the five reviewed operation attribute forms without passing arbitrary C format placeholders or general C variadic values through the native ABI: `reshape`, `transpose`, `slice`, `multibroadcast`, and `topk`. With no arguments it runs the managed serialization path, which is useful on Windows without MIGraphX installed.
 

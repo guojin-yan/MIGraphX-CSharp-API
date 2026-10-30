@@ -12,6 +12,9 @@ on:
 permissions:
   contents: read
 
+env:
+  MIGRAPHX_WORKSPACE_ROOT: ${{ github.workspace }}/MIGraphXSharp.Workspace
+
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -19,8 +22,13 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/MIGraphXSharp
     steps:
       - uses: actions/checkout@v7
+        with:
+          path: MIGraphXSharp
       - uses: actions/checkout@v7
         with:
           repository: guojin-yan/HIP-CSharp-API
@@ -29,7 +37,7 @@ jobs:
           fetch-depth: 1
       - uses: actions/setup-dotnet@v6
         with:
-          global-json-file: global.json
+          global-json-file: MIGraphXSharp/global.json
       - shell: pwsh
         run: |
           $hipRoot = Join-Path $env:GITHUB_WORKSPACE 'hip-source'
@@ -38,7 +46,7 @@ jobs:
           ./eng/docs.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: artifacts/docs
+          path: ${{ env.MIGRAPHX_WORKSPACE_ROOT }}/artifacts/docs
 
   deploy:
     if: inputs.deploy && github.ref == 'refs/heads/main'

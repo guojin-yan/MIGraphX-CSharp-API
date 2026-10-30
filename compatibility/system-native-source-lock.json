@@ -1,0 +1,153 @@
+{
+  "$schema": "./schemas/system-native-source-lock.schema.json",
+  "schemaVersion": 2,
+  "rid": "linux-x64",
+  "nativeVersion": "2.15.0.70201-81~24.04",
+  "source": {
+    "repositoryUrl": "https://repo.radeon.com/rocm/apt/7.2.1",
+    "distribution": "noble",
+    "component": "main",
+    "architecture": "amd64",
+    "inReleaseUrl": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/InRelease",
+    "packagesIndexUrl": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/main/binary-amd64/Packages.gz",
+    "signingKeyUrl": "https://repo.radeon.com/rocm/rocm.gpg.key",
+    "signingKeyFingerprint": "CA8BB4727A47B4D09B4EE8969386B48A1A693C5C",
+    "signingKeySha256": "2de99e2354646a90d9903e2a669fc4e36b02c1bbff7075c481e12d7edab2c88b",
+    "inReleaseSha256": "8c0a2a0a6075f0301e01deff8b6ac3dae18bbe2b115a7a3f28dd7991197671e0",
+    "packagesIndexSha256": "739224fb69cef365b96e96699073e84f066d2d8a8547273bebbca17712dc38cc",
+    "headerSha256": "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2",
+    "upstreamTag": "rocm-7.2.1",
+    "upstreamCommit": "de19b73ad280476e646512b847885eda100ec35e"
+  },
+  "packages": [
+    {
+      "name": "migraphx-rpath7.2.1",
+      "version": "2.15.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/m/migraphx-rpath7.2.1/migraphx-rpath7.2.1_2.15.0.70201-81~24.04_amd64.deb",
+      "size": 68651368,
+      "sha256": "071eeaf5653447b3328298ab5800e069534c620d01eae5dcad4ec50777cc85d9",
+      "role": "migraphx-root",
+      "acquisition": "required"
+    },
+    {
+      "name": "hipblaslt-rpath7.2.1",
+      "version": "1.2.2.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hipblaslt-rpath7.2.1/hipblaslt-rpath7.2.1_1.2.2.70201-81~24.04_amd64.deb",
+      "size": 1613836012,
+      "sha256": "334e6b2c2c779517740a31b884efb0f86db7dc0d781a0fce688da26d1ff2f458",
+      "role": "incremental-provider",
+      "acquisition": "metadata-only",
+      "provides": [
+        "libhipblaslt.so.1"
+      ]
+    },
+    {
+      "name": "miopen-hip-rpath7.2.1",
+      "version": "3.5.1.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/m/miopen-hip-rpath7.2.1/miopen-hip-rpath7.2.1_3.5.1.70201-81~24.04_amd64.deb",
+      "size": 307906628,
+      "sha256": "2efa7cbe5881b6a2b28d30b04b7031ed11bc1f9faea332647385029bc4887668",
+      "role": "incremental-provider",
+      "acquisition": "metadata-only",
+      "provides": [
+        "libMIOpen.so.1"
+      ]
+    },
+    {
+      "name": "rocblas-rpath7.2.1",
+      "version": "5.2.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocblas-rpath7.2.1/rocblas-rpath7.2.1_5.2.0.70201-81~24.04_amd64.deb",
+      "size": 164793360,
+      "sha256": "b02c03d59cadb428e20142d1765664dda4c852720d158d40e9d2781781b196ef",
+      "role": "incremental-provider",
+      "acquisition": "metadata-only",
+      "provides": [
+        "librocblas.so.5"
+      ]
+    },
+    {
+      "name": "rocrand-rpath7.2.1",
+      "version": "4.2.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocrand-rpath7.2.1/rocrand-rpath7.2.1_4.2.0.70201-81~24.04_amd64.deb",
+      "size": 39599460,
+      "sha256": "b08b960ec811f5fff4d567425dc15b06cb5df8dd8477694db87a45149959126d",
+      "role": "incremental-provider",
+      "acquisition": "metadata-only"
+    },
+    {
+      "name": "roctracer-rpath7.2.1",
+      "version": "4.1.70201.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/roctracer-rpath7.2.1/roctracer-rpath7.2.1_4.1.70201.70201-81~24.04_amd64.deb",
+      "size": 294240,
+      "sha256": "4f99f047ee429a591b40a6c41909cadc28d22eedf5066a98cc29336d3a15bfbf",
+      "role": "incremental-provider",
+      "acquisition": "metadata-only"
+    },
+    {
+      "name": "hip-runtime-amd-rpath7.2.1",
+      "version": "7.2.53211.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hip-runtime-amd-rpath7.2.1/hip-runtime-amd-rpath7.2.1_7.2.53211.70201-81~24.04_amd64.deb",
+      "size": 9959856,
+      "sha256": "e94b1466208e91ddee85db475658113c71db565fee6f3f39e973ab2b6c1552d8",
+      "role": "provided-by-exact-hip-runtime",
+      "acquisition": "metadata-only"
+    },
+    {
+      "name": "hsa-rocr-rpath7.2.1",
+      "version": "1.18.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hsa-rocr-rpath7.2.1/hsa-rocr-rpath7.2.1_1.18.0.70201-81~24.04_amd64.deb",
+      "size": 912124,
+      "sha256": "3485899502a1ca8b058a4ae35890f8c7713625aebe0fb6938ff7fe3921d64b30",
+      "role": "provided-by-exact-hip-runtime",
+      "acquisition": "metadata-only"
+    },
+    {
+      "name": "comgr-rpath7.2.1",
+      "version": "3.0.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/c/comgr-rpath7.2.1/comgr-rpath7.2.1_3.0.0.70201-81~24.04_amd64.deb",
+      "size": 40334664,
+      "sha256": "237aa75c2bd9f1c23532b5c0681e0ef01c45bff607fdf314b05bc0cca44e5087",
+      "role": "provided-by-exact-hip-runtime",
+      "acquisition": "metadata-only"
+    },
+    {
+      "name": "rocprofiler-register-rpath7.2.1",
+      "version": "0.6.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocprofiler-register-rpath7.2.1/rocprofiler-register-rpath7.2.1_0.6.0.70201-81~24.04_amd64.deb",
+      "size": 194264,
+      "sha256": "4c1d580f4dbe456b98c1965fc0c575a113f463a10055186d2bb5c5a92e6eaefd",
+      "role": "provided-by-exact-hip-runtime",
+      "acquisition": "metadata-only"
+    },
+    {
+      "name": "rocminfo-rpath7.2.1",
+      "version": "1.0.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocminfo-rpath7.2.1/rocminfo-rpath7.2.1_1.0.0.70201-81~24.04_amd64.deb",
+      "size": 22708,
+      "sha256": "fecfd9b9f113c85b8bbf9c71fa7169fac1819a5004f03ccd883f4c969a540346",
+      "role": "provided-by-exact-hip-runtime",
+      "acquisition": "metadata-only"
+    },
+    {
+      "name": "rocm-core-rpath7.2.1",
+      "version": "7.2.1.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocm-core-rpath7.2.1/rocm-core-rpath7.2.1_7.2.1.70201-81~24.04_amd64.deb",
+      "size": 29140,
+      "sha256": "d25ef0c49da9af08fb5b3d9c05ea16369a62ddb54428cdc3518c078474d45d1a",
+      "role": "provided-by-exact-hip-runtime",
+      "acquisition": "metadata-only"
+    }
+  ]
+}

@@ -1,101 +1,56 @@
 # Getting started
 
-The core public surface supports explicit diagnostics, the unchanged M2 single-input/single-output static float32 workflow, M4 resource-safe synchronous objects, M5 dynamic-shape metadata plus program persistence/cache APIs, M9 inference options, and M10 copied ONNX parser-registry introspection plus explicit host argument/program comparison. The M12 batch additionally projects graph handles, TensorFlow options, quantization, experimental context, and custom-op callbacks; local fake-native compilation, focused tests, and the package-only candidate pass. Its reviewed record promotes context lifetime and materialized operation attributes only; the remaining M12 runtime cases stay deferred. The optional M6 adapter adds native asynchronous submission with HipSharp streams and `HipDeviceMemory` inputs. Arbitrary device pointers and graph capture interop remain excluded.
+The core package is `JYPPX.ROCm.MIGraphX.CSharp.API`; its C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Packages are currently unpublished, so build a local package from source.
 
-## Prerequisites
+## Install and build
 
-- The .NET SDK selected by `global.json`.
-- PowerShell 7 and a C compiler for the local fake-native gate.
-- For official runtime probing: install the frozen ROCm 7.2.1/MIGraphX system packages from AMD's official repository on a compatible Linux x86-64 host.
-
-## Build and verify
+Install the .NET SDK selected by `global.json` and PowerShell 7, and configure the HipSharp source dependency described in [CONTRIBUTING.md](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/CONTRIBUTING.md):
 
 ```powershell
-dotnet tool restore
-.\eng\generate-interop.ps1 -AcquireHeader -Verify
-.\eng\verify-m4-coverage.ps1
-.\eng\verify-m5-coverage.ps1
-.\eng\verify-m6-coverage.ps1
-.\eng\verify-m9-coverage.ps1
-.\eng\verify-m10-coverage.ps1
-.\eng\build.ps1 -Configuration Release
-.\eng\test.ps1 -Configuration Release -NoBuild
-.\eng\verify-m2-abi.ps1 -AcquireInputs
-.\eng\verify-m3-abi.ps1 -AcquireInputs
-$package = .\eng\pack.ps1 -Configuration Release -Version 0.9.0-rc.9 -NoBuild
-.\eng\verify-package.ps1 -PackagePath $package -Version 0.9.0-rc.9
-$adapter = .\eng\pack-adapter.ps1 -Configuration Release -Version 0.9.0-rc.9 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage -NoBuild
-.\eng\verify-adapter-package.ps1 -PackagePath $adapter -Version 0.9.0-rc.9 -HipSharpVersion 0.9.1 -HipSharpPackagePath $hipPackage
-.\eng\docs.ps1 -Configuration Release -Version 0.9.0-rc.9 -NoBuild
+.\eng\pack.ps1 -Configuration Release -Version 0.0.0
 ```
 
-`generate-interop.ps1` stops before generation if the header SHA-256 differs from the frozen value and verify mode never writes tracked outputs. `verify-m2-abi.ps1` preserves the 41-function workflow gate and deterministic Identity model. `verify-m3-abi.ps1` closes the complete 159-function header against 158 managed EntryPoints, one explicit variadic unsupported item, and 159 official public ELF exports.
+Add `../MIGraphXSharp.Workspace/artifacts/packages/` as a local NuGet source in your consuming application, then reference the exact package version. Full solution builds also need the HipSharp source dependency described in [CONTRIBUTING.md](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/CONTRIBUTING.md).
 
-For explicit target/program/options/argument composition, continue with the [managed object workflow](managed-objects.md). Its inputs and outputs are copied for safety; it does not expose zero-copy or async behavior.
+For inference, install ROCm 7.2.1 and MIGraphX `2.15.0.70201-81~24.04` on compatible Linux x86-64 hardware using the [deployment guide](runtime-deployment.md). Building managed code does not install a native runtime.
 
-MIGraphXSharp does not publish a Runtime nupkg. See [System-native deployment](runtime-deployment.md) before using system or explicit native libraries; never copy assets from the ignored source cache into an application.
-
-## Run with a HipSharp stream
-
-Reference the optional adapter and both core packages. Host execution requires a program compiled with `offloadCopy=true`:
+## Probe the library
 
 ```csharp
-using JYPPX.ROCm.HipSharp;
-using JYPPX.ROCm.HipSharp.Streams;
-using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
+using JYPPX.ROCm.MIGraphXSharp;
 
-using var hip = new HipRuntime();
-using HipStream stream = hip.CreateStream();
-using MIGraphXHipAsyncRun run = program.RunHostAsync(parameters, stream);
-run.Synchronize();
-float[] output = run.Outputs[0].ToArray<float>();
+var nativePath = "/opt/rocm-7.2.1/lib/libmigraphx_c.so.3";
+var report = MIGraphXEnvironment.Probe(nativePath);
+Console.WriteLine(report.State);
+foreach (var diagnostic in report.Diagnostics)
+    Console.WriteLine(diagnostic);
 ```
 
-For device input, compile with `offloadCopy=false`, create a `MIGraphXHipDeviceInput` for every exact model parameter, and call `RunDeviceAsync`. The adapter validates shape, capacity, runtime client, and device ordinal. Completion explicitly copies device outputs to owned host arguments; this is not a zero-copy API. See the [M6 design](../design/m6-hip-async-interop.md).
+The library path must be absolute. Probing reports loading and export failures; it does not certify inference on every model or device. `ProbeSystem` checks application RID, application-base and system-loader candidates. The loader downloads no files and changes no search-path environment variables.
 
-## Run the restricted workflow
+## Run a model
 
 ```csharp
 var result = MIGraphXOnnxWorkflow.RunFile(
-    nativeLibraryPath: "/absolute/path/to/libmigraphx_c.so.3",
-    modelPath: "/absolute/path/to/model.onnx",
-    input: new[] { 1f, 2f, 3f, 4f });
+    nativePath,
+    "/absolute/path/to/model.onnx",
+    new[] { 1f, 2f, 3f, 4f });
+Console.WriteLine(string.Join(",", result.Output));
 ```
 
-Both paths must be absolute. `RunBuffer` accepts a non-empty `byte[]` instead of a model path. The model must expose exactly one static, standard float32 input and output, and input length must match the shape. M2 enables offload-copy, pins input through the synchronous run only, and returns read-only managed snapshots.
+This convenience API requires exactly one static, standard-layout float32 input and output. Supply the exact number of input elements. It compiles for GPU with offload-copy, runs synchronously and copies the output into managed memory. `RunBuffer` takes a non-empty model byte array instead of a file path.
 
-Inspect the loaded ONNX parser registry without retaining a native pointer:
+For multiple inputs or outputs, use [managed objects](managed-objects.md). Dynamic inputs, persistence and cache are covered in [their guide](dynamic-shapes-cache.md).
+
+## Inspect parser capabilities
 
 ```csharp
-IReadOnlyList<string> names = MIGraphXOnnxWorkflow.GetRegisteredOperators(
-    "/absolute/path/to/libmigraphx_c.so.3");
+var operators = MIGraphXOnnxWorkflow.GetRegisteredOperators(nativePath);
+Console.WriteLine(string.Join(",", operators));
 ```
 
-The list is a version-bound parser capability hint, not a guarantee that a model, opset, target, or device is supported.
+The read-only list is a copy of the loaded version's parser registry. A name in this list does not guarantee support for a particular opset, model, target or device.
 
-## Materialize typed operation attributes
+See [platform limitations](../compatibility/platforms.md) before using advanced paths, and [HIP integration](hip-interop.md) for asynchronous execution.
 
-The [M12 typed operation attributes sample](m12-typed-operation-attributes.md) prints the five reviewed operation forms and exercises their native create/clone path when given an absolute MIGraphX C library path. With no argument it remains a managed-only example, so it can be built and run on a development machine without native MIGraphX.
-
-## Probe an explicit library
-
-```powershell
-dotnet run --project .\smoke\EnvironmentSmokeRunner\EnvironmentSmokeRunner.csproj -c Release -- \
-  C:\absolute\path\to\migraphx_c.dll
-```
-
-The path must be an absolute file path. Missing files, bad image/architecture, dependency loading, missing export, and other platform failures are distinct diagnostic kinds, and original platform error text is retained. The loader does not change process search-path variables or download files.
-
-Running the smoke command with no path has no native side effects and returns `nativeProbe: not-probed` and `nativeLibrary: not-available`; it never prints `ready`.
-
-## Dynamic shapes and caching
-
-Use `MIGraphXDynamicDimension` and `MIGraphXOnnxOptions` for explicit static or dynamic input overrides. A dynamic `MIGraphXShape` exposes `Rank` and `DynamicDimensions`; `Lengths`, `Strides`, `ElementCount`, and `ByteCount` intentionally throw because no single static value exists.
-
-`MIGraphXProgram.Save` and `Load` accept only an explicit absolute path and `MIGraphXFileOptions("msgpack")`. `MIGraphXModelCache` requires an explicit absolute root and validates the model hash, frozen header/API identity, managed identity, native-library fingerprint, target/options/format, ordered overrides, and saved payload hash before a hit. See the [M5 design](../design/m5-dynamic-shape-cache.md) for the exact contract.
-
-## Evidence boundary
-
-The local test suite passes `--fake-native` only for the small C substitutes and emits `fake-native-executed`. M4/M5/M6 and M10 objects have no new official runtime evidence. The latest reviewed session used a clean detached checkout of `346cdd0b01a7f8039f5deb93058928403fccc7dd`, verified the frozen installation header and native library, and executed M1 plus both M2 parse paths and the bounded M9 option smoke on a gfx1100 GPU. See the [official runtime summary](../validation/m1-m2-official-runtime.md), [M9 cloud validation](../validation/m9-cloud-validation.md), and [M10 runtime plan](../validation/m10-runtime-plan.md) for the exact boundaries.
-
-中文提示：显式路径只接受绝对文件路径。本地 fake-native 仅验证托管边界与 ABI 形状；官方 runtime 结论来自独立的精确 SHA 会话，不能扩展到未测试能力。
+中文提示：路径必须是绝对路径。便捷推理入口仅处理单输入、单输出的静态标准 float32 模型；其他模型请使用显式对象 API。

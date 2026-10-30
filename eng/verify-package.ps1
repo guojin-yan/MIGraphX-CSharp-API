@@ -109,8 +109,12 @@ finally {
 }
 
 if (-not $SkipConsumers) {
-    $consumerConfig = Join-Path $root 'tests\fixtures\package-consumers\NuGet.Config'
-    $consumerPackages = Join-Path $root "artifacts\package-audit\$([Guid]::NewGuid().ToString('N'))"
+    $consumerPackages = Join-Path (Get-ArtifactsRoot) "package-audit\$([Guid]::NewGuid().ToString('N'))"
+    New-Item -ItemType Directory -Path $consumerPackages -Force | Out-Null
+    [xml]$consumerConfigDocument = Get-Content -Raw -LiteralPath (Join-Path $root 'tests\fixtures\package-consumers\NuGet.Config')
+    $consumerConfigDocument.SelectSingleNode('//packageSources/add[@key="migraphxsharp-local"]').SetAttribute('value', (Split-Path $packagePath -Parent))
+    $consumerConfig = Join-Path $consumerPackages 'NuGet.Config'
+    $consumerConfigDocument.Save($consumerConfig)
     foreach ($framework in @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')) {
         $project = Join-Path $root "tests\fixtures\package-consumers\$framework\Consumer.csproj"
         & dotnet restore $project --configfile $consumerConfig --packages $consumerPackages --no-http-cache --force-evaluate -p:MIGraphXConsumerVersion=$Version
@@ -122,7 +126,7 @@ if (-not $SkipConsumers) {
     # Execute one managed-only consumer on the current SDK runtime. The program
     # intentionally touches no native entry point; this proves that the packed
     # assembly can load and run its value-level M12 surface after clean restore.
-    $managedConsumer = Join-Path $root 'tests\fixtures\package-consumers\net10.0\bin\Release\net10.0\Consumer.dll'
+    $managedConsumer = Join-Path (Get-ArtifactsRoot) 'package-consumers\net10.0\bin\Release\net10.0\Consumer.dll'
     if (-not (Test-Path -LiteralPath $managedConsumer -PathType Leaf)) {
         throw "Managed consumer output is missing: $managedConsumer"
     }

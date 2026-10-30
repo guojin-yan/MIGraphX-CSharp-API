@@ -426,15 +426,10 @@ public sealed class M6HipAsyncTests
         catch { program.Dispose(); throw; }
     }
 
-    private static string RepositoryRoot()
-    {
-        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
-            if (File.Exists(Path.Combine(directory.FullName, "MIGraphXSharp.sln"))) return directory.FullName;
-        throw new DirectoryNotFoundException();
-    }
+    private static string RepositoryRoot() => RepositoryPaths.Root;
 
-    private static string MIGraphXPath() => Path.Combine(RepositoryRoot(), "artifacts", "fake-native", "Release", OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so");
-    private static string HipPath() => Path.Combine(RepositoryRoot(), "artifacts", "fake-hip", "Release", OperatingSystem.IsWindows() ? "amdhip64.dll" : "libamdhip64.so");
+    private static string MIGraphXPath() => Path.Combine(RepositoryPaths.Artifacts, "fake-native", "Release", OperatingSystem.IsWindows() ? "migraphx_c.dll" : "libmigraphx_c.so");
+    private static string HipPath() => Path.Combine(RepositoryPaths.Artifacts, "fake-hip", "Release", OperatingSystem.IsWindows() ? "amdhip64.dll" : "libamdhip64.so");
 
     private abstract class Controls : IDisposable
     {

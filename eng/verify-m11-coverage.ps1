@@ -41,7 +41,7 @@ if ($windows.Count -ne 1 -or $windows[0].officialEvidence -ne 'not-applicable' -
     throw 'The fixed-version Windows native policy must be statically closed as not-applicable.'
 }
 
-$fixtureOutput = Join-Path $root 'artifacts\models\m11-coverage'
+$fixtureOutput = Join-Path (Get-ArtifactsRoot) 'models\m11-coverage'
 $generated = @(& (Join-Path $PSScriptRoot 'generate-m11-fixtures.ps1') -OutputDirectory $fixtureOutput)
 if ($generated.Count -ne 3) { throw 'M11 fixture generator must produce exactly three models.' }
 foreach ($fixture in $matrix.fixtures) {
@@ -49,16 +49,6 @@ foreach ($fixture in $matrix.fixtures) {
     if ($actual.Count -ne 1 -or $actual[0].Sha256 -ne $fixture.sha256 -or $actual[0].License -ne $fixture.license) {
         throw "M11 fixture identity drifted: $($fixture.id)"
     }
-}
-
-$m10EvidencePath = Join-Path $root 'compatibility\m10-post-build-runtime-evidence.json'
-$m10Evidence = Get-Content -Raw -LiteralPath $m10EvidencePath | ConvertFrom-Json
-if ($m10Evidence.sourceSha -ne 'e2386dc69e7640f8ff12d95284e56c3f02c87938' -or
-    $m10Evidence.candidateVersion -ne '0.9.0-rc.2' -or $m10Evidence.reviewState -ne 'passed' -or
-    $m10Evidence.reviewedEvidence -ne 'runtime-executed' -or @($m10Evidence.promotions).Count -ne 4 -or
-    @($m10Evidence.promotions | Where-Object status -ne 'runtime-executed').Count -ne 0 -or
-    $m10Evidence.retained[0].id -ne 'function:migraphx_shape_equal' -or $m10Evidence.historicalCandidateImmutable -ne $true) {
-    throw 'M10 post-build external evidence was not synchronized accurately.'
 }
 
 $map = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m10-high-level-api-map.json') | ConvertFrom-Json
@@ -115,7 +105,6 @@ foreach ($required in @('malformed final artifact manifest entry', 'unsafe path'
     if (-not $supervisorVerifier.Contains($required, [StringComparison]::Ordinal)) { throw "M11 supervisor verifier is missing: $required" }
 }
 foreach ($path in @(
-    'docs\validation\m11-runtime-hardening-plan.md',
     'tools\m11-runtime-probe\M11RuntimeProbe.csproj',
     'tools\m11-runtime-probe\Program.cs',
     'tools\m11-runtime-probe\run.sh',
@@ -124,11 +113,9 @@ foreach ($path in @(
     'tools\m11-runtime-probe\run-resilience.sh',
     'tools\m11-runtime-probe\run-long-run-supervisor.sh',
     'tools\m11-runtime-probe\verify-restart-proof.py',
-    'tools\m11-runtime-probe\verify-supervisor-record.py',
-    'docs\releases\0.9.0-rc.9.md',
-    'docs\releases\0.9.0-rc.7.md'
+    'tools\m11-runtime-probe\verify-supervisor-record.py'
 )) {
     if (-not (Test-Path -LiteralPath (Join-Path $root $path) -PathType Leaf)) { throw "M11 deliverable is missing: $path" }
 }
 
-Write-Output "M11 coverage gate passed: $($cases.Count) frozen cases, deterministic fixtures, package-only probe, independent review, M10 promotion sync, Windows policy, and 84/107/1 API closure."
+Write-Output "M11 coverage gate passed: $($cases.Count) frozen cases, deterministic fixtures, package-only probe, independent review, Windows policy, and 84/107/1 API closure."

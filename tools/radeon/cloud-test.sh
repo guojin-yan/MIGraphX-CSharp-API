@@ -2,6 +2,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+source "${repo_root}/eng/workspace.sh"
 test "${repo_root}" = "/workspace/MIGraphX-CSharp-API"
 cd "${repo_root}"
 test -z "$(git status --porcelain)"
@@ -23,7 +24,7 @@ export DOTNET_CLI_TELEMETRY_OPTOUT=1
 if [[ -z "${HIPSHARP_REPOSITORY_ROOT:-}" && -d /workspace/HIP-CSharp-API/HIP-CSharp-API ]]; then
   export HIPSHARP_REPOSITORY_ROOT=/workspace/HIP-CSharp-API/HIP-CSharp-API
 fi
-results=/workspace/MIGraphX-CSharp-API/test-results
+results="${workspace_root}/test-results/${COMMIT_SHA}"
 mkdir -p "${results}"
 ./tools/radeon/env-report.sh | tee "${results}/environment.txt"
 {
@@ -45,10 +46,10 @@ dotnet run --project ./smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csp
 # M12 package-only candidate: keep the managed package boundary explicit and run
 # every implemented bounded path in one process. The result remains review-required
 # and the independent reviewer below must pass before it is summarized as complete.
-m12_fixture_directory="${repo_root}/artifacts/models/m12"
+m12_fixture_directory="${workspace_root}/artifacts/models/m12"
 pwsh ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild 2>&1 | tee "${results}/m12-package.txt"
 pwsh ./eng/generate-m12-fixtures.ps1 -OutputDirectory "${m12_fixture_directory}" 2>&1 | tee "${results}/m12-fixtures.txt"
-m12_package="${repo_root}/artifacts/packages/JYPPX.ROCm.MIGraphX.CSharp.API.0.0.0.nupkg"
+m12_package="${workspace_root}/artifacts/packages/JYPPX.ROCm.MIGraphX.CSharp.API.0.0.0.nupkg"
 cloud_record_root="${MIGRAPHX_CLOUD_RECORD_ROOT:-/workspace/migraphx-cloud-records/${COMMIT_SHA}}"
 [[ "${cloud_record_root}" = /* ]] || { echo 'MIGRAPHX_CLOUD_RECORD_ROOT must be absolute' >&2; exit 1; }
 mkdir -p "${cloud_record_root}"
@@ -57,7 +58,7 @@ printf '%s\n' "${m12_record}" | tee "${results}/m12-record-path.txt"
 m12_core_sha="$(sha256sum "${m12_package}" | awk '{print $1}')"
 tools/m12-runtime-probe/run.sh \
   --repo "${repo_root}" \
-  --feed "${repo_root}/artifacts/packages" \
+  --feed "${workspace_root}/artifacts/packages" \
   --record "${m12_record}" \
   --identity "${model_path}" \
   --tensorflow-fixture "${m12_fixture_directory}/m12-tensorflow-minimal.pb" \

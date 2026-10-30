@@ -6,7 +6,7 @@ param(
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $root 'artifacts\models\m2-identity-float32.onnx'
+    $OutputPath = Join-Path (Get-ArtifactsRoot) 'models\m2-identity-float32.onnx'
 }
 
 function Add-Varint {
