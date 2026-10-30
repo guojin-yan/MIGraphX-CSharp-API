@@ -209,7 +209,7 @@ $textExtensions = @('.txt', '.json', '.log', '.md', '.ps1', '.sh', '.cs', '.cspr
 $sensitiveFailures = [Collections.Generic.List[string]]::new()
 foreach ($path in Get-ChildItem -LiteralPath $record -File -Recurse) {
     if ($path.Extension -notin $textExtensions) { continue }
-    $text = [string](Get-Content -Raw -LiteralPath $path.FullName)
+    $text = [IO.File]::ReadAllText($path.FullName)
     foreach ($pattern in $sensitivePatterns) {
         if ($text.Contains($pattern, [StringComparison]::OrdinalIgnoreCase)) { $sensitiveFailures.Add("$($path.FullName):$pattern") }
     }
