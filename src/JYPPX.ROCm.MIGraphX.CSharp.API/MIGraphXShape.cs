@@ -148,7 +148,7 @@ public sealed class MIGraphXShape
         }
 
         var elements = ComputeElementCount(copiedLengths);
-        var bytes = checked(elements * ShapeDataTypeMap.ElementSize(dataType));
+        var bytes = checked(ComputeStorageElementCount(copiedLengths, copiedStrides) * ShapeDataTypeMap.ElementSize(dataType));
         var standard = copiedStrides.SequenceEqual(CreateStandardStrides(copiedLengths));
         return new MIGraphXShape(dataType, copiedLengths, copiedStrides, elements, bytes, standard);
     }
@@ -207,7 +207,7 @@ public sealed class MIGraphXShape
     /// <summary>获取经过溢出检查的元素数量。 Gets the overflow-checked element count.</summary>
     public long ElementCount => elementCount ?? throw new InvalidOperationException("ElementCount is not defined for a dynamic shape.");
 
-    /// <summary>获取经过溢出检查的字节数量。 Gets the overflow-checked byte count.</summary>
+    /// <summary>获取经过溢出检查的底层存储字节数，包含 stride 间隙；广播维度可共享存储。 Gets the overflow-checked storage byte count, including stride gaps and shared broadcast storage.</summary>
     public long ByteCount => byteCount ?? throw new InvalidOperationException("ByteCount is not defined for a dynamic shape.");
 
     /// <summary>获取布局是否为 MIGraphX 标准布局。 Gets whether the layout is MIGraphX-standard.</summary>
@@ -272,10 +272,10 @@ public sealed class MIGraphXShape
             throw new InvalidOperationException("Native shape element count does not match its lengths.");
         }
 
-        var expectedBytes = checked(expectedElements * ShapeDataTypeMap.ElementSize(dataType));
+        var expectedBytes = checked(ComputeStorageElementCount(snapshot.Dimensions, snapshot.Strides) * ShapeDataTypeMap.ElementSize(dataType));
         if (snapshot.Bytes != expectedBytes)
         {
-            throw new InvalidOperationException("Native shape byte count does not match its mapped element type.");
+            throw new InvalidOperationException("Native shape byte count does not match its lengths, strides and mapped element type.");
         }
 
         return new MIGraphXShape(
@@ -313,6 +313,18 @@ public sealed class MIGraphXShape
         for (var index = 0; index < dimensions.Length; index++)
         {
             result = checked(result * dimensions[index]);
+        }
+        return result;
+    }
+
+    private static long ComputeStorageElementCount(long[] dimensions, long[] layoutStrides)
+    {
+        // Each axis contributes its largest offset. Rank-zero managed scalars
+        // retain one element of storage, as in CreateScalar.
+        var result = 1L;
+        for (var index = 0; index < dimensions.Length; index++)
+        {
+            result = checked(result + checked((dimensions[index] - 1) * layoutStrides[index]));
         }
         return result;
     }

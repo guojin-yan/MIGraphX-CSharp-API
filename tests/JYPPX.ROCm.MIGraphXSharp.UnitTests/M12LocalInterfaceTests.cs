@@ -97,6 +97,45 @@ public sealed class M12LocalInterfaceTests
         AssertNoNativeLeaks(controls);
     }
 
+    [Theory]
+    [InlineData(new long[] { 2, 3 }, new long[] { 4, 1 }, 6L, 28L)]
+    [InlineData(new long[] { 2, 3 }, new long[] { 0, 1 }, 6L, 12L)]
+    [InlineData(new long[] { 2, 3 }, new long[] { 0, 0 }, 6L, 4L)]
+    [InlineData(new long[] { 2, 3 }, new long[] { 1, 2 }, 6L, 24L)]
+    [InlineData(new long[] { 1, 3 }, new long[] { long.MaxValue, 1 }, 3L, 12L)]
+    public void ExplicitStridesPreserveStorageByteCountsInNativeSnapshots(long[] lengths, long[] strides, long elements, long bytes)
+    {
+        var nativePath = FakePath();
+        using var controls = new FakeControls(nativePath);
+        controls.Reset();
+        _ = NativeRuntime.Load(nativePath);
+        var shape = MIGraphXShape.CreateWithStrides(MIGraphXShapeDataType.Float32, lengths, strides);
+        Assert.Equal(elements, shape.ElementCount);
+        Assert.Equal(bytes, shape.ByteCount);
+        using (var native = NativeShapeHandle.CreateWithStrides(shape))
+        {
+            var rawSnapshot = NativeShapeSnapshot.Create(native.DangerousGetHandle(), "explicit stride test");
+            Assert.Equal(bytes, rawSnapshot.Bytes);
+            var snapshot = MIGraphXShape.FromNative(native.DangerousGetHandle(), "explicit stride test");
+            Assert.Equal(elements, snapshot.ElementCount);
+            Assert.Equal(bytes, snapshot.ByteCount);
+            Assert.Equal(bytes, snapshot.Clone().ByteCount);
+            Assert.True(shape.HasSameNativeContent(snapshot));
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public void ExplicitStrideStorageRejectsOffsetAndByteCountOverflow()
+    {
+        Assert.Throws<OverflowException>(() => MIGraphXShape.CreateWithStrides(
+            MIGraphXShapeDataType.UInt8, new long[] { 3 }, new long[] { long.MaxValue }));
+        Assert.Throws<OverflowException>(() => MIGraphXShape.CreateWithStrides(
+            MIGraphXShapeDataType.UInt8, new long[] { 2, 2 }, new long[] { long.MaxValue - 1, 1 }));
+        Assert.Throws<OverflowException>(() => MIGraphXShape.CreateWithStrides(
+            MIGraphXShapeDataType.Float32, new long[] { 2 }, new long[] { long.MaxValue / 4 }));
+    }
+
     [Fact]
     public void AssignToClonesPrecreateDestinationsAndReleaseFailedCopies()
     {

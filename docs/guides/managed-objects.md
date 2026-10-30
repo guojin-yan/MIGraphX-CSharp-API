@@ -33,6 +33,8 @@ Use your model's actual parameter names and shapes. Add one argument for every p
 
 `GetParameterShapes` and `GetOutputShapes` return independent managed snapshots. `MIGraphXShape` owns no native handle. Static snapshots include scalar type, lengths, strides, rank, element/byte counts, and layout flags.
 
+`ElementCount` counts logical elements. `ByteCount` describes storage: explicit strides include padding, while zero strides let broadcast elements share storage. For float32 lengths `[2, 3]`, strides `[4, 1]` need 28 bytes; strides `[0, 1]` need 12 bytes. The public typed host-argument factories continue to require standard packed shapes.
+
 `MIGraphXArgument.Create<T>` copies the input array. `MIGraphXParameterMap.Add` deep-copies its argument. Synchronous run outputs are copied before the native collection is released. `ToArray<T>` requires the exact supported scalar mapping; tuple and bool/half/bfloat16/float8 typed host copies are rejected.
 
 Dispose programs, options, targets, arguments, parameter maps and output collections. Access to disposed native resources fails. For the HIP adapter, resources remain leased until stream completion; see [HIP integration](hip-interop.md).

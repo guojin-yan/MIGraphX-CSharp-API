@@ -93,7 +93,12 @@ EXPORT migraphx_status migraphx_shape_create_with_strides(
             expected *= (*out)->lengths[index - 1];
         }
     }
-    (*out)->bytes = (*out)->elements * element_size(type);
+    {
+        size_t storage_elements = 1;
+        for(index = 0; index < lengths_size; ++index)
+            storage_elements += (lengths[index] - 1) * strides[index];
+        (*out)->bytes = storage_elements * element_size(type);
+    }
     return (migraphx_status)take_status_for("migraphx_shape_create_with_strides");
 }
 
