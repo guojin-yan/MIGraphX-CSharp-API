@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using JYPPX.ROCm.MIGraphXSharp.Interop;
@@ -73,6 +74,7 @@ public sealed class MIGraphXCacheOverride
 /// </summary>
 public sealed class MIGraphXCacheMetadata
 {
+    private static readonly string DefaultManagedIdentity = CreateDefaultManagedIdentity();
     private readonly MIGraphXCacheOverride[] inputOverrides;
 
     /// <summary>创建规范化、版本化的缓存元数据。 Creates normalized, versioned cache metadata.</summary>
@@ -94,9 +96,7 @@ public sealed class MIGraphXCacheMetadata
         NativeFingerprint = RequireHash(nativeFingerprint, nameof(nativeFingerprint));
         HeaderSha256 = RequireHash(headerSha256 ?? "a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2", nameof(headerSha256));
         ApiIdentity = RequireToken(apiIdentity ?? "MIGraphX-C-API/2.15.0.70201-81~24.04", nameof(apiIdentity));
-        ManagedIdentity = RequireToken(
-            managedIdentity ?? "JYPPX.ROCm.MIGraphX.CSharp.API/" + MIGraphXBuildInfo.PackageVersion,
-            nameof(managedIdentity));
+        ManagedIdentity = RequireToken(managedIdentity ?? DefaultManagedIdentity, nameof(managedIdentity));
         var copiedOverrides = (inputOverrides ?? Array.Empty<MIGraphXCacheOverride>()).ToArray();
         if (copiedOverrides.Any(value => value is null)) { throw new ArgumentException("Cache input overrides must not contain null values.", nameof(inputOverrides)); }
         this.inputOverrides = copiedOverrides
@@ -116,7 +116,7 @@ public sealed class MIGraphXCacheMetadata
     public string HeaderSha256 { get; }
     /// <summary>获取 API identity。 Gets the API identity.</summary>
     public string ApiIdentity { get; }
-    /// <summary>获取托管 identity。 Gets the managed identity.</summary>
+    /// <summary>获取托管构建 identity；默认包含程序集 informational version 与 module version ID。 Gets the managed build identity; by default it includes the assembly informational version and module version ID.</summary>
     public string ManagedIdentity { get; }
     /// <summary>获取 native fingerprint。 Gets the native fingerprint.</summary>
     public string NativeFingerprint { get; }
@@ -198,6 +198,17 @@ public sealed class MIGraphXCacheMetadata
     public string ComputeKey()
     {
         using (var sha = SHA256.Create()) { return Hex(sha.ComputeHash(Encoding.UTF8.GetBytes(CanonicalJsonWithoutPayload()))); }
+    }
+
+    private static string CreateDefaultManagedIdentity()
+    {
+        var assembly = typeof(MIGraphXCacheMetadata).Assembly;
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion
+            ?? MIGraphXBuildInfo.PackageVersion;
+        // A package version alone does not distinguish source builds, and an
+        // informational version can omit the commit or describe a dirty build.
+        // MVID also separates different compiled targets without reading files.
+        return "JYPPX.ROCm.MIGraphX.CSharp.API/" + version + ";mvid=" + assembly.ManifestModule.ModuleVersionId.ToString("D");
     }
 
     private static void Append(StringBuilder builder, string name, string value) => builder.Append(',').Append(Json(name)).Append(':').Append(Json(value));
@@ -299,7 +310,13 @@ public sealed class MIGraphXModelCache
     {
         if (rootDirectory is null) { throw new ArgumentNullException(nameof(rootDirectory)); }
         if (!Path.IsPathRooted(rootDirectory)) { throw new ArgumentException("The cache root must be absolute.", nameof(rootDirectory)); }
-        this.rootDirectory = Path.GetFullPath(rootDirectory);
+        var fullPath = Path.GetFullPath(rootDirectory);
+        var pathRoot = Path.GetPathRoot(fullPath)!;
+        // Equivalent roots must use the same in-process writer lock. Preserve
+        // filesystem roots such as C:\ and / while removing trailing separators.
+        this.rootDirectory = fullPath.Length > pathRoot.Length
+            ? fullPath.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
+            : fullPath;
         Directory.CreateDirectory(this.rootDirectory);
     }
 

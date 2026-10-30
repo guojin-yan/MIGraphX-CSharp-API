@@ -1,4 +1,5 @@
 using System.Runtime.InteropServices;
+using System.Reflection;
 using JYPPX.ROCm.MIGraphXSharp;
 using Xunit;
 
@@ -48,6 +49,23 @@ public sealed class M11RuntimeHardeningTests
 
         Assert.Equal(5, new[] { baseline, model, options, native, package }.Select(value => value.ComputeKey()).Distinct(StringComparer.Ordinal).Count());
         Assert.Throws<ArgumentException>(() => new MIGraphXModelCache("relative-cache"));
+    }
+
+    [Fact]
+    public void DefaultCacheIdentitySeparatesBuildsSharingAPackageVersion()
+    {
+        var assembly = typeof(MIGraphXCacheMetadata).Assembly;
+        var version = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()!.InformationalVersion;
+        var current = new MIGraphXCacheMetadata(new string('0', 64), "gpu", "default", "msgpack", new string('1', 64));
+        var oldVersionOnly = new MIGraphXCacheMetadata(new string('0', 64), "gpu", "default", "msgpack", new string('1', 64),
+            managedIdentity: "JYPPX.ROCm.MIGraphX.CSharp.API/" + MIGraphXBuildInfo.PackageVersion);
+        var repeated = new MIGraphXCacheMetadata(new string('0', 64), "gpu", "default", "msgpack", new string('1', 64));
+
+        Assert.Contains(version, current.ManagedIdentity, StringComparison.Ordinal);
+        Assert.Contains(assembly.ManifestModule.ModuleVersionId.ToString("D"), current.ManagedIdentity, StringComparison.Ordinal);
+        Assert.NotEqual(oldVersionOnly.ComputeKey(), current.ComputeKey());
+        Assert.Equal(current.ComputeKey(), repeated.ComputeKey());
+        Assert.Equal("JYPPX.ROCm.MIGraphX.CSharp.API/" + MIGraphXBuildInfo.PackageVersion, oldVersionOnly.ManagedIdentity);
     }
 
     private static string FakePath() => Path.Combine(RepositoryPaths.Artifacts,

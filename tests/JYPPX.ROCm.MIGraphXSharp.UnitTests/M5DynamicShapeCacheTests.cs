@@ -327,6 +327,8 @@ public sealed class M5DynamicShapeCacheTests
             using var fileOptions = new MIGraphXFileOptions(path);
             var metadata = new MIGraphXCacheMetadata(new string('2', 64), "gpu", "offloadCopy=true", "msgpack", new string('3', 64));
             var cache = new MIGraphXModelCache(root);
+            var equivalentCache = new MIGraphXModelCache(root + Path.DirectorySeparatorChar);
+            Assert.Equal(cache.RootDirectory, equivalentCache.RootDirectory);
             var builds = 0;
             Func<MIGraphXProgram> builder = () =>
             {
@@ -336,7 +338,7 @@ public sealed class M5DynamicShapeCacheTests
             };
             var tasks = new[]
             {
-                Task.Run(() => cache.GetOrBuild(metadata, fileOptions, builder)),
+                Task.Run(() => equivalentCache.GetOrBuild(metadata, fileOptions, builder)),
                 Task.Run(() => cache.GetOrBuild(metadata, fileOptions, builder)),
             };
             var results = await Task.WhenAll(tasks);
