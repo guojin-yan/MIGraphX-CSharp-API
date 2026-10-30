@@ -22,17 +22,16 @@ $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $core = Get-ReleasePackageIdentity -Path $CorePackagePath
 $adapter = Get-ReleasePackageIdentity -Path $AdapterPackagePath
 $hip = Get-ReleasePackageIdentity -Path $HipSharpPackagePath
+$dependency = Get-ReleaseDependencyIdentity
 $expected = @(
     @($core, 'JYPPX.ROCm.MIGraphX.CSharp.API', $Version, $RepositoryCommit),
     @($adapter, 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop', $Version, $RepositoryCommit),
-    @($hip, 'JYPPX.ROCm.HIP.CSharp.API', '0.9.1', '81d124d6a1598680c83c0b398db4d38d181929de')
+    @($hip, $dependency.id, $dependency.version, $dependency.repositoryCommit)
 )
 foreach ($item in $expected) {
-    if ($item[0].id -ne $item[1] -or $item[0].version -ne $item[2] -or $item[0].repositoryCommit -ne $item[3]) {
-        throw "Package identity mismatch for $($item[1])."
-    }
+    Assert-ReleasePackageIdentity -Package $item[0] -Id $item[1] -Version $item[2] -RepositoryCommit $item[3]
 }
-if ($hip.sha256 -ne 'e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2') {
+if ($hip.sha256 -ne $dependency.sha256) {
     throw "HipSharp package hash mismatch: $($hip.sha256)"
 }
 
@@ -41,7 +40,11 @@ $sbomPath = Join-Path $OutputDirectory 'managed.sbom.cdx.json'
 $provenancePath = Join-Path $OutputDirectory 'managed.provenance.json'
 $indexPath = Join-Path $OutputDirectory 'release-evidence.json'
 $inputScanPath = (Resolve-Path -LiteralPath $VulnerabilityScanPath).Path
+Assert-ReleaseVulnerabilityScan -Scan (Get-Content -Raw -LiteralPath $inputScanPath | ConvertFrom-Json) -Version $Version -RepositoryCommit $RepositoryCommit
 $scanPath = Join-Path $OutputDirectory ([IO.Path]::GetFileName($inputScanPath))
+if ([IO.Path]::GetFileName($scanPath) -in @('managed-package-manifest.json', 'managed.sbom.cdx.json', 'managed.provenance.json', 'release-evidence.json')) {
+    throw 'Vulnerability scan filename collides with a generated evidence file.'
+}
 New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null
 if (-not [IO.Path]::GetFullPath($inputScanPath).Equals([IO.Path]::GetFullPath($scanPath), [StringComparison]::OrdinalIgnoreCase)) {
     Copy-Item -LiteralPath $inputScanPath -Destination $scanPath -Force

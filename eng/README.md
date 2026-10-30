@@ -26,8 +26,11 @@
 | `prepare-hipsharp-baseline.ps1` | 准备固定 HipSharp 源码依赖 |
 | `verify-package.ps1`、`verify-adapter-package.ps1` | 检查包内容及独立消费项目 |
 | `new-release-evidence.ps1`、`verify-release-evidence.ps1`、`verify-release-candidate.ps1` | 生成和检查包身份、SBOM、provenance 及发布候选材料 |
+| `test-release-evidence.ps1` | 对有效材料的独立副本执行离线回归，拒绝包身份混用和材料内容矛盾 |
 | `verify-repository-layout.ps1` | 拒绝产物、开发记录和按开发阶段命名的工程脚本进入仓库 |
 
 `common.ps1`、`*.psm1`、`workspace.sh` 和 `include/` 为脚本提供公共函数或编译输入。测试模型生成器位于 [tests/fixtures](../tests/fixtures/README.md)。发布检查不会自动发布包、创建标签或部署站点。
+
+候选包准备、材料保存和离线复核示例见 [发布候选包](RELEASING.md)。
 
 Run these commands from the repository root when building from source. Application users who consume the NuGet packages do not need these scripts. Active commands are organized by function. Generated output stays outside the source checkout.

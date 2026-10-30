@@ -59,4 +59,6 @@ The project ships managed packages only. Install a coherent MIGraphX/ROCm native
 
 The default version is `0.0.0`. Package publication, release tags and Pages deployment require separate owner authorization. Intentional API changes require review of the compatibility snapshots. See [SECURITY.md](SECURITY.md).
 
+For managed candidate packaging and portable offline evidence review, see [Release candidates](eng/RELEASING.md). These checks do not require a GPU or change native support declarations.
+
 Contributions are provided under [Apache-2.0](LICENSE).

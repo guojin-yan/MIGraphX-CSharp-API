@@ -83,4 +83,88 @@ function Write-ReleaseJson {
     [IO.File]::WriteAllText($Path, $json + "`n", [Text.UTF8Encoding]::new($false))
 }
 
-Export-ModuleMember -Function Get-ReleaseSha256, Get-ReleasePackageIdentity, Write-ReleaseJson
+function Assert-ReleasePackageIdentity {
+    param($Package, [string] $Id, [string] $Version, [string] $RepositoryCommit)
+
+    if ($Package.id -cne $Id -or $Package.version -cne $Version -or $Package.repositoryCommit -cne $RepositoryCommit) {
+        throw "Package identity mismatch for $Id (expected $Version at $RepositoryCommit)."
+    }
+}
+
+function Get-ReleaseDependencyIdentity {
+    # This is the distributed package commit, not the adapter's source-build baseline.
+    return [pscustomobject]@{
+        id = 'JYPPX.ROCm.HIP.CSharp.API'; version = '0.9.1'
+        repositoryCommit = '81d124d6a1598680c83c0b398db4d38d181929de'
+        sha256 = 'e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2'
+    }
+}
+
+function Assert-ReleaseResolvedPackages {
+    param([AllowEmptyCollection()][object[]] $Packages, [string] $Version)
+
+    $expected = @(
+        @('JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop', $Version),
+        @('JYPPX.ROCm.MIGraphX.CSharp.API', $Version),
+        @('JYPPX.ROCm.HIP.CSharp.API', '0.9.1')
+    )
+    if ($Packages.Count -ne $expected.Count) { throw 'Release consumer must resolve exactly three packages.' }
+    foreach ($item in $expected) {
+        if (@($Packages | Where-Object { $_.id -ceq $item[0] -and $_.version -ceq $item[1] }).Count -ne 1) {
+            throw "Exact consumer dependency is missing: $($item[0]) $($item[1])"
+        }
+    }
+}
+
+function Assert-ReleaseVulnerabilityScan {
+    param($Scan, [string] $Version, [string] $RepositoryCommit)
+
+    if ($Scan.schemaVersion -ne '1.0.0' -or $Scan.repositoryCommit -cne $RepositoryCommit -or
+        $Scan.projectCount -ne 1 -or $Scan.vulnerablePackageCount -ne 0 -or $Scan.result -cne 'passed' -or
+        $Scan.command -cne 'dotnet list adapter-package-consumer package --vulnerable --include-transitive --format json --output-version 1 --no-restore') {
+        throw 'Vulnerability scan identity, coverage or result is incorrect.'
+    }
+    Assert-ReleaseResolvedPackages -Packages @($Scan.resolvedPackages) -Version $Version
+}
+
+function Assert-ReleaseNuGetReport {
+    param($Report, [switch] $VulnerabilityScan, [string] $ProjectPath)
+
+    if ($Report.version -ne 1 -or @($Report.projects).Count -ne 1) {
+        throw 'NuGet report must cover the single adapter consumer.'
+    }
+    if ($ProjectPath -and -not [IO.Path]::GetFullPath($Report.projects[0].path).Equals(
+        [IO.Path]::GetFullPath($ProjectPath), $(if ($IsWindows) { [StringComparison]::OrdinalIgnoreCase } else { [StringComparison]::Ordinal }))) {
+        throw 'NuGet report project differs from the resolved consumer.'
+    }
+    if ($VulnerabilityScan) {
+        # With zero findings NuGet omits frameworks entirely. The separate
+        # dependency report proves the framework and exact resolved versions.
+        if ($Report.parameters -cne '--vulnerable --include-transitive' -or
+            @($Report.sources | Where-Object { $_ -match '^https?://' }).Count -eq 0) {
+            throw 'NuGet vulnerability report has no advisory sources or the wrong scan parameters.'
+        }
+    } elseif (@($Report.projects[0].frameworks).Count -ne 1 -or $Report.projects[0].frameworks[0].framework -cne 'net10.0') {
+        throw 'NuGet dependency report must cover the single net10.0 adapter consumer.'
+    }
+    function Assert-ReportNode($Node) {
+        if ($null -eq $Node -or $Node -is [string] -or $Node -is [ValueType]) { return }
+        if ($Node -is [Collections.IDictionary]) { $Node = [pscustomobject] $Node }
+        if ($Node -is [Collections.IEnumerable] -and $Node -isnot [Management.Automation.PSCustomObject]) {
+            foreach ($item in $Node) { Assert-ReportNode $item }
+            return
+        }
+        foreach ($property in $Node.PSObject.Properties) {
+            if ($property.Name -in @('problems', 'errors', 'warnings', 'vulnerabilities') -and
+                $null -ne $property.Value -and @($property.Value).Count -gt 0) {
+                throw "NuGet report contains $($property.Name); release scan is incomplete or failed."
+            }
+            Assert-ReportNode $property.Value
+        }
+    }
+    Assert-ReportNode $Report
+}
+
+Export-ModuleMember -Function Get-ReleaseSha256, Get-ReleasePackageIdentity, Write-ReleaseJson,
+    Assert-ReleasePackageIdentity, Get-ReleaseDependencyIdentity, Assert-ReleaseResolvedPackages,
+    Assert-ReleaseVulnerabilityScan, Assert-ReleaseNuGetReport

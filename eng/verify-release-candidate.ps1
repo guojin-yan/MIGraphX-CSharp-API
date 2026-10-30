@@ -10,6 +10,7 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'common.ps1')
+Import-Module (Join-Path $PSScriptRoot 'release-evidence.psm1') -Force
 $root = Get-RepositoryRoot
 $head = (& git -C $root rev-parse HEAD).Trim()
 $origin = (& git -C $root rev-parse origin/main).Trim()
@@ -26,18 +27,15 @@ $consumer = Join-Path $root 'tests\fixtures\adapter-package-consumer\Consumer.cs
 $resolvedOutput = @(& dotnet list $consumer package --include-transitive --format json --output-version 1 --no-restore 2>&1)
 if ($LASTEXITCODE -ne 0) { throw "Could not inspect exact consumer dependencies: $($resolvedOutput -join [Environment]::NewLine)" }
 $resolvedText = $resolvedOutput -join "`n"
-$resolved = $resolvedText.Substring($resolvedText.IndexOf('{'), $resolvedText.LastIndexOf('}') - $resolvedText.IndexOf('{') + 1) | ConvertFrom-Json
+$start = $resolvedText.IndexOf('{')
+$end = $resolvedText.LastIndexOf('}')
+if ($start -lt 0 -or $end -lt $start) { throw 'NuGet dependency inspection did not return JSON.' }
+$resolved = $resolvedText.Substring($start, $end - $start + 1) | ConvertFrom-Json
+Assert-ReleaseNuGetReport -Report $resolved -ProjectPath $consumer
 $framework = @($resolved.projects[0].frameworks | Where-Object framework -eq 'net10.0')
 $resolvedPackages = @($framework[0].topLevelPackages) + @($framework[0].transitivePackages)
-foreach ($required in @(
-    @('JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop', $Version),
-    @('JYPPX.ROCm.MIGraphX.CSharp.API', $Version),
-    @('JYPPX.ROCm.HIP.CSharp.API', '0.9.1')
-)) {
-    if (@($resolvedPackages | Where-Object { $_.id -eq $required[0] -and $_.resolvedVersion -eq $required[1] }).Count -ne 1) {
-        throw "Exact consumer dependency is missing: $($required[0]) $($required[1])"
-    }
-}
+$resolvedIdentities = @($resolvedPackages | ForEach-Object { [pscustomobject]@{ id = $_.id; version = $_.resolvedVersion } })
+Assert-ReleaseResolvedPackages -Packages $resolvedIdentities -Version $Version
 
 $scanOutput = @(& dotnet list $consumer package --vulnerable --include-transitive --format json --output-version 1 --no-restore 2>&1)
 if ($LASTEXITCODE -ne 0) { throw "NuGet vulnerability scan failed: $($scanOutput -join [Environment]::NewLine)" }
@@ -47,25 +45,8 @@ $end = $scanText.LastIndexOf('}')
 if ($start -lt 0 -or $end -lt $start) { throw 'NuGet vulnerability scan did not return JSON.' }
 $scan = $scanText.Substring($start, $end - $start + 1) | ConvertFrom-Json
 
-function Get-VulnerabilityCount {
-    param($Value)
-    if ($null -eq $Value) { return 0 }
-    if ($Value -is [string]) { return 0 }
-    if ($Value -is [Collections.IEnumerable] -and $Value -isnot [Management.Automation.PSCustomObject]) {
-        $count = 0
-        foreach ($item in $Value) { $count += Get-VulnerabilityCount -Value $item }
-        return $count
-    }
-    $total = 0
-    foreach ($property in $Value.PSObject.Properties) {
-        if ($property.Name -eq 'vulnerabilities') { $total += @($property.Value).Count }
-        else { $total += Get-VulnerabilityCount -Value $property.Value }
-    }
-    return $total
-}
-
-$vulnerabilityCount = Get-VulnerabilityCount -Value $scan
-if ($vulnerabilityCount -ne 0) { throw "NuGet vulnerability scan found $vulnerabilityCount vulnerable package record(s)." }
+Assert-ReleaseNuGetReport -Report $scan -VulnerabilityScan -ProjectPath $consumer
+$vulnerabilityCount = 0
 $evidenceDirectory = Join-Path (Get-ArtifactsRoot) "release-evidence\$Version\$RepositoryCommit"
 $scanPath = Join-Path $evidenceDirectory 'vulnerability-scan.json'
 $scanSummary = [ordered]@{
@@ -74,11 +55,7 @@ $scanSummary = [ordered]@{
     repositoryCommit = $RepositoryCommit
     projectCount = @($scan.projects).Count
     vulnerablePackageCount = $vulnerabilityCount
-    resolvedPackages = @(
-        [ordered]@{ id = 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop'; version = $Version },
-        [ordered]@{ id = 'JYPPX.ROCm.MIGraphX.CSharp.API'; version = $Version },
-        [ordered]@{ id = 'JYPPX.ROCm.HIP.CSharp.API'; version = '0.9.1' }
-    )
+    resolvedPackages = $resolvedIdentities
     result = 'passed'
     sourcePathsOmitted = $true
 }
