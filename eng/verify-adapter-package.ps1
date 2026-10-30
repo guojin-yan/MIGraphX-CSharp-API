@@ -91,14 +91,14 @@ New-Item -ItemType Directory -Force -Path $feed | Out-Null
 Copy-Item -LiteralPath $package -Destination $feed -Force
 Copy-Item -LiteralPath (Join-Path $corePackageDirectory "JYPPX.ROCm.MIGraphX.CSharp.API.$Version.nupkg") -Destination $feed -Force
 Copy-Item -LiteralPath $HipSharpPackagePath -Destination $feed -Force
-$feedUri = ([Uri] $feed).AbsoluteUri
+$feedSource = [Security.SecurityElement]::Escape($feed)
 $config = Join-Path $feed 'NuGet.Config'
 $configText = @"
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
     <clear />
-    <add key="release-local" value="$feedUri" />
+    <add key="release-local" value="$feedSource" />
     <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
   </packageSources>
   <packageSourceMapping>

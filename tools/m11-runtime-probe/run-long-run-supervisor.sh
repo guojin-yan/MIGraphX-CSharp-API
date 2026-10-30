@@ -24,7 +24,10 @@ for directory in "$repo" "$feed" "$fixtures"; do
   [[ "$directory" = /* && -d "$directory" ]] || usage
 done
 [[ "$record" = /* ]] || usage
-for file in "$native" "$alternate_native" "$hip" "$rocm_smi" "$amd_smi"; do
+for file in "$native" "$alternate_native" "$hip"; do
+  [[ "$file" = /* && -f "$file" ]] || usage
+done
+for file in "$rocm_smi" "$amd_smi"; do
   [[ "$file" = /* && -f "$file" && -x "$file" ]] || usage
 done
 [[ "$source_sha" =~ ^[a-f0-9]{40}$ ]] || usage
