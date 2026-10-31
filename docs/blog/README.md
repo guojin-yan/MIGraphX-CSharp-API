@@ -6,7 +6,7 @@
 
 | 顺序 | 文章 | 状态 |
 | --- | --- | --- |
-| 1 | [MIGraphXSharp 0.0.1 发布：用 C# 在 AMD GPU 上运行 YOLO26 和 PP-OCRv6](2026-10-31-migraphxsharp-0.0.1.md) | 初稿，尚未在外部博客发表 |
+| 1 | [MIGraphXSharp 0.0.1 首发：让 C# 接入 AMD GPU 原生推理](2026-10-31-migraphxsharp-0.0.1.md) | 图文修订稿，尚未在外部博客发表 |
 | 2 | 从环境安装到第一次 ONNX 推理 | 待编写 |
 | 3 | YOLO26 五任务实战 | 待整理 |
 | 4 | PP-OCRv6 文本检测与识别实战 | 待整理 |
