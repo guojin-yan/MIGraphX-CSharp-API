@@ -22,4 +22,8 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 输出包括 `text.txt`、`result.json`、`preview.png`、带中文文字的独立 `annotated.svg` 和每个 `crop-xxx.png`。`--dump-tensors true` 保存 detector 与逐行 recognizer 实际输入/输出，便于独立 CPU reference 检查。输出目录请放在源码仓库外。
 
+增加 `--warmup 5 --iterations 30` 可预热 5 张、测量 30 张，每次都完整执行检测、DB 解码、透视裁剪、识别预处理与 CTC 解码。默认只测量 1 次、不预热。`performance.pipeline` 是从已解码图片到文本的整图流水线，排除图片文件读取、解析/编译、绘制和产物写盘。`stages.detector`、`recognitionLine`、`recognitionTotal`、`inferenceTotal` 只统计同步 `Program.Run` 和输出读取；不包含 argument/map 创建。`recognitionLine` 汇总所有正式测量中的文本行，不能当作整图速度。仅识别模式下 `imagesPerSecond` 对应输入文本行。
+
+JSON 记录原始样本、平均/P50/P95/min/max（nearest-rank 百分位）、首次执行、预热和测量次数。`imagesPerSecond=1000/pipeline.mean` 是同一张图片、单进程顺序处理的换算。计时后另外执行一次相同流程保存裁剪和张量，避免写盘影响计时，并核对保存文字与测量结果一致。
+
 这是图片文本检测/识别示例，不包含页面方向分类、文档去畸变、表格结构或版面分析；竖长文本裁剪会旋转 90°。识别到的文字仍需按业务规则校验，不把单张演示等同于数据集准确率。模型及字典由使用者提供；模型、ImageSharp 和本仓库各自许可独立适用。

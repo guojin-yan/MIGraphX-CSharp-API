@@ -1,63 +1,38 @@
 using MIGraphXSharp.Samples.PaddleOcrV6;
 using MIGraphXSharp.Samples.Vision;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 try
 {
     var options = new Arguments(args);
-    var native = options.Required("native"); var output = Path.GetFullPath(options.Required("output"));
+    var output = Path.GetFullPath(options.Required("output"));
     Directory.CreateDirectory(output);
     using var image = Images.Load(options.Required("image"));
-    var dictionary = Recognition.LoadDictionary(options.Required("dictionary"));
-    var recWidth = options.Integer("rec-width", 320);
-    using var recognizer = new InferenceSession(native, options.Required("rec-model"), "x", recWidth, 48);
-    TextBox[] boxes;
-    object? detectorInfo = null;
-    if (options.Has("det-model"))
-    {
-        var limit = options.Integer("det-limit", 960);
-        var ratio = Math.Min(1d, (double)limit / Math.Max(image.Width, image.Height));
-        var detWidth = Math.Max(32, (int)Math.Round(image.Width * ratio / 32) * 32);
-        var detHeight = Math.Max(32, (int)Math.Round(image.Height * ratio / 32) * 32);
-        using var resized = image.Clone(context => context.Resize(detWidth, detHeight, KnownResamplers.Triangle));
-        var input = Images.ToTensor(resized, rgb: false, mean: [.485f,.456f,.406f], std: [.229f,.224f,.225f]);
-        using var detector = new InferenceSession(native, options.Required("det-model"), "x", detWidth, detHeight);
-        var (tensors, milliseconds) = detector.Run(input, options.Has("dump-tensors") ? Path.Combine(output, "det-tensors") : null);
-        boxes = TextDetector.Decode(tensors.Single(), image.Width, image.Height, options.Probability("det-threshold", .2f), options.Probability("box-threshold", .4f));
-        detectorInfo = new { detector.ModelSha256, detector.ParseMilliseconds, detector.CompileMilliseconds, runWithHostCopiesMilliseconds = milliseconds, inputWidth = detWidth, inputHeight = detHeight };
-    }
-    else boxes = [new TextBox([new(0,0),new(image.Width - 1,0),new(image.Width - 1,image.Height - 1),new(0,image.Height - 1)], 1)];
-    var lines = new List<object>(); var texts = new List<string>(); double recognitionMilliseconds = 0;
+    using var pipeline = new OcrPipeline(image, options);
+    var measured = Benchmarking.Measure(() => pipeline.Run(),
+        options.Integer("warmup", 0, minimum: 0, maximum: 1000), options.Integer("iterations", 1, maximum: 10000));
+    // Save one final demonstration outside the benchmark so tensor/PNG I/O never enters latency samples.
+    var result = pipeline.Run(output, options.Has("dump-tensors")).Value;
+    if (!result.AcceptedText.SequenceEqual(measured.Value.AcceptedText)) throw new InvalidOperationException("OCR text changed between measurement and artifact capture.");
     using var visualization = new Visualization(image);
-    for (var index = 0; index < boxes.Length; ++index)
-    {
-        var box = boxes[index]; using var crop = Images.Rectify(image, box.Polygon);
-        var cropName = $"crop-{index:D3}.png"; crop.SaveAsPng(Path.Combine(output, cropName));
-        var (tensors, milliseconds) = recognizer.Run(Recognition.Prepare(crop, recWidth),
-            options.Has("dump-tensors") ? Path.Combine(output, $"rec-tensors-{index:D3}") : null);
-        var decoded = Recognition.Decode(tensors.Single(), dictionary);
-        recognitionMilliseconds += milliseconds;
-        lines.Add(new { index, box.Polygon, detectionConfidence = box.Score, decoded.Text, decoded.Confidence, crop = cropName });
-        if (decoded.Confidence >= options.Probability("text-threshold", .5f)) texts.Add(decoded.Text);
-        visualization.Polygon(box.Polygon, $"{decoded.Text} {decoded.Confidence:F2}", "#2050ff");
-    }
+    foreach (var line in result.Lines) visualization.Polygon(line.Polygon, $"{line.Text} {line.Confidence:F2}", "#2050ff");
     visualization.Save(output);
-    File.WriteAllLines(Path.Combine(output, "text.txt"), texts);
+    File.WriteAllLines(Path.Combine(output, "text.txt"), result.AcceptedText);
     JsonOutput.Write(Path.Combine(output, "result.json"), new
     {
-        task = "paddleocr-v6", image = new { image.Width, image.Height }, detector = detectorInfo,
-        recognizer = new { recognizer.ModelSha256, recognizer.AssemblyIdentity, recognizer.ParseMilliseconds, recognizer.CompileMilliseconds, inputWidth = recWidth, classes = dictionary.Length },
-        recognitionWithHostCopiesMilliseconds = recognitionMilliseconds, lines, acceptedText = texts,
+        task = "paddleocr-v6", image = new { image.Width, image.Height }, detector = pipeline.DetectorInfo,
+        recognizer = pipeline.RecognizerInfo, detectionWithHostCopiesMilliseconds = result.DetectionMilliseconds,
+        recognitionWithHostCopiesMilliseconds = result.RecognitionMilliseconds, lines = result.Lines, acceptedText = result.AcceptedText,
+        timingScope = "pipeline=detector preprocessing+inference+DB decode+perspective crops+recognizer preprocessing+inference+CTC decode; excludes image I/O, compilation, visualization and artifact I/O. inference stages=Program.Run+host readback; excludes argument/map setup. recognitionLine pools all measured text lines.",
+        performance = measured.Report,
     });
-    Console.WriteLine(string.Join(Environment.NewLine, texts));
-    if (texts.Count < options.Integer("expect-min-lines", 0, minimum: 0, maximum: 3000)) throw new InvalidOperationException("Fewer recognized lines than required.");
+    Console.WriteLine(string.Join(Environment.NewLine, result.AcceptedText));
+    Console.WriteLine($"Pipeline mean {measured.Report.Pipeline.Mean:F2} ms, P50 {measured.Report.Pipeline.P50:F2} ms, P95 {measured.Report.Pipeline.P95:F2} ms; {measured.Report.ImagesPerSecond:F2} images/s.");
+    if (result.AcceptedText.Length < options.Integer("expect-min-lines", 0, minimum: 0, maximum: 3000)) throw new InvalidOperationException("Fewer recognized lines than required.");
     return 0;
 }
 catch (Exception exception)
 {
     Console.Error.WriteLine(exception);
-    Console.Error.WriteLine("Usage: --native /path/libmigraphx_c.so --rec-model rec.onnx --dictionary dict.txt --image text.jpg --output /outside/source/results [--det-model det.onnx] [--rec-width 320] [--dump-tensors true]");
+    Console.Error.WriteLine("Usage: --native /path/libmigraphx_c.so --rec-model rec.onnx --dictionary dict.txt --image text.jpg --output /outside/source/results [--det-model det.onnx] [--rec-width 320] [--dump-tensors true] [--warmup 5 --iterations 30]");
     return 1;
 }

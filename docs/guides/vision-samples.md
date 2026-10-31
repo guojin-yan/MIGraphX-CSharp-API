@@ -23,4 +23,6 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 输入图片会先按 EXIF 标记统一方向。ROCm 7.2.1 / MIGraphX 2.15.0 的 gfx1100 上，所用姿态模型需要在启动前设置 `MIGRAPHX_DISABLE_REDUCE_FUSION=1`，详见 YOLO26 示例 README 的版本说明。
 
-推理耗时包含同步执行和主机输出复制，解析、编译单列；不能当作纯 GPU 时间或不同硬件上的性能承诺。模型相关性、数值误差和后处理应以实际应用数据校验；当前支持范围仍以[平台说明](../compatibility/platforms.md)为准。更完整的参数、预处理和输出说明位于各示例目录的 README。
+速度测试使用 `--warmup 5 --iterations 30`，JSON 将保留原始样本和平均/P50/P95。`pipeline` 包含从已解码图片到任务结果的预处理、推理与后处理；OCR 包含检测、裁剪和全部文本行识别，分割包含 mask 计算。文件读取、解析/编译、绘制与写盘排除。推理分项包含同步执行和主机输出复制，不能当作纯 GPU kernel 时间。默认无预热、仅一次测量。
+
+模型相关性、数值误差、后处理和速度应以实际应用数据校验；当前支持范围仍以[平台说明](../compatibility/platforms.md)为准。更完整的参数、预处理和输出说明位于各示例目录的 README。

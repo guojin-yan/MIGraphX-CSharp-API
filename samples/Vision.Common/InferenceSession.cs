@@ -60,16 +60,21 @@ public sealed class InferenceSession : IDisposable
             throw new InvalidOperationException("The model returned non-finite float32 output.");
         if (dumpDirectory is not null)
         {
-            Directory.CreateDirectory(dumpDirectory);
-            SaveFloats(Path.Combine(dumpDirectory, "input.f32"), input);
-            for (var i = 0; i < result.Length; ++i) SaveFloats(Path.Combine(dumpDirectory, $"output-{i}.f32"), result[i].Data);
-            JsonOutput.Write(Path.Combine(dumpDirectory, "tensors.json"), new
-            {
-                inputName, inputShape = inputShape.Lengths, outputs = result.Select((tensor, index) => new { index, tensor.Shape }),
-                modelSha256 = ModelSha256, assemblyIdentity = AssemblyIdentity,
-            });
+            Dump(input, result, dumpDirectory);
         }
         return (result, elapsed);
+    }
+
+    public void Dump(float[] input, Tensor[] outputs, string directory)
+    {
+        Directory.CreateDirectory(directory);
+        SaveFloats(Path.Combine(directory, "input.f32"), input);
+        for (var i = 0; i < outputs.Length; ++i) SaveFloats(Path.Combine(directory, $"output-{i}.f32"), outputs[i].Data);
+        JsonOutput.Write(Path.Combine(directory, "tensors.json"), new
+        {
+            inputName, inputShape = inputShape.Lengths, outputs = outputs.Select((tensor, index) => new { index, tensor.Shape }),
+            modelSha256 = ModelSha256, assemblyIdentity = AssemblyIdentity,
+        });
     }
 
     private static void SaveFloats(string path, float[] values)

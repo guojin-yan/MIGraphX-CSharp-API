@@ -11,6 +11,25 @@ namespace MIGraphXSharp.Samples.Tests;
 public sealed class DecoderTests
 {
     [Fact]
+    public void BenchmarkExcludesWarmupsAndPoolsOnlyMeasuredStageSamples()
+    {
+        var calls = 0;
+        var measured = Benchmarking.Measure(() =>
+        {
+            ++calls;
+            return new TimedValue<int>(calls, new Dictionary<string, double[]> { ["line"] = [calls, calls + .5] });
+        }, 2, 3);
+        Assert.Equal(5, calls);
+        Assert.Equal(5, measured.Value);
+        Assert.Equal(new[] { 3d, 3.5, 4, 4.5, 5, 5.5 }, measured.Report.StageSamples["line"]);
+        Assert.Equal(3, measured.Report.Pipeline.Samples);
+        var statistics = Benchmarking.Summarize(new[] { 1d, 2, 3, 4, 100 });
+        Assert.Equal(3, statistics.P50);
+        Assert.Equal(100, statistics.P95);
+        Assert.Equal(22, statistics.Mean);
+    }
+
+    [Fact]
     public void LoadingNormalizesExifOrientationBeforeDetectionAndCropping()
     {
         var path = Path.Combine(Path.GetTempPath(), $"vision-exif-{Guid.NewGuid():N}.png");

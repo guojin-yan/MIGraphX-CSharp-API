@@ -22,7 +22,7 @@ public static class Decoder
     }
 
     public static Detection[] Decode(string task, Tensor[] outputs, Letterbox transform, int sourceWidth, int sourceHeight,
-        string[] labels, float threshold, int maximum, Visualization visualization, string directory)
+        string[] labels, float threshold, int maximum, Visualization? visualization, string? directory)
     {
         var fields = task switch { "detect" => 6, "pose" => 57, "segment" => 38, "obb" => 7, _ => throw new ArgumentException("Unknown YOLO task.") };
         var packed = outputs[0];
@@ -63,7 +63,7 @@ public static class Decoder
                     Restore(packed.Data[offset + 2], packed.Data[offset + 3]), Restore(packed.Data[offset], packed.Data[offset + 3])];
             }
             var score = packed.Data[offset + 4]; var label = Label(classId, labels);
-            visualization.Polygon(polygon, $"{label} {score:F2}");
+            visualization?.Polygon(polygon, $"{label} {score:F2}");
             Keypoint[]? keypoints = null;
             if (task == "pose")
             {
@@ -72,17 +72,17 @@ public static class Decoder
                     var point = Restore(packed.Data[offset + 6 + keypoint * 3], packed.Data[offset + 7 + keypoint * 3]);
                     return new Keypoint(point.X, point.Y, Probability(packed.Data[offset + 8 + keypoint * 3]));
                 }).ToArray();
-                foreach (var point in keypoints.Where(point => point.Confidence >= .5f)) visualization.Dot(new PointD(point.X, point.Y));
+                foreach (var point in keypoints.Where(point => point.Confidence >= .5f)) visualization?.Dot(new PointD(point.X, point.Y));
                 foreach (var (a, b) in Skeleton)
                     if (keypoints[a].Confidence >= .5f && keypoints[b].Confidence >= .5f)
-                        visualization.Segment(new PointD(keypoints[a].X, keypoints[a].Y), new PointD(keypoints[b].X, keypoints[b].Y));
+                        visualization?.Segment(new PointD(keypoints[a].X, keypoints[a].Y), new PointD(keypoints[b].X, keypoints[b].Y));
             }
             string? maskName = null; var maskPixels = 0;
             if (task == "segment")
             {
                 using var mask = BuildMask(packed.Data, offset, outputs[1], transform, sourceWidth, sourceHeight, out maskPixels);
                 maskName = $"mask-{result.Count:D3}.png";
-                visualization.Mask(mask, maskName, directory);
+                if (visualization is not null && directory is not null) visualization.Mask(mask, maskName, directory);
             }
             result.Add(new Detection(classId, label, score, polygon, keypoints, maskName, maskPixels));
         }

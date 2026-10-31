@@ -28,6 +28,8 @@ ROCm 7.2.1 / MIGraphX 2.15.0 的 gfx1100 测试中，所用姿态 ONNX 在默认
 
 检测类任务使用 RGB `/255`、保留宽高比缩放和 114 灰色 letterbox，结果按同一缩放与 padding 还原。分类使用中心方形裁剪、bicubic resize 与 RGB `/255`。分割将 mask coefficients 与 prototype 相乘，在 prototype 空间裁剪，再双线性上采样、去除 padding，logit 大于 0 即前景。姿态仅绘制置信度不低于 0.5 的关键点/连接。
 
-`runWithHostCopiesMilliseconds` 包含同步 GPU 执行、主机输出复制和读取；不是纯 GPU kernel 延时。模型解析与编译时间单独记录。示例为 batch=1、float32、静态尺寸，不包含摄像头、视频跟踪或训练。
+增加 `--warmup 5 --iterations 30` 可执行 5 次预热和 30 次正式测量。默认 0 次预热、1 次测量，只适合演示。`performance.pipeline` 统计图片预处理、argument/map 创建、同步推理、输出读取和任务解码（包含实例 mask 计算），排除原图文件读取、解析/编译、绘制及产物写盘；图片解码完成后才开始测量。`performance.stages.inference` 仅统计 `Program.Run` 与主机输出读取，argument/map 创建不在这个阶段中。
+
+JSON 保存全部原始样本、平均/P50/P95/min/max、首次执行、预热次数和测量次数。百分位使用 nearest-rank；`imagesPerSecond=1000/pipeline.mean` 是当前单进程顺序处理、同一张图片上的吞吐换算，不是并发服务或视频吞吐。解析与编译单列，不混入稳态统计。`runWithHostCopiesMilliseconds` 保留最后一次推理的耗时；不是纯 GPU kernel 延时。示例为 batch=1、float32、静态尺寸，不包含摄像头、视频跟踪或训练。
 
 依赖 ImageSharp 3.1.12 处理图像，许可证见 [Six Labors](https://sixlabors.com/license/)。模型、标签与演示原图由使用者提供；Ultralytics 模型适用其自身许可，未随本库重新分发。
