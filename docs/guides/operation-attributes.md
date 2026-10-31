@@ -8,21 +8,21 @@ using var operation = MIGraphXOperation.Create(nativePath, "reshape", attributes
 using var clone = operation.Clone();
 ```
 
-Use attributes valid for the selected native operation and model shape. Managed serialization does not establish every operation's semantics on every target. See the [`M12TypedOperationAttributes` sample](https://github.com/guojin-yan/MIGraphX-CSharp-API/tree/main/samples/M12TypedOperationAttributes) for all five named forms.
+Use attributes valid for the selected native operation and model shape. Managed serialization does not establish every operation's semantics on every target.
 
-Run it without arguments to inspect the managed serialization path on a development machine without MIGraphX installed:
+Inspect all five named forms without loading the native library:
 
-```powershell
-dotnet run --project .\samples\M12TypedOperationAttributes\M12TypedOperationAttributes.csproj -c Release
+```csharp
+using JYPPX.ROCm.MIGraphXSharp;
+
+Console.WriteLine(MIGraphXOperationAttributes.ForReshape(1, 4).Build());
+Console.WriteLine(MIGraphXOperationAttributes.ForTranspose(1, 0).Build());
+Console.WriteLine(MIGraphXOperationAttributes.ForSlice(
+    new long[] { 0 }, new long[] { 0 }, new long[] { 1 }).Build());
+Console.WriteLine(MIGraphXOperationAttributes.ForMultibroadcast(1, 4).Build());
+Console.WriteLine(MIGraphXOperationAttributes.ForTopK(1, 1, true).Build());
 ```
 
-To additionally create and clone the operations, pass one absolute path to the MIGraphX C library on a compatible Linux host:
+Creating and cloning operations with `MIGraphXOperation.Create` requires an absolute path to the MIGraphX C library on a compatible Linux host. Arbitrary format placeholders, unmanaged pointers, and general C variadic values remain outside the managed API boundary.
 
-```powershell
-dotnet run --project .\samples\M12TypedOperationAttributes\M12TypedOperationAttributes.csproj -c Release -- `
-  /absolute/path/to/libmigraphx_c.so.3
-```
-
-The native path requires the frozen MIGraphX/ROCm environment and is not a substitute for independently reviewed runtime evidence. Arbitrary format placeholders, unmanaged pointers, and general C variadic values remain outside the managed API boundary.
-
-中文说明：`M12TypedOperationAttributes` 示例覆盖 reshape、transpose、slice、multibroadcast、topk 五种已审查属性形态。不传参数时只执行托管序列化；传入 MIGraphX C 库绝对路径后才创建并复制 native operation。任意 format placeholder、非托管指针和通用 C 可变参数仍不在托管 API 边界内。
+中文说明：上述代码覆盖 reshape、transpose、slice、multibroadcast、topk 五种属性形态。调用 `Build()` 只执行托管序列化；通过 `MIGraphXOperation.Create` 创建原生算子时才需要匹配的运行环境。任意 format placeholder、非托管指针和通用 C 可变参数仍不在托管 API 边界内。
