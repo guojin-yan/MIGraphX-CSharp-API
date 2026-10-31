@@ -31,6 +31,6 @@ The key also includes the fixed header/API and managed build identity. The defau
 
 A versioned JSON sidecar and payload hash detect mismatches or corruption. Entries are atomically replaced through temporary files in the same directory. In-process callers using the same normalized root and key share a writer lock, including directory names with or without a trailing separator. Filesystem links and concurrent writes from separate processes are outside this locking guarantee. `Kind` and `PreviousLookup` distinguish hits, misses, corruption and rebuilds. Metadata and override collections are independent read-only snapshots.
 
-Rebuild entries when model, native fingerprint, package identity, target, options or overrides change. Cache integrity checks do not provide a cross-version serialization guarantee or complete restart qualification.
+Rebuild entries when model, native fingerprint, package identity, target, options or overrides change. Bounded official-runtime checks cover dynamic overrides, save/load/recompile, cache identity/options misses, corruption rebuild, same-process writers and reuse in a fresh process. These do not provide cross-version serialization or concurrent cross-process writer guarantees.
 
 中文提示：动态形状只表示范围；创建类型化输入前需要具体静态形状。缓存根目录必须显式指定，默认缓存身份包含实际加载程序集的版本、构建提交（构建时提供）和 MVID，同版本的不同构建也会分别缓存。旧版默认缓存不会被删除，但会重新构建新条目；自行指定 managedIdentity 时需自行保证构建隔离。同进程、同规范化目录和 key 的写入会串行处理，符号链接别名和跨进程写入不在该锁定保证内。

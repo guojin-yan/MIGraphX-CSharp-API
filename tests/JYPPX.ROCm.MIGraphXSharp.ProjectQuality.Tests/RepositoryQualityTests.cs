@@ -621,7 +621,7 @@ public sealed class RepositoryQualityTests
         }
         Assert.Contains("packageSourceMapping", adapterPack, StringComparison.Ordinal);
         Assert.Contains("JYPPX.ROCm.HIP.CSharp.API", adapterPack, StringComparison.Ordinal);
-        Assert.Contains("e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2", adapterPack, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("096f82ae8d8ecb1cd3ad0e1f5e213e811656cde10767a0ddf88563747e9a1558", adapterPack, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("release-feed\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Contains("adapter-pack-restore\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Contains("adapter-pack-obj\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);

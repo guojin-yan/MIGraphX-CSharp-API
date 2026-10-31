@@ -1,6 +1,6 @@
 # MIGraphX HIP interop adapter
 
-This optional adapter depends on the matching MIGraphX core version and HipSharp `0.9.1`, while keeping both core packages independent. It exposes `MIGraphXHipExecution`, `MIGraphXHipAsyncRun` and `MIGraphXHipDeviceInput`.
+This optional adapter depends on the matching MIGraphX core version and HipSharp `0.10.0`, while keeping both core packages independent. It exposes `MIGraphXHipExecution`, `MIGraphXHipAsyncRun` and `MIGraphXHipDeviceInput`.
 
 Compile with `offloadCopy=true` for `RunHostAsync`, or `offloadCopy=false` for `RunDeviceAsync` with validated `HipDeviceMemory`. Resources remain leased until stream completion. Outputs are independent host copies after completion.
 

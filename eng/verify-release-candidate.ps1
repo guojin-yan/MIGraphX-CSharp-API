@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $CorePackagePath,
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $AdapterPackagePath,
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $HipSharpPackagePath,
-    [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')][string] $Version = '0.9.0-rc.1',
+    [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')][string] $Version = '0.0.1-rc.1',
     [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{40}$')][string] $RepositoryCommit
 )
 
@@ -21,7 +21,7 @@ if ($head -ne $RepositoryCommit -or $origin -ne $RepositoryCommit -or $branch -n
 }
 
 & (Join-Path $PSScriptRoot 'verify-package.ps1') -PackagePath $CorePackagePath -Version $Version -RepositoryCommit $RepositoryCommit
-& (Join-Path $PSScriptRoot 'verify-adapter-package.ps1') -PackagePath $AdapterPackagePath -Version $Version -RepositoryCommit $RepositoryCommit -HipSharpVersion '0.9.1' -HipSharpPackagePath $HipSharpPackagePath
+& (Join-Path $PSScriptRoot 'verify-adapter-package.ps1') -PackagePath $AdapterPackagePath -Version $Version -RepositoryCommit $RepositoryCommit -HipSharpVersion '0.10.0' -HipSharpPackagePath $HipSharpPackagePath
 
 $consumer = Join-Path $root 'tests\fixtures\adapter-package-consumer\Consumer.csproj'
 $resolvedOutput = @(& dotnet list $consumer package --include-transitive --format json --output-version 1 --no-restore 2>&1)

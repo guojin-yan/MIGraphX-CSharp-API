@@ -4,7 +4,7 @@ param(
     [string] $Version = '0.0.0',
     [ValidatePattern('^[a-f0-9]{40}$')]
     [string] $RepositoryCommit,
-    [string] $HipSharpVersion = '0.9.1',
+    [string] $HipSharpVersion = '0.10.0',
     [string] $HipSharpPackagePath,
     [string] $HipSharpPackageDirectory
 )
@@ -27,7 +27,7 @@ if ([string]::IsNullOrWhiteSpace($HipSharpPackagePath)) {
 }
 if (-not (Test-Path -LiteralPath $HipSharpPackagePath -PathType Leaf)) { throw "HipSharp package is missing: $HipSharpPackagePath" }
 $hipHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $HipSharpPackagePath).Hash.ToLowerInvariant()
-if ($HipSharpVersion -ne '0.9.1' -or $hipHash -ne 'e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2') {
+if ($HipSharpVersion -ne '0.10.0' -or $hipHash -ne '096f82ae8d8ecb1cd3ad0e1f5e213e811656cde10767a0ddf88563747e9a1558') {
     throw "HipSharp dependency identity mismatch: $HipSharpVersion / $hipHash"
 }
 Add-Type -AssemblyName System.IO.Compression.FileSystem

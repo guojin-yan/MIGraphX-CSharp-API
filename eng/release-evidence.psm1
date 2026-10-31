@@ -94,9 +94,9 @@ function Assert-ReleasePackageIdentity {
 function Get-ReleaseDependencyIdentity {
     # This is the distributed package commit, not the adapter's source-build baseline.
     return [pscustomobject]@{
-        id = 'JYPPX.ROCm.HIP.CSharp.API'; version = '0.9.1'
-        repositoryCommit = '81d124d6a1598680c83c0b398db4d38d181929de'
-        sha256 = 'e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2'
+        id = 'JYPPX.ROCm.HIP.CSharp.API'; version = '0.10.0'
+        repositoryCommit = '53ae5a75c354d27e4df3420356351942267cc666'
+        sha256 = '096f82ae8d8ecb1cd3ad0e1f5e213e811656cde10767a0ddf88563747e9a1558'
     }
 }
 
@@ -106,7 +106,7 @@ function Assert-ReleaseResolvedPackages {
     $expected = @(
         @('JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop', $Version),
         @('JYPPX.ROCm.MIGraphX.CSharp.API', $Version),
-        @('JYPPX.ROCm.HIP.CSharp.API', '0.9.1')
+        @('JYPPX.ROCm.HIP.CSharp.API', '0.10.0')
     )
     if ($Packages.Count -ne $expected.Count) { throw 'Release consumer must resolve exactly three packages.' }
     foreach ($item in $expected) {

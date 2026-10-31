@@ -1,8 +1,22 @@
 # Getting started
 
-The core package is `JYPPX.ROCm.MIGraphX.CSharp.API`; its C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Packages are currently unpublished, so build a local package from source.
+The core package is `JYPPX.ROCm.MIGraphX.CSharp.API`; its C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Version `0.0.1` is distributed through NuGet.org and [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.1).
 
 ## Install and build
+
+Install from NuGet.org:
+
+```bash
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.1
+# Optional HIP stream/device-input adapter:
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.1
+```
+
+The optional adapter resolves exact core `0.0.1` and HipSharp `0.10.0` dependencies. The HipSharp dependency does not install ROCm or HIP native libraries. Prebuilt packages do not require a HipSharp source checkout.
+
+For offline installation, download the `.nupkg` assets from GitHub Releases into an absolute directory outside the checkout. Include all three packages when using the adapter, add that directory with `dotnet nuget add source /absolute/path/to/packages --name migraphx-release`, and use it for both `JYPPX.ROCm.MIGraphX.*` and `JYPPX.ROCm.HIP.CSharp.API` if your application uses package-source mapping. Verify downloaded files against the release's `SHA256SUMS.txt`.
+
+To build from source instead:
 
 Install the .NET SDK selected by `global.json` and PowerShell 7, and configure the HipSharp source dependency described in [CONTRIBUTING.md](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/CONTRIBUTING.md):
 

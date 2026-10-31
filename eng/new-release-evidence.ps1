@@ -70,7 +70,7 @@ $manifest = [ordered]@{
     })
     dependencyPolicy = [ordered]@{
         core = 'no runtime NuGet dependencies'
-        adapter = "exact [${Version}] core and exact [0.9.1] HipSharp dependencies in every TFM group"
+        adapter = "exact [${Version}] core and exact [$($dependency.version)] HipSharp dependencies in every TFM group"
         native = 'system-native; no native package is distributed'
     }
     symbolSourcePolicy = 'RC nupkgs omit PDB, source, and snupkg; repository commit and deterministic PathMap identify source.'

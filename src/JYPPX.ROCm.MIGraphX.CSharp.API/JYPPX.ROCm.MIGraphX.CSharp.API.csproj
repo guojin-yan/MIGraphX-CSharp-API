@@ -10,7 +10,7 @@
     <PackageProjectUrl>$(MIGraphXSharpRepositoryUrl)</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Unpublished managed build. Install the matching AMD system runtime separately and review the documented platform and experimental API limitations.</PackageReleaseNotes>
+    <PackageReleaseNotes>Managed MIGraphX bindings with explicit ownership, ONNX workflows, typed attributes, graph and cache APIs. Includes standalone YOLO26 and PP-OCRv6 source samples. Install the matching AMD system runtime separately and review the documented platform and experimental API limitations.</PackageReleaseNotes>
     <IsPackable>true</IsPackable>
     <IncludeSymbols>false</IncludeSymbols>
     <IncludeSource>false</IncludeSource>

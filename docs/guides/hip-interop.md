@@ -1,6 +1,6 @@
 # HIP asynchronous integration
 
-Reference `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop`, the matching MIGraphX core version and HipSharp `0.9.1`. Use one coherent ROCm installation and device for HIP and MIGraphX.
+Reference `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop`, the matching MIGraphX core version and HipSharp `0.10.0`. Use one coherent ROCm installation and device for HIP and MIGraphX.
 
 ## Host input
 
@@ -30,6 +30,6 @@ Device input is borrowed until completion. The adapter retains program, argument
 
 Raw device pointers, free-form backend names, graph capture and pooled/async allocations are excluded. Native stream submission uses the fixed `ihipStream_t` C ABI spelling.
 
-Full official async/device-buffer runtime qualification remains pending. The API provides no zero-copy, overlap or performance guarantee; see [platform support](../compatibility/platforms.md).
+Bounded official-runtime checks cover host completion, multiple submissions, stream isolation, early disposal leases, device-input reference output and input rejection on the fixed gfx1100 baseline. These do not establish zero-copy, overlap or arbitrary workload performance; see [platform support](../compatibility/platforms.md).
 
 中文提示：主机输入启用 offload-copy，设备输入关闭 offload-copy。执行结果完成前由租约保活，完成后显式复制输出到主机；异步提交不代表已经完成推理。

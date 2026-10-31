@@ -1,6 +1,6 @@
 # JYPPX.ROCm.MIGraphX.CSharp.API
 
-Managed .NET bindings and resource wrappers for AMD MIGraphX. The package contains managed assemblies and Chinese/English XML API documentation for 15 target frameworks, from `net46` through `net10.0`. Packages are currently unpublished engineering builds.
+Managed .NET bindings and resource wrappers for AMD MIGraphX. The package contains managed assemblies and Chinese/English XML API documentation for 15 target frameworks, from `net46` through `net10.0`. Version `0.0.1` is distributed through [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.1).
 
 The C# namespace is `JYPPX.ROCm.MIGraphXSharp`. APIs include explicit native-library diagnostics, synchronous ONNX inference, shapes and host arguments, dynamic input overrides, program persistence/cache, parser introspection, graph construction and advanced experimental features.
 

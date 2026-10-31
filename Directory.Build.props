@@ -41,7 +41,7 @@
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <HipSharpRepositoryRoot Condition="'$(HipSharpRepositoryRoot)' == '' and '$(HIPSHARP_REPOSITORY_ROOT)' != ''">$(HIPSHARP_REPOSITORY_ROOT)</HipSharpRepositoryRoot>
     <HipSharpRepositoryRoot Condition="'$(HipSharpRepositoryRoot)' == ''">$(MSBuildThisFileDirectory)..\..\HIP-CSharp-API\HIP-CSharp-API\</HipSharpRepositoryRoot>
-    <HipSharpPackageVersion Condition="'$(HipSharpPackageVersion)' == ''">0.9.1</HipSharpPackageVersion>
+    <HipSharpPackageVersion Condition="'$(HipSharpPackageVersion)' == ''">0.10.0</HipSharpPackageVersion>
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
   </PropertyGroup>
 </Project>

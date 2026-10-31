@@ -3,7 +3,7 @@ param(
     [ValidateSet('Debug', 'Release')][string] $Configuration = 'Release',
     [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')]
     [string] $Version = '0.0.0',
-    [string] $HipSharpVersion = '0.9.1',
+    [string] $HipSharpVersion = '0.10.0',
     [string] $HipSharpPackagePath,
     [switch] $NoBuild
 )
@@ -41,15 +41,15 @@ finally { $coreArchive.Dispose() }
 if ([string]::IsNullOrWhiteSpace($HipSharpPackagePath)) {
     $expectedName = "JYPPX.ROCm.HIP.CSharp.API.$HipSharpVersion.nupkg"
     $HipSharpPackagePath = Get-ChildItem -LiteralPath (Get-ArtifactsRoot) -Filter $expectedName -File -Recurse -ErrorAction SilentlyContinue |
-        Where-Object { (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash -eq 'E71398538D7FF5DB91C018CAC3A2FF57C4D89E71AA77B50942182BD90A2A5FD2' } |
+        Where-Object { (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash -eq '096F82AE8D8ECB1CD3AD0E1F5E213E811656CDE10767A0DDF88563747E9A1558' } |
         Select-Object -First 1 -ExpandProperty FullName
 }
 if ([string]::IsNullOrWhiteSpace($HipSharpPackagePath) -or -not (Test-Path -LiteralPath $HipSharpPackagePath -PathType Leaf)) {
-    throw 'The exact HipSharp 0.9.1 package is required. Pass -HipSharpPackagePath.'
+    throw 'The exact published HipSharp 0.10.0 package is required. Pass -HipSharpPackagePath.'
 }
 $HipSharpPackagePath = (Resolve-Path -LiteralPath $HipSharpPackagePath).Path
 $hipHash = (Get-FileHash -Algorithm SHA256 -LiteralPath $HipSharpPackagePath).Hash.ToLowerInvariant()
-if ($HipSharpVersion -ne '0.9.1' -or $hipHash -ne 'e71398538d7ff5db91c018cac3a2ff57c4d89e71aa77b50942182bd90a2a5fd2') {
+if ($HipSharpVersion -ne '0.10.0' -or $hipHash -ne '096f82ae8d8ecb1cd3ad0e1f5e213e811656cde10767a0ddf88563747e9a1558') {
     throw "HipSharp dependency identity mismatch: $HipSharpVersion / $hipHash"
 }
 

@@ -1,0 +1,108 @@
+name: publish-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version to publish (without v)
+        required: true
+        type: string
+        default: '0.0.1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-release
+  cancel-in-progress: false
+
+env:
+  RELEASE_VERSION: ${{ inputs.version }}
+  MIGRAPHX_WORKSPACE_ROOT: ${{ github.workspace }}/MIGraphXSharp.Workspace
+  DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+
+jobs:
+  prepare:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: pwsh
+        working-directory: ${{ github.workspace }}/MIGraphXSharp
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          fetch-depth: 0
+          path: MIGraphXSharp
+      - uses: actions/checkout@v7
+        with:
+          repository: guojin-yan/HIP-CSharp-API
+          ref: 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+          path: hip-source
+      - uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: MIGraphXSharp/global.json
+      - name: Check release identity and obtain reviewed dependency
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected a three-part version.' }
+          if ((git rev-parse HEAD).Trim() -ne $env:GITHUB_SHA) { throw 'main moved after dispatch; start a new run.' }
+          $release = gh release view "v$env:RELEASE_VERSION" --json isDraft,targetCommitish | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $release.isDraft -or $release.targetCommitish -ne $env:GITHUB_SHA) {
+            throw 'Prepare a draft release targeting this exact commit.'
+          }
+          $dependency = Join-Path $env:MIGRAPHX_WORKSPACE_ROOT 'release-dependency'
+          New-Item -ItemType Directory -Path $dependency -Force | Out-Null
+          Invoke-WebRequest 'https://api.nuget.org/v3-flatcontainer/jyppx.rocm.hip.csharp.api/0.10.0/jyppx.rocm.hip.csharp.api.0.10.0.nupkg' -OutFile (Join-Path $dependency 'JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg')
+      - name: Build, inspect packages and prepare distribution
+        run: |
+          $hipPackage = Join-Path $env:MIGRAPHX_WORKSPACE_ROOT 'release-dependency/JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg'
+          $hipSource = Join-Path $env:GITHUB_WORKSPACE 'hip-source'
+          ./eng/prepare-release.ps1 -Version $env:RELEASE_VERSION -HipSharpPackagePath $hipPackage -HipSharpRepositoryRoot $hipSource
+      - uses: actions/upload-artifact@v7
+        with:
+          name: release-${{ inputs.version }}
+          path: ${{ env.MIGRAPHX_WORKSPACE_ROOT }}/artifacts/release-dist/${{ inputs.version }}/${{ github.sha }}/*
+          if-no-files-found: error
+
+  publish:
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: release-${{ inputs.version }}
+          path: distribution
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+      - name: Verify checksums, publish NuGet packages and GitHub release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is missing.' }
+          $release = gh release view "v$env:RELEASE_VERSION" --repo $env:GITHUB_REPOSITORY --json isDraft,targetCommitish | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $release.isDraft -or $release.targetCommitish -ne $env:GITHUB_SHA) { throw 'Draft release identity changed.' }
+          Set-Location distribution
+          foreach ($line in Get-Content SHA256SUMS.txt) {
+            if ($line -notmatch '^([a-f0-9]{64})  ([A-Za-z0-9_.-]+)$') { throw 'Invalid checksum entry.' }
+            if ((Get-FileHash -LiteralPath $Matches[2] -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Matches[1]) { throw 'Release asset checksum mismatch.' }
+          }
+          $assets = @(Get-ChildItem -File | ForEach-Object FullName)
+          gh release upload "v$env:RELEASE_VERSION" --repo $env:GITHUB_REPOSITORY @assets --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Draft release asset upload failed.' }
+          foreach ($id in @('JYPPX.ROCm.MIGraphX.CSharp.API', 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop')) {
+            dotnet nuget push "$id.$env:RELEASE_VERSION.nupkg" --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300
+            if ($LASTEXITCODE -ne 0) { throw "NuGet publication failed for $id." }
+          }
+          gh release edit "v$env:RELEASE_VERSION" --repo $env:GITHUB_REPOSITORY --draft=false --latest --title "MIGraphXSharp v$env:RELEASE_VERSION" --notes-file RELEASE-NOTES.md
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub release publication failed.' }

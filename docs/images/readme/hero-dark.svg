@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
+  <title id="title">MIGraphXSharp</title>
+  <desc id="desc">C# and ONNX models connect to AMD GPU inference through MIGraphX. YOLO26 and PP-OCRv6 examples.</desc>
+  <rect width="1200" height="300" rx="20" fill="#111722"/>
+  <path d="M0 20Q0 0 20 0H1180Q1200 0 1200 20V8H0Z" fill="#e44045"/>
+  <g font-family="Segoe UI,Arial,sans-serif">
+    <text x="48" y="78" fill="#e44045" font-size="15" font-weight="700" letter-spacing="3">AMD GPU INFERENCE FOR .NET</text>
+    <text x="45" y="137" fill="#eef3fc" font-size="48" font-weight="700">MIGraphXSharp</text>
+    <text x="48" y="177" fill="#a9bad1" font-size="21">C# models. Native AMD inference.</text>
+    <rect x="48" y="213" width="108" height="30" rx="15" fill="#1e2939" stroke="#35445b"/>
+    <text x="102" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">YOLO26</text>
+    <rect x="168" y="213" width="118" height="30" rx="15" fill="#1e2939" stroke="#35445b"/>
+    <text x="227" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">PP-OCRv6</text>
+    <rect x="298" y="213" width="154" height="30" rx="15" fill="#1e2939" stroke="#35445b"/>
+    <text x="375" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">15 .NET targets</text>
+    <rect x="618" y="87" width="118" height="126" rx="14" fill="#1e2939" stroke="#35445b" stroke-width="2"/>
+    <text x="677" y="137" fill="#8c74e8" font-size="31" font-weight="700" text-anchor="middle">C#</text>
+    <text x="677" y="174" fill="#a9bad1" font-size="15" text-anchor="middle">ONNX + tensors</text>
+    <path d="M751 150H811" stroke="#e44045" stroke-width="3"/>
+    <path d="M803 143L813 150L803 157" fill="none" stroke="#e44045" stroke-width="3"/>
+    <rect x="830" y="62" width="308" height="176" rx="17" fill="#1e2939" stroke="#35445b" stroke-width="2"/>
+    <rect x="851" y="84" width="264" height="132" rx="10" fill="#111722" stroke="#e44045"/>
+    <text x="983" y="128" fill="#e44045" font-size="16" font-weight="700" text-anchor="middle" letter-spacing="2">AMD GPU</text>
+    <text x="983" y="166" fill="#eef3fc" font-size="27" font-weight="700" text-anchor="middle">MIGraphX</text>
+    <text x="983" y="193" fill="#a9bad1" font-size="14" text-anchor="middle">parse &#183; compile &#183; run</text>
+  </g>
+</svg>
