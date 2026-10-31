@@ -95,6 +95,16 @@ public sealed class MIGraphXParameterMap : IDisposable
 
     internal NativeResourceOwner<NativeProgramParametersHandle> Owner => owner;
 
+    internal MIGraphXParameterMap CloneForCalibration()
+    {
+        return owner.WithHandle(_ =>
+        {
+            if (entries.Any(entry => !entry.Value.IsHostBacked))
+                throw new NotSupportedException("Calibration snapshots require owned host-backed arguments.");
+            return Clone();
+        });
+    }
+
     internal void AddExternal(string name, MIGraphXShape shape, IntPtr pointer)
     {
         using (var argument = MIGraphXArgument.CreateExternal(owner.Runtime, shape, pointer))

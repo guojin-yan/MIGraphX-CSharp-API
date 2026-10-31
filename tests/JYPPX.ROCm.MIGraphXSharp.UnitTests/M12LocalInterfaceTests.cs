@@ -628,6 +628,115 @@ public sealed class M12LocalInterfaceTests
     }
 
     [Fact]
+    public void CalibrationSnapshotsRejectBorrowedDevicePointers()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        using (var parameters = new MIGraphXParameterMap(path))
+        using (var int8 = new MIGraphXQuantizeInt8Options(path))
+        using (var fp8 = new MIGraphXQuantizeFp8Options(path))
+        {
+            parameters.AddExternal("input", MIGraphXShape.CreateScalar(MIGraphXShapeDataType.UInt8), new IntPtr(1));
+            var live = controls.M2LiveCount();
+            Assert.Throws<NotSupportedException>(() => int8.AddCalibrationData(parameters));
+            Assert.Throws<NotSupportedException>(() => fp8.AddCalibrationData(parameters));
+            Assert.Equal(live, controls.M2LiveCount());
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void AbandonedQuantizationOptionsReleaseCalibrationRoots(bool useFp8)
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        var abandoned = CreateAbandonedCalibrationOptions(path, useFp8);
+        for (var attempt = 0; attempt < 5 && (abandoned.IsAlive || controls.M2LiveCount() != 0 || controls.M12LiveCount() != 0); attempt++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+        }
+        Assert.False(abandoned.IsAlive);
+        AssertNoNativeLeaks(controls);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static WeakReference CreateAbandonedCalibrationOptions(string path, bool useFp8)
+    {
+        using var source = new MIGraphXParameterMap(path);
+        using var argument = MIGraphXArgument.Create(path, MIGraphXShape.CreateScalar(MIGraphXShapeDataType.UInt8), new byte[] { 17 });
+        source.Add("input", argument);
+        if (useFp8)
+        {
+            var options = new MIGraphXQuantizeFp8Options(path);
+            options.AddCalibrationData(source);
+            return new WeakReference(options);
+        }
+        else
+        {
+            var options = new MIGraphXQuantizeInt8Options(path);
+            options.AddCalibrationData(source);
+            return new WeakReference(options);
+        }
+    }
+
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void CalibrationDataSurvivesSourceDisposalAndOptionCloneChains(bool useFp8, bool failAfterNativeStore)
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        using (var program = new MIGraphXProgram(path))
+        using (var target = new MIGraphXTarget(path))
+        using (var int8 = new MIGraphXQuantizeInt8Options(path))
+        using (var fp8 = new MIGraphXQuantizeFp8Options(path))
+        {
+            using (var source = new MIGraphXParameterMap(path))
+            using (var argument = MIGraphXArgument.Create(path, MIGraphXShape.CreateScalar(MIGraphXShapeDataType.UInt8), new byte[] { 17 }))
+            {
+                source.Add("input", argument);
+                if (failAfterNativeStore)
+                    controls.SetFailure(useFp8 ? "migraphx_quantize_fp8_options_add_calibration_data" : "migraphx_quantize_int8_options_add_calibration_data", (int)MIGraphXStatus.UnknownError);
+                void AddCalibration() { if (useFp8) fp8.AddCalibrationData(source); else int8.AddCalibrationData(source); }
+                if (failAfterNativeStore) Assert.Throws<MIGraphXException>(AddCalibration);
+                else AddCalibration();
+                source.Add("later", argument);
+            }
+            Assert.Equal(2, controls.M2LiveCount());
+            var m12Live = controls.M12LiveCount();
+            controls.SetFailure(useFp8 ? "migraphx_quantize_fp8_options_assign_to" : "migraphx_quantize_int8_options_assign_to", (int)MIGraphXStatus.UnknownError);
+            Assert.Throws<MIGraphXException>(() => { if (useFp8) { using var failed = fp8.Clone(); } else { using var failed = int8.Clone(); } });
+            Assert.Equal(m12Live, controls.M12LiveCount());
+            Assert.Equal(2, controls.M2LiveCount());
+            using var int8Clone = int8.Clone();
+            using var fp8Clone = fp8.Clone();
+            int8.Dispose();
+            fp8.Dispose();
+            using var nextInt8 = int8Clone.Clone();
+            using var nextFp8 = fp8Clone.Clone();
+            int8Clone.Dispose();
+            fp8Clone.Dispose();
+            Assert.Equal(2, controls.M2LiveCount());
+            if (useFp8) program.QuantizeFp8(target, nextFp8);
+            else program.QuantizeInt8(target, nextInt8);
+            Assert.Equal(17, controls.CalibrationByteSum());
+            nextInt8.Dispose();
+            nextFp8.Dispose();
+            Assert.Equal(0, controls.M2LiveCount());
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void TensorFlowAndQuantizationSurfacesForwardManagedState()
     {
         var nativePath = FakePath();
@@ -1712,6 +1821,7 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt m2LiveCount;
         private readonly GetInt m12LiveCount;
         private readonly GetInt lastQuantization;
+        private readonly GetInt calibrationByteSum;
         private readonly GetInt contextFinishCount;
         private readonly GetString lastOperationAttributes;
         private readonly GetInt customRegisterCount;
@@ -1740,6 +1850,7 @@ public sealed class M12LocalInterfaceTests
             m2LiveCount = Get<GetInt>("fake_m2_live_count");
             m12LiveCount = Get<GetInt>("fake_m12_live_count");
             lastQuantization = Get<GetInt>("fake_last_quantization");
+            calibrationByteSum = Get<GetInt>("fake_calibration_byte_sum");
             contextFinishCount = Get<GetInt>("fake_context_finish_count");
             lastOperationAttributes = Get<GetString>("fake_last_operation_attributes");
             customRegisterCount = Get<GetInt>("fake_custom_register_count");
@@ -1766,6 +1877,7 @@ public sealed class M12LocalInterfaceTests
         internal int M2LiveCount() => m2LiveCount();
         internal int M12LiveCount() => m12LiveCount();
         internal int LastQuantization() => lastQuantization();
+        internal int CalibrationByteSum() => calibrationByteSum();
         internal int ContextFinishCount() => contextFinishCount();
         internal string LastOperationAttributes() => Marshal.PtrToStringUTF8(lastOperationAttributes()) ?? string.Empty;
         internal int CustomRegisterCount() => customRegisterCount();

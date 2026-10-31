@@ -20,6 +20,8 @@ Module views from the same program share its lock for graph edits and native cal
 
 `MIGraphXProgram` exposes `QuantizeFp16`, `QuantizeBf16`, `QuantizeInt8` and `QuantizeFp8`. Configure operation-name filters and the appropriate quantization options, including calibration inputs where required, before compiling the modified program. Quantization changes numeric behavior; check accuracy on representative data and confirm the target supports the selected format.
 
+`AddCalibrationData` copies the host-backed parameter map and retains its owned buffers until the native quantization options are destroyed. You can modify or dispose the source map after the call. Option clones share the retained immutable snapshots and keep them alive independently. Borrowed device arguments are rejected. If a native add fails, its snapshot remains retained until option disposal because the provider may already have stored buffer references; dispose and recreate the options before retrying when partial native mutation is possible.
+
 ## Context
 
 `GetExperimentalContext` exposes a program-bound context with `Finish` and queue access. The context retains its parent lease. Queue access does not transfer ownership or provide general raw-pointer interoperation with the HIP adapter.

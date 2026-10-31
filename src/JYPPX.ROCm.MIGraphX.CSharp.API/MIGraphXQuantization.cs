@@ -55,6 +55,7 @@ public sealed class MIGraphXQuantizeOpNames : IDisposable
 public sealed class MIGraphXQuantizeInt8Options : IDisposable
 {
     private readonly NativeResourceOwner<NativeQuantizeInt8OptionsHandle> owner;
+    private readonly NativeQuantizeInt8OptionsHandle nativeOptions;
     private readonly List<string> opNames = new List<string>();
 
     /// <summary>使用显式 native library 创建 INT8 选项。 Creates INT8 options from an explicit native library.</summary>
@@ -67,6 +68,7 @@ public sealed class MIGraphXQuantizeInt8Options : IDisposable
     private MIGraphXQuantizeInt8Options(NativeRuntime runtime, NativeQuantizeInt8OptionsHandle handle)
     {
         owner = new NativeResourceOwner<NativeQuantizeInt8OptionsHandle>(runtime, handle);
+        nativeOptions = handle;
     }
 
     /// <summary>添加要量化的 operator 名称。 Adds an operator name to quantize.</summary>
@@ -83,7 +85,7 @@ public sealed class MIGraphXQuantizeInt8Options : IDisposable
         }
     }
 
-    /// <summary>添加 calibration parameter map。 Adds a calibration parameter map.</summary>
+    /// <summary>深拷贝并保留主机校准参数，调用后源 map 可释放。 Deep-copies and retains host calibration parameters so the source map can be disposed after the call.</summary>
     /// <param name="data">同一 native library 的校准参数。 Calibration parameters from the same native library.</param>
     public void AddCalibrationData(MIGraphXParameterMap data)
     {
@@ -91,7 +93,11 @@ public sealed class MIGraphXQuantizeInt8Options : IDisposable
         owner.Runtime.RequireSame(data.Owner.Runtime, nameof(data));
         NativeResourceLock.With(
             new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(data.Owner.Id, data.Owner.Sync) },
-            () => NativeStatus.ThrowIfFailed(NativeMethods.QuantizeInt8OptionsAddCalibrationData(owner.HandleUnderLock, data.Owner.HandleUnderLock), "migraphx_quantize_int8_options_add_calibration_data"));
+            () =>
+            {
+                _ = owner.HandleUnderLock;
+                nativeOptions.AddCalibrationData(data, NativeMethods.QuantizeInt8OptionsAddCalibrationData, "migraphx_quantize_int8_options_add_calibration_data");
+            });
     }
 
     /// <summary>operator 名称快照。 Gets the operator-name snapshot.</summary>
@@ -108,7 +114,7 @@ public sealed class MIGraphXQuantizeInt8Options : IDisposable
 
     /// <summary>通过 native assign-to 创建独立副本。 Creates an independent copy through native assign-to.</summary>
     public MIGraphXQuantizeInt8Options Clone()
-        => owner.WithHandle(handle => { var result = new MIGraphXQuantizeInt8Options(owner.Runtime, NativeQuantizeInt8OptionsHandle.CloneFrom(handle)); lock (opNames) { result.opNames.AddRange(opNames); } return result; });
+        => owner.WithHandle(_ => { var result = new MIGraphXQuantizeInt8Options(owner.Runtime, NativeQuantizeInt8OptionsHandle.CloneFrom(nativeOptions)); lock (opNames) { result.opNames.AddRange(opNames); } return result; });
 
     internal NativeResourceOwner<NativeQuantizeInt8OptionsHandle> Owner => owner;
     /// <summary>释放 native INT8 选项。 Releases the native INT8 options.</summary>
@@ -119,6 +125,7 @@ public sealed class MIGraphXQuantizeInt8Options : IDisposable
 public sealed class MIGraphXQuantizeFp8Options : IDisposable
 {
     private readonly NativeResourceOwner<NativeQuantizeFp8OptionsHandle> owner;
+    private readonly NativeQuantizeFp8OptionsHandle nativeOptions;
 
     /// <summary>使用显式 native library 创建 FP8 选项。 Creates FP8 options from an explicit native library.</summary>
     /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute MIGraphX C native-library path.</param>
@@ -130,9 +137,10 @@ public sealed class MIGraphXQuantizeFp8Options : IDisposable
     private MIGraphXQuantizeFp8Options(NativeRuntime runtime, NativeQuantizeFp8OptionsHandle handle)
     {
         owner = new NativeResourceOwner<NativeQuantizeFp8OptionsHandle>(runtime, handle);
+        nativeOptions = handle;
     }
 
-    /// <summary>添加 calibration parameter map。 Adds a calibration parameter map.</summary>
+    /// <summary>深拷贝并保留主机校准参数，调用后源 map 可释放。 Deep-copies and retains host calibration parameters so the source map can be disposed after the call.</summary>
     /// <param name="data">同一 native library 的校准参数。 Calibration parameters from the same native library.</param>
     public void AddCalibrationData(MIGraphXParameterMap data)
     {
@@ -140,12 +148,16 @@ public sealed class MIGraphXQuantizeFp8Options : IDisposable
         owner.Runtime.RequireSame(data.Owner.Runtime, nameof(data));
         NativeResourceLock.With(
             new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(data.Owner.Id, data.Owner.Sync) },
-            () => NativeStatus.ThrowIfFailed(NativeMethods.QuantizeFp8OptionsAddCalibrationData(owner.HandleUnderLock, data.Owner.HandleUnderLock), "migraphx_quantize_fp8_options_add_calibration_data"));
+            () =>
+            {
+                _ = owner.HandleUnderLock;
+                nativeOptions.AddCalibrationData(data, NativeMethods.QuantizeFp8OptionsAddCalibrationData, "migraphx_quantize_fp8_options_add_calibration_data");
+            });
     }
 
     /// <summary>通过 native assign-to 创建独立副本。 Creates an independent copy through native assign-to.</summary>
     public MIGraphXQuantizeFp8Options Clone()
-        => owner.WithHandle(handle => new MIGraphXQuantizeFp8Options(owner.Runtime, NativeQuantizeFp8OptionsHandle.CloneFrom(handle)));
+        => owner.WithHandle(_ => new MIGraphXQuantizeFp8Options(owner.Runtime, NativeQuantizeFp8OptionsHandle.CloneFrom(nativeOptions)));
 
     internal NativeResourceOwner<NativeQuantizeFp8OptionsHandle> Owner => owner;
     /// <summary>释放 native FP8 选项。 Releases the native FP8 options.</summary>

@@ -93,8 +93,9 @@ typedef struct fake_quantize_int8_options
     size_t count;
     char names[16][64];
     size_t calibration_count;
+    const char* calibration_buffers[16];
 } *migraphx_quantize_int8_options_t;
-typedef struct fake_quantize_fp8_options { size_t calibration_count; } *migraphx_quantize_fp8_options_t;
+typedef struct fake_quantize_fp8_options { size_t calibration_count; const char* calibration_buffers[16]; } *migraphx_quantize_fp8_options_t;
 typedef void* migraphx_context_t;
 typedef migraphx_status (*fake_custom_copy)(void** out, void* input);
 typedef migraphx_status (*fake_custom_delete)(void* input);
@@ -166,6 +167,7 @@ static volatile int32_t parse_file_count;
 static volatile int32_t parse_buffer_count;
 static volatile int32_t compile_count;
 static volatile int32_t run_count;
+static volatile int32_t calibration_byte_sum;
 static volatile int32_t m2_destroy_count;
 static volatile int32_t m2_live_count;
 static volatile int32_t m5_live_count;
@@ -338,6 +340,7 @@ EXPORT void fake_reset(void)
     parse_buffer_count = 0;
     compile_count = 0;
     run_count = 0;
+    calibration_byte_sum = 0;
     m2_destroy_count = 0;
     m2_live_count = 0;
     m5_live_count = 0;
@@ -409,6 +412,7 @@ EXPORT int fake_parse_file_count(void) { return parse_file_count; }
 EXPORT int fake_parse_buffer_count(void) { return parse_buffer_count; }
 EXPORT int fake_compile_count(void) { return compile_count; }
 EXPORT int fake_run_count(void) { return run_count; }
+EXPORT int fake_calibration_byte_sum(void) { return calibration_byte_sum; }
 EXPORT int fake_last_parameter_count(void) { return last_parameter_count; }
 EXPORT int64_t fake_last_default_loop_iterations(void) { return last_default_loop_iterations; }
 EXPORT int64_t fake_last_limit_loop_iterations(void) { return last_limit_loop_iterations; }

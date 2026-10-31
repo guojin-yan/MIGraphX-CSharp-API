@@ -695,13 +695,20 @@ EXPORT migraphx_status migraphx_quantize_int8_options_add_op_name(migraphx_quant
 }
 EXPORT migraphx_status migraphx_quantize_int8_options_add_calibration_data(migraphx_quantize_int8_options_t options, migraphx_program_parameters_t data)
 {
-    if(options == NULL || data == NULL) return migraphx_status_bad_param;
+    if(options == NULL || data == NULL || options->calibration_count >= 16) return migraphx_status_bad_param;
+    options->calibration_buffers[options->calibration_count] = data->count != 0 ? data->arguments[0].buffer : NULL;
     options->calibration_count += 1;
     return (migraphx_status)take_status_for("migraphx_quantize_int8_options_add_calibration_data");
 }
 EXPORT migraphx_status migraphx_quantize_int8(migraphx_program_t program, migraphx_target_t target, migraphx_quantize_int8_options_t options)
 {
     if(target == NULL || options == NULL) return migraphx_status_bad_param;
+    {
+        int sum = 0;
+        for(size_t i = 0; i < options->calibration_count; ++i)
+            if(options->calibration_buffers[i] != NULL) sum += (unsigned char)options->calibration_buffers[i][0];
+        ATOMIC_EXCHANGE(calibration_byte_sum, sum);
+    }
     return set_quantization(program, 8, "migraphx_quantize_int8");
 }
 
@@ -730,13 +737,20 @@ EXPORT migraphx_status migraphx_quantize_fp8_options_assign_to(migraphx_quantize
 }
 EXPORT migraphx_status migraphx_quantize_fp8_options_add_calibration_data(migraphx_quantize_fp8_options_t options, migraphx_program_parameters_t data)
 {
-    if(options == NULL || data == NULL) return migraphx_status_bad_param;
+    if(options == NULL || data == NULL || options->calibration_count >= 16) return migraphx_status_bad_param;
+    options->calibration_buffers[options->calibration_count] = data->count != 0 ? data->arguments[0].buffer : NULL;
     options->calibration_count += 1;
     return (migraphx_status)take_status_for("migraphx_quantize_fp8_options_add_calibration_data");
 }
 EXPORT migraphx_status migraphx_quantize_fp8(migraphx_program_t program, migraphx_target_t target, migraphx_quantize_fp8_options_t options)
 {
     if(target == NULL || options == NULL) return migraphx_status_bad_param;
+    {
+        int sum = 0;
+        for(size_t i = 0; i < options->calibration_count; ++i)
+            if(options->calibration_buffers[i] != NULL) sum += (unsigned char)options->calibration_buffers[i][0];
+        ATOMIC_EXCHANGE(calibration_byte_sum, sum);
+    }
     return set_quantization(program, 18, "migraphx_quantize_fp8");
 }
 

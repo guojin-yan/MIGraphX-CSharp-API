@@ -240,6 +240,7 @@ public sealed class MIGraphXArgument : IDisposable
     }
 
     internal NativeResourceOwner<NativeArgumentHandle> Owner => owner;
+    internal bool IsHostBacked => ownsBuffer;
 
     internal MIGraphXArgument CloneForMap()
     {
