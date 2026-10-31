@@ -12,6 +12,7 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 public sealed class MIGraphXParameterMap : IDisposable
 {
     private readonly NativeResourceOwner<NativeProgramParametersHandle> owner;
+    private int asyncLeaseCount;
     private readonly List<KeyValuePair<string, MIGraphXArgument>> entries = new List<KeyValuePair<string, MIGraphXArgument>>();
 
     /// <summary>
@@ -49,6 +50,8 @@ public sealed class MIGraphXParameterMap : IDisposable
             lock (owner.Sync)
             {
                 _ = owner.HandleUnderLock;
+                if (asyncLeaseCount != 0)
+                    throw new InvalidOperationException("Complete all asynchronous runs using this parameter map before adding parameters.");
                 if (entries.Any(entry => string.Equals(entry.Key, name, StringComparison.Ordinal)))
                 {
                     throw new ArgumentException($"A parameter named '{name}' already exists.", nameof(name));
@@ -110,7 +113,9 @@ public sealed class MIGraphXParameterMap : IDisposable
             {
                 leases.Add(owner.AcquireLease());
                 foreach (var entry in entries) leases.Add(entry.Value.AcquireAsyncLease());
-                return new NativeLeaseSet(leases);
+                var result = new ParameterMapAsyncLease(this, new NativeLeaseSet(leases));
+                asyncLeaseCount = checked(asyncLeaseCount + 1);
+                return result;
             }
             catch
             {
@@ -126,6 +131,20 @@ public sealed class MIGraphXParameterMap : IDisposable
         {
             _ = owner.HandleUnderLock;
             return entries.Select(entry => entry.Key).ToArray();
+        }
+    }
+
+    private sealed class ParameterMapAsyncLease : IDisposable
+    {
+        private MIGraphXParameterMap? map;
+        private readonly NativeLeaseSet leases;
+        internal ParameterMapAsyncLease(MIGraphXParameterMap map, NativeLeaseSet leases) { this.map = map; this.leases = leases; }
+        public void Dispose()
+        {
+            var retained = System.Threading.Interlocked.Exchange(ref map, null);
+            if (retained is null) return;
+            try { leases.Dispose(); }
+            finally { lock (retained.owner.Sync) retained.asyncLeaseCount--; }
         }
     }
 

@@ -29,11 +29,15 @@ float[] copied = outputs[0].ToArray<float>();
 
 Use your model's actual parameter names and shapes. Add one argument for every parameter; the parameter map must match the complete native name set. Outputs preserve native ordering.
 
+Synchronous `Run` requires `offloadCopy: true` because its inputs and detached outputs are host buffers. It rejects a program compiled with `offloadCopy: false` before native execution; use the HIP device-input adapter for that mode. Finish any pending asynchronous runs on the same program before calling `Run`.
+
 ## Copies and lifetimes
 
 `GetParameterShapes` and `GetOutputShapes` return independent managed snapshots. `MIGraphXShape` owns no native handle. Static snapshots include scalar type, lengths, strides, rank, element/byte counts, and layout flags.
 
 `ElementCount` counts logical elements. `ByteCount` describes storage: explicit strides include padding, while zero strides let broadcast elements share storage. For float32 lengths `[2, 3]`, strides `[4, 1]` need 28 bytes; strides `[0, 1]` need 12 bytes. The public typed host-argument factories continue to require standard packed shapes.
+
+Strides on length-one axes do not affect standard-layout classification. For example, lengths `[2, 1, 3]` with strides `[3, 0, 1]` are standard and packed; their exact strides are preserved when passed to native argument and graph APIs.
 
 `MIGraphXArgument.Create<T>` copies the input array. `MIGraphXParameterMap.Add` deep-copies its argument. Synchronous run outputs are copied before the native collection is released. `ToArray<T>` requires the exact supported scalar mapping; tuple and bool/half/bfloat16/float8 typed host copies are rejected.
 

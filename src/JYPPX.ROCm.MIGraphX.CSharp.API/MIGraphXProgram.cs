@@ -351,7 +351,13 @@ public sealed class MIGraphXProgram : IDisposable
         {
             NativeResourceLock.With(
                 new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(options.Owner.Id, options.Owner.Sync) },
-                () => NativeStatus.ThrowIfFailed(NativeMethods.Save(owner.HandleUnderLock, utf8.Pointer, options.Owner.HandleUnderLock), "migraphx_save"));
+                () =>
+                {
+                    var program = owner.HandleUnderLock;
+                    var fileOptions = options.Owner.HandleUnderLock;
+                    state.RequireIdle();
+                    NativeStatus.ThrowIfFailed(NativeMethods.Save(program, utf8.Pointer, fileOptions), "migraphx_save");
+                });
         }
     }
 
@@ -406,8 +412,13 @@ public sealed class MIGraphXProgram : IDisposable
             },
             () =>
             {
+                var program = owner.HandleUnderLock;
+                var map = parameters.Owner.HandleUnderLock;
                 if (!state.IsCompiled) { throw new InvalidOperationException("The program must be compiled before Run."); }
-                var required = GetParameterShapesUnderLock(owner.HandleUnderLock).Keys.ToArray();
+                if (!state.OffloadCopy)
+                    throw new InvalidOperationException("Synchronous host execution requires a program compiled with offloadCopy=true. Use the HIP device-input adapter for offloadCopy=false.");
+                state.RequireIdle();
+                var required = GetParameterShapesUnderLock(program).Keys.ToArray();
                 var supplied = parameters.NamesUnderLock;
                 var requiredSet = new HashSet<string>(required, StringComparer.Ordinal);
                 if (required.Length != supplied.Length || !requiredSet.SetEquals(supplied))
@@ -417,7 +428,7 @@ public sealed class MIGraphXProgram : IDisposable
                         nameof(parameters));
                 }
 
-                using (var outputs = NativeArgumentsHandle.Run(owner.HandleUnderLock, parameters.Owner.HandleUnderLock))
+                using (var outputs = NativeArgumentsHandle.Run(program, map))
                 {
                     var count = ReadStableSize(
                         () => GetArgumentsSize(outputs.DangerousGetHandle()),
@@ -479,6 +490,7 @@ public sealed class MIGraphXProgram : IDisposable
     {
         return owner.WithHandle(handle =>
         {
+            state.RequireIdle();
             var overrides = dynamicOverrides.ToDictionary(
                 pair => pair.Key,
                 pair => pair.Value.ToArray(),
@@ -548,6 +560,7 @@ public sealed class MIGraphXProgram : IDisposable
                     if (externalLeases is not null) leases.AddRange(externalLeases);
                     leases.Add(owner.AcquireLease());
                     leases.Add(parameters.AcquireAsyncLease());
+                    leases.Add(state.AcquireAsyncLease());
                     var nativeOutputs = NativeArgumentsHandle.RunAsync(
                         owner.HandleUnderLock,
                         parameters.Owner.HandleUnderLock,
@@ -626,6 +639,7 @@ public sealed class MIGraphXProgram : IDisposable
 
     private void RequireUncompiledForQuantizationUnderLock()
     {
+        state.RequireIdle();
         if (state.IsCompiled)
         {
             throw new InvalidOperationException("Quantization must be applied before program compilation.");

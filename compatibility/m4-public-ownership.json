@@ -25,7 +25,7 @@
       "type": "MIGraphXProgram",
       "nativeOwnership": "owned migraphx_program_t SafeHandle",
       "managedOwnership": "compiled state and revision shared with program-owned graph/context views; clones have independent state",
-      "threadSafety": "same-program operations, graph-view native calls and Dispose share one lock; no general upstream or pending asynchronous mutation safety claim",
+      "threadSafety": "same-program operations, graph-view native calls and Dispose share one lock; pending async runs block graph mutation, compilation, cloning, saving and synchronous host Run; no general upstream concurrency claim",
       "disposeBehavior": "idempotent; collection snapshots remain valid",
       "failureCleanup": "parse success-null and failure-non-null paths fail closed and release",
       "afterOwnerDispose": "all instance members throw ObjectDisposedException except repeated Dispose"
@@ -61,7 +61,7 @@
       "type": "MIGraphXParameterMap",
       "nativeOwnership": "owned migraphx_program_parameters_t SafeHandle",
       "managedOwnership": "ordered names and deep-copied MIGraphXArgument owners",
-      "threadSafety": "Add, Run borrowing, properties, and Dispose are serialized",
+      "threadSafety": "Add, Run borrowing, properties, and Dispose are serialized; Add is rejected while any async run retains the map",
       "disposeBehavior": "native map is released before argument copies; idempotent",
       "failureCleanup": "failed additions destroy their argument copy",
       "afterOwnerDispose": "members throw ObjectDisposedException except repeated Dispose"

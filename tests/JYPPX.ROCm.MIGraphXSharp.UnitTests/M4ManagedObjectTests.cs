@@ -148,6 +148,31 @@ public sealed class M4ManagedObjectTests
     }
 
     [Fact]
+    public void SynchronousHostRunRejectsDeviceCompiledProgramsBeforeNativeExecution()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        using var parse = new MIGraphXOnnxOptions(path);
+        using var program = MIGraphXProgram.ParseOnnxBuffer(new byte[] { 1 }, parse);
+        using var target = new MIGraphXTarget(path);
+        using var deviceCompile = new MIGraphXCompileOptions(path, offloadCopy: false);
+        using var hostCompile = new MIGraphXCompileOptions(path, offloadCopy: true);
+        using var input = MIGraphXArgument.Create(path, program.GetParameterShapes()["input"], new[] { 1f, 2f, 3f, 4f });
+        using var parameters = new MIGraphXParameterMap(path);
+        parameters.Add("input", input);
+        program.Compile(target, deviceCompile);
+        var error = Assert.Throws<InvalidOperationException>(() => program.Run(parameters));
+        Assert.Contains("offloadCopy=true", error.Message, StringComparison.Ordinal);
+        Assert.Equal(0, controls.RunCount());
+        Assert.True(program.IsCompiled);
+        program.Compile(target, hostCompile);
+        using var output = program.Run(parameters);
+        Assert.Equal(new[] { 1f, 2f, 3f, 4f }, output[0].ToArray<float>());
+        Assert.Equal(1, controls.RunCount());
+    }
+
+    [Fact]
     public void TypedArgumentsRoundTripEveryMappedScalar()
     {
         var path = FakePath();

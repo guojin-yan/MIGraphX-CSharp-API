@@ -51,6 +51,61 @@ public sealed class M6HipAsyncTests
     }
 
     [Fact]
+    public void PendingRunsBlockMutationUntilEveryStreamHasCompleted()
+    {
+        var path = MIGraphXPath();
+        using var migraphx = new MIGraphXControls(path);
+        using var hip = new HipControls(HipPath());
+        migraphx.Reset();
+        hip.Reset();
+        using var runtime = new HipRuntime(HipPath());
+        using HipStream firstStream = runtime.CreateStream();
+        using HipStream secondStream = runtime.CreateStream();
+        using var program = CreateProgram(path, offloadCopy: true);
+        using var main = program.GetMainModule();
+        using var context = program.GetExperimentalContext();
+        using var target = new MIGraphXTarget(path);
+        using var compile = new MIGraphXCompileOptions(path);
+        using var fileOptions = new MIGraphXFileOptions(path);
+        var shape = program.GetParameterShapes()["input"];
+        using var argument = MIGraphXArgument.Create(path, shape, new[] { 1f, 2f, 3f, 4f });
+        using var parameters = new MIGraphXParameterMap(path);
+        parameters.Add("input", argument);
+        using var first = program.RunHostAsync(parameters, firstStream);
+        var firstPointer = migraphx.LastAsyncStream();
+        using var second = program.RunHostAsync(parameters, secondStream);
+        var secondPointer = migraphx.LastAsyncStream();
+
+        Assert.Throws<InvalidOperationException>(() => program.Compile(target, compile));
+        Assert.Throws<InvalidOperationException>(program.Sort);
+        Assert.Throws<InvalidOperationException>(() => { using var module = program.CreateModule("blocked"); });
+        Assert.Throws<InvalidOperationException>(() => { using var instruction = main.AddAllocation(shape); });
+        Assert.Throws<InvalidOperationException>(() => { using var clone = program.Clone(); });
+        Assert.Throws<InvalidOperationException>(() => program.Save(Path.Combine(Path.GetTempPath(), "migraphx-pending.mpb"), fileOptions));
+        Assert.Throws<InvalidOperationException>(() => { using var outputs = program.Run(parameters); });
+        Assert.Throws<InvalidOperationException>(() => parameters.Add("extra", argument));
+        Assert.True(program.IsCompiled);
+        context.Finish(); // Rejected edits must not advance the context revision.
+
+        migraphx.CompleteStream(firstPointer);
+        hip.SetQueryStatus(0);
+        Assert.True(first.TryComplete());
+        Assert.False(second.IsCompleted);
+        Assert.Throws<InvalidOperationException>(() => program.Compile(target, compile));
+        Assert.Throws<InvalidOperationException>(() => parameters.Add("extra", argument));
+
+        migraphx.CompleteStream(secondPointer);
+        Assert.True(second.TryComplete());
+        using var cloneAfterCompletion = program.Clone();
+        using var outputsAfterCompletion = program.Run(parameters);
+        program.Compile(target, compile);
+        parameters.Add("extra", argument);
+        Assert.Equal(2, parameters.Count);
+        using var addedAfterCompletion = main.AddAllocation(shape);
+        Assert.False(program.IsCompiled);
+    }
+
+    [Fact]
     public void DeviceInputRetainsPointerAndCopiesOutputToOwnedHostMemoryAfterCompletion()
     {
         var migraphxPath = MIGraphXPath();
@@ -135,6 +190,10 @@ public sealed class M6HipAsyncTests
         var error = Assert.Throws<MIGraphXException>(() => program.RunHostAsync(parameters, stream));
         Assert.Equal("migraphx_program_run_async", error.Operation);
         Assert.Equal(0, migraphx.AsyncCompleteCount());
+        using var cloneAfterFailure = program.Clone();
+        parameters.Add("extra", argument);
+        program.Sort();
+        Assert.False(program.IsCompiled);
     }
 
     [Fact]
@@ -184,6 +243,8 @@ public sealed class M6HipAsyncTests
         Assert.True(transientDrift.IsCompleted);
         Assert.Throws<InvalidOperationException>(() => transientDrift.Dispose());
         Assert.Equal(liveBefore, migraphx.M2LiveCount());
+        using var cloneAfterCompletionFailures = program.Clone();
+        parameters.Add("extra", argument);
     }
 
     [Fact]

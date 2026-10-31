@@ -20,6 +20,8 @@ float[] output = run.Outputs[0].ToArray<float>();
 
 `TryComplete` polls without blocking. `Synchronize` blocks until completion. `Outputs` is available after completion; reading it while pending fails. Disposing a pending run waits for completion.
 
+Until every submitted run on a program has completed through its stream, graph edits, recompilation, sorting, program cloning/saving and synchronous `Run` are rejected. A parameter map in use by any pending run also rejects `Add`. Completion or a submission/output-copy failure releases the corresponding guard; completion of one stream does not release another stream's guard. Early `Dispose` of the program or map remains supported through retained leases.
+
 ## Device input
 
 Compile with `offloadCopy: false`, create a `MIGraphXHipDeviceInput` for every exact parameter name using `HipDeviceMemory`, then call `RunDeviceAsync`. The adapter checks concrete packed shapes, capacity, runtime client and device ordinal.

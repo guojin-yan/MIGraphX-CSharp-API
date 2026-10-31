@@ -112,7 +112,7 @@ public sealed class M12LocalInterfaceTests
         var shape = MIGraphXShape.CreateWithStrides(MIGraphXShapeDataType.Float32, lengths, strides);
         Assert.Equal(elements, shape.ElementCount);
         Assert.Equal(bytes, shape.ByteCount);
-        using (var native = NativeShapeHandle.CreateWithStrides(shape))
+        using (var native = NativeShapeHandle.Create(shape))
         {
             var rawSnapshot = NativeShapeSnapshot.Create(native.DangerousGetHandle(), "explicit stride test");
             Assert.Equal(bytes, rawSnapshot.Bytes);
@@ -121,6 +121,35 @@ public sealed class M12LocalInterfaceTests
             Assert.Equal(bytes, snapshot.ByteCount);
             Assert.Equal(bytes, snapshot.Clone().ByteCount);
             Assert.True(shape.HasSameNativeContent(snapshot));
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public void SingletonAxisStridesRemainStandardAndSurviveArgumentRoundTrips()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        _ = NativeRuntime.Load(path);
+        var shape = MIGraphXShape.CreateWithStrides(
+            MIGraphXShapeDataType.Float32, new long[] { 2, 1, 3 }, new long[] { 3, 0, 1 });
+        Assert.True(shape.IsStandard);
+        Assert.True(shape.IsPacked);
+        using (var argument = MIGraphXArgument.Create(path, shape, new[] { 1f, 2f, 3f, 4f, 5f, 6f }))
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.ArgumentShape(out var nativeShape, argument.Owner.HandleUnderLock), "migraphx_argument_shape");
+            var snapshot = MIGraphXShape.FromNative(nativeShape, "singleton stride argument");
+            Assert.True(shape.HasSameNativeContent(snapshot));
+            Assert.True(snapshot.IsStandard);
+            using var clone = argument.Clone();
+            Assert.True(argument.HasSameNativeContent(clone));
+            Assert.Equal(new[] { 1f, 2f, 3f, 4f, 5f, 6f }, clone.ToArray<float>());
+        }
+        var scalar = MIGraphXShape.CreateWithStrides(MIGraphXShapeDataType.Float32, Array.Empty<long>(), Array.Empty<long>());
+        using (var nativeScalar = NativeShapeHandle.CreateWithStrides(scalar))
+        {
+            Assert.Equal(4, NativeShapeSnapshot.Create(nativeScalar.DangerousGetHandle(), "scalar").Bytes);
         }
         AssertNoNativeLeaks(controls);
     }

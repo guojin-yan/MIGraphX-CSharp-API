@@ -193,6 +193,7 @@ internal sealed class NativeShapeHandle : NativeOwnedHandle
     {
         if (shape is null) { throw new ArgumentNullException(nameof(shape)); }
         if (!shape.IsDynamic && shape.Rank == 0) { return CreateScalar(shape.DataType); }
+        if (!shape.IsDynamic && !shape.HasStandardStrides) { return CreateWithStrides(shape); }
         var lengths = shape.CopyLengths();
         var bytes = checked(lengths.Length * UIntPtr.Size);
         var buffer = bytes == 0 ? IntPtr.Zero : Marshal.AllocHGlobal(bytes);
@@ -271,6 +272,7 @@ internal sealed class NativeShapeHandle : NativeOwnedHandle
     {
         if (shape is null) { throw new ArgumentNullException(nameof(shape)); }
         if (shape.IsDynamic) { throw new NotSupportedException("Native explicit-stride shape creation requires a static shape."); }
+        if (shape.Rank == 0) { return CreateScalar(shape.DataType); }
         using (var lengths = NativeSizeTArray.Alloc(shape.Lengths, nameof(shape)))
         using (var strides = NativeSizeTArray.Alloc(shape.Strides, nameof(shape)))
         {

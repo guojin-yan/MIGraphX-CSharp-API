@@ -86,17 +86,20 @@ EXPORT migraphx_status migraphx_shape_create_with_strides(
         (*out)->elements *= lengths[index];
     }
     {
-        size_t expected = 1;
-        for(index = lengths_size; index > 0; --index)
-        {
-            if((*out)->strides[index - 1] != expected) (*out)->standard = 0;
-            expected *= (*out)->lengths[index - 1];
-        }
-    }
-    {
         size_t storage_elements = 1;
+        size_t previous = SIZE_MAX;
+        int skips = (*out)->elements != 1;
         for(index = 0; index < lengths_size; ++index)
+        {
             storage_elements += (lengths[index] - 1) * strides[index];
+            if(strides[index] == 1) skips = 0;
+            if(lengths[index] != 1)
+            {
+                if(strides[index] > previous) (*out)->standard = 0;
+                previous = strides[index];
+            }
+        }
+        if(storage_elements != (*out)->elements || skips) (*out)->standard = 0;
         (*out)->bytes = storage_elements * element_size(type);
     }
     return (migraphx_status)take_status_for("migraphx_shape_create_with_strides");

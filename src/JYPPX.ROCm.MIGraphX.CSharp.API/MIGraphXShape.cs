@@ -149,7 +149,7 @@ public sealed class MIGraphXShape
 
         var elements = ComputeElementCount(copiedLengths);
         var bytes = checked(ComputeStorageElementCount(copiedLengths, copiedStrides) * ShapeDataTypeMap.ElementSize(dataType));
-        var standard = copiedStrides.SequenceEqual(CreateStandardStrides(copiedLengths));
+        var standard = ComputeStandard(copiedLengths, copiedStrides);
         return new MIGraphXShape(dataType, copiedLengths, copiedStrides, elements, bytes, standard);
     }
 
@@ -238,6 +238,8 @@ public sealed class MIGraphXShape
         if (IsDynamic) { throw new InvalidOperationException("A dynamic shape has no concrete lengths."); }
         return (long[])lengths.Clone();
     }
+
+    internal bool HasStandardStrides => !IsDynamic && strides.SequenceEqual(CreateStandardStrides(lengths));
 
     internal static MIGraphXShape FromNative(IntPtr shape, string context, IReadOnlyList<MIGraphXDynamicDimension>? dynamicFallback = null)
     {
@@ -331,18 +333,22 @@ public sealed class MIGraphXShape
 
     private static bool ComputePacked(long[] dimensions, long[] layoutStrides)
     {
-        var axes = Enumerable.Range(0, dimensions.Length)
-            .Where(index => dimensions[index] > 1)
-            .OrderBy(index => layoutStrides[index])
-            .ToArray();
-        var expected = 1L;
-        foreach (var axis in axes)
+        var elements = ComputeElementCount(dimensions);
+        return elements == ComputeStorageElementCount(dimensions, layoutStrides)
+            && (elements == 1 || layoutStrides.Any(stride => stride == 1));
+    }
+
+    private static bool ComputeStandard(long[] dimensions, long[] layoutStrides)
+    {
+        if (!ComputePacked(dimensions, layoutStrides)) return false;
+        // Upstream ignores strides on length-one axes when classifying the
+        // row-major ordering. Preserve those strides when materializing native shapes.
+        var previous = long.MaxValue;
+        for (var index = 0; index < dimensions.Length; index++)
         {
-            if (layoutStrides[axis] != expected)
-            {
-                return false;
-            }
-            expected = checked(expected * dimensions[axis]);
+            if (dimensions[index] == 1) continue;
+            if (layoutStrides[index] > previous) return false;
+            previous = layoutStrides[index];
         }
         return true;
     }
