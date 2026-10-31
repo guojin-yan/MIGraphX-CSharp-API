@@ -1,5 +1,10 @@
 - name: Home
   href: index.md
+- name: Blog（中文）
+  href: blog/README.md
+  items:
+  - name: MIGraphXSharp 0.0.1 发布
+    href: blog/2026-10-31-migraphxsharp-0.0.1.md
 - name: Getting started
   href: guides/getting-started.md
 - name: Managed objects

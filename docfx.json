@@ -35,6 +35,12 @@
         "src": "../MIGraphXSharp.Workspace"
       }
     ],
+    "resource": [
+      {
+        "files": ["blog/assets/**"],
+        "src": "docs"
+      }
+    ],
     "dest": "../MIGraphXSharp.Workspace/artifacts/docs",
     "globalMetadata": {
       "_appName": "MIGraphXSharp",

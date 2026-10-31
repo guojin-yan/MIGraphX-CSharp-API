@@ -155,6 +155,8 @@ Inference includes synchronous execution and host output readback; OCR includes 
 
 ## Documentation
 
+Read the [Chinese technical blog](docs/blog/README.md) for standalone release and application articles.
+
 | Start here | Reference |
 | --- | --- |
 | [Installation and first inference](docs/guides/getting-started.md) | [API reference](docs/api/index.md) |

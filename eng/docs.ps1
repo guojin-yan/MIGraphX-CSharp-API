@@ -36,6 +36,7 @@ try {
     $config.metadata[0].src[0].src = $root
     $config.metadata[0].dest = $apiDirectory
     $config.build.content[0].src = [IO.Path]::GetRelativePath($configDirectory, (Join-Path $root 'docs')).Replace('\', '/')
+    $config.build.resource[0].src = $config.build.content[0].src
     $config.build.content[1].src = [IO.Path]::GetRelativePath($configDirectory, $workspace).Replace('\', '/')
     $config.build.dest = $siteDirectory
     $configPath = Join-Path $configDirectory 'docfx.json'

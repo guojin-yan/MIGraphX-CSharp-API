@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">MIGraphXSharp 核心包、HIP 适配包与系统运行库</title>
+  <desc id="desc">C# 应用通过 MIGraphXSharp 核心包调用系统安装的 AMD 运行库。可选 HIP 适配包使用相同的系统运行库。驱动和 AMD GPU 由主机提供。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto-start-reverse"><path d="M0 1L8 5L0 9" fill="none" stroke="#49647c" stroke-width="1.6"/></marker>
+  </defs>
+  <rect width="1200" height="720" rx="20" fill="#f8fafc"/>
+  <g font-family="Microsoft YaHei, Noto Sans CJK SC, Segoe UI, Arial, sans-serif">
+    <text x="60" y="52" fill="#24374b" font-size="28" font-weight="700">从 C# 应用到 AMD GPU</text>
+    <rect x="60" y="95" width="1080" height="75" rx="14" fill="#e9e5f8" stroke="#b5a7e2" stroke-width="2"/>
+    <text x="600" y="142" fill="#3e3267" font-size="27" font-weight="700" text-anchor="middle">C# / .NET 应用</text>
+    <path d="M385 170V222" fill="none" stroke="#49647c" stroke-width="3" marker-end="url(#arrow)"/>
+    <path d="M965 170V222" fill="none" stroke="#49647c" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+    <rect x="60" y="225" width="650" height="110" rx="14" fill="#e8f0fa" stroke="#9bb9da" stroke-width="2"/>
+    <text x="385" y="271" fill="#24374b" font-size="27" font-weight="700" text-anchor="middle">MIGraphXSharp 核心包 0.0.1</text>
+    <text x="385" y="310" fill="#4b6078" font-size="20" text-anchor="middle">解析 ONNX · 编译 · 执行 · 管理资源</text>
+    <rect x="790" y="225" width="350" height="110" rx="14" fill="#fff8e7" stroke="#d9bf7a" stroke-width="2"/>
+    <text x="965" y="262" fill="#635020" font-size="25" font-weight="700" text-anchor="middle">HIP.Interop 0.0.1</text>
+    <text x="965" y="293" fill="#6d5d39" font-size="19" text-anchor="middle">可选：流与设备输入</text>
+    <text x="965" y="320" fill="#6d5d39" font-size="16" text-anchor="middle">依赖核心包 + HipSharp 0.10.0</text>
+    <path d="M385 335V407" fill="none" stroke="#49647c" stroke-width="3" marker-end="url(#arrow)"/>
+    <text x="406" y="380" fill="#4b6078" font-size="18">原生 API</text>
+    <path d="M965 335V407" fill="none" stroke="#49647c" stroke-width="3" stroke-dasharray="8 6" marker-end="url(#arrow)"/>
+    <text x="984" y="380" fill="#4b6078" font-size="18">流 / 设备内存</text>
+    <rect x="60" y="410" width="1080" height="100" rx="14" fill="#fcebec" stroke="#deaaae" stroke-width="2"/>
+    <text x="600" y="453" fill="#82343c" font-size="26" font-weight="700" text-anchor="middle">AMD 系统运行库：MIGraphX + HIP / ROCm</text>
+    <text x="600" y="488" fill="#80565c" font-size="20" text-anchor="middle">由 AMD 系统仓库安装 · 托管 NuGet 包不携带原生库</text>
+    <path d="M600 510V582" fill="none" stroke="#49647c" stroke-width="3" marker-end="url(#arrow)"/>
+    <rect x="60" y="585" width="1080" height="70" rx="14" fill="#e9f3ef" stroke="#9bbcaf" stroke-width="2"/>
+    <text x="600" y="630" fill="#305d4c" font-size="25" font-weight="700" text-anchor="middle">主机环境：AMD GPU · 驱动 · 设备访问</text>
+    <text x="60" y="694" fill="#60738a" font-size="17">实线：核心调用路径　虚线：可选 HIP 集成路径</text>
+  </g>
+</svg>

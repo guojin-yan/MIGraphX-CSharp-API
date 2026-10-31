@@ -5,12 +5,12 @@ Keep library code, user documentation, reproducible scripts and reviewed source 
 ## Repository boundaries
 
 - `src/`, `samples/`, `tests/`, `smoke/` and `native/`: source code and test fixtures expressed as source.
-- `docs/`: installation, usage, API and compatibility documentation for users.
+- `docs/`: installation, usage, API and compatibility documentation for users. `docs/blog/` contains standalone user-facing blog articles, including drafts, and their illustrations.
 - `eng/` and `tools/`: build, generation, packaging and diagnostic tooling with usage instructions. Name active tooling by function; keep historical stage acceptance scripts outside the checkout.
 - `compatibility/`: frozen generator inputs, public API snapshots, ownership contracts, runtime case specifications and support disclosure policy.
 - `pack/`: package distribution policy.
 
-Keep development plans, stage reports, article drafts, cloud session notes, raw logs, test results, downloaded binaries, generated model files and packages outside the checkout. Do not require archived development records to build or test a fresh clone. Only published user-facing changes belong in release notes; unpublished candidate diaries are development records.
+Keep development plans, stage reports, internal writing notes, cloud session notes, raw logs, test results, downloaded binaries, generated model files and packages outside the checkout. User-facing blog drafts belong in `docs/blog/`; mark their status in its index and keep source material and verification records outside the checkout. Do not require archived development records to build or test a fresh clone. Only published user-facing changes belong in release notes; unpublished candidate diaries are development records.
 
 All scripts default to the sibling `../MIGraphXSharp.Workspace/` directory:
 

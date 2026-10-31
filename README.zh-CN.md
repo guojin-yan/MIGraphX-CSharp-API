@@ -155,6 +155,8 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 ## 使用文档
 
+独立的发布介绍和应用文章见[中文技术博客](docs/blog/README.md)。
+
 | 入门与用法 | 参考资料 |
 | --- | --- |
 | [安装与首次推理](docs/guides/getting-started.md) | [API 参考](docs/api/index.md) |
