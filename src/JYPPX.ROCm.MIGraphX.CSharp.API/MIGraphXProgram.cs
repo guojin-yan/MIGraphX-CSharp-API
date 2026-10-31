@@ -398,7 +398,7 @@ public sealed class MIGraphXProgram : IDisposable
     /// 使用显式 parameter map 同步运行，并在 native output collection 释放前复制所有输出。
     /// Runs synchronously with an explicit parameter map and copies every output before releasing the native output collection.
     /// </summary>
-    /// <param name="parameters">同一原生库创建且名称完整匹配的参数映射。 Parameter map from the same native library with an exact name match.</param>
+    /// <param name="parameters">同一原生库创建且名称、类型和 shape 匹配的主机参数映射。 Host parameter map from the same native library with matching names, types and shapes.</param>
     /// <returns>拥有独立 host buffer 的只读输出集合。 Read-only output collection owning independent host buffers.</returns>
     public MIGraphXArgumentCollection Run(MIGraphXParameterMap parameters)
     {
@@ -418,15 +418,7 @@ public sealed class MIGraphXProgram : IDisposable
                 if (!state.OffloadCopy)
                     throw new InvalidOperationException("Synchronous host execution requires a program compiled with offloadCopy=true. Use the HIP device-input adapter for offloadCopy=false.");
                 state.RequireIdle();
-                var required = GetParameterShapesUnderLock(program).Keys.ToArray();
-                var supplied = parameters.NamesUnderLock;
-                var requiredSet = new HashSet<string>(required, StringComparer.Ordinal);
-                if (required.Length != supplied.Length || !requiredSet.SetEquals(supplied))
-                {
-                    throw new ArgumentException(
-                        $"Parameter names must exactly match the native set. Required: [{string.Join(", ", required)}]; supplied: [{string.Join(", ", supplied)}].",
-                        nameof(parameters));
-                }
+                parameters.ValidateInputsUnderLock(GetParameterShapesUnderLock(program), requireHostBacked: true);
 
                 using (var outputs = NativeArgumentsHandle.Run(program, map))
                 {
@@ -552,7 +544,7 @@ public sealed class MIGraphXProgram : IDisposable
                         ? "Host async execution requires a program compiled with offloadCopy=true."
                         : "Device-input async execution requires a program compiled with offloadCopy=false.");
                 }
-                ValidateParameterNamesUnderLock(parameters);
+                parameters.ValidateInputsUnderLock(GetParameterShapesUnderLock(owner.HandleUnderLock), requireHostBacked: requireOffloadCopy);
 
                 var leases = new List<IDisposable>();
                 try
@@ -643,19 +635,6 @@ public sealed class MIGraphXProgram : IDisposable
         if (state.IsCompiled)
         {
             throw new InvalidOperationException("Quantization must be applied before program compilation.");
-        }
-    }
-
-    private void ValidateParameterNamesUnderLock(MIGraphXParameterMap parameters)
-    {
-        var required = GetParameterShapesUnderLock(owner.HandleUnderLock).Keys.ToArray();
-        var supplied = parameters.NamesUnderLock;
-        var requiredSet = new HashSet<string>(required, StringComparer.Ordinal);
-        if (required.Length != supplied.Length || !requiredSet.SetEquals(supplied))
-        {
-            throw new ArgumentException(
-                $"Parameter names must exactly match the native set. Required: [{string.Join(", ", required)}]; supplied: [{string.Join(", ", supplied)}].",
-                nameof(parameters));
         }
     }
 

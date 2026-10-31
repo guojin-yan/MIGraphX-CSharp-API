@@ -24,7 +24,7 @@ Until every submitted run on a program has completed through its stream, graph e
 
 ## Device input
 
-Compile with `offloadCopy: false`, create a `MIGraphXHipDeviceInput` for every exact parameter name using `HipDeviceMemory`, then call `RunDeviceAsync`. The adapter checks concrete packed shapes, capacity, runtime client and device ordinal.
+Compile with `offloadCopy: false`, create a `MIGraphXHipDeviceInput` for every exact parameter name using `HipDeviceMemory`, then call `RunDeviceAsync`. The adapter checks concrete standard packed shapes, scalar type, capacity, runtime client and device ordinal. Static model inputs require exact lengths and strides. For dynamic model inputs with explicit managed ranges, supply a concrete shape whose rank and lengths match those ranges; optimal values do not restrict valid input lengths. These checks run before native submission, and the model shape is checked again under the program lock during submission.
 
 Device input is borrowed until completion. The adapter retains program, arguments, map, native output and device-memory leases while work is pending. Completion explicitly copies device outputs into independently owned host arguments.
 

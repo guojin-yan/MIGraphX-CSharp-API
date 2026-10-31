@@ -10,6 +10,143 @@ namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
 
 public sealed class M6HipAsyncTests
 {
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void StaticInputTypesLengthsAndExactStridesAreCheckedBeforeExecution(int mode)
+    {
+        var path = MIGraphXPath();
+        using var migraphx = new MIGraphXControls(path);
+        using var hip = new HipControls(HipPath());
+        migraphx.Reset();
+        hip.Reset();
+        using var runtime = new HipRuntime(HipPath());
+        using var stream = runtime.CreateStream();
+        using var program = CreateProgram(path, offloadCopy: mode != 2);
+        var invalid = new[]
+        {
+            (new MIGraphXShape(MIGraphXShapeDataType.Int32, new long[] { 1, 4 }), "Float32"),
+            (new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 4 }), "lengths"),
+            (new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 3 }), "lengths"),
+            (MIGraphXShape.CreateWithStrides(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }, new long[] { 0, 1 }), "strides"),
+        };
+        foreach (var (shape, diagnostic) in invalid)
+        {
+            var error = Assert.Throws<ArgumentException>(() => ExecuteInput(program, shape, mode, runtime, stream, migraphx, hip));
+            Assert.Equal(mode == 2 ? "inputs" : "parameters", error.ParamName);
+            Assert.Contains("input", error.Message, StringComparison.Ordinal);
+            Assert.Contains(diagnostic, error.Message, StringComparison.Ordinal);
+            Assert.Equal(0, migraphx.RunCount());
+            Assert.Equal(0, migraphx.AsyncRunCount());
+            Assert.True(program.IsCompiled);
+        }
+        using var cloneAfterRejection = program.Clone();
+        var actual = ExecuteInput(program, program.GetParameterShapes()["input"], mode, runtime, stream, migraphx, hip);
+        Assert.Equal(new[] { 1f, 2f, 3f, 4f }, actual);
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void DynamicInputsRespectInclusiveBoundsWithoutRestrictingToOptimals(int mode)
+    {
+        var path = MIGraphXPath();
+        using var migraphx = new MIGraphXControls(path);
+        using var hip = new HipControls(HipPath());
+        migraphx.Reset();
+        hip.Reset();
+        using var runtime = new HipRuntime(HipPath());
+        using var stream = runtime.CreateStream();
+        using var parse = new MIGraphXOnnxOptions(path);
+        parse.SetDynamicInputParameterShape("input", new[]
+        {
+            MIGraphXDynamicDimension.Range(2, 4, new long[] { 3 }), MIGraphXDynamicDimension.Fixed(4),
+        });
+        using var program = MIGraphXProgram.ParseOnnxBuffer(new byte[] { 1 }, parse);
+        using var target = new MIGraphXTarget(path);
+        using var compile = new MIGraphXCompileOptions(path, offloadCopy: mode != 2);
+        program.Compile(target, compile);
+        var invalid = new[]
+        {
+            (new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }), "dimension 0"),
+            (new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 5, 4 }), "dimension 0"),
+            (new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 2, 3 }), "dimension 1"),
+            (new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 8 }), "rank"),
+            (new MIGraphXShape(MIGraphXShapeDataType.Int32, new long[] { 2, 4 }), "Float32"),
+        };
+        foreach (var (shape, diagnostic) in invalid)
+        {
+            var error = Assert.Throws<ArgumentException>(() => ExecuteInput(program, shape, mode, runtime, stream, migraphx, hip));
+            Assert.Contains(diagnostic, error.Message, StringComparison.Ordinal);
+            Assert.Equal(0, migraphx.RunCount());
+            Assert.Equal(0, migraphx.AsyncRunCount());
+        }
+        foreach (var length in new long[] { 2, 4 })
+        {
+            var shape = new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { length, 4 });
+            var actual = ExecuteInput(program, shape, mode, runtime, stream, migraphx, hip);
+            Assert.Equal(Enumerable.Range(1, (int)shape.ElementCount).Select(value => (float)value), actual);
+        }
+        Assert.Equal(2, migraphx.RunCount());
+        Assert.Equal(mode == 0 ? 0 : 2, migraphx.AsyncRunCount());
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void HostExecutionRejectsBorrowedDeviceStorageBeforeNativeSubmission(bool asynchronous)
+    {
+        var path = MIGraphXPath();
+        using var migraphx = new MIGraphXControls(path);
+        using var hip = new HipControls(HipPath());
+        migraphx.Reset();
+        hip.Reset();
+        using var runtime = new HipRuntime(HipPath());
+        using var stream = runtime.CreateStream();
+        using var program = CreateProgram(path, offloadCopy: true);
+        using var parameters = new MIGraphXParameterMap(path);
+        parameters.AddExternal("input", program.GetParameterShapes()["input"], new IntPtr(1));
+        var error = Assert.Throws<ArgumentException>(() =>
+        {
+            if (asynchronous) { using var run = program.RunHostAsync(parameters, stream); }
+            else { using var outputs = program.Run(parameters); }
+        });
+        Assert.Contains("host-backed", error.Message, StringComparison.Ordinal);
+        Assert.Equal(0, migraphx.RunCount());
+        Assert.Equal(0, migraphx.AsyncRunCount());
+    }
+
+    private static float[] ExecuteInput(MIGraphXProgram program, MIGraphXShape shape, int mode, HipRuntime runtime, HipStream stream, MIGraphXControls migraphx, HipControls hip)
+    {
+        var values = Enumerable.Range(1, (int)shape.ElementCount).Select(value => (float)value).ToArray();
+        using var parameters = new MIGraphXParameterMap(MIGraphXPath());
+        using var argument = shape.DataType == MIGraphXShapeDataType.Int32
+            ? MIGraphXArgument.Create(MIGraphXPath(), shape, new int[values.Length])
+            : MIGraphXArgument.Create(MIGraphXPath(), shape, values);
+        parameters.Add("input", argument);
+        if (mode == 0)
+        {
+            using var outputs = program.Run(parameters);
+            return outputs[0].ToArray<float>();
+        }
+        using var memory = mode == 2 ? runtime.Allocate((ulong)shape.ByteCount) : null;
+        if (memory is not null)
+        {
+            var bytes = new byte[shape.ByteCount];
+            Buffer.BlockCopy(values, 0, bytes, 0, bytes.Length);
+            memory.CopyFrom(bytes);
+        }
+        using var run = mode == 1
+            ? program.RunHostAsync(parameters, stream)
+            : program.RunDeviceAsync(new[] { new MIGraphXHipDeviceInput("input", shape, memory!) }, stream);
+        migraphx.CompleteAll();
+        hip.SetQueryStatus(0);
+        Assert.True(run.TryComplete());
+        return run.Outputs[0].ToArray<float>();
+    }
+
     [Fact]
     public void HostAsyncIsQueuedAndEarlyDisposeKeepsEveryNativeOwnerAlive()
     {
@@ -508,6 +645,7 @@ public sealed class M6HipAsyncTests
         private readonly GetIntDelegate m2Live;
         private readonly GetIntDelegate programLive;
         private readonly GetIntDelegate asyncRuns;
+        private readonly GetIntDelegate runs;
         private readonly GetIntDelegate asyncCompletes;
         private readonly GetPointerDelegate lastStream;
         private readonly GetPointerDelegate lastInput;
@@ -521,6 +659,7 @@ public sealed class M6HipAsyncTests
             completeStream = Get<CompleteStreamDelegate>("fake_complete_stream");
             m2Live = Get<GetIntDelegate>("fake_m2_live_count"); programLive = Get<GetIntDelegate>("fake_program_live_count");
             asyncRuns = Get<GetIntDelegate>("fake_async_run_count"); asyncCompletes = Get<GetIntDelegate>("fake_async_complete_count");
+            runs = Get<GetIntDelegate>("fake_run_count");
             lastStream = Get<GetPointerDelegate>("fake_last_async_stream"); lastInput = Get<GetPointerDelegate>("fake_last_async_input");
             lastName = Get<GetPointerDelegate>("fake_last_async_name"); setFailure = Get<SetStringIntDelegate>("fake_set_failure");
             setNullOutput = Get<SetStringDelegate>("fake_set_null_output"); setShapeMode = Get<SetIntDelegate>("fake_set_shape_mode");
@@ -529,6 +668,7 @@ public sealed class M6HipAsyncTests
         internal void CompleteStream(IntPtr stream) => completeStream(stream);
         internal int M2LiveCount() => m2Live(); internal int ProgramLiveCount() => programLive();
         internal int AsyncRunCount() => asyncRuns(); internal int AsyncCompleteCount() => asyncCompletes();
+        internal int RunCount() => runs();
         internal IntPtr LastAsyncStream() => lastStream(); internal IntPtr LastAsyncInput() => lastInput();
         internal string LastAsyncName() => Marshal.PtrToStringUTF8(lastName())!;
         internal void SetFailure(string name, int status) => setFailure(name, status);

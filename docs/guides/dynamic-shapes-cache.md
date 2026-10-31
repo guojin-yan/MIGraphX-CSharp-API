@@ -10,6 +10,8 @@ using var program = MIGraphXProgram.ParseOnnxFile(modelPath, options);
 
 `SetDynamicInputParameterShape` accepts `MIGraphXDynamicDimension` ranges. Dynamic shapes expose `Rank` and `DynamicDimensions`; `Lengths`, `Strides`, `ElementCount` and `ByteCount` throw because there is no single concrete value. Use a concrete static shape before creating a typed host argument. Dedicated real-runtime dynamic-shape behavior still requires application validation.
 
+Synchronous host, asynchronous host and HIP device-input execution validate concrete input types, rank and inclusive dimension bounds before native submission. Any length inside a range is accepted by this check, even when it is absent from `Optimals`. For example, a first-axis range `[2, 4]` with optimal value `3` accepts lengths `2`, `3` and `4`. This validation uses the explicit managed overrides retained when parsing; it does not reconstruct missing ranges from a loaded native program.
+
 ## Save and load
 
 ```csharp

@@ -29,6 +29,8 @@ float[] copied = outputs[0].ToArray<float>();
 
 Use your model's actual parameter names and shapes. Add one argument for every parameter; the parameter map must match the complete native name set. Outputs preserve native ordering.
 
+Execution checks each input's scalar type and concrete shape before calling native run. Static inputs must match both lengths and exact strides, including strides on length-one axes. Dynamic inputs must have the declared rank, with every length inside its inclusive range; optimal values are tuning hints and do not restrict accepted lengths. A mismatch throws `ArgumentException` identifying the parameter. Host execution also requires owned host-backed arguments.
+
 Synchronous `Run` requires `offloadCopy: true` because its inputs and detached outputs are host buffers. It rejects a program compiled with `offloadCopy: false` before native execution; use the HIP device-input adapter for that mode. Finish any pending asynchronous runs on the same program before calling `Run`.
 
 ## Copies and lifetimes

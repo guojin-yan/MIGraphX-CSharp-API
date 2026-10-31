@@ -81,7 +81,7 @@ public static class MIGraphXHipExecution
             if (!required.TryGetValue(input.Name, out var expected)) throw new ArgumentException($"Unknown model input '{input.Name}'.", nameof(inputs));
             if (input.Shape.IsDynamic || !input.Shape.IsStandard || !input.Shape.IsPacked)
                 throw new ArgumentException($"Device input '{input.Name}' requires a concrete standard packed shape.", nameof(inputs));
-            if (!SameShape(expected, input.Shape)) throw new ArgumentException($"Device input '{input.Name}' shape does not match the compiled model.", nameof(inputs));
+            ParameterShapeValidation.RequireMatch(expected, input.Shape, input.Name, nameof(inputs));
             if (input.Shape.ByteCount < 0 || (ulong)input.Shape.ByteCount > input.Memory.ByteLength)
                 throw new ArgumentException($"Device input '{input.Name}' exceeds its memory capacity.", nameof(inputs));
             if (!ReferenceEquals(input.Memory.NativeApi, stream.NativeApi))
@@ -90,9 +90,6 @@ public static class MIGraphXHipExecution
                 throw new ArgumentException($"Device input '{input.Name}' and stream belong to different devices.", nameof(stream));
         }
     }
-
-    private static bool SameShape(MIGraphXShape left, MIGraphXShape right)
-        => !left.IsDynamic && left.DataType == right.DataType && left.Lengths.SequenceEqual(right.Lengths);
 
     private static byte[] CopyDeviceToHost(IHipNativeApi nativeApi, IntPtr pointer, int count)
     {

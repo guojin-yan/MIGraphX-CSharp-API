@@ -135,12 +135,20 @@ public sealed class MIGraphXParameterMap : IDisposable
         }
     }
 
-    internal string[] NamesUnderLock
+    internal void ValidateInputsUnderLock(IReadOnlyDictionary<string, MIGraphXShape> required, bool requireHostBacked)
     {
-        get
+        _ = owner.HandleUnderLock;
+        if (required.Count != entries.Count || entries.Any(entry => !required.ContainsKey(entry.Key)))
         {
-            _ = owner.HandleUnderLock;
-            return entries.Select(entry => entry.Key).ToArray();
+            throw new ArgumentException(
+                $"Parameter names must exactly match the native set. Required: [{string.Join(", ", required.Keys)}]; supplied: [{string.Join(", ", entries.Select(entry => entry.Key))}].",
+                "parameters");
+        }
+        foreach (var entry in entries)
+        {
+            if (requireHostBacked && !entry.Value.IsHostBacked)
+                throw new ArgumentException($"Parameter '{entry.Key}' requires owned host-backed storage for host execution.", "parameters");
+            ParameterShapeValidation.RequireMatch(required[entry.Key], entry.Value.Shape, entry.Key, "parameters");
         }
     }
 
