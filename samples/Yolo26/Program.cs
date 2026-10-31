@@ -11,7 +11,7 @@ try
     var model = Path.GetFullPath(options.Required("model"));
     var output = Path.GetFullPath(options.Required("output"));
     Directory.CreateDirectory(output);
-    using var image = Image.Load<Rgb24>(options.Required("image"));
+    using var image = Images.Load(options.Required("image"));
     var defaultSize = task == "classify" ? 224 : task == "obb" ? 1024 : 640;
     var size = options.Integer("size", defaultSize);
     var prepared = Images.PrepareYolo(image, size, size, task == "classify");

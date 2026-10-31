@@ -21,4 +21,6 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 两种示例都输出 JSON、PNG 几何预览和独立 SVG 标签图；OCR 另输出文本与裁剪，分割另输出每实例 mask。所有输出放在源码仓库外。增加 `--dump-tensors true` 可保留实际 float32 输入/输出，方便把完全相同的预处理结果交给其他引擎复核。
 
+输入图片会先按 EXIF 标记统一方向。ROCm 7.2.1 / MIGraphX 2.15.0 的 gfx1100 上，所用姿态模型需要在启动前设置 `MIGRAPHX_DISABLE_REDUCE_FUSION=1`，详见 YOLO26 示例 README 的版本说明。
+
 推理耗时包含同步执行和主机输出复制，解析、编译单列；不能当作纯 GPU 时间或不同硬件上的性能承诺。模型相关性、数值误差和后处理应以实际应用数据校验；当前支持范围仍以[平台说明](../compatibility/platforms.md)为准。更完整的参数、预处理和输出说明位于各示例目录的 README。

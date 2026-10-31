@@ -18,6 +18,8 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 识别 BGR `/255` 后按 mean/std=`0.5` 归一化，保持比例 resize、右侧在归一化后补 0。字典前加 CTC blank、后加空格，并严格核对输出类别数。保留被 blank 分隔的重复字符，仅去除相邻同一类重复。`--text-threshold` 默认 0.5。
 
+读图时先按 EXIF 标记统一像素方向，再检测和裁剪，输出坐标对应统一方向后的图片。这不会判断图片内容是否倒置；没有 EXIF 标记的倒置文档仍需使用者先校正方向。
+
 输出包括 `text.txt`、`result.json`、`preview.png`、带中文文字的独立 `annotated.svg` 和每个 `crop-xxx.png`。`--dump-tensors true` 保存 detector 与逐行 recognizer 实际输入/输出，便于独立 CPU reference 检查。输出目录请放在源码仓库外。
 
 这是图片文本检测/识别示例，不包含页面方向分类、文档去畸变、表格结构或版面分析；竖长文本裁剪会旋转 90°。识别到的文字仍需按业务规则校验，不把单张演示等同于数据集准确率。模型及字典由使用者提供；模型、ImageSharp 和本仓库各自许可独立适用。

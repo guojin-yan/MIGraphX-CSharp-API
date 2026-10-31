@@ -9,7 +9,7 @@ try
     var options = new Arguments(args);
     var native = options.Required("native"); var output = Path.GetFullPath(options.Required("output"));
     Directory.CreateDirectory(output);
-    using var image = Image.Load<Rgb24>(options.Required("image"));
+    using var image = Images.Load(options.Required("image"));
     var dictionary = Recognition.LoadDictionary(options.Required("dictionary"));
     var recWidth = options.Integer("rec-width", 320);
     using var recognizer = new InferenceSession(native, options.Required("rec-model"), "x", recWidth, 48);

@@ -15,6 +15,13 @@ public sealed record Letterbox(float[] Tensor, int Width, int Height, double Sca
 
 public static class Images
 {
+    public static Image<Rgb24> Load(string path)
+    {
+        var image = Image.Load<Rgb24>(path);
+        image.Mutate(context => context.AutoOrient());
+        return image;
+    }
+
     public static Letterbox PrepareYolo(Image<Rgb24> source, int width, int height, bool classification)
     {
         if (classification)

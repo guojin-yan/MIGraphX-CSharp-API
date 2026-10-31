@@ -3,12 +3,35 @@ using MIGraphXSharp.Samples.Vision;
 using MIGraphXSharp.Samples.Yolo26;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Metadata.Profiles.Exif;
 using Xunit;
 
 namespace MIGraphXSharp.Samples.Tests;
 
 public sealed class DecoderTests
 {
+    [Fact]
+    public void LoadingNormalizesExifOrientationBeforeDetectionAndCropping()
+    {
+        var path = Path.Combine(Path.GetTempPath(), $"vision-exif-{Guid.NewGuid():N}.png");
+        try
+        {
+            using (var source = new Image<Rgb24>(2, 1))
+            {
+                source[0, 0] = new Rgb24(255, 0, 0);
+                source[1, 0] = new Rgb24(0, 0, 255);
+                source.Metadata.ExifProfile = new ExifProfile();
+                source.Metadata.ExifProfile.SetValue(ExifTag.Orientation, (ushort)3);
+                source.SaveAsPng(path);
+            }
+            using var loaded = Images.Load(path);
+            Assert.Equal(new Rgb24(0, 0, 255), loaded[0, 0]);
+            using var crop = Images.Rectify(loaded, [new(0,0),new(1,0),new(1,0),new(0,0)]);
+            Assert.Equal(loaded[0, 0], crop[0, 0]);
+        }
+        finally { File.Delete(path); }
+    }
+
     [Fact]
     public void CtcRemovesRepeatsButKeepsCharactersSeparatedByBlank()
     {
