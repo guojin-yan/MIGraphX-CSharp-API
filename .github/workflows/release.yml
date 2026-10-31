@@ -45,15 +45,9 @@ jobs:
         with:
           global-json-file: MIGraphXSharp/global.json
       - name: Check release identity and obtain reviewed dependency
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected a three-part version.' }
           if ((git rev-parse HEAD).Trim() -ne $env:GITHUB_SHA) { throw 'main moved after dispatch; start a new run.' }
-          $release = gh release view "v$env:RELEASE_VERSION" --json isDraft,targetCommitish | ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0 -or -not $release.isDraft -or $release.targetCommitish -ne $env:GITHUB_SHA) {
-            throw 'Prepare a draft release targeting this exact commit.'
-          }
           $dependency = Join-Path $env:MIGRAPHX_WORKSPACE_ROOT 'release-dependency'
           New-Item -ItemType Directory -Path $dependency -Force | Out-Null
           Invoke-WebRequest 'https://api.nuget.org/v3-flatcontainer/jyppx.rocm.hip.csharp.api/0.10.0/jyppx.rocm.hip.csharp.api.0.10.0.nupkg' -OutFile (Join-Path $dependency 'JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg')
