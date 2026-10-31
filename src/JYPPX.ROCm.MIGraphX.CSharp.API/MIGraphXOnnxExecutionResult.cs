@@ -3,8 +3,8 @@ using System.Collections.Generic;
 namespace JYPPX.ROCm.MIGraphXSharp;
 
 /// <summary>
-/// 表示受限 M2 单输入、单输出同步 ONNX 执行的托管快照。
-/// Represents a managed snapshot from the restricted M2 single-input, single-output synchronous ONNX execution.
+/// 表示单输入、单输出同步 ONNX 执行的托管快照。
+/// Represents a managed snapshot from the single-input, single-output synchronous ONNX execution.
 /// </summary>
 public sealed class MIGraphXOnnxExecutionResult
 {

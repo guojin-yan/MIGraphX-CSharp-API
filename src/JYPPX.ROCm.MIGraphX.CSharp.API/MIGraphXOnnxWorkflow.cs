@@ -8,8 +8,8 @@ using JYPPX.ROCm.MIGraphXSharp.Loading;
 namespace JYPPX.ROCm.MIGraphXSharp;
 
 /// <summary>
-/// 提供 M2 的单输入、单输出、静态 float32 ONNX 同步执行路径。
-/// Provides the M2 single-input, single-output, static float32 ONNX synchronous execution path.
+/// 提供单输入、单输出、静态 float32 ONNX 同步执行路径。
+/// Provides the single-input, single-output, static float32 ONNX synchronous execution path.
 /// </summary>
 /// <remarks>
 /// 输入缓冲仅在同步调用期间固定；输出在原生集合释放前复制。动态 shape、多输入、多输出、非 float32、异步和设备缓冲不受支持。
@@ -29,24 +29,24 @@ public static class MIGraphXOnnxWorkflow
     /// </remarks>
     /// <exception cref="ArgumentNullException"><paramref name="nativeLibraryPath"/> 为 null。 <paramref name="nativeLibraryPath"/> is null.</exception>
     /// <exception cref="ArgumentException">路径不是绝对文件路径。 The path is not an absolute file path.</exception>
-    /// <exception cref="MIGraphXNativeLoadException">原生库、ONNX frontend 或 M10 registry 导出无法加载。 The native library, ONNX frontend, or M10 registry exports cannot be loaded.</exception>
+    /// <exception cref="MIGraphXNativeLoadException">原生库、ONNX frontend 或 ONNX registry 导出无法加载。 The native library, ONNX frontend, or ONNX registry exports cannot be loaded.</exception>
     /// <exception cref="MIGraphXException">原生 size/name 调用失败、成功时返回 null 名称或空名称。 A native size/name call fails or succeeds with a null or empty name.</exception>
     /// <exception cref="OverflowException">原生数量超过托管集合上限。 The native count exceeds the managed collection limit.</exception>
     /// <exception cref="InvalidDataException">原生名称不是严格 UTF-8。 A native name is not strict UTF-8.</exception>
     /// <exception cref="InvalidOperationException">创建快照期间 registry 数量发生变化。 The registry count changes while the snapshot is copied.</exception>
     public static IReadOnlyList<string> GetRegisteredOperators(string nativeLibraryPath)
     {
-        _ = NativeRuntime.LoadM10Registry(nativeLibraryPath);
-        var count = NativeM10Methods.GetOnnxOperatorCount();
+        _ = NativeRuntime.LoadRegistry(nativeLibraryPath);
+        var count = NativeComparisonMethods.GetOnnxOperatorCount();
         var result = new string[count];
         for (var index = 0; index < count; index++)
         {
-            result[index] = NativeM10Methods.GetOnnxOperatorName(index);
+            result[index] = NativeComparisonMethods.GetOnnxOperatorName(index);
         }
-        var stableCount = NativeM10Methods.GetOnnxOperatorCount();
+        var stableCount = NativeComparisonMethods.GetOnnxOperatorCount();
         if (stableCount != count)
         {
-            throw new InvalidOperationException($"{NativeM10Methods.RegistrySizeEntryPoint} changed from {count} to {stableCount} while creating the operator registry snapshot.");
+            throw new InvalidOperationException($"{NativeComparisonMethods.RegistrySizeEntryPoint} changed from {count} to {stableCount} while creating the operator registry snapshot.");
         }
         return Array.AsReadOnly(result);
     }
@@ -107,7 +107,7 @@ public static class MIGraphXOnnxWorkflow
             var parameterCount = ReadStableSize(
                 () => GetSize(parameterShapes),
                 "parameter count");
-            if (parameterCount != 1) { throw new NotSupportedException($"M2 supports exactly one model input; the model has {parameterCount}."); }
+            if (parameterCount != 1) { throw new NotSupportedException($"The ONNX workflow supports exactly one model input; the model has {parameterCount}."); }
             var inputName = GetSingleParameterName(parameterShapes);
             using (var utf8Name = new StrictUtf8String(inputName, nameof(inputName)))
             {
@@ -129,7 +129,7 @@ public static class MIGraphXOnnxWorkflow
                     var outputCount = ReadStableSize(
                         () => GetSize(outputShapes),
                         "output shape count");
-                    if (outputCount != 1) { throw new NotSupportedException($"M2 supports exactly one model output; the model has {outputCount}."); }
+                    if (outputCount != 1) { throw new NotSupportedException($"The ONNX workflow supports exactly one model output; the model has {outputCount}."); }
                     NativeStatus.ThrowIfFailed(NativeMethods.ShapesGet(out var outputShape, outputShapes.DangerousGetHandle(), UIntPtr.Zero), "migraphx_shapes_get");
                     outputShape = NativeBorrowedOutput.RequireHandle(outputShape, "migraphx_shapes_get");
                     var outputSnapshot = NativeShapeSnapshot.Create(outputShape, "output");
@@ -148,7 +148,7 @@ public static class MIGraphXOnnxWorkflow
                                 var runOutputCount = ReadStableSize(
                                     () => GetSize(outputs),
                                     "run output count");
-                                if (runOutputCount != 1) { throw new NotSupportedException($"M2 supports exactly one run output; MIGraphX returned {runOutputCount}."); }
+                                if (runOutputCount != 1) { throw new NotSupportedException($"The ONNX workflow supports exactly one run output; MIGraphX returned {runOutputCount}."); }
                                 NativeStatus.ThrowIfFailed(NativeMethods.ArgumentsGet(out var outputArgument, outputs.DangerousGetHandle(), UIntPtr.Zero), "migraphx_arguments_get");
                                 outputArgument = NativeBorrowedOutput.RequireHandle(outputArgument, "migraphx_arguments_get");
                                 NativeStatus.ThrowIfFailed(NativeMethods.ArgumentShape(out var runShape, outputArgument), "migraphx_argument_shape");

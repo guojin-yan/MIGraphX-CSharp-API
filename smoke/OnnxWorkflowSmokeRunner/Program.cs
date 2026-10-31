@@ -8,7 +8,7 @@ if (args.Length == 2 && args[0] == "--expect-frontend-missing")
     try
     {
         MIGraphXOnnxWorkflow.RunBuffer(args[1], new byte[] { 0x08, 0x08 }, new[] { 1f, 2f, 3f, 4f });
-        Console.Error.WriteLine("The M1-only native library unexpectedly satisfied the M2 workflow.");
+        Console.Error.WriteLine("The environment-only native library unexpectedly satisfied the ONNX workflow.");
         return 1;
     }
     catch (MIGraphXNativeLoadException exception) when (exception.Diagnostics.Any(item => item.Kind == MIGraphXNativeDiagnosticKind.OnnxFrontendMissing))
@@ -24,8 +24,8 @@ if (args.Length == 3 && args[0] == "--runtime-options-candidate")
     {
         var nativePath = args[1];
         var modelPath = Path.GetFullPath(args[2]);
-        var m9Input = new[] { 0.25f, -1f, 2f, 9f };
-        var m9Model = File.ReadAllBytes(modelPath);
+        var optionInput = new[] { 0.25f, -1f, 2f, 9f };
+        var optionModel = File.ReadAllBytes(modelPath);
         using var options = new MIGraphXOnnxOptions(nativePath);
         options.SetDefaultLoopIterations(10);
         options.SetLimitLoopIterations(ushort.MaxValue);
@@ -35,23 +35,23 @@ if (args.Length == 3 && args[0] == "--runtime-options-candidate")
         using var compileOptions = new MIGraphXCompileOptions(nativePath, offloadCopy: true, fastMath: true, exhaustiveTune: false);
         program.Compile(target, compileOptions);
         var parameter = program.GetParameterShapes().Single();
-        using var argument = MIGraphXArgument.Create(nativePath, parameter.Value, m9Input);
+        using var argument = MIGraphXArgument.Create(nativePath, parameter.Value, optionInput);
         using var parameters = new MIGraphXParameterMap(nativePath);
         parameters.Add(parameter.Key, argument);
         using var outputs = program.Run(parameters);
         var output = outputs.Single().ToArray<float>();
-        var m9ReferenceMatched = output.SequenceEqual(m9Input);
-        if (!m9ReferenceMatched) { throw new InvalidOperationException("M9 option-path Identity output did not match the input."); }
+        var optionReferenceMatched = output.SequenceEqual(optionInput);
+        if (!optionReferenceMatched) { throw new InvalidOperationException("ONNX option-path Identity output did not match the input."); }
 
         Console.WriteLine(JsonSerializer.Serialize(new
         {
             state = "executed",
-            modelSha256 = Convert.ToHexString(SHA256.HashData(m9Model)).ToLowerInvariant(),
+            modelSha256 = Convert.ToHexString(SHA256.HashData(optionModel)).ToLowerInvariant(),
             inputName = parameter.Key,
             inputDimensions = parameter.Value.Lengths,
             outputDimensions = outputs.Single().Shape.Lengths,
             output,
-            referenceMatched = m9ReferenceMatched,
+            referenceMatched = optionReferenceMatched,
             options = new
             {
                 defaultLoopIterations = 10,

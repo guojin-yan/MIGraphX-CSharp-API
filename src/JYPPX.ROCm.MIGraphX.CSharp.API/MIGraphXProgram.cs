@@ -227,10 +227,10 @@ public sealed class MIGraphXProgram : IDisposable
     {
         if (other is null) throw new ArgumentNullException(nameof(other));
         owner.Runtime.RequireSame(other.owner.Runtime, nameof(other));
-        owner.Runtime.RequireM10Equality();
+        owner.Runtime.RequireComparison();
         return NativeResourceLock.With(
             new[] { NativeResourceLock.Target(owner.Id, owner.Sync), NativeResourceLock.Target(other.owner.Id, other.owner.Sync) },
-            () => NativeM10Methods.ProgramContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock));
+            () => NativeComparisonMethods.ProgramContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock));
     }
 
     /// <summary>将 program 量化为 FP16；传入名称集合时仅处理指定 operator。 Quantizes the program to FP16, optionally limiting processing to named operators.</summary>
@@ -467,14 +467,14 @@ public sealed class MIGraphXProgram : IDisposable
     {
         if (other is null) { throw new ArgumentNullException(nameof(other)); }
         owner.Runtime.RequireSame(other.owner.Runtime, nameof(other));
-        owner.Runtime.RequireM10Equality();
+        owner.Runtime.RequireComparison();
         return NativeResourceLock.With(
             new[]
             {
                 NativeResourceLock.Target(owner.Id, owner.Sync),
                 NativeResourceLock.Target(other.owner.Id, other.owner.Sync),
             },
-            () => NativeM10Methods.ProgramContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock));
+            () => NativeComparisonMethods.ProgramContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock));
     }
 
     /// <summary>使用 native assign-to 创建独立 program 副本。 Creates an independent program clone through native assign-to.</summary>
@@ -524,7 +524,7 @@ public sealed class MIGraphXProgram : IDisposable
         if (parameters is null) throw new ArgumentNullException(nameof(parameters));
         if (stream == IntPtr.Zero) throw new ArgumentException("The HIP stream pointer must not be null.", nameof(stream));
         owner.Runtime.RequireSame(parameters.Owner.Runtime, nameof(parameters));
-        owner.Runtime.RequireM6();
+        owner.Runtime.RequireAsync();
 
         return NativeResourceLock.With(
             new[]

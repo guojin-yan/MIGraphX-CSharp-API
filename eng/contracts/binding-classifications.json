@@ -1,0 +1,24 @@
+{
+  "$schema": "./schemas/binding-classifications.schema.json",
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "1.0.0",
+  "validationLevel": "statically-verified",
+  "functionProjection": {
+    "sourceManifest": "eng/contracts/binding-overrides.json",
+    "expectedCount": 41,
+    "reason": "Preserve the reviewed managed projection, parameter direction, UTF-8, Boolean and ownership semantics when generating declarations.",
+    "risk": "Changing these projections can alter marshalling and resource lifetime behavior."
+  },
+  "callbackOverrides": {
+    "reason": "Callback signatures are generated, but retention, exception containment, object state, and output-buffer rules require explicit policy rather than inferred marshalling.",
+    "risk": "An unrooted delegate or exception crossing the native boundary can corrupt process state.",
+    "items": [
+      { "cName": "migraphx_experimental_custom_op_compute", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_compute_shape", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_output_alias", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_runs_on_offload_target", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_copy", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." },
+      { "cName": "migraphx_experimental_custom_op_delete", "retention": "Native custom-op registration may retain the callback until the owning custom op is deleted." }
+    ]
+  }
+}

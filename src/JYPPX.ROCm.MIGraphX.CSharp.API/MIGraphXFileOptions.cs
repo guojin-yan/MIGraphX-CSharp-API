@@ -19,7 +19,7 @@ public sealed class MIGraphXFileOptions : IDisposable
         {
             throw new NotSupportedException("Only the tested MIGraphX file format 'msgpack' is supported.");
         }
-        var runtime = NativeRuntime.LoadM5(nativeLibraryPath);
+        var runtime = NativeRuntime.LoadDynamicShapes(nativeLibraryPath);
         owner = new NativeResourceOwner<NativeFileOptionsHandle>(runtime, NativeFileOptionsHandle.Create(fileFormat));
         FileFormat = fileFormat;
     }

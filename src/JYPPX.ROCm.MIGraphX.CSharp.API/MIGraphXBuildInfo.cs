@@ -17,8 +17,8 @@ public static class MIGraphXBuildInfo
     public const string PackageVersion = MIGraphXGeneratedVersion.PackageVersion;
 
     /// <summary>
-    /// 获取一个值，指示当前程序集是否包含固定 M1 Direct P/Invoke 声明；这不表示官方 MIGraphX 或 GPU runtime 已执行。
-    /// Gets a value indicating whether this assembly contains frozen M1 Direct P/Invoke declarations; this does not indicate official MIGraphX or GPU runtime execution.
+    /// 获取一个值，指示当前程序集是否包含 Direct P/Invoke 声明；这不表示官方 MIGraphX 或 GPU runtime 已执行。
+    /// Gets a value indicating whether this assembly contains Direct P/Invoke declarations; this does not indicate official MIGraphX or GPU runtime execution.
     /// </summary>
     public const bool NativeBindingsAvailable = true;
 }

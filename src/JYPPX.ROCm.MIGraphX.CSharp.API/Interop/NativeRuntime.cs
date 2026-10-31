@@ -23,9 +23,9 @@ internal sealed class NativeRuntime
         return new NativeRuntime(System.IO.Path.GetFullPath(result.LoadedPath!));
     }
 
-    internal static NativeRuntime LoadM5(string nativeLibraryPath)
+    internal static NativeRuntime LoadDynamicShapes(string nativeLibraryPath)
     {
-        var result = NativeLibraryLoader.LoadExplicit(nativeLibraryPath, requireOnnxWorkflow: true, requireManagedObjects: true, requireM5: true);
+        var result = NativeLibraryLoader.LoadExplicit(nativeLibraryPath, requireOnnxWorkflow: true, requireManagedObjects: true, requireDynamicShapes: true);
         if (!result.Success)
         {
             throw new MIGraphXNativeLoadException(result.Diagnostics);
@@ -33,9 +33,9 @@ internal sealed class NativeRuntime
         return new NativeRuntime(System.IO.Path.GetFullPath(result.LoadedPath!));
     }
 
-    internal static NativeRuntime LoadM10Registry(string nativeLibraryPath)
+    internal static NativeRuntime LoadRegistry(string nativeLibraryPath)
     {
-        var result = NativeLibraryLoader.LoadExplicit(nativeLibraryPath, requireOnnxWorkflow: true, requireM10Registry: true);
+        var result = NativeLibraryLoader.LoadExplicit(nativeLibraryPath, requireOnnxWorkflow: true, requireRegistry: true);
         if (!result.Success)
         {
             throw new MIGraphXNativeLoadException(result.Diagnostics);
@@ -51,15 +51,15 @@ internal sealed class NativeRuntime
         }
     }
 
-    internal void RequireM6()
+    internal void RequireAsync()
     {
-        var result = NativeLibraryLoader.LoadExplicit(Path, requireOnnxWorkflow: true, requireManagedObjects: true, requireM6: true);
+        var result = NativeLibraryLoader.LoadExplicit(Path, requireOnnxWorkflow: true, requireManagedObjects: true, requireAsync: true);
         if (!result.Success) throw new MIGraphXNativeLoadException(result.Diagnostics);
     }
 
-    internal void RequireM10Equality()
+    internal void RequireComparison()
     {
-        var result = NativeLibraryLoader.LoadExplicit(Path, requireOnnxWorkflow: true, requireManagedObjects: true, requireM10Equality: true);
+        var result = NativeLibraryLoader.LoadExplicit(Path, requireOnnxWorkflow: true, requireManagedObjects: true, requireComparison: true);
         if (!result.Success) throw new MIGraphXNativeLoadException(result.Diagnostics);
     }
 

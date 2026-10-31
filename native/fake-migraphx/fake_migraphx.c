@@ -293,7 +293,7 @@ static int skip_output_for(const char* entry)
     return 0;
 }
 
-#ifndef FAKE_DISABLE_M10
+#ifndef FAKE_DISABLE_COMPARISON
 static void wait_for_equality_release(void)
 {
     ATOMIC_INCREMENT(equality_enter_count);
@@ -925,7 +925,7 @@ EXPORT migraphx_status migraphx_argument_buffer(char** out, const migraphx_argum
     return (migraphx_status)take_status_for("migraphx_argument_buffer");
 }
 
-#ifndef FAKE_DISABLE_M10
+#ifndef FAKE_DISABLE_COMPARISON
 static int fake_dynamic_dimension_equal_value(const fake_dynamic_dimension* left, const fake_dynamic_dimension* right)
 {
     size_t index;
@@ -1288,7 +1288,7 @@ EXPORT migraphx_status migraphx_load(migraphx_program_t* out, const char* name, 
     *out = (migraphx_program_t)malloc(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error; memset(*out, 0, sizeof(**out)); (*out)->value = ATOMIC_INCREMENT(next_value); (*out)->parsed = 1; initialize_program_graph(*out); ATOMIC_INCREMENT(program_live_count); return (migraphx_status)take_status_for("migraphx_load");
 }
 
-#ifndef FAKE_DISABLE_M10
+#ifndef FAKE_DISABLE_COMPARISON
 EXPORT migraphx_status migraphx_get_onnx_operators_size(size_t* out)
 {
     int status;
@@ -1329,4 +1329,4 @@ EXPORT migraphx_status migraphx_get_onnx_operator_name_at_index(char** out, size
 }
 #endif
 
-#include "fake_m12.inc"
+#include "advanced_api.inc"

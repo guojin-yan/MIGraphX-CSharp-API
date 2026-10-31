@@ -32,7 +32,7 @@ public sealed class MIGraphXShape
         {
             if (copiedLengths[index] <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(lengths), "Static M4 shape lengths must be positive.");
+                throw new ArgumentOutOfRangeException(nameof(lengths), "Static shape lengths must be positive.");
             }
             MIGraphXDynamicDimension.ValidateSizeT(copiedLengths[index], nameof(lengths));
         }
@@ -261,7 +261,7 @@ public sealed class MIGraphXShape
         var dataType = ShapeDataTypeMap.FromNative(snapshot.Type);
         if (snapshot.Dimensions.Any(length => length <= 0))
         {
-            throw new NotSupportedException("M4 static shape lengths must be positive.");
+            throw new NotSupportedException("Static shape lengths must be positive.");
         }
         if (snapshot.Dimensions.Length != snapshot.Strides.Length)
         {

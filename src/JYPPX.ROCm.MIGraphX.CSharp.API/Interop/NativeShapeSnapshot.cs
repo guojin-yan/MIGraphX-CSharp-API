@@ -65,9 +65,9 @@ internal sealed class NativeShapeSnapshot
 
     internal void RequireFloat32StaticStandard()
     {
-        if (Type != NativeMIGraphXShapeDataType.Float) { throw new NotSupportedException($"M2 supports only float32 tensors; native type was {Type}."); }
-        if (Dynamic) { throw new NotSupportedException("M2 does not support dynamic tensor shapes."); }
-        if (!Standard) { throw new NotSupportedException("M2 requires standard contiguous tensor shapes."); }
+        if (Type != NativeMIGraphXShapeDataType.Float) { throw new NotSupportedException($"The ONNX workflow requires float32 tensors; native type was {Type}."); }
+        if (Dynamic) { throw new NotSupportedException("The ONNX workflow requires static tensor shapes."); }
+        if (!Standard) { throw new NotSupportedException("The ONNX workflow requires standard contiguous tensor shapes."); }
         if (Bytes != checked(Elements * sizeof(float))) { throw new InvalidOperationException("Native shape byte count does not match float32 element count."); }
     }
 

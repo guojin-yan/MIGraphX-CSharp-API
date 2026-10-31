@@ -29,7 +29,7 @@
 | `test-release-evidence.ps1` | 对有效材料的独立副本执行离线回归，拒绝包身份混用和材料内容矛盾 |
 | `verify-repository-layout.ps1` | 拒绝产物、开发记录和按开发阶段命名的工程脚本进入仓库 |
 
-`common.ps1`、`*.psm1`、`workspace.sh` 和 `include/` 为脚本提供公共函数或编译输入。测试模型生成器位于 [tests/fixtures](../tests/fixtures/README.md)。发布检查不会自动发布包、创建标签或部署站点。
+`common.ps1`、`*.psm1`、`workspace.sh` 和 `include/` 为脚本提供公共函数或编译输入。[contracts/](contracts/README.md) 只保留当前工具使用的绑定、API 与依赖基线。测试模型生成器位于 [tests/fixtures](../tests/fixtures/README.md)。发布检查不会自动发布包、创建标签或部署站点。
 
 候选包准备、材料保存和离线复核示例见 [发布候选包](RELEASING.md)。
 

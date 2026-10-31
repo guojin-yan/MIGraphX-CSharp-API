@@ -23,7 +23,7 @@ public sealed class MIGraphXEnvironmentReport
     /// <summary>获取已加载路径；未加载时为 <see langword="null"/>。 Gets the loaded path, or <see langword="null"/> when no library loaded.</summary>
     public string? LoadedPath { get; }
 
-    /// <summary>获取固定 M1 导出是否完整。 Gets whether the frozen M1 exports were complete.</summary>
+    /// <summary>获取基础环境所需导出是否完整。 Gets whether the required environment exports were complete.</summary>
     public bool ExportsComplete { get; }
 
     /// <summary>获取 target/program create/assign/destroy 是否实际调用。 Gets whether target/program create/assign/destroy were actually called.</summary>

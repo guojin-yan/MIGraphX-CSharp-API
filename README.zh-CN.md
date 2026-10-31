@@ -194,7 +194,7 @@ Release 附带离线 HTML 文档，解压文档包后打开 <code>index.html</co
 | docs/ | 使用指南、部署和 API 文档 |
 | tests/、native/ | 托管测试与原生测试源码 |
 | eng/、tools/ | 构建、打包、生成与诊断脚本 |
-| compatibility/ | API 快照、生成器输入和支持范围契约 |
+| eng/contracts/ | 生成器输入、公共 API 快照和原生库/包分发契约 |
 
 ## 交流与许可证
 

@@ -48,7 +48,7 @@ public sealed class BindingGeneratorTests
     [Fact]
     public void FrozenInputValidatorRejectsHashAndLengthDrift()
     {
-        var path = Path.Combine(Path.GetTempPath(), $"migraphx-m3-hash-{Guid.NewGuid():N}.h");
+        var path = Path.Combine(Path.GetTempPath(), $"migraphx-header-hash-{Guid.NewGuid():N}.h");
         try
         {
             var bytes = "fixed-input"u8.ToArray();
@@ -65,16 +65,16 @@ public sealed class BindingGeneratorTests
     }
 
     [Fact]
-    public void GeneratedM3JsonUsesSchemaKeysAndClosedClassifications()
+    public void GeneratedModelUsesSchemaKeysAndExplicitAbiTypes()
     {
-        foreach (var name in new[] { "m3-normalized-api.json", "m3-api-inventory.json", "m3-coverage-summary.json" })
+        foreach (var name in new[] { "normalized-api.json" })
         {
-            var text = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "compatibility", name));
+            var text = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "eng", "contracts", name));
             Assert.Contains("\"$schema\":", text, StringComparison.Ordinal);
             Assert.DoesNotContain("\"schema\":", text, StringComparison.Ordinal);
         }
 
-        var model = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "compatibility", "m3-normalized-api.json"));
+        var model = File.ReadAllText(Path.Combine(FindRepositoryRoot(), "eng", "contracts", "normalized-api.json"));
         Assert.Contains("\"typedefChain\":", model, StringComparison.Ordinal);
         Assert.Contains("one-byte C _Bool", model, StringComparison.Ordinal);
         Assert.Contains("unsigned 64-bit size_t", model, StringComparison.Ordinal);
@@ -83,9 +83,9 @@ public sealed class BindingGeneratorTests
     [Fact]
     public void GeneratedJsonUsesTheRepositoryLfPolicy()
     {
-        foreach (var name in new[] { "m3-normalized-api.json", "m3-api-inventory.json", "m3-coverage-summary.json" })
+        foreach (var name in new[] { "normalized-api.json" })
         {
-            var bytes = File.ReadAllBytes(Path.Combine(FindRepositoryRoot(), "compatibility", name));
+            var bytes = File.ReadAllBytes(Path.Combine(FindRepositoryRoot(), "eng", "contracts", name));
             Assert.DoesNotContain((byte)'\r', bytes);
             Assert.Equal((byte)'\n', bytes[^1]);
         }
@@ -129,15 +129,13 @@ public sealed class BindingGeneratorTests
         var root = FindRepositoryRoot();
         var outputs = new[]
         {
-            Path.Combine(root, "compatibility", "m3-normalized-api.json"),
-            Path.Combine(root, "compatibility", "m3-api-inventory.json"),
-            Path.Combine(root, "compatibility", "m3-coverage-summary.json"),
+            Path.Combine(root, "eng", "contracts", "normalized-api.json"),
             Path.Combine(root, "src", "JYPPX.ROCm.MIGraphX.CSharp.API", "Generated", "NativeMethods.g.cs"),
             Path.Combine(root, "src", "JYPPX.ROCm.MIGraphX.CSharp.API", "Generated", "NativeMethods.LibraryImport.g.cs"),
             Path.Combine(root, "src", "JYPPX.ROCm.MIGraphX.CSharp.API", "Generated", "NativeMethods.DllImport.g.cs"),
         };
         var before = outputs.ToDictionary(path => path, File.ReadAllBytes, StringComparer.Ordinal);
-        var badHeader = Path.Combine(Path.GetTempPath(), $"migraphx-m3-rejected-{Guid.NewGuid():N}.h");
+        var badHeader = Path.Combine(Path.GetTempPath(), $"migraphx-rejected-header-{Guid.NewGuid():N}.h");
         try
         {
             File.WriteAllText(badHeader, "migraphx_status drift(void);\n");

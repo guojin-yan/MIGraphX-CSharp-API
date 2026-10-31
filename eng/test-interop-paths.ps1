@@ -14,8 +14,8 @@ if (-not $NoBuild) {
 
 $extension = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c.dll' } else { 'libmigraphx_c.so' }
 $nativePath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$extension"
-$m10MissingName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c_m10_missing.dll' } else { 'libmigraphx_c_m10_missing.so' }
-$m10MissingPath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$m10MissingName"
+$comparisonMissingName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c_comparison_missing.dll' } else { 'libmigraphx_c_comparison_missing.so' }
+$comparisonMissingPath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$comparisonMissingName"
 $modelPath = Join-Path (Get-ArtifactsRoot) 'models\m2-identity-float32.onnx'
 $project = Join-Path $root 'tests\JYPPX.ROCm.MIGraphXSharp.InteropRunner\JYPPX.ROCm.MIGraphXSharp.InteropRunner.csproj'
 
@@ -33,13 +33,13 @@ foreach ($framework in @('net46', 'netcoreapp3.1', 'net7.0', 'net10.0')) {
 
 $missingRunArguments = @('run', '--project', $project, '-c', $Configuration, '-f', 'net10.0')
 if ($NoBuild) { $missingRunArguments += '--no-build' }
-$missingRunArguments += @('--', '--expect-m10-missing', $m10MissingPath)
+$missingRunArguments += @('--', '--expect-registry-missing', $comparisonMissingPath)
 & dotnet @missingRunArguments
 if ($LASTEXITCODE -ne 0) { throw 'Registry missing-export diagnostics failed for net10.0.' }
 
 $missingEqualityRunArguments = @('run', '--project', $project, '-c', $Configuration, '-f', 'net10.0')
 if ($NoBuild) { $missingEqualityRunArguments += '--no-build' }
-$missingEqualityRunArguments += @('--', '--expect-m10-equality-missing', $m10MissingPath)
+$missingEqualityRunArguments += @('--', '--expect-equality-missing', $comparisonMissingPath)
 & dotnet @missingEqualityRunArguments
 if ($LASTEXITCODE -ne 0) { throw 'Equality missing-export diagnostics failed for net10.0.' }
 

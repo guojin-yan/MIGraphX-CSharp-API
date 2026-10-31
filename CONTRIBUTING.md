@@ -6,9 +6,8 @@ Keep library code, user documentation, reproducible scripts and reviewed source 
 
 - `src/`, `samples/`, `tests/`, `smoke/` and `native/`: source code and test fixtures expressed as source.
 - `docs/`: installation, usage, API and compatibility documentation for users. `docs/blog/` contains standalone user-facing blog articles, including drafts, and their illustrations.
-- `eng/` and `tools/`: build, generation, packaging and diagnostic tooling with usage instructions. Name active tooling by function; keep historical stage acceptance scripts outside the checkout.
-- `compatibility/`: frozen generator inputs, public API snapshots, ownership contracts, runtime case specifications and support disclosure policy.
-- `pack/`: package distribution policy.
+- `eng/` and `tools/`: build, generation and packaging tooling with usage instructions. Name active tooling by function; keep historical stage acceptance scripts outside the checkout.
+- `eng/contracts/`: current generator inputs, public API snapshots, native ABI and dependency locks, and package distribution policy. These files are inputs to maintained tooling; they contain no session authorization, stage plans or execution history.
 
 Keep development plans, stage reports, internal writing notes, cloud session notes, raw logs, test results, downloaded binaries, generated model files and packages outside the checkout. User-facing blog drafts belong in `docs/blog/`; mark their status in its index and keep source material and verification records outside the checkout. Do not require archived development records to build or test a fresh clone. Only published user-facing changes belong in release notes; unpublished candidate diaries are development records.
 
@@ -51,7 +50,7 @@ Run checks appropriate to the change. The standard entry points are:
 
 Native declarations are generated from the frozen header and normalized model; do not hand-edit `src/**/Generated/*.cs`. Use `eng/generate-interop.ps1 -AcquireHeader -Verify` to check reproducibility. See [engineering commands](eng/README.md) for native ABI, public API and package checks. Reproducible model generators live in [tests/fixtures](tests/fixtures/README.md).
 
-Keep substitute-library tests separate from official runtime qualification. Runtime probes require an explicit isolated output record and source/package/native identities. Preserve failures outside the checkout. `compatibility/runtime-support-policy.json` describes declared support; it is not a new execution report.
+Keep substitute-library tests separate from official runtime qualification. Keep session-specific runtime probes, execution records and failures outside the checkout. Describe application-facing support boundaries in [platform support](docs/compatibility/platforms.md).
 
 ## Distribution and security
 

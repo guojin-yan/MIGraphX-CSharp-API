@@ -26,7 +26,7 @@ internal static class Program
 internal sealed record Arguments(
     string HeaderPath,
     string PreprocessedPath,
-    string M2ManifestPath,
+    string BindingOverridesPath,
     string ClassificationPath,
     string UnsupportedPath,
     string OutputDirectory)
@@ -51,7 +51,7 @@ internal sealed record Arguments(
         return new Arguments(
             Required("--header"),
             Required("--preprocessed"),
-            Required("--m2-manifest"),
+            Required("--binding-overrides"),
             Required("--classification"),
             Required("--unsupported"),
             Required("--output"));
@@ -137,17 +137,6 @@ public sealed class ParsedHeader
     public required IReadOnlyList<CEnum> Enums { get; init; }
     public required IReadOnlyList<CHandle> Handles { get; init; }
     public required IReadOnlyList<CCallback> Callbacks { get; init; }
-}
-
-internal sealed class InventoryItem
-{
-    public required string Id { get; init; }
-    public required string Kind { get; init; }
-    public required string CName { get; init; }
-    public required string Classification { get; init; }
-    public required string Milestone { get; init; }
-    public required string ValidationLevel { get; init; }
-    public required SourceLocation Source { get; init; }
 }
 
 internal readonly record struct CToken(string Text);
@@ -568,8 +557,6 @@ public static class CHeaderParser
 
 internal static class BindingGenerator
 {
-    private const string FrozenStamp = "2026-08-14T00:00:00Z";
-    private const string RuntimeSha = "346cdd0b01a7f8039f5deb93058928403fccc7dd";
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -579,13 +566,13 @@ internal static class BindingGenerator
 
     internal static void Generate(Arguments options)
     {
-        using var m2Document = JsonDocument.Parse(File.ReadAllText(options.M2ManifestPath));
+        using var overridesDocument = JsonDocument.Parse(File.ReadAllText(options.BindingOverridesPath));
         using var classificationDocument = JsonDocument.Parse(File.ReadAllText(options.ClassificationPath));
         using var unsupportedDocument = JsonDocument.Parse(File.ReadAllText(options.UnsupportedPath));
-        var m2 = m2Document.RootElement;
+        var overrides = overridesDocument.RootElement;
         var classification = classificationDocument.RootElement;
         var unsupported = unsupportedDocument.RootElement;
-        var source = m2.GetProperty("source");
+        var source = overrides.GetProperty("source");
         var expectedHash = source.GetProperty("headerSha256").GetString()!;
         var expectedLength = source.GetProperty("headerByteLength").GetInt64();
         FrozenInputValidator.Validate(options.HeaderPath, expectedHash, expectedLength);
@@ -595,13 +582,13 @@ internal static class BindingGenerator
             File.ReadAllText(options.HeaderPath));
         ValidateCounts(parsed);
 
-        var m2Functions = m2.GetProperty("functions").EnumerateArray().ToDictionary(
+        var overrideFunctions = overrides.GetProperty("functions").EnumerateArray().ToDictionary(
             item => item.GetProperty("cName").GetString()!,
             item => item.Clone(),
             StringComparer.Ordinal);
-        if (m2Functions.Count != classification.GetProperty("functionProjection").GetProperty("expectedCount").GetInt32())
+        if (overrideFunctions.Count != classification.GetProperty("functionProjection").GetProperty("expectedCount").GetInt32())
         {
-            throw new InvalidDataException("M2 handwritten projection count differs from the M3 classification manifest.");
+            throw new InvalidDataException("Reviewed projection count differs from the classification manifest.");
         }
         var callbackPolicies = classification.GetProperty("callbackOverrides").GetProperty("items").EnumerateArray().ToDictionary(
             item => item.GetProperty("cName").GetString()!,
@@ -620,14 +607,14 @@ internal static class BindingGenerator
         }
         if (!unsupportedFunctions.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(new[] { "migraphx_operation_create" }))
         {
-            throw new InvalidDataException("The M3 unsupported function classification is incomplete or unexpected.");
+            throw new InvalidDataException("The unsupported function classification is incomplete or unexpected.");
         }
 
-        var m2Enums = m2.GetProperty("enums").EnumerateArray().ToDictionary(
+        var overrideEnums = overrides.GetProperty("enums").EnumerateArray().ToDictionary(
             item => item.GetProperty("cName").GetString()!,
             item => item.Clone(),
             StringComparer.Ordinal);
-        var normalizedEnums = parsed.Enums.Select(item => NormalizeEnum(item, m2Enums)).ToArray();
+        var normalizedEnums = parsed.Enums.Select(item => NormalizeEnum(item, overrideEnums)).ToArray();
         var normalizedHandles = parsed.Handles.Select(item => new
         {
             id = $"handle:{item.Name}",
@@ -656,14 +643,13 @@ internal static class BindingGenerator
             validationLevel = "statically-verified",
             source = item.Source,
         }).ToArray();
-        var normalizedFunctions = parsed.Functions.Select(item => NormalizeFunction(item, m2Functions, unsupportedFunctions, parsed)).ToArray();
+        var normalizedFunctions = parsed.Functions.Select(item => NormalizeFunction(item, overrideFunctions, unsupportedFunctions, parsed)).ToArray();
 
         var model = new
         {
-            schema = "./schemas/m3-normalized-api.schema.json",
+            schema = "./schemas/normalized-api.schema.json",
             schemaVersion = "1.0.0",
-            modelVersion = "m3-1",
-            generatedAtUtc = FrozenStamp,
+            modelVersion = "1.0.0",
             validationLevel = "statically-verified",
             source = new
             {
@@ -700,89 +686,11 @@ internal static class BindingGenerator
             functions = normalizedFunctions,
         };
 
-        var inventoryItems = normalizedFunctions.Select(item => new InventoryItem
-        {
-            Id = item.id,
-            Kind = "function",
-            CName = item.cName,
-            Classification = item.classification,
-            Milestone = item.milestone,
-            ValidationLevel = item.validationLevel,
-            Source = item.source,
-        }).Concat(normalizedEnums.Select(item => new InventoryItem
-        {
-            Id = item.id,
-            Kind = "enum",
-            CName = item.cName,
-            Classification = item.classification,
-            Milestone = item.milestone,
-            ValidationLevel = item.validationLevel,
-            Source = item.source,
-        })).Concat(normalizedHandles.Select(item => new InventoryItem
-        {
-            Id = item.id,
-            Kind = "handle",
-            CName = item.cName,
-            Classification = item.classification,
-            Milestone = "M3",
-            ValidationLevel = item.validationLevel,
-            Source = item.source,
-        })).Concat(normalizedCallbacks.Select(item => new InventoryItem
-        {
-            Id = item.id,
-            Kind = "callback",
-            CName = item.cName,
-            Classification = item.classification,
-            Milestone = "M3",
-            ValidationLevel = item.validationLevel,
-            Source = item.source,
-        })).ToArray();
-
-        var inventory = new
-        {
-            schema = "./schemas/m3-inventory.schema.json",
-            schemaVersion = "1.0.0",
-            inventoryVersion = "m3-1",
-            generatedAtUtc = FrozenStamp,
-            sourceHeaderSha256 = expectedHash,
-            counts = ClassificationCounts.Create(inventoryItems.Select(item => (item.Kind, item.Classification))),
-            classificationClosed = inventoryItems.Length == 192,
-            items = inventoryItems,
-        };
-        var counts = ClassificationCounts.Create(inventoryItems.Select(item => (item.Kind, item.Classification)));
-        var coverage = new
-        {
-            schema = "./schemas/m3-coverage-summary.schema.json",
-            schemaVersion = "1.0.0",
-            summaryVersion = "m3-1",
-            generatedAtUtc = FrozenStamp,
-            validationLevel = "statically-verified",
-            sourceHeaderSha256 = expectedHash,
-            counts,
-            classificationClosed = counts.Overall.Total == counts.Overall.Generated + counts.Overall.Handwritten + counts.Overall.Unsupported + counts.Overall.ConfigurationUnavailable,
-            m1FunctionCount = 6,
-            m2CumulativeFunctionCount = 41,
-            m3DeclaredFunctionCount = 159,
-            managedEntryPointCount = 158,
-            unsupportedFunctionCount = 1,
-            fullHeaderFunctionCoveragePercent = 100.0,
-            officialElf = new
-            {
-                expectedPublicFunctions = 159,
-                observedMigraphxExports = 160,
-                knownPrivateExtras = new[] { "migraphx_test_private_disable_exception_catch" },
-                evidence = "statically-verified by eng/verify-native-abi.ps1; no new runtime execution",
-            },
-            runtimeBoundary = $"Reviewed official execution is bounded to the M1/M2 workflow plus five M9 option setters at {RuntimeSha}; the rest of the M3 inventory remains static ABI evidence.",
-        };
-
         var files = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            ["compatibility/m3-normalized-api.json"] = Serialize(model),
-            ["compatibility/m3-api-inventory.json"] = Serialize(inventory),
-            ["compatibility/m3-coverage-summary.json"] = Serialize(coverage),
+            ["eng/contracts/normalized-api.json"] = Serialize(model),
         };
-        foreach (var file in CSharpEmitter.Emit(parsed, normalizedFunctions, normalizedEnums, normalizedCallbacks, m2Functions.Keys.ToArray()))
+        foreach (var file in CSharpEmitter.Emit(parsed, normalizedFunctions, normalizedEnums, normalizedCallbacks, overrideFunctions.Keys.ToArray()))
         {
             files[file.Key] = file.Value;
         }
@@ -809,9 +717,9 @@ internal static class BindingGenerator
         }
     }
 
-    private static dynamic NormalizeEnum(CEnum item, IReadOnlyDictionary<string, JsonElement> m2Enums)
+    private static dynamic NormalizeEnum(CEnum item, IReadOnlyDictionary<string, JsonElement> overrideEnums)
     {
-        if (!m2Enums.TryGetValue(item.Name, out var mapped))
+        if (!overrideEnums.TryGetValue(item.Name, out var mapped))
         {
             throw new InvalidDataException($"Enum {item.Name} has no frozen managed projection.");
         }
@@ -836,7 +744,6 @@ internal static class BindingGenerator
             canonicalDeclaration = item.CanonicalDeclaration,
             underlyingAbi = "signed 32-bit C enum on the verified x86-64 ABI",
             classification = "generated",
-            milestone = item.Name == "migraphx_status" ? "M1" : "M2",
             validationLevel = "statically-verified",
             values,
             source = item.Source,
@@ -845,17 +752,17 @@ internal static class BindingGenerator
 
     private static dynamic NormalizeFunction(
         CFunction item,
-        IReadOnlyDictionary<string, JsonElement> m2Functions,
+        IReadOnlyDictionary<string, JsonElement> overrideFunctions,
         IReadOnlyDictionary<string, JsonElement> unsupportedFunctions,
         ParsedHeader parsedHeader)
     {
-        if (m2Functions.TryGetValue(item.Name, out var mapped))
+        if (overrideFunctions.TryGetValue(item.Name, out var mapped))
         {
             var mappedParameters = mapped.GetProperty("parameters").EnumerateArray().ToDictionary(
                 parameter => parameter.GetProperty("cName").GetString()!,
                 parameter => parameter.Clone(),
                 StringComparer.Ordinal);
-            if (mappedParameters.Count != item.Parameters.Count) { throw new InvalidDataException($"M2 parameter count drifted for {item.Name}."); }
+            if (mappedParameters.Count != item.Parameters.Count) { throw new InvalidDataException($"Reviewed parameter count drifted for {item.Name}."); }
             var parameters = item.Parameters.Select(parameter => OverlayParameter(parameter, mappedParameters[parameter.Name], parsedHeader)).ToArray();
             return new
             {
@@ -866,7 +773,6 @@ internal static class BindingGenerator
                 managedReturnType = "NativeMIGraphXStatus",
                 canonicalDeclaration = item.CanonicalDeclaration,
                 classification = "handwritten",
-                milestone = Array.IndexOf(m2Functions.Keys.ToArray(), item.Name) < 6 ? "M1" : "M2",
                 validationLevel = "statically-verified",
                 parameters,
                 source = item.Source,
@@ -884,11 +790,9 @@ internal static class BindingGenerator
                 managedReturnType = (string?)null,
                 canonicalDeclaration = item.CanonicalDeclaration,
                 classification = "unsupported",
-                milestone = "M3",
                 validationLevel = "statically-verified",
                 reason = unsupported.GetProperty("reason").GetString(),
                 risk = unsupported.GetProperty("risk").GetString(),
-                plannedStage = unsupported.GetProperty("plannedStage").GetString(),
                 coverage = unsupported.GetProperty("coverage").GetString(),
                 parameters = item.Parameters.Select(parameter => NormalizeRawParameter(parameter, parsedHeader)).ToArray(),
                 source = item.Source,
@@ -904,7 +808,6 @@ internal static class BindingGenerator
             managedReturnType = "NativeMIGraphXStatus",
             canonicalDeclaration = item.CanonicalDeclaration,
             classification = "generated",
-            milestone = "M3",
             validationLevel = "statically-verified",
             parameters = item.Parameters.Select(parameter => NormalizeRawParameter(parameter, parsedHeader)).ToArray(),
             source = item.Source,
@@ -1039,49 +942,6 @@ internal static class BindingGenerator
         return json + "\n";
     }
 
-    private sealed class ClassificationCounts
-    {
-        public required KindCounts Functions { get; init; }
-        public required KindCounts Enums { get; init; }
-        public required KindCounts Handles { get; init; }
-        public required KindCounts Callbacks { get; init; }
-        public required KindCounts Overall { get; init; }
-
-        internal static ClassificationCounts Create(IEnumerable<(string Kind, string Classification)> source)
-        {
-            var items = source.ToArray();
-            KindCounts Count(string? kind)
-            {
-                var selected = kind is null ? items : items.Where(item => item.Kind == kind).ToArray();
-                return new KindCounts
-                {
-                    Total = selected.Length,
-                    Generated = selected.Count(item => item.Classification == "generated"),
-                    Handwritten = selected.Count(item => item.Classification == "handwritten"),
-                    Unsupported = selected.Count(item => item.Classification == "unsupported"),
-                    ConfigurationUnavailable = selected.Count(item => item.Classification == "configuration-unavailable"),
-                };
-            }
-            return new ClassificationCounts
-            {
-                Functions = Count("function"),
-                Enums = Count("enum"),
-                Handles = Count("handle"),
-                Callbacks = Count("callback"),
-                Overall = Count(null),
-            };
-        }
-    }
-
-    private sealed class KindCounts
-    {
-        public int Total { get; init; }
-        public int Generated { get; init; }
-        public int Handwritten { get; init; }
-        public int Unsupported { get; init; }
-        public int ConfigurationUnavailable { get; init; }
-    }
-
     private static class CSharpEmitter
     {
         internal static IReadOnlyDictionary<string, string> Emit(
@@ -1089,11 +949,11 @@ internal static class BindingGenerator
             IReadOnlyList<dynamic> functions,
             IReadOnlyList<dynamic> enums,
             IReadOnlyList<dynamic> callbacks,
-            IReadOnlyList<string> m2Names)
+            IReadOnlyList<string> overrideNames)
         {
             var banner = "// <auto-generated />\n"
-                + "// Source: compatibility/m3-normalized-api.json\n"
-                + "// M1/M2 overrides: compatibility/m2-binding-subset.json\n"
+                + "// Source: eng/contracts/normalized-api.json\n"
+                + "// Reviewed overrides: eng/contracts/binding-overrides.json\n"
                 + "// Frozen migraphx.h SHA-256: a3fe22484b07bbfd61572a8b8e6186b05e18341b12f3f27303effc4e820179c2\n"
                 + "// Regenerate with eng/generate-interop.ps1; do not edit by hand.\n";
             var common = new StringBuilder(banner);
@@ -1119,11 +979,11 @@ internal static class BindingGenerator
             common.AppendLine("internal static partial class NativeMethods");
             common.AppendLine("{");
             common.AppendLine("    internal const string LibraryName = \"migraphx_c\";");
-            AppendArray(common, "M1RequiredExports", m2Names.Take(6));
-            AppendArray(common, "M2RequiredExports", m2Names);
-            AppendArray(common, "M3DeclaredExports", parsed.Functions.Select(function => function.Name));
-            AppendArray(common, "M3OpaqueHandleNames", parsed.Handles.Select(handle => handle.Name));
-            AppendArray(common, "M3CallbackNames", parsed.Callbacks.Select(callback => callback.Name));
+            AppendArray(common, "EnvironmentRequiredExports", overrideNames.Take(6));
+            AppendArray(common, "OnnxRequiredExports", overrideNames);
+            AppendArray(common, "DeclaredExports", parsed.Functions.Select(function => function.Name));
+            AppendArray(common, "OpaqueHandleNames", parsed.Handles.Select(handle => handle.Name));
+            AppendArray(common, "CallbackNames", parsed.Callbacks.Select(callback => callback.Name));
             common.AppendLine("}");
 
             var libraryImport = new StringBuilder(banner);

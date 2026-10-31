@@ -50,10 +50,10 @@ internal static class NativeLibraryLoader
         string path,
         bool requireOnnxWorkflow = false,
         bool requireManagedObjects = false,
-        bool requireM5 = false,
-        bool requireM6 = false,
-        bool requireM10Registry = false,
-        bool requireM10Equality = false,
+        bool requireDynamicShapes = false,
+        bool requireAsync = false,
+        bool requireRegistry = false,
+        bool requireComparison = false,
         bool requireOperationCreate = false)
     {
         if (path is null)
@@ -73,7 +73,7 @@ internal static class NativeLibraryLoader
             return new NativeLoadResult(false, null, diagnostics);
         }
 
-        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreate);
+        return LoadCandidate(fullPath, "explicit-path", true, diagnostics, requireOnnxWorkflow, requireManagedObjects, requireDynamicShapes, requireAsync, requireRegistry, requireComparison, requireOperationCreate);
     }
 
     internal static NativeLoadResult LoadSystemCandidates()
@@ -108,10 +108,10 @@ internal static class NativeLibraryLoader
         List<MIGraphXNativeDiagnostic> diagnostics,
         bool requireOnnxWorkflow,
         bool requireManagedObjects,
-        bool requireM5 = false,
-        bool requireM6 = false,
-        bool requireM10Registry = false,
-        bool requireM10Equality = false,
+        bool requireDynamicShapes = false,
+        bool requireAsync = false,
+        bool requireRegistry = false,
+        bool requireComparison = false,
         bool requireOperationCreate = false)
     {
         lock (Sync)
@@ -120,7 +120,7 @@ internal static class NativeLibraryLoader
             {
                 if (PathsEqual(loadedPath, candidate))
                 {
-                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreate));
+                    var missingFromActive = MissingExports(loadedHandle, RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireDynamicShapes, requireAsync, requireRegistry, requireComparison, requireOperationCreate));
                     if (missingFromActive.Length != 0)
                     {
                         diagnostics.Add(CreateMissingExportDiagnostic(
@@ -130,8 +130,8 @@ internal static class NativeLibraryLoader
                             missingFromActive,
                             requireOnnxWorkflow,
                             requireManagedObjects,
-                            requireM10Registry,
-                            requireM10Equality,
+                            requireRegistry,
+                            requireComparison,
                             requireOperationCreate));
                         return new NativeLoadResult(false, null, diagnostics);
                     }
@@ -152,7 +152,7 @@ internal static class NativeLibraryLoader
                 return new NativeLoadResult(false, null, diagnostics);
             }
 
-            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireM5, requireM6, requireM10Registry, requireM10Equality, requireOperationCreate);
+            var requiredExports = RequiredExports(requireOnnxWorkflow, requireManagedObjects, requireDynamicShapes, requireAsync, requireRegistry, requireComparison, requireOperationCreate);
             var missing = MissingExports(handle, requiredExports);
             if (missing.Length != 0)
             {
@@ -164,8 +164,8 @@ internal static class NativeLibraryLoader
                     missing,
                     requireOnnxWorkflow,
                     requireManagedObjects,
-                    requireM10Registry,
-                    requireM10Equality,
+                    requireRegistry,
+                    requireComparison,
                     requireOperationCreate));
                 return new NativeLoadResult(false, null, diagnostics);
             }
@@ -188,15 +188,15 @@ internal static class NativeLibraryLoader
 #endif
             var loadedMessage = requireOperationCreate
                 ? "Loaded native library and verified the constrained operation-create export."
-                : requireM10Equality
-                ? "Loaded native library and verified the fixed M10 content-equality exports."
-                : requireM10Registry
-                    ? "Loaded native library and verified the fixed M10 ONNX registry exports."
+                : requireComparison
+                ? "Loaded native library and verified the fixed Content equality exports."
+                : requireRegistry
+                    ? "Loaded native library and verified the fixed ONNX registry exports."
                     : requireManagedObjects
-                ? "Loaded native library and verified the fixed M4 managed-object exports."
+                ? "Loaded native library and verified the managed-object exports."
                 : requireOnnxWorkflow
-                    ? "Loaded native library and verified the fixed M2 ONNX synchronous-workflow exports."
-                    : "Loaded native library and verified all fixed M1 exports.";
+                    ? "Loaded native library and verified the fixed ONNX synchronous-workflow exports."
+                    : "Loaded native library and verified all required environment exports.";
             diagnostics.Add(new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, MIGraphXNativeDiagnosticKind.Loaded, loadedMessage));
             return new NativeLoadResult(true, loadedPath, diagnostics);
         }
@@ -205,31 +205,31 @@ internal static class NativeLibraryLoader
     private static IEnumerable<string> RequiredExports(
         bool requireOnnxWorkflow,
         bool requireManagedObjects,
-        bool requireM5 = false,
-        bool requireM6 = false,
-        bool requireM10Registry = false,
-        bool requireM10Equality = false,
+        bool requireDynamicShapes = false,
+        bool requireAsync = false,
+        bool requireRegistry = false,
+        bool requireComparison = false,
         bool requireOperationCreate = false)
     {
         IEnumerable<string> required;
-        if (requireM6)
+        if (requireAsync)
         {
-            required = NativeMethods.M2RequiredExports.Concat(NativeM4Methods.AdditionalRequiredExports).Concat(NativeM6Methods.AdditionalRequiredExports);
+            required = NativeMethods.OnnxRequiredExports.Concat(NativeManagedMethods.AdditionalRequiredExports).Concat(NativeAsyncMethods.AdditionalRequiredExports);
         }
-        else if (requireM5)
+        else if (requireDynamicShapes)
         {
-            required = NativeMethods.M2RequiredExports.Concat(NativeM4Methods.AdditionalRequiredExports).Concat(NativeM5Methods.AdditionalRequiredExports);
+            required = NativeMethods.OnnxRequiredExports.Concat(NativeManagedMethods.AdditionalRequiredExports).Concat(NativeDynamicMethods.AdditionalRequiredExports);
         }
         else if (requireManagedObjects)
         {
-            required = NativeMethods.M2RequiredExports.Concat(NativeM4Methods.AdditionalRequiredExports);
+            required = NativeMethods.OnnxRequiredExports.Concat(NativeManagedMethods.AdditionalRequiredExports);
         }
         else
         {
-            required = requireOnnxWorkflow ? NativeMethods.M2RequiredExports : NativeMethods.M1RequiredExports;
+            required = requireOnnxWorkflow ? NativeMethods.OnnxRequiredExports : NativeMethods.EnvironmentRequiredExports;
         }
-        if (requireM10Registry) required = required.Concat(NativeM10Methods.RegistryRequiredExports);
-        if (requireM10Equality) required = required.Concat(NativeM10Methods.EqualityRequiredExports);
+        if (requireRegistry) required = required.Concat(NativeComparisonMethods.RegistryRequiredExports);
+        if (requireComparison) required = required.Concat(NativeComparisonMethods.EqualityRequiredExports);
         if (requireOperationCreate) required = required.Concat(new[] { "migraphx_operation_create" });
         return required.Distinct(StringComparer.Ordinal);
     }
@@ -359,26 +359,26 @@ internal static class NativeLibraryLoader
         string[] missing,
         bool requireOnnxWorkflow,
         bool requireManagedObjects,
-        bool requireM10Registry,
-        bool requireM10Equality,
+        bool requireRegistry,
+        bool requireComparison,
         bool requireOperationCreate)
     {
-        var kind = requireM10Registry || requireM10Equality || requireManagedObjects
+        var kind = requireRegistry || requireComparison || requireManagedObjects
             ? MIGraphXNativeDiagnosticKind.ExportMissing
             : requireOnnxWorkflow
                 ? MIGraphXNativeDiagnosticKind.OnnxFrontendMissing
                 : MIGraphXNativeDiagnosticKind.ExportMissing;
         var scope = requireOperationCreate
             ? "constrained operation-create"
-            : requireM10Equality
-            ? "M10 content-equality"
-            : requireM10Registry
-                ? "M10 ONNX registry"
+            : requireComparison
+            ? "Content equality"
+            : requireRegistry
+                ? "ONNX registry"
                 : requireManagedObjects
-                    ? "M4 managed-object"
+                    ? "managed-object"
                     : requireOnnxWorkflow
-                        ? "M2 ONNX synchronous-workflow"
-                        : "M1";
+                        ? "ONNX synchronous-workflow"
+                        : "environment";
         return new MIGraphXNativeDiagnostic(candidate, source, isFilePath ? true : null, kind, $"The native library loaded but is missing required {scope} exports: {string.Join(", ", missing)}.");
     }
 

@@ -13,7 +13,7 @@ if (args.Length == 0)
         exports = "not-probed",
         target = "not-probed",
         program = "not-probed",
-        onnxFrontend = "not-applicable-m1",
+        onnxFrontend = "not-applicable",
         amdGpu = "not-probed",
         message = "No explicit native path was supplied; the smoke runner performed no native loading.",
     }));
@@ -70,7 +70,7 @@ try
         utf8Target,
         utf8StatusCode,
         utf8Operation,
-        onnxFrontend = "not-applicable-m1",
+        onnxFrontend = "not-applicable",
         amdGpu = "not-probed",
         diagnostics = report.Diagnostics.Select(item => new
         {

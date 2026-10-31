@@ -26,10 +26,10 @@ try {
     $fakeName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c.dll' } else { 'libmigraphx_c.so' }
     $fakePath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$fakeName"
     Invoke-DotNet -Arguments @('run', '--project', './smoke/EnvironmentSmokeRunner/EnvironmentSmokeRunner.csproj', '-c', $Configuration, '--no-build', '--', '--fake-native', $fakePath)
-    $m1OnlyName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c_m1_only.dll' } else { 'libmigraphx_c_m1_only.so' }
-    $m1OnlyPath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$m1OnlyName"
+    $environmentOnlyName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c_environment_only.dll' } else { 'libmigraphx_c_environment_only.so' }
+    $environmentOnlyPath = Join-Path (Get-ArtifactsRoot) "fake-native\$Configuration\$environmentOnlyName"
     $modelPath = Join-Path (Get-ArtifactsRoot) 'models\m2-identity-float32.onnx'
-    Invoke-DotNet -Arguments @('run', '--project', './smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj', '-c', $Configuration, '--no-build', '--', '--expect-frontend-missing', $m1OnlyPath)
+    Invoke-DotNet -Arguments @('run', '--project', './smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj', '-c', $Configuration, '--no-build', '--', '--expect-frontend-missing', $environmentOnlyPath)
     Invoke-DotNet -Arguments @('run', '--project', './smoke/OnnxWorkflowSmokeRunner/OnnxWorkflowSmokeRunner.csproj', '-c', $Configuration, '--no-build', '--', '--fake-native', $fakePath, $modelPath)
     & (Join-Path $PSScriptRoot 'test-interop-paths.ps1') -Configuration $Configuration -NoBuild
 }

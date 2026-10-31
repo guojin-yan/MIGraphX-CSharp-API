@@ -7,14 +7,14 @@ param(
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
-$manifestPath = Join-Path $root 'compatibility\m2-binding-subset.json'
-$classificationPath = Join-Path $root 'compatibility\m3-handwritten-overrides.json'
-$unsupportedPath = Join-Path $root 'compatibility\m3-unsupported.json'
+$manifestPath = Join-Path $root 'eng\contracts\binding-overrides.json'
+$classificationPath = Join-Path $root 'eng\contracts\binding-classifications.json'
+$unsupportedPath = Join-Path $root 'eng\contracts\unsupported-api.json'
 $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json
 
 if ($AcquireHeader) {
     if (-not $HeaderPath) {
-        $HeaderPath = Join-Path (Get-CacheRoot) 'm1\migraphx.h'
+        $HeaderPath = Join-Path (Get-CacheRoot) 'headers\migraphx.h'
     }
     if (-not (Test-Path -LiteralPath $HeaderPath)) {
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $HeaderPath) | Out-Null
@@ -69,16 +69,14 @@ try {
     & dotnet run --project (Join-Path $root 'tools\BindingGenerator\BindingGenerator.csproj') -c Release -- `
         --header $HeaderPath `
         --preprocessed $preprocessedPath `
-        --m2-manifest $manifestPath `
+        --binding-overrides $manifestPath `
         --classification $classificationPath `
         --unsupported $unsupportedPath `
         --output $outputRoot
     if ($LASTEXITCODE -ne 0) { throw 'The structured binding generator failed.' }
 
     $relativeOutputs = @(
-        'compatibility/m3-normalized-api.json',
-        'compatibility/m3-api-inventory.json',
-        'compatibility/m3-coverage-summary.json',
+        'eng/contracts/normalized-api.json',
         'src/JYPPX.ROCm.MIGraphX.CSharp.API/Generated/NativeMethods.g.cs',
         'src/JYPPX.ROCm.MIGraphX.CSharp.API/Generated/NativeMethods.LibraryImport.g.cs',
         'src/JYPPX.ROCm.MIGraphX.CSharp.API/Generated/NativeMethods.DllImport.g.cs'

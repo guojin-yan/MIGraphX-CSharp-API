@@ -11,8 +11,8 @@ public sealed class RuntimePolicyTests
         var root = FindRepositoryRoot();
         using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(
             root,
-            "pack",
-            "runtime-validation-disclosure-policy.json")));
+            "eng", "contracts",
+            "package-distribution.json")));
 
         Assert.Equal("3.0.0", document.RootElement.GetProperty("schemaVersion").GetString());
         Assert.Equal("system-native", document.RootElement.GetProperty("nativeDistributionMode").GetString());
@@ -22,15 +22,13 @@ public sealed class RuntimePolicyTests
         Assert.Equal("system-native-only", document.RootElement.GetProperty("technicalStatus").GetString());
         Assert.True(document.RootElement.GetProperty("officialInstallationRequired").GetBoolean());
         Assert.False(document.RootElement.GetProperty("managedPackagesContainNativeAssets").GetBoolean());
-        Assert.False(document.RootElement.GetProperty("publishAuthorized").GetBoolean());
-        Assert.False(document.RootElement.GetProperty("releaseAuthorized").GetBoolean());
     }
 
     [Fact]
     public void OfficialSystemSourceLockPinsTheNativeBaseline()
     {
         var root = FindRepositoryRoot();
-        var manifestPath = Path.Combine(root, "compatibility", "system-native-source-lock.json");
+        var manifestPath = Path.Combine(root, "eng", "contracts", "system-native-source-lock.json");
         using var document = JsonDocument.Parse(File.ReadAllText(manifestPath));
         var manifest = document.RootElement;
 

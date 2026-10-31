@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string] $Manifest = 'compatibility/system-native-source-lock.json',
+    [string] $Manifest = 'eng/contracts/system-native-source-lock.json',
     [string] $CacheDirectory = '.cache/runtime/rocm-7.2.1-noble',
     [switch] $Offline,
     [string] $TarPath = 'tar',

@@ -1,0 +1,17 @@
+{
+  "$schema": "./schemas/binding-classifications.schema.json",
+  "schemaVersion": "1.0.0",
+  "manifestVersion": "1.0.0",
+  "validationLevel": "statically-verified",
+  "items": [
+    {
+      "kind": "function",
+      "cName": "migraphx_operation_create",
+      "reason": "The frozen C declaration is variadic. Source-generated LibraryImport cannot represent C varargs, and a guessed fixed DllImport overload would not be ABI-complete.",
+      "risk": "Calling an incorrectly projected variadic function can corrupt registers or the native stack.",
+      "coverage": "Header and official ELF presence are statically verified; no managed EntryPoint or runtime-executed claim is emitted."
+    }
+  ],
+  "configurationUnavailable": [],
+  "classificationReason": "All non-variadic declarations can be represented as internal raw ABI declarations. The single C variadic function remains explicitly unsupported rather than receiving a guessed managed signature."
+}

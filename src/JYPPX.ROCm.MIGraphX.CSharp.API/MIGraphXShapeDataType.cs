@@ -1,8 +1,8 @@
 namespace JYPPX.ROCm.MIGraphXSharp;
 
 /// <summary>
-/// 表示 M4 高层静态 shape 支持的标量元素类型。
-/// Represents a scalar element type supported by the M4 high-level static-shape API.
+/// 表示托管 shape 支持的标量元素类型。
+/// Represents a scalar element type supported by the managed shape API.
 /// </summary>
 public enum MIGraphXShapeDataType
 {

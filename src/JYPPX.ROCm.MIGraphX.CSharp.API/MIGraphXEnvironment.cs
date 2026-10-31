@@ -6,8 +6,8 @@ using System.Linq;
 namespace JYPPX.ROCm.MIGraphXSharp;
 
 /// <summary>
-/// 提供显式、无下载且不修改进程搜索路径的 MIGraphX M1 环境探测。
-/// Provides explicit MIGraphX M1 environment probing without downloads or process search-path mutation.
+/// 提供显式、无下载且不修改进程搜索路径的 MIGraphX 环境探测。
+/// Provides explicit MIGraphX environment probing without downloads or process search-path mutation.
 /// </summary>
 public static class MIGraphXEnvironment
 {
@@ -26,8 +26,8 @@ public static class MIGraphXEnvironment
     }
 
     /// <summary>
-    /// 从调用者给出的绝对文件路径加载原生库并检查固定 M1 导出，可选择执行 target/program 生命周期。
-    /// Loads a native library from a caller-supplied absolute file path, checks the frozen M1 exports, and optionally exercises target/program lifetimes.
+    /// 从调用者给出的绝对文件路径加载原生库并检查基础环境所需导出，可选择执行 target/program 生命周期。
+    /// Loads a native library from a caller-supplied absolute file path, checks the required environment exports, and optionally exercises target/program lifetimes.
     /// </summary>
     /// <param name="nativeLibraryPath">原生库绝对文件路径；相对路径会被拒绝。 An absolute native-library file path; relative paths are rejected.</param>
     /// <param name="exerciseObjects">是否执行 target/program create/assign/destroy。 Whether to execute target/program create/assign/destroy.</param>

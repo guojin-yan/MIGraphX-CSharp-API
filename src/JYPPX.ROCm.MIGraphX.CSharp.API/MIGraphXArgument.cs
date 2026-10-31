@@ -90,7 +90,7 @@ public sealed class MIGraphXArgument : IDisposable
         if (shape is null) { throw new ArgumentNullException(nameof(shape)); }
         if (values is null) { throw new ArgumentNullException(nameof(values)); }
         ValidateType<T>(shape);
-        if (!shape.IsStandard || !shape.IsPacked) { throw new NotSupportedException("M4 typed host arguments require standard packed shapes."); }
+        if (!shape.IsStandard || !shape.IsPacked) { throw new NotSupportedException("Typed host arguments require standard packed shapes."); }
         if (shape.ElementCount > int.MaxValue || shape.ByteCount > int.MaxValue)
         {
             throw new OverflowException("The shape exceeds the managed array or copy limit.");
@@ -220,7 +220,7 @@ public sealed class MIGraphXArgument : IDisposable
     {
         if (other is null) { throw new ArgumentNullException(nameof(other)); }
         owner.Runtime.RequireSame(other.owner.Runtime, nameof(other));
-        owner.Runtime.RequireM10Equality();
+        owner.Runtime.RequireComparison();
         return NativeResourceLock.With(
             new[]
             {
@@ -235,7 +235,7 @@ public sealed class MIGraphXArgument : IDisposable
                 {
                     throw new NotSupportedException("Native content comparison is supported only for host-backed arguments.");
                 }
-                return NativeM10Methods.ArgumentContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock);
+                return NativeComparisonMethods.ArgumentContentEquals(owner.HandleUnderLock, other.owner.HandleUnderLock);
             });
     }
 
@@ -281,7 +281,7 @@ public sealed class MIGraphXArgument : IDisposable
         var shape = MIGraphXShape.FromNative(shapeHandle, context);
         if (!shape.IsStandard || !shape.IsPacked)
         {
-            throw new NotSupportedException("M4 detached output arguments require standard packed shapes.");
+            throw new NotSupportedException("Detached output arguments require standard packed shapes.");
         }
         var byteCount = NativeShapeSnapshot.ToInt(shape.ByteCount, "argument byte count");
         NativeStatus.ThrowIfFailed(NativeMethods.ArgumentBuffer(out var nativeBuffer, argument), "migraphx_argument_buffer");

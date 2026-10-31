@@ -194,7 +194,7 @@ Development builds without an explicit version use <code>0.0.0</code>. Build out
 | docs/ | User guides, deployment and API documentation |
 | tests/, native/ | Managed tests and native test sources |
 | eng/, tools/ | Build, packaging, generation and diagnostic tools |
-| compatibility/ | API snapshots, generator inputs and support contracts |
+| eng/contracts/ | Generator inputs, public API snapshots and native/package contracts |
 
 ## Community and license
 

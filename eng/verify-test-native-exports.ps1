@@ -3,15 +3,10 @@ param([ValidateSet('Debug', 'Release')][string] $Configuration = 'Release')
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
-$model = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility/m3-normalized-api.json') | ConvertFrom-Json
-$subset = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility/m2-binding-subset.json') | ConvertFrom-Json
+$model = Get-Content -Raw -LiteralPath (Join-Path $root 'eng/contracts/normalized-api.json') | ConvertFrom-Json
+$contract = Get-Content -Raw -LiteralPath (Join-Path $root 'eng/contracts/test-native-exports.json') | ConvertFrom-Json
 $headerNames = @($model.functions.cName | Sort-Object -Unique)
-$expected = @($subset.functions.cName)
-foreach ($mapName in @('m4-high-level-api-map.json', 'm9-high-level-api-map.json', 'm10-high-level-api-map.json')) {
-    $map = Get-Content -Raw -LiteralPath (Join-Path $root "compatibility/$mapName") | ConvertFrom-Json
-    $expected += @($map.mappings | Where-Object { $_.kind -eq 'function' -and $_.supportStatus -eq 'supported' } | ForEach-Object cName)
-}
-$expected = @($expected | Sort-Object -Unique)
+$expected = @($contract.requiredExports | Sort-Object -Unique)
 if (@($expected | Where-Object { $_ -notin $headerNames }).Count -gt 0) { throw 'Test export contract contains functions outside the frozen header.' }
 
 $fakeName = if ($IsWindows -or $env:OS -eq 'Windows_NT') { 'migraphx_c.dll' } else { 'libmigraphx_c.so' }

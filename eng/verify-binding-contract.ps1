@@ -3,30 +3,43 @@ param()
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
-$model = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-normalized-api.json') | ConvertFrom-Json
-$inventory = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-api-inventory.json') | ConvertFrom-Json
-$coverage = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-coverage-summary.json') | ConvertFrom-Json
-$unsupported = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-unsupported.json') | ConvertFrom-Json
-$m2 = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m2-binding-subset.json') | ConvertFrom-Json
+$model = Get-Content -Raw -LiteralPath (Join-Path $root 'eng\contracts\normalized-api.json') | ConvertFrom-Json
+$unsupported = Get-Content -Raw -LiteralPath (Join-Path $root 'eng\contracts\unsupported-api.json') | ConvertFrom-Json
+$overrides = Get-Content -Raw -LiteralPath (Join-Path $root 'eng\contracts\binding-overrides.json') | ConvertFrom-Json
 
-if ($model.source.headerSha256 -ne $m2.source.headerSha256) { throw 'The normalized model and binding manifest use different frozen headers.' }
+if ($model.source.headerSha256 -ne $overrides.source.headerSha256) { throw 'The normalized model and binding manifest use different frozen headers.' }
 if ($model.functions.Count -ne 159 -or $model.enums.Count -ne 2 -or $model.handles.Count -ne 25 -or $model.callbacks.Count -ne 6) {
     throw 'Normalized model counts do not match the frozen header inventory.'
 }
-if ($inventory.items.Count -ne 192 -or @($inventory.items.id | Sort-Object -Unique).Count -ne 192) {
+$items = @($model.functions) + @($model.enums) + @($model.handles) + @($model.callbacks)
+if ($items.Count -ne 192 -or @($items.id | Sort-Object -Unique).Count -ne 192) {
     throw 'Binding inventory IDs are not unique and closed.'
 }
 $allowed = @('generated', 'handwritten', 'unsupported', 'configuration-unavailable')
-if (@($inventory.items | Where-Object classification -notin $allowed).Count -ne 0) { throw 'Binding inventory contains an unknown classification.' }
+if (@($items | Where-Object classification -notin $allowed).Count -ne 0) { throw 'Binding inventory contains an unknown classification.' }
 
-$counts = $coverage.counts
+function Get-ClassificationCounts {
+    param([object[]] $Items)
+    [PSCustomObject]@{
+        total = $Items.Count
+        generated = @($Items | Where-Object classification -eq 'generated').Count
+        handwritten = @($Items | Where-Object classification -eq 'handwritten').Count
+        unsupported = @($Items | Where-Object classification -eq 'unsupported').Count
+        configurationUnavailable = @($Items | Where-Object classification -eq 'configuration-unavailable').Count
+    }
+}
+$counts = @{}
+foreach ($kind in @('functions', 'enums', 'handles', 'callbacks')) {
+    $counts[$kind] = Get-ClassificationCounts -Items @($model.$kind)
+}
+$counts.overall = Get-ClassificationCounts -Items $items
 foreach ($kind in @('functions', 'enums', 'handles', 'callbacks', 'overall')) {
     $item = $counts.$kind
     if ($item.total -ne ($item.generated + $item.handwritten + $item.unsupported + $item.configurationUnavailable)) {
         throw "Binding $kind classification is not mutually exclusive and closed."
     }
 }
-if (-not $coverage.classificationClosed -or $counts.functions.total -ne 159 -or $counts.functions.generated -ne 117 -or $counts.functions.handwritten -ne 41 -or $counts.functions.unsupported -ne 1) {
+if ($counts.functions.total -ne 159 -or $counts.functions.generated -ne 117 -or $counts.functions.handwritten -ne 41 -or $counts.functions.unsupported -ne 1) {
     throw 'Binding function classification counts drifted.'
 }
 if ($counts.overall.total -ne 192 -or $counts.overall.generated -ne 144 -or $counts.overall.handwritten -ne 47 -or $counts.overall.unsupported -ne 1) {
@@ -56,8 +69,8 @@ if ($unsupportedNames[0] -in $libraryNames -or $unsupportedNames[0] -in $dllName
     throw 'The variadic unsupported function must not receive a guessed managed EntryPoint.'
 }
 
-$m2Names = @($m2.functions.cName | Sort-Object -Unique)
-if ((Compare-Object $m2Names @($expectedManaged | Where-Object { $_ -in $m2Names }))) { throw 'The reviewed binding subset contains missing declarations.' }
+$overrideNames = @($overrides.functions.cName | Sort-Object -Unique)
+if ((Compare-Object $overrideNames @($expectedManaged | Where-Object { $_ -in $overrideNames }))) { throw 'The reviewed binding subset contains missing declarations.' }
 $common = Get-Content -Raw -LiteralPath (Join-Path $root 'src\JYPPX.ROCm.MIGraphX.CSharp.API\Generated\NativeMethods.g.cs')
 if (@([regex]::Matches($common, 'internal delegate NativeMIGraphXStatus NativeExperimentalCustomOp')).Count -ne 6) {
     throw 'The six callback delegates were not generated with the normalized model.'
@@ -65,7 +78,7 @@ if (@([regex]::Matches($common, 'internal delegate NativeMIGraphXStatus NativeEx
 if ($common.Contains((Resolve-Path $root).Path, [StringComparison]::OrdinalIgnoreCase)) { throw 'Generated output contains an absolute repository path.' }
 
 [PSCustomObject]@{
-    HeaderItems = $inventory.items.Count
+    HeaderItems = $items.Count
     HeaderFunctions = $expectedHeader.Count
     ManagedEntryPoints = $expectedManaged.Count
     HandwrittenFunctionOverrides = $counts.functions.handwritten

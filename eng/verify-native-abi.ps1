@@ -9,10 +9,10 @@ param(
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
-$manifest = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m2-binding-subset.json') | ConvertFrom-Json
-$model = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-normalized-api.json') | ConvertFrom-Json
-$baseline = Get-Content -Raw -LiteralPath (Join-Path $root 'compatibility\m3-abi-export-baseline.json') | ConvertFrom-Json
-$cache = Join-Path (Get-CacheRoot) 'm1'
+$manifest = Get-Content -Raw -LiteralPath (Join-Path $root 'eng\contracts\binding-overrides.json') | ConvertFrom-Json
+$model = Get-Content -Raw -LiteralPath (Join-Path $root 'eng\contracts\normalized-api.json') | ConvertFrom-Json
+$baseline = Get-Content -Raw -LiteralPath (Join-Path $root 'eng\contracts\native-abi.json') | ConvertFrom-Json
+$cache = Join-Path (Get-CacheRoot) 'native-abi'
 
 if ($AcquireInputs) {
     New-Item -ItemType Directory -Force -Path $cache | Out-Null

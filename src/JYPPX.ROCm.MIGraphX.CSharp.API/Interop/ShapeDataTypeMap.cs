@@ -8,7 +8,7 @@ internal static class ShapeDataTypeMap
     {
         if (!Enum.IsDefined(typeof(MIGraphXShapeDataType), type))
         {
-            throw new ArgumentOutOfRangeException(nameof(type), type, "The shape data type is outside the supported M4 range.");
+            throw new ArgumentOutOfRangeException(nameof(type), type, "The shape data type is outside the supported range.");
         }
 
         return (NativeMIGraphXShapeDataType)(int)type;
@@ -19,7 +19,7 @@ internal static class ShapeDataTypeMap
         var value = (MIGraphXShapeDataType)(int)type;
         if (!Enum.IsDefined(typeof(MIGraphXShapeDataType), value))
         {
-            throw new NotSupportedException($"Native shape data type '{type}' is outside the mapped M4 scalar set.");
+            throw new NotSupportedException($"Native shape data type '{type}' is outside the mapped scalar set.");
         }
 
         return value;
@@ -44,7 +44,7 @@ internal static class ShapeDataTypeMap
             case MIGraphXShapeDataType.UInt64:
                 return 8;
             default:
-                throw new ArgumentOutOfRangeException(nameof(type), type, "The shape data type is outside the supported M4 range.");
+                throw new ArgumentOutOfRangeException(nameof(type), type, "The shape data type is outside the supported range.");
         }
     }
 
@@ -60,6 +60,6 @@ internal static class ShapeDataTypeMap
         if (type == typeof(long)) { return MIGraphXShapeDataType.Int64; }
         if (type == typeof(uint)) { return MIGraphXShapeDataType.UInt32; }
         if (type == typeof(ulong)) { return MIGraphXShapeDataType.UInt64; }
-        throw new NotSupportedException($"Managed element type '{type.FullName}' has no M4 MIGraphX scalar mapping.");
+        throw new NotSupportedException($"Managed element type '{type.FullName}' has no MIGraphX scalar mapping.");
     }
 }

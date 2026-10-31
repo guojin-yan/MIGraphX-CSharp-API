@@ -15,7 +15,7 @@ Let APT resolve the declared ROCm dependencies from the same AMD repository. Do 
 
 The native package is outside the managed NuGet lifecycle. Upgrading MIGraphX/ROCm therefore requires an application compatibility review and a fresh environment probe; a managed package update does not upgrade the native runtime.
 
-Before declaring a native upgrade compatible, repeat frozen-header acquisition, export/ABI checks, applicable system-native positive and negative execution, restart/long-run coverage, and the compatibility matrix review. A matching SONAME or a successful loader probe alone is insufficient.
+After a native upgrade, rerun your application's models, check their outputs, and verify the resource lifetime and execution modes you use. A matching SONAME or successful loader probe alone does not establish compatibility.
 
 ## Select the native root
 

@@ -32,12 +32,12 @@ $surfaces = @(
     @{
         Assembly = 'JYPPX.ROCm.MIGraphX.CSharp.API'
         Package = 'JYPPX.ROCm.MIGraphX.CSharp.API'
-        Snapshot = 'compatibility\managed-public-api.txt'
+        Snapshot = 'eng\contracts\public-api.txt'
     },
     @{
         Assembly = 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop'
         Package = 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop'
-        Snapshot = 'compatibility\m6-adapter-public-api.txt'
+        Snapshot = 'eng\contracts\hip-interop-public-api.txt'
     }
 )
 

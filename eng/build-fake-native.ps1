@@ -34,9 +34,9 @@ if ($IsWindows -or $env:OS -eq 'Windows_NT') {
         try {
             foreach ($item in @(
                 @{ Source = 'fake_migraphx.c'; Output = 'migraphx_c.dll' },
-                @{ Source = 'fake_migraphx.c'; Output = 'migraphx_c_m10_missing.dll'; Defines = @('/DFAKE_DISABLE_M10') },
+                @{ Source = 'fake_migraphx.c'; Output = 'migraphx_c_comparison_missing.dll'; Defines = @('/DFAKE_DISABLE_COMPARISON') },
                 @{ Source = 'missing_export.c'; Output = 'migraphx_c_missing_export.dll' },
-                @{ Source = 'm1_only.c'; Output = 'migraphx_c_m1_only.dll' }
+                @{ Source = 'environment_only.c'; Output = 'migraphx_c_environment_only.dll' }
             )) {
                 $source = Join-Path $sourceDirectory $item.Source
                 $output = Join-Path $outputDirectory $item.Output
@@ -72,11 +72,11 @@ else {
     if (-not $compilerCommand) { throw 'A C compiler (cc or gcc) is required to build fake-native.' }
     & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 (Join-Path $sourceDirectory 'fake_migraphx.c') -o (Join-Path $outputDirectory 'libmigraphx_c.so')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build fake native library.' }
-    & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 -DFAKE_DISABLE_M10 (Join-Path $sourceDirectory 'fake_migraphx.c') -o (Join-Path $outputDirectory 'libmigraphx_c_m10_missing.so')
+    & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 -DFAKE_DISABLE_COMPARISON (Join-Path $sourceDirectory 'fake_migraphx.c') -o (Join-Path $outputDirectory 'libmigraphx_c_comparison_missing.so')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build the registry/equality-missing substitute library.' }
     & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 (Join-Path $sourceDirectory 'missing_export.c') -o (Join-Path $outputDirectory 'libmigraphx_c_missing_export.so')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build missing-export fake native library.' }
-    & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 (Join-Path $sourceDirectory 'm1_only.c') -o (Join-Path $outputDirectory 'libmigraphx_c_m1_only.so')
+    & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 (Join-Path $sourceDirectory 'environment_only.c') -o (Join-Path $outputDirectory 'libmigraphx_c_environment_only.so')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build the loader-only substitute library.' }
     & $compilerCommand.Source -shared -fPIC -Wall -Wextra -Werror -O2 $hipSource -o (Join-Path $hipOutputDirectory 'libamdhip64.so')
     if ($LASTEXITCODE -ne 0) { throw 'Failed to build fake HIP native library.' }

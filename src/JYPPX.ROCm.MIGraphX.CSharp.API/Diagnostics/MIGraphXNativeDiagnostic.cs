@@ -16,13 +16,13 @@ public enum MIGraphXNativeDiagnosticKind
     DependencyMissing = 3,
     /// <summary>平台加载器报告了其他错误。 The platform loader reported another error.</summary>
     LoadFailure = 4,
-    /// <summary>固定 M1 入口未导出。 A frozen M1 entry point was not exported.</summary>
+    /// <summary>基础环境所需入口未导出。 A required environment entry point was not exported.</summary>
     ExportMissing = 5,
-    /// <summary>库和固定 M1 导出已加载。 The library and frozen M1 exports were loaded.</summary>
+    /// <summary>库和基础环境所需导出已加载。 The library and required environment exports were loaded.</summary>
     Loaded = 6,
     /// <summary>target/program 纵向路径已执行。 The target/program vertical path was executed.</summary>
     Executed = 7,
-    /// <summary>基础库可用，但 M2 ONNX 同步工作流导出不完整。 The base library is available, but M2 ONNX synchronous-workflow exports are incomplete.</summary>
+    /// <summary>基础库可用，但 ONNX 同步工作流导出不完整。 The base library is available, but ONNX synchronous-workflow exports are incomplete.</summary>
     OnnxFrontendMissing = 8,
 }
 
