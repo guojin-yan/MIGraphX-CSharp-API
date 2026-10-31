@@ -113,6 +113,7 @@ typedef struct fake_experimental_custom_op
     void* output_alias;
     void* runs_on_offload_target;
     char object_type_name[64];
+    const char* borrowed_type_name;
     char name[64];
     int registered;
 } *migraphx_experimental_custom_op_t;

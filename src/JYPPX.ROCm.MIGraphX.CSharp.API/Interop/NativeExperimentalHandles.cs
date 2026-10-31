@@ -9,23 +9,15 @@ internal sealed class NativeExperimentalCustomOpHandle : NativeOwnedHandle
         IntPtr copy,
         IntPtr delete,
         IntPtr objectTypeName,
-        IntPtr name,
-        Action releaseUntransferredState)
+        IntPtr name)
     {
-        if (releaseUntransferredState is null) throw new ArgumentNullException(nameof(releaseUntransferredState));
         var slot = System.Runtime.InteropServices.Marshal.AllocHGlobal(IntPtr.Size);
         System.Runtime.InteropServices.Marshal.WriteIntPtr(slot, IntPtr.Zero);
         NativeExperimentalCustomOpHandle? owned = null;
-        var stateReleased = false;
         try
         {
             var status = NativeMethods.ExperimentalCustomOpCreate(slot, obj, copy, delete, objectTypeName, name);
             var raw = System.Runtime.InteropServices.Marshal.ReadIntPtr(slot);
-            if (raw == IntPtr.Zero)
-            {
-                stateReleased = true;
-                releaseUntransferredState();
-            }
             owned = new NativeExperimentalCustomOpHandle();
             owned.Initialize(raw);
             return NativeHandleFactory.CompleteCreate(owned, status, "migraphx_experimental_custom_op_create");
@@ -41,10 +33,6 @@ internal sealed class NativeExperimentalCustomOpHandle : NativeOwnedHandle
                     {
                         abandoned.Initialize(raw);
                     }
-                }
-                else if (!stateReleased)
-                {
-                    releaseUntransferredState();
                 }
             }
             throw;

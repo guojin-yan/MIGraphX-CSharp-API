@@ -32,6 +32,8 @@ A context belongs to the program revision from which it was acquired. Graph edit
 
 `MIGraphXExperimentalCustomOp` registers managed callbacks for native custom-operation behavior. Callback roots remain alive while native ownership requires them; callback exceptions are translated to `UnknownError` with bounded UTF-8 error text when the ABI supplies a buffer.
 
+Native copies retain a snapshot of the callbacks and the borrowed object type name independently of the original wrapper. Replacing or clearing a callback affects future copies; existing registered operations keep their original callbacks. Disposing the wrapper releases its own native object, while registry/program copies retain their callbacks and state until the provider deletes those copies. The fixed C API offers no unregister operation, so a global registry entry may keep captured managed objects alive for the process lifetime. Avoid capturing unrelated disposable resources in registered callbacks. Each callback's `obj` remains a GCHandle whose target is the original managed state object.
+
 This is an experimental raw callback API. Follow each callback's XML documentation for pointer and ownership contracts. Host-reference callback diagnostics do not establish GPU/device-buffer handling, every callback sequence, or complete provider lifecycle support.
 
 中文提示：图视图依附 program，不能独立创建没有销毁契约的 module owner。TensorFlow、量化与自定义算子的完整真实语义仍需验证，尤其要确认设备内存与回调生命周期。

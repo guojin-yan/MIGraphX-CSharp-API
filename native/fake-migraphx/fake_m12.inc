@@ -778,7 +778,13 @@ EXPORT migraphx_status migraphx_experimental_custom_op_create(
     }
     *out = (migraphx_experimental_custom_op_t)create_m12(sizeof(**out));
     if(*out == NULL) return migraphx_status_unknown_error;
-    (*out)->object = object; (*out)->copy = copy; (*out)->delete_object = delete_object;
+    (*out)->copy = copy; (*out)->delete_object = delete_object;
+    if(copy(&(*out)->object, object) != migraphx_status_success)
+    {
+        destroy_m12(*out); *out = NULL; return migraphx_status_unknown_error;
+    }
+    /* The official provider borrows obj_typename for every copied operation. */
+    (*out)->borrowed_type_name = object_type_name;
     copy_string((*out)->object_type_name, sizeof((*out)->object_type_name), object_type_name);
     copy_string((*out)->name, sizeof((*out)->name), name);
     return (migraphx_status)take_status_for("migraphx_experimental_custom_op_create");
@@ -877,6 +883,24 @@ EXPORT migraphx_status fake_invoke_custom_callbacks(migraphx_experimental_custom
         if(status != migraphx_status_success) return status;
     }
     return migraphx_status_success;
+}
+
+/* Test-only provider copy, independent of the caller's wrapper lifetime. */
+EXPORT migraphx_experimental_custom_op_t fake_copy_custom_op(migraphx_experimental_custom_op_t operation)
+{
+    migraphx_experimental_custom_op_t result;
+    void* copied = NULL;
+    if(operation == NULL || operation->copy(&copied, operation->object) != migraphx_status_success) return NULL;
+    result = (migraphx_experimental_custom_op_t)create_m12(sizeof(*result));
+    if(result == NULL) { operation->delete_object(copied); return NULL; }
+    *result = *operation;
+    result->object = copied;
+    return result;
+}
+
+EXPORT const char* fake_custom_op_type_name(migraphx_experimental_custom_op_t operation)
+{
+    return operation == NULL ? NULL : operation->borrowed_type_name;
 }
 
 /* Test-only entry point: copy managed state, invoke through the copy, then delete it. */

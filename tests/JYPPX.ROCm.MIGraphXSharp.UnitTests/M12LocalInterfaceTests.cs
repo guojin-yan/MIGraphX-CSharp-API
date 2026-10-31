@@ -923,6 +923,67 @@ public sealed class M12LocalInterfaceTests
         AssertNoNativeLeaks(controls);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void NativeCustomOpCopiesRetainCallbackSnapshotsAndBorrowedTypeName(bool abandonOriginal)
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        var baseline = NativeCustomOpState.LiveCount;
+        var copy = CreateCopiedCustomOp(path, controls, abandonOriginal);
+        var next = IntPtr.Zero;
+        try
+        {
+            AssertEventuallyCollected(copy.Operation);
+            Assert.True(copy.Capture.IsAlive);
+            Assert.Equal("持久类型名-" + new string('x', 160), controls.CustomTypeName(copy.Pointer));
+            Assert.Equal(0, controls.InvokeCustomCallbacks(copy.Pointer));
+            AssertCaptureCount(copy.Capture, 4);
+            next = controls.CopyCustomOp(copy.Pointer);
+            Assert.NotEqual(IntPtr.Zero, next);
+            controls.DestroyCustomOp(copy.Pointer);
+            copy.Pointer = IntPtr.Zero;
+            CollectGarbage();
+            Assert.True(copy.Capture.IsAlive);
+            Assert.Equal(0, controls.InvokeCustomCallbacks(next));
+            AssertCaptureCount(copy.Capture, 8);
+            Assert.Equal("持久类型名-" + new string('x', 160), controls.CustomTypeName(next));
+        }
+        finally
+        {
+            if (copy.Pointer != IntPtr.Zero) controls.DestroyCustomOp(copy.Pointer);
+            if (next != IntPtr.Zero) controls.DestroyCustomOp(next);
+        }
+        Assert.Equal(baseline, NativeCustomOpState.LiveCount);
+        AssertEventuallyCollected(copy.Capture);
+        AssertNoNativeLeaks(controls);
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void AssertCaptureCount(WeakReference reference, int expected)
+        => Assert.Equal(expected, ((CallbackLifetimeCapture)reference.Target!).InvocationCount);
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static (IntPtr Pointer, WeakReference Operation, WeakReference Capture) CreateCopiedCustomOp(string path, FakeControls controls, bool abandonOriginal)
+    {
+        var capture = new CallbackLifetimeCapture();
+        var operation = new MIGraphXExperimentalCustomOp(path, "copied_callbacks", new object(), "持久类型名-" + new string('x', 160));
+        operation.SetCompute((_, _, _, _, _, _, _) => { capture.InvocationCount++; return MIGraphXStatus.Success; });
+        operation.SetComputeShape((_, _, _, _, _) => { capture.InvocationCount++; return MIGraphXStatus.Success; });
+        operation.SetOutputAlias((_, _, _, _, _, _) => { capture.InvocationCount++; return MIGraphXStatus.Success; });
+        operation.SetRunsOnOffloadTarget((_, _, _, _) => { capture.InvocationCount++; return MIGraphXStatus.Success; });
+        var pointer = controls.CopyCustomOp(operation.Owner.WithHandle(static handle => handle));
+        Assert.NotEqual(IntPtr.Zero, pointer);
+        operation.SetCompute(null);
+        operation.SetComputeShape(null);
+        operation.SetOutputAlias(null);
+        operation.SetRunsOnOffloadTarget(null);
+        if (!abandonOriginal) operation.Dispose();
+        return (pointer, new WeakReference(operation), new WeakReference(capture));
+    }
+
     [Fact]
     public void CustomOpReplacingComputeCallbackReleasesObsoleteThunkRoot()
     {
@@ -1797,6 +1858,7 @@ public sealed class M12LocalInterfaceTests
         Assert.Equal(0, controls.ProgramLiveCount());
         Assert.Equal(0, controls.M2LiveCount());
         Assert.Equal(0, controls.M12LiveCount());
+        Assert.Equal(0, NativeCustomOpState.LiveCount);
     }
 
     private static string FakePath() => Path.Combine(RepositoryPaths.Artifacts,
@@ -1833,6 +1895,9 @@ public sealed class M12LocalInterfaceTests
         private readonly GetInt programPrintCount;
         private readonly GetInt programSortCount;
         private readonly CustomCallbackInvoker invokeCustomCallbacks;
+        private readonly CustomCopyInvoker copyCustomOp;
+        private readonly CustomCopyInvoker customTypeName;
+        private readonly CustomCallbackInvoker destroyCustomOp;
         private readonly CustomCallbackInvoker invokeCustomStateCopyCallbacks;
         private readonly CustomCallbackErrorInvoker invokeCustomComputeWithErrorBuffer;
 
@@ -1860,6 +1925,9 @@ public sealed class M12LocalInterfaceTests
             providerCallbackDispatchCount = Get<GetInt>("fake_provider_callback_dispatch_count");
             providerCallbackMessage = Get<GetString>("fake_provider_callback_message");
             invokeCustomCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_callbacks");
+            copyCustomOp = Get<CustomCopyInvoker>("fake_copy_custom_op");
+            customTypeName = Get<CustomCopyInvoker>("fake_custom_op_type_name");
+            destroyCustomOp = Get<CustomCallbackInvoker>("migraphx_experimental_custom_op_destroy");
             invokeCustomStateCopyCallbacks = Get<CustomCallbackInvoker>("fake_invoke_custom_state_copy_callbacks");
             invokeCustomComputeWithErrorBuffer = Get<CustomCallbackErrorInvoker>("fake_invoke_custom_compute_with_error_buffer");
             programPrintCount = Get<GetInt>("fake_program_print_count");
@@ -1887,6 +1955,9 @@ public sealed class M12LocalInterfaceTests
         internal int ProviderCallbackDispatchCount() => providerCallbackDispatchCount();
         internal string ProviderCallbackMessage() => Marshal.PtrToStringUTF8(providerCallbackMessage()) ?? string.Empty;
         internal int InvokeCustomCallbacks(IntPtr operation) => invokeCustomCallbacks(operation);
+        internal IntPtr CopyCustomOp(IntPtr operation) => copyCustomOp(operation);
+        internal string CustomTypeName(IntPtr operation) => Marshal.PtrToStringUTF8(customTypeName(operation))!;
+        internal void DestroyCustomOp(IntPtr operation) => Assert.Equal(0, destroyCustomOp(operation));
         internal int InvokeCustomStateCopyCallbacks(IntPtr operation) => invokeCustomStateCopyCallbacks(operation);
         internal int InvokeCustomComputeWithErrorBuffer(IntPtr operation, IntPtr message, UIntPtr size)
             => invokeCustomComputeWithErrorBuffer(operation, message, size);
@@ -1900,6 +1971,7 @@ public sealed class M12LocalInterfaceTests
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate IntPtr GetString();
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetInt(int value);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackInvoker(IntPtr operation);
+        [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate IntPtr CustomCopyInvoker(IntPtr operation);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate int CustomCallbackErrorInvoker(IntPtr operation, IntPtr message, UIntPtr size);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetString([MarshalAs(UnmanagedType.LPUTF8Str)] string value);
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)] private delegate void SetStringInt([MarshalAs(UnmanagedType.LPUTF8Str)] string value, int status);
