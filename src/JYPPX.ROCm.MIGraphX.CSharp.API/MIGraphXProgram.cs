@@ -14,7 +14,6 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 public sealed class MIGraphXProgram : IDisposable
 {
     private readonly NativeResourceOwner<NativeProgramHandle> owner;
-    private readonly IReadOnlyDictionary<string, MIGraphXDynamicDimension[]> dynamicOverrides;
     private readonly NativeProgramState state;
 
     /// <summary>
@@ -27,14 +26,12 @@ public sealed class MIGraphXProgram : IDisposable
         var runtime = NativeRuntime.Load(nativeLibraryPath);
         owner = new NativeResourceOwner<NativeProgramHandle>(runtime, NativeProgramHandle.Create());
         state = new NativeProgramState(owner.Id, owner.Sync);
-        dynamicOverrides = new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
     }
 
     private MIGraphXProgram(NativeRuntime runtime, NativeProgramHandle handle, IReadOnlyDictionary<string, MIGraphXDynamicDimension[]>? dynamicOverrides = null)
     {
         owner = new NativeResourceOwner<NativeProgramHandle>(runtime, handle);
-        state = new NativeProgramState(owner.Id, owner.Sync);
-        this.dynamicOverrides = dynamicOverrides ?? new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
+        state = new NativeProgramState(owner.Id, owner.Sync, dynamicOverrides);
     }
 
     /// <summary>获取 program 是否已由此对象成功编译；Dispose 后访问会失败。 Gets whether this object successfully compiled the program; access fails after disposal.</summary>
@@ -136,7 +133,7 @@ public sealed class MIGraphXProgram : IDisposable
                 var pointer = Marshal.ReadIntPtr(slot);
                 if (pointer == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_get_main_module (success with null module)");
                 var lease = owner.AcquireLease();
-                try { return new MIGraphXModule(owner.Runtime, lease, pointer, state); }
+                try { return new MIGraphXModule(owner.Runtime, lease, pointer, state, isMainModule: true); }
                 catch { lease.Dispose(); throw; }
             }
             finally { Marshal.FreeHGlobal(slot); }
@@ -152,12 +149,15 @@ public sealed class MIGraphXProgram : IDisposable
         {
             var module = owner.WithHandle(program =>
             {
+                if (state.ModuleNames.Contains(name))
+                    throw new ArgumentException("The module name is already used by this program.", nameof(name));
                 var slot = Marshal.AllocHGlobal(IntPtr.Size);
                 try
                 {
                     Marshal.WriteIntPtr(slot, IntPtr.Zero);
                     state.InvalidateCompilation();
                     NativeStatus.ThrowIfFailed(NativeMethods.ProgramCreateModule(slot, program, utf8.Pointer), "migraphx_program_create_module");
+                    state.ModuleNames.Add(name);
                     var pointer = Marshal.ReadIntPtr(slot);
                     if (pointer == IntPtr.Zero) throw new MIGraphXException((int)NativeMIGraphXStatus.UnknownError, "migraphx_program_create_module (success with null module)");
                     var lease = owner.AcquireLease();
@@ -483,11 +483,8 @@ public sealed class MIGraphXProgram : IDisposable
         return owner.WithHandle(handle =>
         {
             state.RequireIdle();
-            var overrides = dynamicOverrides.ToDictionary(
-                pair => pair.Key,
-                pair => pair.Value.ToArray(),
-                StringComparer.Ordinal);
-            var result = new MIGraphXProgram(owner.Runtime, NativeProgramHandle.CloneFrom(handle), overrides);
+            var result = new MIGraphXProgram(owner.Runtime, NativeProgramHandle.CloneFrom(handle), state.DynamicOverrides);
+            result.state.ModuleNames.UnionWith(state.ModuleNames);
             result.state.IsCompiled = state.IsCompiled;
             result.state.OffloadCopy = state.OffloadCopy;
             return result;
@@ -615,7 +612,7 @@ public sealed class MIGraphXProgram : IDisposable
                             NativeMethods.ProgramParameterShapesGet(out var shape, nativeShapes.DangerousGetHandle(), utf8.Pointer),
                             "migraphx_program_parameter_shapes_get");
                         shape = NativeBorrowedOutput.RequireHandle(shape, "migraphx_program_parameter_shapes_get");
-                        dynamicOverrides.TryGetValue(name, out var fallback);
+                        state.DynamicOverrides.TryGetValue(name, out var fallback);
                         result.Add(new KeyValuePair<string, MIGraphXShape>(name, MIGraphXShape.FromNative(shape, $"parameter '{name}'", fallback)));
                     }
                 }

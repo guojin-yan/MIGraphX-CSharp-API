@@ -12,6 +12,129 @@ namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
 public sealed class M12LocalInterfaceTests
 {
     [Fact]
+    public void GraphDynamicMainParameterRangesSurviveViewsAndProgramClones()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        var shape = MIGraphXShape.CreateDynamic(MIGraphXShapeDataType.Float32, new[]
+        {
+            MIGraphXDynamicDimension.Range(2, 8, new long[] { 4, 6 }),
+            MIGraphXDynamicDimension.Fixed(4),
+        });
+        using (var program = new MIGraphXProgram(path))
+        {
+            using (var main = program.GetMainModule())
+            using (var parameter = main.AddParameter("tensor", shape))
+            using (var submodule = program.CreateModule("branch"))
+            using (var nested = submodule.AddParameter("tensor", MIGraphXShape.CreateDynamic(
+                MIGraphXShapeDataType.Float32, new[] { MIGraphXDynamicDimension.Range(16, 32) })))
+            {
+                Assert.True(shape.HasSameNativeContent(program.GetParameterShapes()["tensor"]));
+            }
+            using var clone = program.Clone();
+            program.Dispose();
+            using var secondClone = clone.Clone();
+            clone.Dispose();
+            Assert.True(shape.HasSameNativeContent(secondClone.GetParameterShapes()["tensor"]));
+            using var target = new MIGraphXTarget(path);
+            using var compile = new MIGraphXCompileOptions(path);
+            secondClone.Compile(target, compile);
+            using var map = new MIGraphXParameterMap(path);
+            using var invalid = MIGraphXArgument.Create(path,
+                new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }), new float[4]);
+            map.Add("tensor", invalid);
+            Assert.Throws<ArgumentException>(() => secondClone.Run(map));
+            Assert.True(secondClone.IsCompiled);
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public void DuplicateModuleNamesAreRejectedBeforeNativeMutationAndRetainedByClones()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        using (var program = new MIGraphXProgram(path))
+        using (var branch = program.CreateModule("branch"))
+        using (var target = new MIGraphXTarget(path))
+        using (var compile = new MIGraphXCompileOptions(path))
+        {
+            program.Compile(target, compile);
+            using var clone = program.Clone();
+            using var context = program.GetExperimentalContext();
+            foreach (var name in new[] { "main", "branch" })
+            {
+                Assert.Equal("name", Assert.Throws<ArgumentException>(() => program.CreateModule(name)).ParamName);
+                Assert.Equal("name", Assert.Throws<ArgumentException>(() => clone.CreateModule(name)).ParamName);
+                Assert.True(program.IsCompiled);
+                Assert.True(clone.IsCompiled);
+                context.Finish();
+            }
+            using var later = program.CreateModule("later");
+            using var independent = clone.CreateModule("later");
+            Assert.False(clone.IsCompiled);
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
+    public void GraphRejectsForeignProgramReferencesBeforeInvalidatingCompilation()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path);
+        controls.Reset();
+        using (var program = new MIGraphXProgram(path))
+        using (var other = new MIGraphXProgram(path))
+        using (var main = program.GetMainModule())
+        using (var foreignModule = other.GetMainModule())
+        using (var localModule = program.CreateModule("local"))
+        using (var local = main.AddParameter("input", new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 })))
+        using (var foreign = foreignModule.AddParameter("input", new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 })))
+        using (var localArguments = new MIGraphXInstructions(path, new[] { local }))
+        using (var mixedArguments = new MIGraphXInstructions(path, new[] { local, foreign }))
+        using (var foreignModules = new MIGraphXModules(path, new[] { foreignModule }))
+        using (var localModules = new MIGraphXModules(path, new[] { localModule }))
+        using (var operation = MIGraphXOperation.Create(path, "identity"))
+        using (var target = new MIGraphXTarget(path))
+        using (var compile = new MIGraphXCompileOptions(path))
+        using (var borrowed = MIGraphXArgument.CreateExternal(program.Runtime, new MIGraphXShape(MIGraphXShapeDataType.Float32, new long[] { 1, 4 }), new IntPtr(1)))
+        {
+            foreign.Dispose();
+            foreignModule.Dispose();
+            other.Dispose();
+            using var copiedArguments = mixedArguments.Clone();
+            using var copiedModules = foreignModules.Clone();
+            program.Compile(target, compile);
+            using var context = program.GetExperimentalContext();
+            var nativeLive = controls.M12LiveCount();
+            foreach (var arguments in new[] { mixedArguments, copiedArguments })
+            {
+                Assert.Equal("arguments", Assert.Throws<ArgumentException>(() => main.AddReturn(arguments)).ParamName);
+                Assert.Equal("arguments", Assert.Throws<ArgumentException>(() => main.AddInstruction(operation, arguments)).ParamName);
+                Assert.Equal("arguments", Assert.Throws<ArgumentException>(() => main.AddInstructionWithModuleArgs(operation, arguments, localModules)).ParamName);
+                Assert.True(program.IsCompiled);
+                context.Finish();
+                Assert.Equal(nativeLive, controls.M12LiveCount());
+            }
+            foreach (var modules in new[] { foreignModules, copiedModules })
+            {
+                Assert.Equal("moduleRefs", Assert.Throws<ArgumentException>(() => main.AddInstructionWithModuleArgs(operation, localArguments, modules)).ParamName);
+                Assert.True(program.IsCompiled);
+                context.Finish();
+                Assert.Equal(nativeLive, controls.M12LiveCount());
+            }
+            Assert.Throws<NotSupportedException>(() => main.AddLiteral(borrowed));
+            Assert.True(program.IsCompiled);
+            context.Finish();
+            using var legal = main.AddInstructionWithModuleArgs(operation, localArguments, localModules);
+            Assert.False(program.IsCompiled);
+        }
+        AssertNoNativeLeaks(controls);
+    }
+
+    [Fact]
     public void StrictUtf8StringDisposeIsIdempotent()
     {
         using var value = new StrictUtf8String("migraphx", "value");

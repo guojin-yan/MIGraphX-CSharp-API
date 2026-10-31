@@ -10,7 +10,9 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 public sealed class MIGraphXInstruction : IDisposable
 {
     private readonly NativeResourceOwner<NativeInstructionHandle> owner;
-    internal MIGraphXInstruction(NativeRuntime runtime, NativeInstructionHandle handle) => owner = new NativeResourceOwner<NativeInstructionHandle>(runtime, handle);
+    internal MIGraphXInstruction(NativeRuntime runtime, NativeInstructionHandle handle)
+    { owner = new NativeResourceOwner<NativeInstructionHandle>(runtime, handle); ProgramId = handle.ProgramId; }
+    internal long ProgramId { get; }
     internal NativeResourceOwner<NativeInstructionHandle> Owner => owner;
     /// <summary>释放 native instruction。 Releases the native instruction handle.</summary>
     public void Dispose() => owner.Dispose();
@@ -71,6 +73,12 @@ public sealed class MIGraphXInstructions : IDisposable
         });
     }
     internal NativeResourceOwner<NativeInstructionsHandle> Owner => owner;
+    internal void RequireProgramUnderLock(long programId, string parameterName)
+    {
+        _ = owner.HandleUnderLock;
+        if (instructions.Any(instruction => instruction.ProgramId != programId))
+            throw new ArgumentException("Instructions must belong to the destination program.", parameterName);
+    }
     /// <summary>释放 native instruction 集合。 Releases the native instruction-list handle.</summary>
     public void Dispose()
     {
@@ -224,17 +232,19 @@ public sealed class MIGraphXModule : IDisposable
     private readonly NativeRuntime runtime;
     private NativeHandleLease? programLease;
     private readonly NativeProgramState state;
+    private readonly bool isMainModule;
     private object sync => state.Sync;
     private readonly IntPtr handle;
     private long id => state.Id;
 
-    internal MIGraphXModule(NativeRuntime runtime, NativeHandleLease programLease, IntPtr handle, NativeProgramState state)
+    internal MIGraphXModule(NativeRuntime runtime, NativeHandleLease programLease, IntPtr handle, NativeProgramState state, bool isMainModule = false)
     {
         if (handle == IntPtr.Zero) throw new ArgumentException("The native module handle must not be null.", nameof(handle));
         this.runtime = runtime;
         this.programLease = programLease;
         this.handle = handle;
         this.state = state;
+        this.isMainModule = isMainModule;
     }
 
     internal NativeRuntime Runtime => runtime;
@@ -259,7 +269,16 @@ public sealed class MIGraphXModule : IDisposable
         using (var utf8 = new StrictUtf8String(name, nameof(name)))
         using (var nativeShape = CreateNativeShape(shape))
         {
-            return AddInstructionCore((slot, _) => NativeMethods.ModuleAddParameter(slot, HandleUnderLock, utf8.Pointer, nativeShape.DangerousGetHandle()), "migraphx_module_add_parameter");
+            lock (sync)
+            {
+                var instruction = AddInstructionCore((slot, _) => NativeMethods.ModuleAddParameter(slot, HandleUnderLock, utf8.Pointer, nativeShape.DangerousGetHandle()), "migraphx_module_add_parameter");
+                if (isMainModule)
+                {
+                    if (shape.IsDynamic) state.DynamicOverrides[name] = shape.DynamicDimensions.ToArray();
+                    else state.DynamicOverrides.Remove(name);
+                }
+                return instruction;
+            }
         }
     }
 
@@ -280,6 +299,7 @@ public sealed class MIGraphXModule : IDisposable
     {
         if (argument is null) throw new ArgumentNullException(nameof(argument));
         runtime.RequireSame(argument.Owner.Runtime, nameof(argument));
+        if (!argument.IsHostBacked) throw new NotSupportedException("Graph literals require owned host-backed arguments.");
         using (var nativeShape = CreateNativeShape(argument.Shape))
         {
             return NativeResourceLock.With(
@@ -306,7 +326,11 @@ public sealed class MIGraphXModule : IDisposable
         runtime.RequireSame(arguments.Owner.Runtime, nameof(arguments));
         return NativeResourceLock.With(
             new[] { NativeResourceLock.Target(id, sync), NativeResourceLock.Target(arguments.Owner.Id, arguments.Owner.Sync) },
-            () => AddInstructionCore((slot, _) => NativeMethods.ModuleAddReturn(slot, HandleUnderLock, arguments.Owner.HandleUnderLock), "migraphx_module_add_return"));
+            () =>
+            {
+                arguments.RequireProgramUnderLock(id, nameof(arguments));
+                return AddInstructionCore((slot, _) => NativeMethods.ModuleAddReturn(slot, HandleUnderLock, arguments.Owner.HandleUnderLock), "migraphx_module_add_return");
+            });
     }
 
     /// <summary>向 module 添加 instruction。 Adds an operation instruction to the module.</summary>
@@ -320,7 +344,11 @@ public sealed class MIGraphXModule : IDisposable
         runtime.RequireSame(arguments.Owner.Runtime, nameof(arguments));
         return NativeResourceLock.With(
             new[] { NativeResourceLock.Target(id, sync), NativeResourceLock.Target(operation.Owner.Id, operation.Owner.Sync), NativeResourceLock.Target(arguments.Owner.Id, arguments.Owner.Sync) },
-            () => AddInstructionCore((slot, _) => NativeMethods.ModuleAddInstruction(slot, HandleUnderLock, operation.Owner.HandleUnderLock, arguments.Owner.HandleUnderLock), "migraphx_module_add_instruction"));
+            () =>
+            {
+                arguments.RequireProgramUnderLock(id, nameof(arguments));
+                return AddInstructionCore((slot, _) => NativeMethods.ModuleAddInstruction(slot, HandleUnderLock, operation.Owner.HandleUnderLock, arguments.Owner.HandleUnderLock), "migraphx_module_add_instruction");
+            });
     }
 
     /// <summary>使用 module 引用添加 instruction。 Adds an instruction with referenced submodules.</summary>
@@ -337,7 +365,12 @@ public sealed class MIGraphXModule : IDisposable
         runtime.RequireSame(moduleRefs.Owner.Runtime, nameof(moduleRefs));
         return NativeResourceLock.With(
             new[] { NativeResourceLock.Target(id, sync), NativeResourceLock.Target(operation.Owner.Id, operation.Owner.Sync), NativeResourceLock.Target(arguments.Owner.Id, arguments.Owner.Sync), NativeResourceLock.Target(moduleRefs.Owner.Id, moduleRefs.Owner.Sync) },
-            () => AddInstructionCore((slot, _) => NativeMethods.ModuleAddInstructionWithModArgs(slot, HandleUnderLock, operation.Owner.HandleUnderLock, arguments.Owner.HandleUnderLock, moduleRefs.Owner.HandleUnderLock), "migraphx_module_add_instruction_with_mod_args"));
+            () =>
+            {
+                arguments.RequireProgramUnderLock(id, nameof(arguments));
+                moduleRefs.RequireProgramUnderLock(id, nameof(moduleRefs));
+                return AddInstructionCore((slot, _) => NativeMethods.ModuleAddInstructionWithModArgs(slot, HandleUnderLock, operation.Owner.HandleUnderLock, arguments.Owner.HandleUnderLock, moduleRefs.Owner.HandleUnderLock), "migraphx_module_add_instruction_with_mod_args");
+            });
     }
 
     /// <summary>释放 module 视图。 Releases the program lease held by this module view.</summary>
@@ -359,7 +392,7 @@ public sealed class MIGraphXModule : IDisposable
             {
                 state.InvalidateCompilation();
                 output.Complete(create(output.OutSlot, module));
-                output.Handle.RetainProgram(AcquireProgramLeaseUnderLock());
+                output.Handle.RetainProgram(AcquireProgramLeaseUnderLock(), id);
                 return new MIGraphXInstruction(runtime, output.Handle);
             }
             catch
@@ -379,6 +412,7 @@ public sealed class MIGraphXModules : IDisposable
 {
     private readonly NativeResourceOwner<NativeModulesHandle> owner;
     private readonly IntPtr[] modulePointers;
+    private readonly long[] programIds;
     private NativeHandleLease[]? programLeases;
 
     /// <summary>从 module 列表创建集合。 Creates a native module list from managed modules.</summary>
@@ -394,10 +428,17 @@ public sealed class MIGraphXModules : IDisposable
         var created = CreateWithLeases(copied);
         owner = new NativeResourceOwner<NativeModulesHandle>(runtime, created.Handle);
         modulePointers = created.Pointers;
+        programIds = copied.Select(module => module.Id).ToArray();
         programLeases = created.Leases;
     }
 
     internal NativeResourceOwner<NativeModulesHandle> Owner => owner;
+    internal void RequireProgramUnderLock(long programId, string parameterName)
+    {
+        _ = owner.HandleUnderLock;
+        if (programIds.Any(value => value != programId))
+            throw new ArgumentException("Module references must belong to the destination program.", parameterName);
+    }
     /// <summary>获取 module 数量。 Gets the number of modules.</summary>
     public int Count => owner.WithHandle(_ => modulePointers.Length);
     /// <summary>复制 module 集合。 Creates an independent native module-list clone.</summary>
@@ -410,7 +451,7 @@ public sealed class MIGraphXModules : IDisposable
             {
                 var pointers = (IntPtr[])modulePointers.Clone();
                 var handle = NativeModulesHandle.CloneFrom(source, pointers);
-                return new MIGraphXModules(owner.Runtime, handle, pointers, leases);
+                return new MIGraphXModules(owner.Runtime, handle, pointers, leases, (long[])programIds.Clone());
             }
             catch
             {
@@ -419,11 +460,12 @@ public sealed class MIGraphXModules : IDisposable
             }
         });
     }
-    private MIGraphXModules(NativeRuntime runtime, NativeModulesHandle handle, IntPtr[] pointers, NativeHandleLease[] leases)
+    private MIGraphXModules(NativeRuntime runtime, NativeModulesHandle handle, IntPtr[] pointers, NativeHandleLease[] leases, long[] programIds)
     {
         owner = new NativeResourceOwner<NativeModulesHandle>(runtime, handle);
         modulePointers = pointers;
         programLeases = leases;
+        this.programIds = programIds;
     }
     /// <summary>释放 native module 集合。 Releases the native module-list handle.</summary>
     public void Dispose()

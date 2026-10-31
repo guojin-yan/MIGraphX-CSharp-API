@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace JYPPX.ROCm.MIGraphXSharp.Interop;
@@ -7,10 +9,18 @@ namespace JYPPX.ROCm.MIGraphXSharp.Interop;
 // stays with their SafeHandle leases; this object contains no native pointer.
 internal sealed class NativeProgramState
 {
-    internal NativeProgramState(long id, object sync) { Id = id; Sync = sync; }
+    internal NativeProgramState(long id, object sync, IReadOnlyDictionary<string, MIGraphXDynamicDimension[]>? dynamicOverrides = null)
+    {
+        Id = id;
+        Sync = sync;
+        DynamicOverrides = dynamicOverrides?.ToDictionary(pair => pair.Key, pair => pair.Value.ToArray(), StringComparer.Ordinal)
+            ?? new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
+    }
 
     internal long Id { get; }
     internal object Sync { get; }
+    internal Dictionary<string, MIGraphXDynamicDimension[]> DynamicOverrides { get; }
+    internal HashSet<string> ModuleNames { get; } = new HashSet<string>(StringComparer.Ordinal) { "main" };
     internal bool IsCompiled { get; set; }
     internal bool OffloadCopy { get; set; }
     internal long Revision { get; private set; }

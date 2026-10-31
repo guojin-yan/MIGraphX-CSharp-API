@@ -7,8 +7,9 @@ namespace JYPPX.ROCm.MIGraphXSharp.Interop;
 internal sealed class NativeInstructionHandle : NativeOwnedHandle
 {
     private NativeHandleLease? programLease;
+    internal long ProgramId { get; private set; }
 
-    internal void RetainProgram(NativeHandleLease lease) => programLease = lease;
+    internal void RetainProgram(NativeHandleLease lease, long programId) { programLease = lease; ProgramId = programId; }
 
     internal static NativeInstructionHandle FromOut(IntPtr slot, string operation)
     {

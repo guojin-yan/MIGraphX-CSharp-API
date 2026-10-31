@@ -403,8 +403,16 @@ EXPORT migraphx_status migraphx_module_add_literal(migraphx_instruction_t* out, 
 
 EXPORT migraphx_status migraphx_module_add_parameter(migraphx_instruction_t* out, migraphx_module_t module, const char* name, const migraphx_shape_t shape)
 {
+    migraphx_status status;
     if(module == NULL || name == NULL || shape == NULL) return migraphx_status_bad_param;
-    return add_fake_instruction(out, "migraphx_module_add_parameter");
+    status = add_fake_instruction(out, "migraphx_module_add_parameter");
+    if(status == migraphx_status_success && *out != NULL && module->program != NULL && module == &module->program->main_module)
+    {
+        module->program->has_graph_parameter = 1;
+        module->program->graph_parameter = *shape;
+        copy_string(module->program->graph_parameter_name, sizeof(module->program->graph_parameter_name), name);
+    }
+    return status;
 }
 
 EXPORT migraphx_status migraphx_module_add_return(migraphx_instruction_t* out, migraphx_module_t module, migraphx_instructions_t arguments)
@@ -432,6 +440,7 @@ EXPORT migraphx_status migraphx_program_create_module(migraphx_module_t* out, mi
     if(out == NULL || program == NULL || name == NULL || program->module_count >= 8) return migraphx_status_bad_param;
     module = &program->modules[program->module_count++];
     module->value = ATOMIC_INCREMENT(next_value);
+    module->program = program;
     copy_string(module->name, sizeof(module->name), name);
     *out = take_null_for("migraphx_program_create_module") ? NULL : module;
     return (migraphx_status)take_status_for("migraphx_program_create_module");

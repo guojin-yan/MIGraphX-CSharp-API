@@ -10,6 +10,12 @@ Create a `MIGraphXProgram`, obtain its `GetMainModule()` or `CreateModule(name)`
 
 Instruction and module collections can be cloned after the original item wrappers or caller's program have been disposed; their retained leases keep the native resources alive. Each clone retains its own leases. The instruction indexer returns the original wrapper, so it does not restore a disposed instruction object.
 
+Instructions and module references passed to a graph operation must belong to its destination program. Mixing nodes or modules from different programs throws `ArgumentException` before graph mutation, including for cloned collections whose source wrappers have already been disposed. Graph literals require owned host-backed argument storage.
+
+Dynamic ranges supplied to the main module's `AddParameter` are retained for parameter snapshots and input validation, including after cloning the program. A submodule parameter with the same name does not replace the main input's ranges. This managed metadata is not serialized by native Save/Load.
+
+Module names must be unique within a program. `CreateModule` rejects `main` and names previously created through the wrapper, including names inherited by a clone. The C API cannot enumerate existing modules; when editing a parsed or loaded program, choose names that cannot collide with modules already present in that model.
+
 Module views from the same program share its lock for graph edits and native calls. Adding parameters, allocations, literals, returns or instructions invalidates `IsCompiled`; compile again before running or acquiring a context. Native mutation failures also invalidate the compiled flag because the provider may have partially changed the program. A cloned program has independent state. Graph edits and recompilation are rejected while the program has pending asynchronous runs; wait for all runs through their streams before changing it. Rejected calls leave the existing compiled state and contexts unchanged.
 
 ## TensorFlow

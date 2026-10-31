@@ -55,7 +55,21 @@ typedef struct fake_options
     int64_t limit_loop_iterations;
     char external_data_path[512];
 } *migraphx_onnx_options_t;
-typedef struct fake_module { int value; char name[64]; } fake_module;
+typedef struct fake_shape
+{
+    int type;
+    size_t rank;
+    size_t lengths[8];
+    size_t strides[8];
+    size_t elements;
+    size_t bytes;
+    uint8_t standard;
+    uint8_t dynamic;
+    size_t dynamic_count;
+    fake_dynamic_dimension dynamic_values[8];
+} fake_shape;
+
+typedef struct fake_module { int value; char name[64]; struct fake_program* program; } fake_module;
 typedef fake_module* migraphx_module_t;
 typedef struct fake_instruction { int value; } *migraphx_instruction_t;
 typedef struct fake_instructions { size_t count; migraphx_instruction_t values[16]; } *migraphx_instructions_t;
@@ -75,6 +89,9 @@ typedef struct fake_program
     fake_module main_module;
     size_t module_count;
     fake_module modules[8];
+    int has_graph_parameter;
+    fake_shape graph_parameter;
+    char graph_parameter_name[64];
     int quantization;
 } *migraphx_program_t;
 typedef struct fake_compile_options { uint8_t offload_copy; uint8_t fast_math; uint8_t exhaustive_tune; } *migraphx_compile_options_t;
@@ -117,21 +134,8 @@ typedef struct fake_experimental_custom_op
     char name[64];
     int registered;
 } *migraphx_experimental_custom_op_t;
-typedef struct fake_shape
-{
-    int type;
-    size_t rank;
-    size_t lengths[8];
-    size_t strides[8];
-    size_t elements;
-    size_t bytes;
-    uint8_t standard;
-    uint8_t dynamic;
-    size_t dynamic_count;
-    fake_dynamic_dimension dynamic_values[8];
-} fake_shape;
 typedef fake_shape* migraphx_shape_t;
-typedef struct fake_parameter_shapes { fake_shape shape; } *migraphx_program_parameter_shapes_t;
+typedef struct fake_parameter_shapes { fake_shape shape; char name[64]; } *migraphx_program_parameter_shapes_t;
 typedef struct fake_shapes { fake_shape shape; } *migraphx_shapes_t;
 typedef struct fake_argument { fake_shape shape; char* buffer; int owns_buffer; } *migraphx_argument_t;
 typedef struct fake_program_parameters
@@ -599,6 +603,8 @@ EXPORT migraphx_status migraphx_program_assign_to(migraphx_program_t output, con
     if(output == NULL || input == NULL)
         return migraphx_status_bad_param;
     *output = *input;
+    output->main_module.program = output;
+    for(size_t i = 0; i < output->module_count; ++i) output->modules[i].program = output;
     program_assign_copied = output->value == input->value;
     return (migraphx_status)take_status_for("migraphx_program_assign_to");
 }
@@ -606,6 +612,7 @@ EXPORT migraphx_status migraphx_program_assign_to(migraphx_program_t output, con
 static void initialize_program_graph(migraphx_program_t program)
 {
     program->main_module.value = program->value;
+    program->main_module.program = program;
     copy_string(program->main_module.name, sizeof(program->main_module.name), "main");
 }
 
@@ -639,6 +646,11 @@ static size_t element_size(int type);
 static void initialize_shape(fake_shape* shape, const migraphx_program_t program)
 {
     int mode = shape_mode;
+    if(mode == 0 && program != NULL && program->has_graph_parameter)
+    {
+        *shape = program->graph_parameter;
+        return;
+    }
     shape->type = shape_type_override >= 0 ? shape_type_override : mode == 3 ? 10 : 4;
     shape->rank = program != NULL && program->static_count != 0 ? program->static_count : 2;
     shape->lengths[0] = 1;
@@ -771,7 +783,7 @@ EXPORT migraphx_status migraphx_program_parameter_shapes_size(size_t* out, migra
 EXPORT migraphx_status migraphx_program_parameter_shapes_get(const fake_shape** out, migraphx_program_parameter_shapes_t value, const char* name)
 {
     int null_output;
-    if(out == NULL || value == NULL || name == NULL || (strcmp(name, "input") != 0 && strcmp(name, "second") != 0)) return migraphx_status_bad_param;
+    if(out == NULL || value == NULL || name == NULL || (strcmp(name, value->name) != 0 && strcmp(name, "second") != 0)) return migraphx_status_bad_param;
     null_output = take_named_null_for("migraphx_program_parameter_shapes_get");
     *out = shape_mode == 7 || null_output ? NULL : &value->shape;
     return (migraphx_status)take_status_for("migraphx_program_parameter_shapes_get");
@@ -782,7 +794,7 @@ EXPORT migraphx_status migraphx_program_parameter_shapes_names(const char** out,
     static const char empty_name[] = "";
     if(out == NULL || value == NULL) return migraphx_status_bad_param;
     if(skip_string_for("migraphx_program_parameter_shapes_names")) return (migraphx_status)take_status_for("migraphx_program_parameter_shapes_names");
-    out[0] = shape_mode == 12 ? NULL : (shape_mode == 17 ? empty_name : input_name);
+    out[0] = shape_mode == 12 ? NULL : (shape_mode == 17 ? empty_name : value->name);
     if(shape_mode == 4 || shape_mode == 11) out[1] = shape_mode == 11 ? input_name : "second";
     return (migraphx_status)take_status_for("migraphx_program_parameter_shapes_names");
 }
@@ -990,7 +1002,9 @@ EXPORT migraphx_status migraphx_program_get_parameter_shapes(migraphx_program_pa
     if(take_null_for("migraphx_program_get_parameter_shapes")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_program_get_parameter_shapes"); }
     *out = (migraphx_program_parameter_shapes_t)create_m2(sizeof(**out));
     if(*out == NULL) return migraphx_status_unknown_error;
-    initialize_shape(&(*out)->shape, program); status = take_status_for("migraphx_program_get_parameter_shapes"); return (migraphx_status)status;
+    initialize_shape(&(*out)->shape, program);
+    copy_string((*out)->name, sizeof((*out)->name), program->has_graph_parameter ? program->graph_parameter_name : "input");
+    status = take_status_for("migraphx_program_get_parameter_shapes"); return (migraphx_status)status;
 }
 EXPORT migraphx_status migraphx_program_get_output_shapes(migraphx_shapes_t* out, migraphx_program_t program)
 {
