@@ -2,6 +2,8 @@
 
 `samples/Yolo26` 提供检测、分类、实例分割、人体姿态和旋转框五个任务。`samples/PaddleOcrV6` 提供图片文字检测与识别，也支持只识别已经裁剪的文本行。它们直接使用本库的 ONNX parse、GPU compile、typed argument 和 host output API，图像预处理及任务后处理均为 C#。
 
+两个示例各自包含完整实现，仅直接引用本库和 ImageSharp，没有独立的公共示例项目。
+
 先按[部署指南](runtime-deployment.md)安装匹配的 ROCm/MIGraphX，准备本地 ONNX 模型、原图和配套标签/字典。示例需要 .NET 10，库本身仍保持原有 15 TFM；这些模型不随库包分发。
 
 ```bash

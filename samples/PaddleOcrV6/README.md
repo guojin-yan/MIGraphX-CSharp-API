@@ -2,6 +2,8 @@
 
 本示例将 PP-OCRv6 ONNX 检测和识别模型组合成完整图片 OCR：BGR 预处理 → DB 概率图 → 文本四边形 → 透视裁剪 → 识别 → CTC 去重/去 blank → 文本和可视化。tiny/small/medium 使用相同入口，**识别模型和字典必须配套**。
 
+这是独立示例项目，图像、推理、OCR 流水线与计时源文件都在本目录，仅引用本库和 ImageSharp。无需再引用其他示例项目。
+
 ```bash
 dotnet run --project samples/PaddleOcrV6 -c Release -- \
   --native /opt/rocm/lib/libmigraphx_c.so.3 \

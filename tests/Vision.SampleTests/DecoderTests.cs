@@ -1,6 +1,12 @@
 using MIGraphXSharp.Samples.PaddleOcrV6;
-using MIGraphXSharp.Samples.Vision;
 using MIGraphXSharp.Samples.Yolo26;
+using Tensor = MIGraphXSharp.Samples.Yolo26.Tensor;
+using Letterbox = MIGraphXSharp.Samples.Yolo26.Letterbox;
+using Images = MIGraphXSharp.Samples.Yolo26.Images;
+using PointD = MIGraphXSharp.Samples.Yolo26.PointD;
+using Visualization = MIGraphXSharp.Samples.Yolo26.Visualization;
+using Benchmarking = MIGraphXSharp.Samples.Yolo26.Benchmarking;
+using OcrTensor = MIGraphXSharp.Samples.PaddleOcrV6.Tensor;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
@@ -17,7 +23,7 @@ public sealed class DecoderTests
         var measured = Benchmarking.Measure(() =>
         {
             ++calls;
-            return new TimedValue<int>(calls, new Dictionary<string, double[]> { ["line"] = [calls, calls + .5] });
+            return new MIGraphXSharp.Samples.Yolo26.TimedValue<int>(calls, new Dictionary<string, double[]> { ["line"] = [calls, calls + .5] });
         }, 2, 3);
         Assert.Equal(5, calls);
         Assert.Equal(5, measured.Value);
@@ -56,10 +62,10 @@ public sealed class DecoderTests
     {
         var ids = new[] { 0, 1, 1, 0, 1, 2, 2, 0 };
         var probabilities = ids.SelectMany(id => Enumerable.Range(0, 3).Select(index => index == id ? .9f : .05f)).ToArray();
-        var result = Recognition.Decode(new Tensor([1, 8, 3], probabilities), ["", "中", "A"]);
+        var result = Recognition.Decode(new OcrTensor([1, 8, 3], probabilities), ["", "中", "A"]);
         Assert.Equal("中中A", result.Text);
         Assert.Equal(.9f, result.Confidence, 5);
-        Assert.Throws<InvalidOperationException>(() => Recognition.Decode(new Tensor([1, 8, 3], probabilities), ["", "A"]));
+        Assert.Throws<InvalidOperationException>(() => Recognition.Decode(new OcrTensor([1, 8, 3], probabilities), ["", "A"]));
     }
 
     [Fact]
@@ -116,7 +122,7 @@ public sealed class DecoderTests
     {
         var map = new float[64 * 32];
         for (var y = 8; y < 20; ++y) for (var x = 10; x < 40; ++x) map[y * 64 + x] = .9f;
-        var boxes = TextDetector.Decode(new Tensor([1,1,32,64],map),128,64,.2f,.4f);
+        var boxes = TextDetector.Decode(new OcrTensor([1,1,32,64],map),128,64,.2f,.4f);
         var box = Assert.Single(boxes);
         Assert.True(box.Polygon[0].X < 20 && box.Polygon[2].X > 78);
         Assert.Equal(.9f, box.Score, 5);

@@ -1,4 +1,3 @@
-using MIGraphXSharp.Samples.Vision;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 

@@ -1,4 +1,3 @@
-using MIGraphXSharp.Samples.Vision;
 
 namespace MIGraphXSharp.Samples.PaddleOcrV6;
 

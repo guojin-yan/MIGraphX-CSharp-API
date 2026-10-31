@@ -1,5 +1,4 @@
 using MIGraphXSharp.Samples.PaddleOcrV6;
-using MIGraphXSharp.Samples.Vision;
 
 try
 {

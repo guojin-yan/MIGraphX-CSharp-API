@@ -5,7 +5,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace MIGraphXSharp.Samples.Vision;
+namespace MIGraphXSharp.Samples.Yolo26;
 
 public readonly record struct PointD(double X, double Y);
 public sealed record Letterbox(float[] Tensor, int Width, int Height, double Scale, int Left, int Top)

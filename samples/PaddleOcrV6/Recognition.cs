@@ -1,5 +1,4 @@
 using System.Text;
-using MIGraphXSharp.Samples.Vision;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
