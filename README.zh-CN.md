@@ -55,6 +55,7 @@ API 包含显式资源所有权、不可变形状快照、类型化主机输入�
 - [类型化 operation 属性](docs/guides/operation-attributes.md)
 - [HIP 异步集成](docs/guides/hip-interop.md)
 - [图、TensorFlow、量化与实验性 API](docs/guides/advanced-apis.md)
+- [YOLO26 五任务与 PP-OCRv6 图片案例](docs/guides/vision-samples.md)
 - [部署与故障排查](docs/guides/runtime-deployment.md)
 - [框架兼容性](docs/compatibility/frameworks.md)与 [API 版本规则](docs/guides/api-versioning.md)
 - [API 参考](docs/api/index.md)

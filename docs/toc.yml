@@ -12,6 +12,8 @@
   href: guides/hip-interop.md
 - name: Advanced APIs
   href: guides/advanced-apis.md
+- name: YOLO26 and PP-OCRv6 samples
+  href: guides/vision-samples.md
 - name: Deployment and troubleshooting
   href: guides/runtime-deployment.md
 - name: API versioning
