@@ -268,8 +268,9 @@ internal sealed class ProbeRunner
             using var wrongNameMap = new MIGraphXParameterMap(options.NativePath);
             wrongNameMap.Add("wrong-input", wrongNameArgument);
             Expect<ArgumentException>(() => program.Run(wrongNameMap), "dynamic wrong input name");
-            Expect<MIGraphXException>(() => RunConcrete(program, "input", [3, 4], Enumerable.Range(0, 12).Select(value => (float)value).ToArray()), "out-of-range dynamic input");
-            return Detail(("managedRejections", 2), ("nativeRangeRejections", 1));
+            Expect<ArgumentException>(() => RunConcrete(program, "input", [3, 4], Enumerable.Range(0, 12).Select(value => (float)value).ToArray()), "out-of-range dynamic input");
+            Require(RunConcrete(program, "input", [1, 4], IdentityInput).SequenceEqual(IdentityInput), "Rejected input changed the compiled program.");
+            return Detail(("managedRejections", 3), ("nativeRangeRejections", 0), ("validRunAfterRejection", true));
         });
         await Run("m5-save-load-recompile", 3, iteration =>
         {
