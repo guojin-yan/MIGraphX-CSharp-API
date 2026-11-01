@@ -2,17 +2,35 @@
 
 ![CLIP 图文双向检索：C#、MIGraphX 与共享特征空间](assets/clip/cover.png)
 
-## 一、前言：换一组描述，能不能换一组分类
+## 一、MIGraphXSharp 项目简介
+
+**MIGraphXSharp** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 解析、GPU 编译、张量输入输出和资源管理接口，方便将模型接入自己的 .NET 应用。
+
+项目提供类型化数组、形状检查、`IDisposable`、动态输入和模型缓存。普通模型调用使用核心包，需要与自己编写的 HIP kernel 配合时，再使用可选 HIP 适配包连接设备内存与 stream。
+
+目前随项目提供 **YOLO26 五任务、PaddleOCR v4/v5/v6、PP-Structure 文档处理和 CLIP 图文检索**四类独立案例。除了单个模型，也可以在 C# 中组织多模型流程，保留每个阶段的结果和业务数据。
+
+**项目源码与 NuGet：**
+
+```text
+项目地址：https://github.com/guojin-yan/MIGraphX-CSharp-API
+核心包：https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2
+HIP 适配包：JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop 0.0.2
+```
+
+当前原生 GPU 路径已在 Linux、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 上验证。托管包兼容多个 .NET 目标框架，实际运行仍需单独准备匹配的 AMD 驱动与原生运行库。
+
+## 二、从商品图片到图文检索
+
+### 2.1 换一组描述，能不能换一组分类
 
 整理商品图片时，经常会遇到一个问题：图片很多，类别还在变。今天按鞋、手表、相机分，明天又想找“带红色元素的商品”或“适合户外的背包”。如果每改一次条件都重新训练分类模型，工程成本会比较高。
 
 CLIP 提供了另一种处理方式。把图片和文字分别编码成向量，比较相似度，就可以尝试按文字描述筛选图片。它适合做图片检索、候选标签推荐和素材整理，也适合与已有的 OCR、检测流程配合使用。
 
-这次我在 MIGraphXSharp 中增加了独立的 CLIP C# 案例，用 AMD GPU 执行图像与文本两个编码器。本文使用三张商品照片、六条英文描述，完成图片到文字的匹配，再反过来用文字检索图片。除了运行方法，也把图像前处理、BPE 分词、特征归一化、分数含义和速度逐项展开。
+本篇使用当前 main 的独立 `samples/Clip` 案例，核心 API 为 `0.0.2`，v0.0.2 发布标签尚不包含这个项目。图像处理、分词、模型会话、排序和展示都在同一个工程中。接下来用三张商品照片、六条英文描述，完成图片到文字的匹配，再反过来用文字检索图片，并展开关键代码和实际速度。
 
-## 二、先看真实结果，再认识两个编码器
-
-### 2.1 三张商品图匹配到了什么
+### 2.2 三张商品图匹配到了什么
 
 ![CLIP 三张商品图的真实匹配结果：运动鞋、腕表和拍立得相机](assets/clip/clip-results.png)
 
@@ -26,7 +44,7 @@ CLIP 提供了另一种处理方式。把图片和文字分别编码成向量，
 
 这三张图都匹配到预期类别。不过这里只是功能演示，没有人工标注的数据集，也没有“不属于六类中任何一类”的负样本，不能据此写成分类准确率 100%。后面做业务拒识时，还需要补充这些样本。
 
-### 2.2 为什么图片可以和文字比较
+### 2.3 为什么图片可以和文字比较
 
 CLIP 的图像编码器接收图片，文本编码器接收 token。两者输出同一特征空间的向量。本文使用的 OpenAI CLIP ViT-B/32，每条特征都是 512 维。
 
@@ -36,20 +54,11 @@ CLIP 的图像编码器接收图片，文本编码器接收 token。两者输出
 
 两种用法复用了同一组编码器。区别在于哪一侧提前计算、哪一侧作为查询，并不需要额外训练一个六分类头。
 
-## 三、项目、环境与模型文件
+## 三、环境与模型文件
 
-### 3.1 MIGraphXSharp 在这里做什么
+### 3.1 本文运行环境
 
-MIGraphXSharp 是 C# 到 AMD MIGraphX 的接口库。本例通过它设置 ONNX 输入尺寸、编译 GPU program、传入 float32/int64 张量并读取输出。CLIP 的图像处理、分词、排序和 HTML 展示属于示例代码。
-
-```text
-项目地址：https://github.com/guojin-yan/MIGraphX-CSharp-API
-核心包：JYPPX.ROCm.MIGraphX.CSharp.API 0.0.2
-案例目录：samples/Clip
-模型来源：https://github.com/guojin-yan/DeploySharp/releases/tag/models-visual.1
-```
-
-本案例位于当前 main，未包含在 v0.0.2 发布标签中；使用的是已有核心 API。它是独立项目，所需 `ModelSession`、tokenizer、图像前处理和结果代码全部放在自己的目录中。
+本例通过 MIGraphXSharp 设置 ONNX 输入尺寸、编译 GPU program、传入 float32/int64 张量并读取输出，使用以下原生与托管环境：
 
 | 项目 | 本文配置 |
 | --- | --- |
@@ -63,6 +72,8 @@ MIGraphXSharp 是 C# 到 AMD MIGraphX 的接口库。本例通过它设置 ONNX 
 两个编码器由 MIGraphX GPU 执行，图像前处理、特征归一化和排序目前在 CPU。这与 YOLO26/OCR 的 HIP 前后处理路径不同，后面的性能数据也按实际实现说明。
 
 ### 3.2 五个模型相关文件
+
+模型下载来源：`https://github.com/guojin-yan/DeploySharp/releases/tag/models-visual.1`。
 
 | 文件 | 用途 |
 | --- | --- |

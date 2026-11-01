@@ -2,30 +2,35 @@
 
 ![PP-Structure 文档处理：从页面图片到区域、文字、表格与结构化结果](assets/pp-structure/cover.png)
 
-## 一、前言：文字读出来以后，文档还缺什么
+## 一、MIGraphXSharp 项目简介
 
-前面用 PaddleOCR 完成了文字检测与识别，图片里写了什么，已经能够读出来。但换成报纸、论文、费用表，直接把所有行拼成一段文本，很多信息就丢了：哪一块是标题，哪一块是正文，哪些文字属于同一个表格，公式应该放在哪里？
+**MIGraphXSharp** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 解析、GPU 编译、张量输入输出和资源管理接口，方便在现有 .NET 工程中组织模型调用。
 
-文档处理需要在 OCR 上面再加一层结构。我这次将 Paddle 文档模型组合成一个独立 C# 案例，接入页面方向、版面、整页 OCR、表格分类、单元格检测、结构解码，并导出 JSON、Markdown、HTML 和原图定位。
+项目提供类型化数组、形状检查、`IDisposable`、动态输入和模型缓存，也可以通过可选 HIP 适配包连接自己的显存与 stream。对于文档这种多模型任务，可以复用已经编译的模型，在 C# 中组织各阶段和业务结果。
 
-本文会按一页文档的处理顺序介绍代码，再单独拆开表格这条路径。实际演示包含报刊、图文混排、论文、公式、费用表和倒置页六种输入，最后给出逐页耗时。
+目前随项目提供 **YOLO26 五任务、PaddleOCR v4/v5/v6、PP-Structure 文档处理和 CLIP 图文检索**四类独立案例。图像处理、模型解码和文档导出放在案例层，核心库没有引入 OCR、ImageSharp 或 ONNX Runtime 依赖。
 
-先说明执行范围：**方向、版面、OCR 和表格模型使用 MIGraphX GPU，OCR 数值前后处理使用 HIP；公式识别是显式选择的 ONNX Runtime CPU 路径。** FormulaNet 的动态图在当前 MIGraphX 2.15 下不能直接解析，因此这不是全 GPU 的公式方案。
-
-## 二、项目定位与最终结果
-
-### 2.1 案例建立在 MIGraphXSharp 上
-
-MIGraphXSharp 负责 C# 调用 AMD MIGraphX 的模型解析、编译、张量与资源管理。这里的 `DocumentPipeline` 则属于应用示例，把多个模型按页面流程连接起来，核心库本身没有引入 OCR、ImageSharp 或 ONNX Runtime 依赖。
+**项目源码与 NuGet：**
 
 ```text
 项目地址：https://github.com/guojin-yan/MIGraphX-CSharp-API
-核心 API 版本：0.0.2
-案例目录：samples/PPStructure
-模型来源：https://github.com/guojin-yan/DeploySharp/releases/tag/models-paddleocr
+核心包：https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2
+HIP 适配包：JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop 0.0.2
 ```
 
-本文使用当前 main 中的独立示例，v0.0.2 发布标签尚不包含这个新项目。模型、图像处理、OCR、结构解码和导出都在自己的项目目录，便于直接阅读和移植。
+当前原生 GPU 路径已在 Linux、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 上验证。托管包兼容多个 .NET 目标框架，实际运行仍需单独准备匹配的 AMD 驱动与原生运行库。
+
+## 二、从文字识别到文档结构
+
+### 2.1 文字读出来以后，文档还缺什么
+
+PaddleOCR 可以完成文字检测与识别，读出图片里的内容。但换成报纸、论文、费用表，直接把所有行拼成一段文本，很多信息就丢了：哪一块是标题，哪一块是正文，哪些文字属于同一个表格，公式应该放在哪里？
+
+文档处理需要在 OCR 上面再加一层结构。我这次将 Paddle 文档模型组合成一个独立 C# 案例，接入页面方向、版面、整页 OCR、表格分类、单元格检测、结构解码，并导出 JSON、Markdown、HTML 和原图定位。
+
+代码位于当前 main 的 `samples/PPStructure`，v0.0.2 发布标签尚不包含这个新项目，核心 API 沿用 `0.0.2`。本文按页面处理顺序介绍代码，再单独拆开表格路径；演示包含报刊、混排、论文、公式、费用表和倒置页六种输入，最后给出逐页耗时。
+
+执行范围也分别说明：**方向、版面、OCR 和表格模型使用 MIGraphX GPU，OCR 数值前后处理使用 HIP；公式识别是显式选择的 ONNX Runtime CPU 路径。** FormulaNet 的动态图在当前 MIGraphX 2.15 下不能直接解析，因此这不是全 GPU 的公式方案。
 
 ### 2.2 先看两张复杂页面
 
@@ -77,6 +82,8 @@ MIGraphXSharp 负责 C# 调用 AMD MIGraphX 的模型解析、编译、张量与
 | 模型精度 | FP32 |
 | OCR 调度 | batch=4，worker=2 |
 | 可选公式 | ONNX Runtime CPU，4 线程 |
+
+模型下载来源：`https://github.com/guojin-yan/DeploySharp/releases/tag/models-paddleocr`。
 
 在仓库根目录准备文件。Python 只用于一次性改写兼容 ONNX，后续页面处理入口是 C#：
 

@@ -2,30 +2,33 @@
 
 ![MIGraphXSharp YOLO26 五任务：C# 接入 AMD GPU，HIP 完成数值前后处理](assets/yolo26/cover.png)
 
-## 一、前言：模型跑得快，整个程序也要跟上
+## 一、MIGraphXSharp 项目简介
 
-做过 YOLO 部署的小伙伴应该遇到过这种情况：模型推理只需要几毫秒，图片从读进来到拿到结果，却花了十几甚至几十毫秒。尤其是实例分割，模型后面还有 mask 计算、缩放和坐标恢复，单看一次推理时间，很容易低估整个程序的开销。
+**MIGraphXSharp** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 模型解析、GPU 编译、张量输入输出和资源管理接口，方便大家在现有 .NET 工程中部署模型。
 
-这次我把 YOLO26 的五类任务整理到 MIGraphXSharp 的同一个 C# 示例中。除了调用 AMD MIGraphX 执行模型，也把 resize、letterbox、输出解码和实例 mask 计算放到了 HIP 显存流水线中。这样，大家既可以看到五类模型怎样使用，也能看清楚前后处理究竟影响了多少时间。
+项目按 C# 的使用习惯提供类型化数组、形状检查和 `IDisposable` 资源管理，也支持动态输入、程序保存加载与模型缓存。需要自己写 GPU 前后处理时，可以通过可选的 HIP 适配包，把模型接入已有的设备缓冲区和 stream。
 
-本文从模型文件、输入输出、C# 调用一直讲到实际结果和速度。检测只是其中一条路径，分类、分割、姿态和旋转框都有对应代码和演示。
+目前随项目提供 **YOLO26 五任务、PaddleOCR v4/v5/v6、PP-Structure 文档处理和 CLIP 图文检索**四类独立案例。NuGet 提供推理和显存互操作 API，各模型的图像处理、解码与展示代码保留在对应示例中，大家可以按任务直接查看和修改。
 
-## 二、项目和本篇案例
-
-### 2.1 MIGraphXSharp 负责什么
-
-MIGraphXSharp 是我维护的 MIGraphX C# 接口库，通过 MIGraphX C ABI 连接 AMD 原生运行时。ONNX 解析、GPU 编译、张量输入输出和资源释放可以直接在 C# 中完成；需要自己写 HIP 前后处理时，再使用 HIP 适配包连接设备内存与 stream。
-
-这里要区分两个层次：**NuGet 提供推理和显存互操作 API，YOLO 的图像处理、任务解码和绘图属于示例工程。** 安装核心包不会自动得到一个 YOLO 业务类，也不会安装 ROCm 驱动。
+**项目源码与 NuGet：**
 
 ```text
 项目地址：https://github.com/guojin-yan/MIGraphX-CSharp-API
-核心包：JYPPX.ROCm.MIGraphX.CSharp.API 0.0.2
+核心包：https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2
 HIP 适配包：JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop 0.0.2
-案例目录：samples/Yolo26
 ```
 
-本篇按当前 main 源码编写，核心 API 为 `0.0.2`。YOLO26 示例是一个独立项目，图像、HIP kernel、模型会话、解码和计时代码都在自己的目录中，便于直接阅读或移入现有工程。
+当前原生 GPU 路径已在 Linux、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 上验证。托管包兼容多个 .NET 目标框架，实际运行仍需单独准备匹配的 AMD 驱动与原生运行库。
+
+## 二、YOLO26 五任务与本篇实战
+
+### 2.1 模型跑得快，整个程序也要跟上
+
+做过 YOLO 部署的小伙伴应该遇到过这种情况：模型推理只需要几毫秒，图片从读进来到拿到结果，却花了十几甚至几十毫秒。尤其是实例分割，模型后面还有 mask 计算、缩放和坐标恢复，单看一次推理时间，很容易低估整个程序的开销。
+
+这次我把 YOLO26 的五类任务整理到同一个 C# 示例中。除了调用 MIGraphX 执行模型，也把 resize、letterbox、输出解码和实例 mask 计算放到了 HIP 显存流水线中。这样，大家既可以看到五类模型怎样使用，也能看清楚前后处理究竟影响了多少时间。
+
+本文按当前 main 的 `samples/Yolo26` 编写，核心 API 为 `0.0.2`。图像、HIP kernel、模型会话、解码和计时代码都在同一个项目中，便于直接阅读或移入现有工程。接下来从模型文件、输入输出、C# 调用一直讲到实际结果和速度，检测、分类、分割、姿态和旋转框分别展开。
 
 ### 2.2 五个任务，结果各不相同
 

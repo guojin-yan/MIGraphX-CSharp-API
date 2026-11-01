@@ -2,28 +2,31 @@
 
 ![PaddleOCR v4、v5、v6 的 C# AMD GPU 实战：检测、裁剪、批量识别与 HIP 解码](assets/paddleocr/cover.png)
 
-## 一、前言：OCR 要看一整张图的处理时间
+## 一、MIGraphXSharp 项目简介
 
-OCR 与单次图像分类不太一样。一张图片先经过文字检测，得到十几条、几十条文字行；每一行还要裁剪、缩放、识别和解码。识别模型本身即使很小，逐行串起来，整图耗时也可能明显增加。
+**MIGraphXSharp** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 模型解析、GPU 编译、张量输入输出和资源管理接口，方便大家将模型接入已有的 .NET 应用。
 
-前面做 MIGraphXSharp 的时候，我先把 PP-OCRv6 跑通，随后把检测和识别的数值前后处理迁移到 HIP，又加入识别 batch 和多个独立推理实例。这次进一步把 **PP-OCRv4、v5、v6 放到同一个案例项目**，模型选择、字典检查、结果格式和计时方式统一起来。
+项目提供类型化数组、形状检查、`IDisposable`、动态输入和模型缓存等接口。普通同步推理使用核心包即可；需要图像预处理、裁剪和输出解码也在 GPU 上执行时，再通过 HIP 适配包连接设备内存与 stream。
 
-本文会从三代模型怎样选择讲起，拆开检测、DB 解码、透视裁剪、CTC 和多实例调度，再看真实文字与整图速度。大家可以用同一套代码切换模型，也可以只取其中的文字行识别部分。
+目前随项目提供 **YOLO26 五任务、PaddleOCR v4/v5/v6、PP-Structure 文档处理和 CLIP 图文检索**四类独立案例。库负责模型与张量，各案例提供对应的前后处理和结果展示代码，便于大家直接查看实现并接到自己的业务中。
 
-## 二、项目能力与案例范围
-
-MIGraphXSharp 提供 C# 调用 AMD MIGraphX 的接口，负责 ONNX 解析、GPU 编译、输入输出与资源管理；HIP 适配包让模型执行接入自己的设备缓冲区和 stream。
-
-本篇 OCR 业务代码位于 `samples/PaddleOcr`，包括图像、检测、裁剪、识别、HIP kernel、结果导出和计时。它是一个自包含的示例项目，不需要引用其他 sample。
+**项目源码与 NuGet：**
 
 ```text
 项目地址：https://github.com/guojin-yan/MIGraphX-CSharp-API
-核心包：JYPPX.ROCm.MIGraphX.CSharp.API 0.0.2
+核心包：https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2
 HIP 适配包：JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop 0.0.2
-案例目录：samples/PaddleOcr
 ```
 
-文章按当前 main 源码编写。已发布的 v0.0.2 标签中原项目名为 `PaddleOcrV6`，三代统一后的项目需要使用当前 main；核心 API 无需因此更换版本。
+当前原生 GPU 路径已在 Linux、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 上验证。托管包兼容多个 .NET 目标框架，实际运行仍需单独准备匹配的 AMD 驱动与原生运行库。
+
+## 二、PaddleOCR 三代模型与本篇实战
+
+OCR 与单次图像分类不太一样。一张图片先经过文字检测，得到十几条、几十条文字行；每一行还要裁剪、缩放、识别和解码。识别模型本身即使很小，逐行串起来，整图耗时也可能明显增加。
+
+这次把 **PP-OCRv4、v5、v6 放到同一个案例项目**，统一模型选择、字典检查、结果格式和计时方式。检测与识别的数值前后处理使用 HIP，文字行支持 batch 和多个独立推理实例。本文会从模型选择讲起，拆开 DB 解码、透视裁剪、CTC 和调度，再看真实文字与整图速度。
+
+代码位于当前 main 的 `samples/PaddleOcr`，图像、检测、裁剪、识别、HIP kernel、导出和计时都在一个自包含项目中。已发布的 v0.0.2 标签中原项目名为 `PaddleOcrV6`，三代统一后的案例需要使用当前 main；核心 API 无需因此更换版本。
 
 这个项目完成图片文本检测与识别，输出文字、置信度和四边形。它不包含页面内容方向分类、文档去畸变和表格重建；需要标题、段落、表格等文档信息，可以继续使用 `samples/PPStructure`。
 
