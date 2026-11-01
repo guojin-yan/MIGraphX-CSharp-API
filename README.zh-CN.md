@@ -16,15 +16,15 @@
 
 [English](README.md) | 简体中文
 
-MIGraphXSharp 是 AMD MIGraphX 的 C# / .NET 封装库。通过具有明确生命周期的托管对象，加载 ONNX 模型、编译 AMD GPU 程序、准备类型化张量并读取推理结果；可选 HIP 适配器提供流提交与设备缓冲区输入。
+MIGraphXSharp 是 AMD MIGraphX 的 C# / .NET 封装库。通过具有明确生命周期的托管对象，加载 ONNX 模型、编译 AMD GPU 程序、准备类型化张量并读取推理结果；可选 HIP 适配器可将设备输入、输出和 GPU 前后处理接入同一条流。
 
-项目提供两个完整视觉案例：**YOLO26 检测、分类、实例分割、姿态、旋转框五任务**，以及 **PP-OCRv6 文本检测与识别**。图像预处理与后处理均使用 C#，运行时无需 Python 或 OpenCV。
+项目提供两个完整视觉案例：**YOLO26 检测、分类、实例分割、姿态、旋转框五任务**，以及 **PP-OCRv6 文本检测与识别**。默认通过 HIP 在 GPU 上完成数值前后处理，也保留 C# CPU 路径作为对照；运行时无需 Python 或 OpenCV。
 
 [快速开始](#快速开始) · [视觉案例](#视觉案例) · [使用文档](#使用文档) · [发行说明](CHANGELOG.md) · [问题反馈](https://github.com/guojin-yan/MIGraphX-CSharp-API/issues)
 
-## 0.0.1 版本
+## 0.0.2 版本
 
-首个版本提供核心托管包、可选 HIP 适配包、中英文 XML API 文档和两个独立完整的视觉示例项目。软件包、源码与离线文档见 [v0.0.1 Release](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.1)。
+0.0.2 新增 `RunDeviceIntoAsync` 和完整的 HIP 视觉流水线，继续提供核心托管包、可选适配包、中英文 XML 文档与两个独立示例。软件包、源码与离线文档见 [v0.0.2 Release](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2)。初始版本 0.0.1 保留供历史使用。
 
 在 Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 上，已执行所附视觉模型、动态输入、持久化/缓存、HIP 主机异步与设备输入的官方运行时检查。具体适用范围见[平台支持说明](docs/compatibility/platforms.md)。
 
@@ -36,7 +36,7 @@ MIGraphXSharp 是 AMD MIGraphX 的 C# / .NET 封装库。通过具有明确生�
 | 张量与资源管理 | 不可变形状快照、类型化主机输入、多输入/输出、显式释放原生资源 |
 | 动态形状与缓存 | 设置维度范围、校验具体输入、保存/加载程序、复用编译结果 |
 | 图构建 | program 管理的 module、parameter、literal、instruction 与类型化算子属性 |
-| HIP 集成 | 使用 HipSharp 流提交、等待或轮询完成，使用经过校验的设备内存输入 |
+| HIP 集成 | 在 HipSharp 流上提交、等待或轮询，保持设备输入/输出并继续 GPU 后处理 |
 | 高级接口 | TensorFlow 解析、FP16/BF16/INT8/FP8 量化与实验性自定义算子回调 |
 | 视觉案例 | YOLO26 五任务、PP-OCRv6 三种规格；JSON、预览图、mask、文本与计时输出 |
 | .NET 接入 | 15 个目标框架、一致的公开 API、中英文 XML 注释及加载诊断 |
@@ -45,8 +45,8 @@ MIGraphXSharp 是 AMD MIGraphX 的 C# / .NET 封装库。通过具有明确生�
 
 | 软件包 | 版本 | 用途 |
 | --- | --- | --- |
-| [JYPPX.ROCm.MIGraphX.CSharp.API](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.1) | 0.0.1 | 核心推理与托管资源 API |
-| [JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/0.0.1) | 0.0.1 | 可选流/设备输入集成；精确依赖同版本核心包与 HipSharp 0.10.0 |
+| [JYPPX.ROCm.MIGraphX.CSharp.API](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2) | 0.0.2 | 核心推理与托管资源 API |
+| [JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/0.0.2) | 0.0.2 | 可选流/设备输入集成；精确依赖同版本核心包与 HipSharp 0.10.0 |
 
 核心命名空间为 <code>JYPPX.ROCm.MIGraphXSharp</code>。两个包均提供 <code>net46</code>–<code>net481</code>、<code>netcoreapp3.1</code>、<code>net5.0</code>–<code>net10.0</code> 的程序集，共 15 个目标框架。视觉示例使用 .NET 10。
 
@@ -66,10 +66,10 @@ ROCm/MIGraphX 通过 [AMD 官方系统仓库](https://rocm.docs.amd.com/projects
 ~~~bash
 dotnet new console -n MigraphxDemo
 cd MigraphxDemo
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.1
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
 
 # 可选：HIP 流与设备输入集成
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.1
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
 ~~~
 
 Release 同时提供离线包，配置方法见[入门指南](docs/guides/getting-started.md)。
@@ -120,11 +120,13 @@ foreach (var diagnostic in report.Diagnostics)
 ~~~bash
 dotnet run --project samples/Yolo26 -c Release -- \
   --native /opt/rocm/lib/libmigraphx_c.so.3 --task detect \
+  --backend hip --gpu-architecture gfx1100 \
   --model /models/yolo26n.onnx --image /images/bus.jpg \
   --output /results/yolo26 --warmup 5 --iterations 30
 
 dotnet run --project samples/PaddleOcrV6 -c Release -- \
   --native /opt/rocm/lib/libmigraphx_c.so.3 \
+  --backend hip --gpu-architecture gfx1100 \
   --det-model /models/PP-OCRv6_tiny_det_inference.onnx \
   --rec-model /models/PP-OCRv6_tiny_rec_inference.onnx \
   --dictionary /models/PP-OCRv6_tiny_rec_dict.txt \
@@ -137,21 +139,21 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 ### 图片实测速度
 
-在 gfx1100、CPU 配额 16 核的环境中顺序测量：batch=1、float32，每组预热 5 次、测量 30 次。下表是指定图片的实际耗时，不是显卡性能排名。
+Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100，CPU 配额 16 核，float32。每组预热 5 次、测量 30 次，同一图片顺序运行。两组均由 MIGraphX 在 GPU 推理，下表比较不同前后处理路径的整图墙钟时间。
 
-| 模型 / 工作负载 | 推理平均 ms | 流水线平均 ms | 流水线 P95 ms |
-| --- | ---: | ---: | ---: |
-| YOLO26 n 检测 | 3.23 | 16.82 | 19.94 |
-| YOLO26 s 检测 | 4.96 | 17.83 | 22.27 |
-| YOLO26 s 分类 | 1.47 | 5.65 | 6.14 |
-| YOLO26 s 分割 | 7.88 | 59.05 | 64.76 |
-| YOLO26 s 姿态 | 5.43 | 18.06 | 21.23 |
-| YOLO26 s 旋转框 | 8.35 | 36.88 | 45.22 |
-| PP-OCRv6 tiny / 16 行 | 23.71 | 66.42 | 84.18 |
-| PP-OCRv6 small / 16 行 | 58.95 | 102.76 | 133.39 |
-| PP-OCRv6 medium / 16 行 | 75.73 | 115.69 | 148.64 |
+| 模型 / 工作负载 | CPU 前后处理路径 ms | HIP 流水线 ms | HIP P95 ms | 加速比 |
+| --- | ---: | ---: | ---: | ---: |
+| YOLO26 n 检测 | 15.77 | 2.75 | 2.83 | 5.74× |
+| YOLO26 s 检测 | 18.57 | 4.46 | 4.56 | 4.17× |
+| YOLO26 s 分类 | 5.46 | 1.50 | 1.53 | 3.65× |
+| YOLO26 s 分割 | 61.30 | 7.44 | 7.55 | 8.23× |
+| YOLO26 s 姿态 | 18.54 | 4.97 | 5.04 | 3.73× |
+| YOLO26 s 旋转框 | 42.25 | 7.24 | 7.29 | 5.84× |
+| PP-OCRv6 tiny / 16 行 | 66.09 | 10.97 | 11.08 | 6.02× |
+| PP-OCRv6 small / 16 行 | 107.51 | 16.98 | 17.06 | 6.33× |
+| PP-OCRv6 medium / 16 行 | 118.68 | 31.63 | 31.88 | 3.75× |
 
-推理包含同步执行和主机输出读取，OCR 包含检测加全部文本行识别；流水线还包含 C# 预处理、后处理、裁剪和 mask 计算。均排除文件解码、模型解析/编译、绘制与写盘。未锁定 GPU 时钟/功耗，也未清除缓存。自己的模型可按[案例计时参数](docs/guides/vision-samples.md)重新测量。
+YOLO batch=1。OCR 检测 batch=1，CPU 对照逐行识别；HIP 识别 batch=4、2 个独立实例，包含整图 16 行文字。HIP 流水线包含上传、GPU 前后处理、模型执行、D2D 输出复制和紧凑结果回传；CPU 路径包含 C# 前后处理及完整张量回传。两组均排除文件解码、模型/kernel 编译、绘制和写盘，未锁定 GPU 时钟或功耗。OCR 的 batch/实例数会影响显存和编译时间，具体应用请按[案例计时参数](docs/guides/vision-samples.md)测量。
 
 ## 使用文档
 
@@ -179,8 +181,8 @@ Release 附带离线 HTML 文档，解压文档包后打开 <code>index.html</co
 安装 <code>global.json</code> 指定的 SDK、PowerShell 7，并配置 [HipSharp 源码依赖](CONTRIBUTING.md)，然后执行：
 
 ~~~powershell
-./eng/build.ps1 -Configuration Release -Version 0.0.1
-./eng/pack.ps1 -Configuration Release -Version 0.0.1 -NoBuild
+./eng/build.ps1 -Configuration Release -Version 0.0.2
+./eng/pack.ps1 -Configuration Release -Version 0.0.2 -NoBuild
 ~~~
 
 不指定版本的开发构建使用 <code>0.0.0</code>。构建输出、包和生成文档写入相邻的 <code>MIGraphXSharp.Workspace/</code>，完整环境说明见 [CONTRIBUTING.md](CONTRIBUTING.md)。

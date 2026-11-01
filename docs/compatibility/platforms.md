@@ -16,6 +16,8 @@ Install the coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packag
 | Custom operations | Experimental callbacks are exposed. Host-reference numerical diagnostics do not qualify GPU/device callback memory or complete provider lifetimes. |
 | Reliability and performance | Functional/reference checks and repeated single-image measurements exist for the supplied vision models. These do not establish arbitrary workload throughput, long-term leak freedom, or GPU clock/power-controlled comparisons. |
 
+The OCR HIP sample also covers fixed recognition batches and independently compiled recognition instances/streams. Batch=4 with two instances has executed for tiny/small/medium; partial batches, a single text line, zero detected lines, and deterministic DB scan ordering/capacity boundaries have focused checks. These are application-specific results on the fixed baseline, not an arbitrary-model concurrency guarantee.
+
 Local substitute-library tests check managed ownership, validation and ABI handling. They are distinct from execution against the official native runtime. Historical results do not automatically qualify the current source revision.
 
 Common integer, finite floating-point, Boolean, string, null and array operation attributes are implemented through the [typed attribute builder](../guides/operation-attributes.md); callers can also use its factories for reshape, transpose, slice, multibroadcast and topk. Arbitrary C format placeholders and variadic values are excluded. Supporting those would require a separately designed native ABI bridge, not a C# `params object[]` overload.

@@ -1,8 +1,8 @@
-# MIGraphXSharp 0.0.1 首发：让 C# 接入 AMD GPU 原生推理
+# MIGraphXSharp 发布：让 C# 接入 AMD GPU 原生推理
 
-![MIGraphXSharp 0.0.1：让 C# 接入 AMD GPU 原生推理](assets/migraphxsharp-0.0.1/cover.png)
+![MIGraphXSharp 0.0.2：让 C# 接入 AMD GPU 原生推理](assets/migraphxsharp-0.0.2/cover.png)
 
-作者：Guojin Yan · 适用版本：0.0.1
+作者：Guojin Yan · 适用版本：0.0.2
 
 ## 前言
 
@@ -10,7 +10,7 @@
 
 做模型部署时，经常需要根据设备选择推理引擎。用到 AMD GPU，除了驱动和 ROCm，C# 开发者还需要一套方便调用的模型推理接口。我在做 HIP 的 C# 接口时，也一直想把这一部分补上：底层计算可以用 HIP，已有 ONNX 模型则交给 MIGraphX。
 
-现在，MIGraphXSharp 的第一个版本 **0.0.1** 已经发布到 NuGet。模型解析、GPU 编译、张量输入输出、动态尺寸和程序缓存，都可以在 C# 中完成。
+现在，MIGraphXSharp **0.0.2** 已经发布到 NuGet。模型解析、GPU 编译、张量输入输出、动态尺寸和程序缓存，都可以在 C# 中完成。需要进一步处理图像或模型输出时，还可以把 HIP 前后处理接在同一条 GPU 流水线上。
 
 这篇文章先给大家介绍这个库的特点和主要 API，再用几段代码看看具体怎么用。环境安装和视觉模型的完整教程，后面再单独展开。
 
@@ -20,7 +20,7 @@
 
 简单说，就是把 ONNX 模型交给 MIGraphX 编译，在 C# 中准备输入，再拿到模型输出。推理由 AMD 原生引擎执行，图像处理和业务代码继续使用自己熟悉的 .NET 工程。
 
-![MIGraphXSharp 应用场景：在 Linux AMD GPU 主机上，将模型推理接入 C# 视觉、OCR 和服务程序](assets/migraphxsharp-0.0.1/applications.png)
+![MIGraphXSharp 应用场景：在 Linux AMD GPU 主机上，将模型推理接入 C# 视觉、OCR 和服务程序](assets/migraphxsharp-0.0.2/applications.png)
 
 对于正在使用 AMD GPU 的朋友，这个库可以用在以下场景：
 
@@ -38,7 +38,7 @@ MIGraphXSharp 将模型程序、输入参数、张量和编译选项分别封装
 
 持有原生资源的对象实现了 `IDisposable`，可以直接配合 `using` 使用。调用代码里能看清对象在哪创建、在哪释放，比较适合放进已有的 C# 项目。
 
-![MIGraphXSharp 核心特性：类型化 API、资源管理、动态尺寸与缓存、可选 HIP 集成、加载诊断和 .NET 兼容](assets/migraphxsharp-0.0.1/feature-map.png)
+![MIGraphXSharp 核心特性：类型化 API、资源管理、动态尺寸与缓存、可选 HIP 集成、加载诊断和 .NET 兼容](assets/migraphxsharp-0.0.2/feature-map.png)
 
 ### 2.2 模型编译、动态输入和缓存
 
@@ -48,9 +48,9 @@ MIGraphXSharp 将模型程序、输入参数、张量和编译选项分别封装
 
 ### 2.3 普通推理与 HIP 集成分别提供
 
-一般的 ONNX 推理只需要核心包，**不依赖 HipSharp**。如果已经在使用 HIP 管理 Stream 或显存，再安装可选的 `HIP.Interop` 包，就可以使用流提交和设备输入接口。
+一般的 ONNX 推理只需要核心包，**不依赖 HipSharp**。如果已经在使用 HIP 管理 Stream 或显存，再安装可选的 `HIP.Interop` 包，就可以使用流提交和设备输入输出接口。
 
-这样可以先用同步 API 完成模型调用，后续有需要，再和自己的 GPU 处理代码衔接。
+比如，图片上传后在 GPU 上缩放和归一化，交给 MIGraphX 推理，再直接计算检测框、分割 mask 或 OCR 解码。最后只把业务需要的结果取回，减少完整张量在 CPU 和 GPU 之间来回搬运。
 
 ### 2.4 多目标框架与中英文 API 注释
 
@@ -62,16 +62,16 @@ MIGraphXSharp 将模型程序、输入参数、张量和编译选项分别封装
 
 从应用到 GPU，调用关系如下：
 
-![MIGraphXSharp 架构：C# 应用、Core、可选 HIP 适配包、AMD 原生运行库和 GPU](assets/migraphxsharp-0.0.1/runtime-stack.png)
+![MIGraphXSharp 架构：C# 应用、Core、可选 HIP 适配包、AMD 原生运行库和 GPU](assets/migraphxsharp-0.0.2/runtime-stack.png)
 
 核心包提供模型和张量 API，下面调用 AMD MIGraphX 的 C 接口；可选适配包再与 HipSharp 对接。项目本身使用 C# 编写，模型优化和 GPU 运算由原生 MIGraphX 完成。
 
 | 软件包 | 用途 |
 | --- | --- |
 | `JYPPX.ROCm.MIGraphX.CSharp.API` | 模型解析、编译、执行与资源管理 |
-| `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` | 可选的 HIP Stream 和设备输入集成 |
+| `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` | 可选的 HIP Stream、显存输入输出与同流执行 |
 
-两个包当前版本均为 `0.0.1`。NuGet 提供托管程序集，AMD 驱动、ROCm 和 MIGraphX 需要在主机上单独安装。
+两个包当前版本均为 `0.0.2`。NuGet 提供托管程序集，AMD 驱动、ROCm 和 MIGraphX 需要在主机上单独安装。
 
 HIP 适配包为可选的实验性扩展，当前依赖 HipSharp `0.10.0`。
 
@@ -81,7 +81,7 @@ HIP 适配包为可选的实验性扩展，当前依赖 HipSharp `0.10.0`。
 
 使用时主要接触下面几个类。先了解它们各自负责什么，后面的代码就比较容易看懂。
 
-![MIGraphXSharp 主要 API：模型解析与编译、张量与参数表、同步执行和类型化输出](assets/migraphxsharp-0.0.1/api-map.png)
+![MIGraphXSharp 主要 API：模型解析与编译、张量与参数表、同步执行和类型化输出](assets/migraphxsharp-0.0.2/api-map.png)
 
 | 类 | 主要用途 | 常用入口 |
 | --- | --- | --- |
@@ -93,6 +93,7 @@ HIP 适配包为可选的实验性扩展，当前依赖 HipSharp `0.10.0`。
 | `MIGraphXArgument` | 创建或读取张量数据 | `Create<T>`、`ToArray<T>` |
 | `MIGraphXParameterMap` | 按模型输入名称绑定参数 | `Add` |
 | `MIGraphXOnnxWorkflow` | 完成一次简单 ONNX 推理 | `RunFile`、`RunBuffer` |
+| `MIGraphXHipExecution` | 将模型接到 HIP 显存流水线 | `RunHostAsync`、`RunDeviceAsync`、`RunDeviceIntoAsync` |
 
 其中，`MIGraphXProgram` 是主要的模型对象。模型加载后，可以查询输入输出，选择 GPU 编译，再使用 `Run` 执行。`MIGraphXArgument` 保存数据，`MIGraphXParameterMap` 则负责把数据和输入名称对应起来。
 
@@ -103,7 +104,7 @@ HIP 适配包为可选的实验性扩展，当前依赖 HipSharp `0.10.0`。
 在 .NET 项目中安装核心包：
 
 ```bash
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.1
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
 ```
 
 对于单输入、单输出的静态 float32 模型，可以直接使用便捷接口。下面假定已经有一个输入输出均为 `float32[1,4]` 的 Identity ONNX，原生环境也已配置完成：
@@ -160,7 +161,7 @@ Console.WriteLine(string.Join(", ", values));
 
 实际应用中，可以把 program 的加载和编译放在初始化阶段，后面反复创建输入参数并调用 `Run`。换成其他模型时，需要使用它实际的输入名称、尺寸和数据类型。
 
-![模型复用方式：初始化时解析和编译，保留 program 后处理多次输入，结束时释放](assets/migraphxsharp-0.0.1/model-reuse.png)
+![模型复用方式：初始化时解析和编译，保留 program 后处理多次输入，结束时释放](assets/migraphxsharp-0.0.2/model-reuse.png)
 
 ### 5.3 设置输入尺寸
 
@@ -206,34 +207,51 @@ using var restored = MIGraphXProgram.Load(
 
 如果还需要根据模型、环境和选项管理缓存，可以使用 `MIGraphXModelCache`。保存的程序与原生版本、编译上下文有关，部署环境变化时需要重新检查或构建。
 
+### 5.5 让输出留在显存中继续处理
+
+如果前后处理已经使用 HIP，可以通过 `RunDeviceIntoAsync` 衔接模型。下面是提交部分的代码：假定 program 已使用 `offloadCopy: false` 编译，`deviceInputs` 绑定了编译后全部参数，`deviceOutputs` 按模型输出形状分配，`stream` 是前后处理共用的 HIP Stream：
+
+```csharp
+using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
+
+using var run = program.RunDeviceIntoAsync(
+    deviceInputs, deviceOutputs, stream);
+
+// 在这里向同一个 stream 提交自己的 HIP 后处理 kernel，
+// 直接使用 deviceOutputs 中的显存数据。
+run.Synchronize();
+```
+
+模型输出会在这条流上 D2D 复制到自己的缓冲区，随后就可以计算 mask、检测框或字符序列。这里没有创建主机张量副本，完成对象也会保留执行所需资源。它使用的是显存内复制，不是零复制接口。
+
 ## 六、视觉模型支持与应用示例
 
-有了模型调用接口，图像预处理、输出解码和结果显示仍然可以使用 C# 完成。目前仓库已经提供 YOLO26 和 PP-OCRv6 两套完整视觉示例，覆盖以下任务：
+模型接口之外，我也把两套常用视觉应用一起做了出来：YOLO26 和 PP-OCRv6。C# 负责组织调用，HIP 负责图像与张量处理，MIGraphX 负责模型推理，覆盖以下任务：
 
-![C# 视觉应用：图像预处理、MIGraphX 推理、结果后处理，以及检测、分类、分割、姿态、旋转框和 OCR 输出](assets/migraphxsharp-0.0.1/vision-workflow.png)
+![C# 视觉应用：图像预处理、MIGraphX 推理、结果后处理，以及检测、分类、分割、姿态、旋转框和 OCR 输出](assets/migraphxsharp-0.0.2/vision-workflow.png)
 
 | 模型 | 已实现的任务 |
 | --- | --- |
 | YOLO26 | 目标检测、图像分类、实例分割、人体姿态、旋转框检测 |
 | PP-OCRv6 | tiny/small/medium 文本检测与识别，以及文本行单独识别 |
 
-两套示例的预处理和后处理均由 C# 编写，图像读写使用 ImageSharp，运行时无需 Python 或 OpenCV。检测框、分割 mask、关键点和识别文字都可以继续用于业务处理。
+两套示例各自独立，默认在 GPU 上完成缩放、归一化和结果解码；分割 mask、OCR 检测框、透视裁剪和 CTC 也都在显存中处理。CPU 负责文件读写、少量调度数据、最终文字和结果显示，运行时无需 Python 或 OpenCV。需要对照实现时，也可以选择 C# 的 CPU 前后处理。
+
+OCR 一张图片往往会检测出多行文字。这里将文本行组成 batch，再交给多个独立识别实例；每个实例保留自己的模型、HIP Stream 和显存缓冲区，完成后按原来的行号整理文字。模型只在初始化时编译，后面重复使用，避免每识别一行就重新加载模型。
 
 具体模型的预处理、输出布局和解码方法，后面再分别写案例文章。
 
 ## 七、性能实测
 
-大家比较关心的速度，这次也一起做了测试。下面是 gfx1100 上的实测结果，分别列出模型推理和包含 C# 预后处理的流水线耗时：
+模型在 GPU 上跑得快，前后处理也要跟上。这次把同一批图片分别交给 CPU 和 HIP 前后处理，两条路径都使用 MIGraphX GPU 推理，再比较包含前后处理的整图耗时：
 
-![YOLO26 与 PP-OCRv6 的推理平均耗时和流水线平均耗时](assets/migraphxsharp-0.0.1/latency.png)
+![CPU 与 HIP 前后处理的整图流水线平均耗时](assets/migraphxsharp-0.0.2/latency.png)
 
-YOLO26 n 检测的推理平均耗时为 **3.23 ms**，流水线为 **16.82 ms**；分类为 **1.47 ms / 5.65 ms**。PP-OCRv6 tiny 完成整图检测和 16 行识别，推理合计 **23.71 ms**，流水线为 **66.42 ms**。
+YOLO26 n 检测从 **15.77 ms** 降到 **2.75 ms**；实例分割包含 mask 计算，从 **61.30 ms** 降到 **7.44 ms**。PP-OCRv6 tiny 完成整图检测和 16 行识别，从 **66.09 ms** 降到 **10.97 ms**。
 
-测试使用 Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0，GPU 架构为 gfx1100，CPU 配额 16 核。同一图片、batch=1、float32，预热 5 次后顺序测量 30 次，未锁定 GPU 时钟。
+测试环境为 Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0，GPU 架构 gfx1100，CPU 配额 16 核。float32，同一图片预热 5 次后测量 30 次，未锁定 GPU 时钟。YOLO batch=1；OCR 检测 batch=1、输入 512×512，HIP 识别输入 48×320、batch=4、2 个实例，CPU 对照为逐行识别。
 
-图中“推理”包含同步执行和主机输出读取；“流水线”另含 C# 预处理、参数创建和后处理，不含文件解码、模型解析编译、绘制与写盘。OCR 检测输入为 512×512，识别输入为 48×320。以上为单次处理延迟。
-
-从结果也能看到，预后处理在部分任务中占了不少时间。后面的性能文章会结合具体代码，再介绍这部分的测量和优化方法。
+这里统计从已解码图片到最终结果的墙钟时间，包含前后处理和结果回传，排除文件解码、模型与 kernel 编译、绘制和写盘。跨 stream 的 GPU 分项可能重叠，不能相加后当作整图延迟。多实例也会增加显存和编译成本，实际项目要根据文本行数与 GPU 选择配置。
 
 ## 八、总结与项目地址
 
@@ -250,7 +268,7 @@ https://github.com/guojin-yan/MIGraphX-CSharp-API
 **NuGet：**
 
 ```text
-https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.1
+https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2
 ```
 
 完整 API 文档和示例都放在仓库中，后续也会继续分享具体模型的使用方法。
