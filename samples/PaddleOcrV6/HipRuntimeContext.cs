@@ -5,6 +5,7 @@ using JYPPX.ROCm.HipSharp.Memory;
 using JYPPX.ROCm.HipSharp.Modules;
 using JYPPX.ROCm.HipSharp.Rtc;
 using JYPPX.ROCm.HipSharp.Streams;
+using JYPPX.ROCm.HipSharp.Types;
 using JYPPX.ROCm.MIGraphXSharp;
 using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
 using SixLabors.ImageSharp;
@@ -20,6 +21,7 @@ public sealed class HipRuntimeContext : IDisposable
     private readonly HipModule module;
     private readonly Dictionary<string, HipKernel> kernels = [];
     private readonly List<HipDeviceMemory> allocations = [];
+    private readonly bool ownsRuntime = true;
 
     public HipRuntimeContext(Arguments options)
     {
@@ -27,7 +29,7 @@ public sealed class HipRuntimeContext : IDisposable
         try
         {
             Runtime.GetDevice(options.Integer("device", 0, minimum: 0)).MakeCurrent();
-            Stream = Runtime.CreateStream();
+            Stream = Runtime.CreateStream(HipStreamFlags.NonBlocking);
             try
             {
                 if (options.Has("hip-module")) module = Runtime.LoadModule(File.ReadAllBytes(options.Required("hip-module")));
@@ -48,6 +50,18 @@ public sealed class HipRuntimeContext : IDisposable
         }
         catch { Runtime.Dispose(); throw; }
     }
+
+    private HipRuntimeContext(HipRuntimeContext owner)
+    {
+        Runtime = owner.Runtime;
+        module = owner.module;
+        ownsRuntime = false;
+        Stream = Runtime.CreateStream(HipStreamFlags.NonBlocking);
+    }
+
+    // Workers share the HIP client/module so read-only image/geometry and disjoint
+    // result slices can be used across streams. Dispose workers before their owner.
+    public HipRuntimeContext CreateWorker() => new(this);
 
     public HipDeviceMemory Allocate(long bytes)
     {
@@ -114,9 +128,8 @@ public sealed class HipRuntimeContext : IDisposable
         // Do not release live GPU buffers if synchronization fails.
         Stream.Synchronize();
         for (var index = allocations.Count - 1; index >= 0; index--) allocations[index].Dispose();
-        module.Dispose();
         Stream.Dispose();
-        Runtime.Dispose();
+        if (ownsRuntime) { module.Dispose(); Runtime.Dispose(); }
     }
 }
 
@@ -127,6 +140,7 @@ public sealed class HipInferenceSession : IDisposable
     private readonly HipRuntimeContext gpu;
     private readonly string inputName;
     private readonly MIGraphXHipDeviceInput[] inputs;
+    private readonly int batchSize;
     public HipDeviceMemory Input { get; }
     public HipDeviceMemory[] Outputs { get; }
     public MIGraphXShape[] OutputShapes { get; }
@@ -134,13 +148,15 @@ public sealed class HipInferenceSession : IDisposable
     public double CompileMilliseconds { get; }
     public string ModelSha256 { get; }
 
-    public HipInferenceSession(HipRuntimeContext gpu, string native, string model, string inputName, int width, int height)
+    public HipInferenceSession(HipRuntimeContext gpu, string native, string model, string inputName, int width, int height, int batchSize = 1)
     {
         this.gpu = gpu;
         this.inputName = inputName;
+        this.batchSize = batchSize;
+        if (batchSize < 1) throw new ArgumentOutOfRangeException(nameof(batchSize));
         ModelSha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(model))).ToLowerInvariant();
         using var options = new MIGraphXOnnxOptions(native);
-        options.SetInputParameterShape(inputName, new long[] { 1, 3, height, width });
+        options.SetInputParameterShape(inputName, new long[] { batchSize, 3, height, width });
         var timer = System.Diagnostics.Stopwatch.StartNew();
         program = MIGraphXProgram.ParseOnnxFile(model, options);
         ParseMilliseconds = timer.Elapsed.TotalMilliseconds;
@@ -148,7 +164,7 @@ public sealed class HipInferenceSession : IDisposable
         {
             var declared = program.GetParameterShapes();
             if (declared.Count != 1 || !declared.TryGetValue(inputName, out var declaredInput) ||
-                declaredInput.DataType != MIGraphXShapeDataType.Float32 || !declaredInput.Lengths.SequenceEqual(new long[] { 1, 3, height, width }))
+                declaredInput.DataType != MIGraphXShapeDataType.Float32 || !declaredInput.Lengths.SequenceEqual(new long[] { batchSize, 3, height, width }))
                 throw new InvalidOperationException("Expected exactly one static float32 NCHW model input.");
             using var target = new MIGraphXTarget(native, "gpu");
             using var compile = new MIGraphXCompileOptions(native, offloadCopy: false);
@@ -157,7 +173,7 @@ public sealed class HipInferenceSession : IDisposable
             CompileMilliseconds = timer.Elapsed.TotalMilliseconds;
             var shapes = program.GetParameterShapes();
             if (!shapes.TryGetValue(inputName, out var shape) ||
-                shape.DataType != MIGraphXShapeDataType.Float32 || !shape.Lengths.SequenceEqual(new long[] { 1, 3, height, width }))
+                shape.DataType != MIGraphXShapeDataType.Float32 || !shape.Lengths.SequenceEqual(new long[] { batchSize, 3, height, width }))
                 throw new InvalidOperationException("The compiled model changed its image input shape.");
             // offloadCopy=false can add compiler-owned output/scratch parameters.
             // They also need persistent device storage in the complete parameter map.
@@ -173,17 +189,23 @@ public sealed class HipInferenceSession : IDisposable
 
     public MIGraphXHipAsyncRun Enqueue() => program.RunDeviceIntoAsync(inputs, Outputs, gpu.Stream);
 
-    public void Dump(string directory, int width, int height)
+    public void Dump(string directory, int width, int height, int batchIndex = 0)
     {
+        if (batchIndex < 0 || batchIndex >= batchSize) throw new ArgumentOutOfRangeException(nameof(batchIndex));
         Directory.CreateDirectory(directory);
-        var input = gpu.Read<float>(Input, checked(width * height * 3));
+        int inputElements = checked(width * height * 3);
+        var input = gpu.Read<float>(Input, checked(inputElements * batchSize)).AsSpan(batchIndex * inputElements, inputElements).ToArray();
         File.WriteAllBytes(Path.Combine(directory, "input.f32"), MemoryMarshal.AsBytes(input.AsSpan()).ToArray());
         for (var index = 0; index < Outputs.Length; index++)
+        {
+            int elements = checked((int)OutputShapes[index].ElementCount / batchSize);
             File.WriteAllBytes(Path.Combine(directory, $"output-{index}.f32"),
-                MemoryMarshal.AsBytes(gpu.Read<float>(Outputs[index], checked((int)OutputShapes[index].ElementCount)).AsSpan()).ToArray());
+                MemoryMarshal.AsBytes(gpu.Read<float>(Outputs[index], checked((int)OutputShapes[index].ElementCount)).AsSpan(batchIndex * elements, elements)).ToArray());
+        }
         JsonOutput.Write(Path.Combine(directory, "tensors.json"), new { modelSha256 = ModelSha256, inputName,
             assemblyIdentity = typeof(MIGraphXProgram).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
-            inputShape = new[] { 1, 3, height, width }, outputs = OutputShapes.Select((s, index) => new { index, shape = s.Lengths }) });
+            executionBatchSize = batchSize, batchIndex,
+            inputShape = new[] { 1, 3, height, width }, outputs = OutputShapes.Select((s, index) => new { index, shape = new long[] { 1 }.Concat(s.Lengths.Skip(1)) }) });
     }
 
     public void Dispose() { gpu.Stream.Synchronize(); program.Dispose(); }

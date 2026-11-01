@@ -18,13 +18,14 @@ try
         gpuVisualization.Save(output); File.WriteAllLines(Path.Combine(output, "text.txt"), gpuResult.AcceptedText);
         JsonOutput.Write(Path.Combine(output, "result.json"), new { task = "paddleocr-v6", backend, gpuPipeline.DetectorInfo, gpuPipeline.RecognizerInfo,
             lines = gpuResult.Lines, acceptedText = gpuResult.AcceptedText, performance = gpuMeasured.Report,
-            timingScope = "pipeline=RGB upload+HIP detector preprocessing+MIGraphX+D2D outputs+GPU DB decode/order+GPU perspective crops+GPU recognition preprocessing+MIGraphX+D2D outputs+GPU CTC+compact result readback and Unicode formatting. Small counts/dimensions control host launches. GPU inference stages use HIP events and include D2D output copies. File decode, model/kernel compilation, drawing, crop/tensor export and file I/O excluded." });
+            timingScope = "pipeline=RGB upload+HIP detector preprocessing+MIGraphX+D2D outputs+GPU DB decode/order+GPU perspective crops+batched GPU recognition preprocessing+independent recognition programs/streams+GPU CTC+compact result readback and Unicode formatting. Small counts/dimensions control host launches. GPU stages use HIP events and include D2D output copies; sums across streams may overlap and are not wall-clock latency. recognitionBatch pools batches, including the padded final batch. File decode, model/kernel compilation, drawing, crop/tensor export and file I/O excluded." });
         Console.WriteLine(string.Join(Environment.NewLine, gpuResult.AcceptedText));
         Console.WriteLine($"HIP pipeline mean {gpuMeasured.Report.Pipeline.Mean:F2} ms, P95 {gpuMeasured.Report.Pipeline.P95:F2} ms.");
         if (gpuResult.AcceptedText.Length < options.Integer("expect-min-lines", 0, minimum: 0, maximum: 3000)) throw new InvalidOperationException("Fewer recognized lines than required.");
         return 0;
     }
     if (backend != "cpu") throw new ArgumentException("--backend hip|cpu");
+    if (options.Has("rec-batch") || options.Has("rec-workers")) throw new ArgumentException("--rec-batch and --rec-workers select HIP recognition scheduling; use --backend hip.");
     using var pipeline = new OcrPipeline(image, options);
     var measured = Benchmarking.Measure(() => pipeline.Run(),
         options.Integer("warmup", 0, minimum: 0, maximum: 1000), options.Integer("iterations", 1, maximum: 10000));
@@ -51,6 +52,6 @@ try
 catch (Exception exception)
 {
     Console.Error.WriteLine(exception);
-    Console.Error.WriteLine("Usage: --native /path/libmigraphx_c.so --rec-model rec.onnx --dictionary dict.txt --image text.jpg --output /outside/source/results [--det-model det.onnx] [--rec-width 320] [--dump-tensors true] [--warmup 5 --iterations 30]");
+    Console.Error.WriteLine("Usage: --native /path/libmigraphx_c.so --rec-model rec.onnx --dictionary dict.txt --image text.jpg --output /outside/source/results [--backend hip --gpu-architecture gfx1100] [--det-model det.onnx] [--rec-width 320] [--rec-batch 4 --rec-workers 2] [--dump-tensors true] [--warmup 5 --iterations 30]");
     return 1;
 }

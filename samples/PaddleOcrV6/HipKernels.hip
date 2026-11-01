@@ -56,6 +56,9 @@ extern "C" __global__ void tensorize(const unsigned char* src, float* dst, int r
 extern "C" __global__ void clear_int(int* dst,int n,int value){
     int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)dst[i]=value;
 }
+extern "C" __global__ void clear_float(float* dst,int n){
+    int i=blockIdx.x*blockDim.x+threadIdx.x;if(i<n)dst[i]=0;
+}
 
 // DB connected components: monotonic union-find on all 8-connected foreground edges.
 __device__ int root(int* parents,int x){int p;while((p=atomicAdd(parents+x,0))!=x)x=p;return x;}
@@ -190,23 +193,26 @@ extern "C" __global__ void rec_resize_x(const unsigned char* src,float* dst,cons
     int c=i%3,x=(i/3)%dw,y=i/(dw*3);float scale=(float)w/dw,filter=fmaxf(1.f,scale),center=(x+.5f)*scale-.5f,sum=0,total=0;
     for(int sx=max(0,(int)ceilf(center-filter));sx<=min(w-1,(int)floorf(center+filter));sx++){float a=weight((sx-center)/filter,0);sum+=src[(y*w+sx)*3+c]*a;total+=a;}dst[i]=sum/total;
 }
-extern "C" __global__ void rec_resize_tensor(const float* src,float* dst,const int* meta,int width,int line){
+extern "C" __global__ void rec_resize_tensor(const float* src,float* dst,const int* meta,int width,int line,int slot){
+    dst+=slot*width*48*3;
     meta+=line*6;int i=blockIdx.x*blockDim.x+threadIdx.x;if(i>=width*48*3)return;
     int c=i/(width*48),p=i%(width*48),x=p%width,y=p/width,w=meta[5],h=meta[3];if(x>=w){dst[i]=0;return;}
     float scale=(float)h/48,filter=fmaxf(1.f,scale),center=(y+.5f)*scale-.5f,sum=0,total=0;
     for(int sy=max(0,(int)ceilf(center-filter));sy<=min(h-1,(int)floorf(center+filter));sy++){float a=weight((sy-center)/filter,0);sum+=src[(sy*w+x)*3+2-c]*a;total+=a;}
     float value=(float)ci((int)floorf(sum/total+.5f),0,255);dst[i]=(value/255.f-.5f)/.5f;
 }
-extern "C" __global__ void ctc_argmax(const float* data,int classes,int steps,int* ids,float* scores,int* error){
-    int t=blockIdx.x,tid=threadIdx.x;if(t>=steps)return;__shared__ float values[256];__shared__ int indices[256];
+extern "C" __global__ void ctc_argmax(const float* data,int classes,int steps,int batch,int* ids,float* scores,int* error){
+    int t=blockIdx.x,tid=threadIdx.x;if(t>=steps*batch)return;__shared__ float values[256];__shared__ int indices[256];
     float best=-INFINITY;int id=0;
     for(int c=tid;c<classes;c+=256){float v=data[t*classes+c];if(!isfinite(v))atomicExch(error,1);if(v>best){best=v;id=c;}}
     values[tid]=best;indices[tid]=id;__syncthreads();
     for(int stride=128;stride;stride/=2){if(tid<stride&&(values[tid+stride]>values[tid]||(values[tid+stride]==values[tid]&&indices[tid+stride]<indices[tid]))){values[tid]=values[tid+stride];indices[tid]=indices[tid+stride];}__syncthreads();}
     if(tid==0){ids[t]=indices[0];scores[t]=values[0];if(values[0]<0||values[0]>1)atomicExch(error,1);}
 }
-extern "C" __global__ void ctc_compact(const int* ids,const float* scores,int steps,int line,int* tokens,float* confidence){
-    if(blockIdx.x||threadIdx.x)return;int n=0,previous=-1;double sum=0;int* out=tokens+line*(steps+1);
+extern "C" __global__ void ctc_compact(const int* ids,const float* scores,int steps,int firstLine,int batch,int* tokens,float* confidence){
+    int slot=blockIdx.x*blockDim.x+threadIdx.x;if(slot>=batch)return;int line=firstLine+slot;
+    ids+=slot*steps;scores+=slot*steps;
+    int n=0,previous=-1;double sum=0;int* out=tokens+line*(steps+1);
     for(int t=0;t<steps;t++){int id=ids[t];if(id!=0&&id!=previous){out[1+n++]=id;sum+=scores[t];}previous=id;}
     out[0]=n;confidence[line]=n?(float)(sum/n):0;
 }

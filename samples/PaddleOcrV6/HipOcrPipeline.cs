@@ -1,6 +1,7 @@
 using System.Text;
 using JYPPX.ROCm.HipSharp.Memory;
 using JYPPX.ROCm.HipSharp.Streams;
+using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using static MIGraphXSharp.Samples.PaddleOcrV6.HipRuntimeContext;
@@ -12,19 +13,21 @@ public sealed class HipOcrPipeline : IDisposable
 {
     private const int MaximumLines = 3000;
     private readonly HipRuntimeContext gpu;
-    private readonly HipInferenceSession recognizer;
+    private readonly List<RecognitionWorker> workers = [];
+    private HipInferenceSession Recognizer => workers[0].Session;
     private readonly HipInferenceSession? detector;
-    private readonly HipDeviceMemory image, crop, cropHorizontal, meta, boxes, sorted, order, control, resultCount;
-    private readonly HipDeviceMemory ids, scores, tokens, confidence;
+    private readonly HipDeviceMemory image, meta, boxes, sorted, order, control, resultCount;
+    private readonly HipDeviceMemory tokens, confidence;
     private readonly HipDeviceMemory? horizontal, resized, parents, counts, components, offsets, sizes, points, hull;
     private readonly byte[] pixels;
     private readonly string[] dictionary;
-    private readonly int sw, sh, dw, dh, recWidth, steps, maxEdge;
+    private readonly int sw, sh, dw, dh, recWidth, steps, maxEdge, batchSize;
     private readonly float detThreshold, boxThreshold, textThreshold;
     private readonly HipEvent[] detEvents;
     private readonly List<HipEvent[]> recEvents = [];
-    public object RecognizerInfo => new { recognizer.ModelSha256, recognizer.ParseMilliseconds, recognizer.CompileMilliseconds,
-        inputWidth = recWidth, classes = dictionary.Length, backend = "hip" };
+    public object RecognizerInfo => new { Recognizer.ModelSha256,
+        parseMilliseconds = workers.Sum(w => w.Session.ParseMilliseconds), compileMilliseconds = workers.Sum(w => w.Session.CompileMilliseconds),
+        inputWidth = recWidth, classes = dictionary.Length, batchSize, instances = workers.Count, backend = "hip" };
     public object? DetectorInfo => detector is null ? null : new { detector.ModelSha256, detector.ParseMilliseconds, detector.CompileMilliseconds,
         inputWidth = dw, inputHeight = dh, dbCandidateLimit = MaximumLines };
 
@@ -32,6 +35,8 @@ public sealed class HipOcrPipeline : IDisposable
     {
         sw = source.Width; sh = source.Height;
         recWidth = options.Integer("rec-width", 320);
+        batchSize = options.Integer("rec-batch", options.Has("det-model") ? 4 : 1, maximum: 32);
+        int workerCount = options.Integer("rec-workers", options.Has("det-model") ? 2 : 1, maximum: 4);
         maxEdge = Math.Clamp((int)Math.Ceiling(Math.Sqrt((double)sw * sw + (double)sh * sh)) + 1, 1, 8192);
         dictionary = Recognition.LoadDictionary(options.Required("dictionary"));
         detThreshold = options.Probability("det-threshold", .2f); boxThreshold = options.Probability("box-threshold", .4f); textThreshold = options.Probability("text-threshold", .5f);
@@ -39,9 +44,9 @@ public sealed class HipOcrPipeline : IDisposable
         try
         {
             var native = options.Required("native");
-            recognizer = new HipInferenceSession(gpu, native, options.Required("rec-model"), "x", recWidth, 48);
-            var shape = recognizer.OutputShapes.Single().Lengths;
-            if (shape.Count != 3 || shape[0] != 1 || shape[2] != dictionary.Length) throw new InvalidOperationException("Recognizer shape and dictionary do not agree.");
+            for (var i = 0; i < workerCount; i++)
+                workers.Add(new RecognitionWorker(gpu, native, options.Required("rec-model"), recWidth, batchSize, maxEdge, dictionary.Length));
+            var shape = Recognizer.OutputShapes.Single().Lengths;
             steps = checked((int)shape[1]);
             if (options.Has("det-model"))
             {
@@ -58,15 +63,12 @@ public sealed class HipOcrPipeline : IDisposable
                 offsets = gpu.Allocate(MaximumLines * sizeof(int)); sizes = gpu.Allocate(MaximumLines * sizeof(int));
             }
             (image, pixels) = gpu.Image(source);
-            crop = gpu.Allocate(checked((long)maxEdge * maxEdge * 3));
-            cropHorizontal = gpu.Allocate(checked((long)maxEdge * recWidth * 3 * sizeof(float)));
             meta = gpu.Allocate(MaximumLines * 6 * sizeof(int)); boxes = gpu.Allocate(MaximumLines * 9 * sizeof(double)); sorted = gpu.Allocate(MaximumLines * 9 * sizeof(double));
             order = gpu.Allocate(MaximumLines * sizeof(int)); control = gpu.Allocate(2 * sizeof(int)); resultCount = gpu.Allocate(sizeof(int));
-            ids = gpu.Allocate(steps * sizeof(int)); scores = gpu.Allocate(steps * sizeof(float));
             tokens = gpu.Allocate(checked((long)MaximumLines * (steps + 1) * sizeof(int))); confidence = gpu.Allocate(MaximumLines * sizeof(float));
             detEvents = Enumerable.Range(0, 5).Select(_ => gpu.Runtime.CreateEvent()).ToArray();
         }
-        catch { detector?.Dispose(); recognizer?.Dispose(); gpu.Dispose(); throw; }
+        catch { detector?.Dispose(); foreach (var worker in workers) worker.Dispose(); gpu.Dispose(); throw; }
     }
 
     public TimedValue<OcrResult> Run(string? artifacts = null, bool dumpTensors = false)
@@ -111,30 +113,54 @@ public sealed class HipOcrPipeline : IDisposable
         for (var line = 0; line < lineCount; line++) gpu.Serial("crop_meta", P(sorted), I(line), P(meta), I(recWidth), I(maxEdge), P(control));
         var dimensions = gpu.Read<int>(meta, lineCount * 6);
         if (gpu.Read<int>(control, 1)[0] != 0) throw new InvalidOperationException("Crop dimensions exceed the allocated scratch space.");
-        for (var line = 0; line < lineCount; line++)
+        int batchCount = (lineCount + batchSize - 1) / batchSize;
+        try
         {
-            while (recEvents.Count <= line) recEvents.Add(Enumerable.Range(0, 4).Select(_ => gpu.Runtime.CreateEvent()).ToArray());
-            var ev = recEvents[line]; ev[0].Record(gpu.Stream);
-            int cropWidth = dimensions[line * 6 + 2], cropHeight = dimensions[line * 6 + 3], resizedWidth = dimensions[line * 6 + 5];
-            gpu.Launch("perspective_crop", checked(cropWidth * cropHeight * 3), P(image), P(crop), I(sw), I(sh), P(sorted), I(line), P(meta));
-            gpu.Launch("rec_resize_x", checked(resizedWidth * cropHeight * 3), P(crop), P(cropHorizontal), P(meta), I(line));
-            gpu.Launch("rec_resize_tensor", checked(recWidth * 48 * 3), P(cropHorizontal), P(recognizer.Input), P(meta), I(recWidth), I(line));
-            ev[1].Record(gpu.Stream);
-            using var run = recognizer.Enqueue(); ev[2].Record(gpu.Stream);
-            gpu.Launch("ctc_argmax", checked(steps * 256), P(recognizer.Outputs[0]), I(dictionary.Length), I(steps), P(ids), P(scores), P(control));
-            gpu.Serial("ctc_compact", P(ids), P(scores), I(steps), I(line), P(tokens), P(confidence));
-            ev[3].Record(gpu.Stream);
-            // Reuse fixed-batch model buffers only after the preceding inference and its
-            // postprocessing finish. Future batching can be added for compatible exports.
-            run.Synchronize();
-            if (artifacts is not null)
+            for (var wave = 0; wave < batchCount; wave += workers.Count)
             {
+                int activeWorkers = Math.Min(workers.Count, batchCount - wave);
+                for (var wi = 0; wi < activeWorkers; wi++)
+                {
+                    int batch = wave + wi, first = batch * batchSize, count = Math.Min(batchSize, lineCount - first);
+                    while (recEvents.Count <= batch) recEvents.Add(Enumerable.Range(0, 4).Select(_ => gpu.Runtime.CreateEvent()).ToArray());
+                    var worker = workers[wi]; var context = worker.Gpu; var ev = recEvents[batch];
+                    ev[0].Record(context.Stream);
+                    // Clear unused slots of the final fixed-size batch; never decode them.
+                    context.Launch("clear_float", checked(batchSize * recWidth * 48 * 3), P(worker.Session.Input), I(batchSize * recWidth * 48 * 3));
+                    for (var slot = 0; slot < count; slot++)
+                    {
+                        int line = first + slot;
+                        Crop(worker, line, dimensions);
+                        context.Launch("rec_resize_x", checked(dimensions[line * 6 + 5] * dimensions[line * 6 + 3] * 3), P(worker.Crop), P(worker.Horizontal), P(meta), I(line));
+                        context.Launch("rec_resize_tensor", checked(recWidth * 48 * 3), P(worker.Horizontal), P(worker.Session.Input), P(meta), I(recWidth), I(line), I(slot));
+                    }
+                    ev[1].Record(context.Stream);
+                    worker.Enqueue(); ev[2].Record(context.Stream);
+                    context.Launch("ctc_argmax", checked(steps * count * 256), P(worker.Session.Outputs[0]), I(dictionary.Length), I(steps), I(count), P(worker.Ids), P(worker.Scores), P(control));
+                    context.Launch("ctc_compact", count, P(worker.Ids), P(worker.Scores), I(steps), I(first), I(count), P(tokens), P(confidence));
+                    ev[3].Record(context.Stream);
+                }
+                // Submit all independent streams before waiting. A program/buffer set is
+                // reused only after its previous batch and CTC work have completed.
+                for (var wi = 0; wi < activeWorkers; wi++) workers[wi].Complete();
+                if (artifacts is null) continue;
                 Directory.CreateDirectory(artifacts);
-                using var cropImage = Image.LoadPixelData<Rgb24>(gpu.Read<byte>(crop, checked(cropWidth * cropHeight * 3)), cropWidth, cropHeight);
-                cropImage.SaveAsPng(Path.Combine(artifacts, $"crop-{line:D3}.png"));
-                if (dumpTensors) recognizer.Dump(Path.Combine(artifacts, $"rec-tensors-{line:D3}"), recWidth, 48);
+                for (var wi = 0; wi < activeWorkers; wi++)
+                {
+                    int first = (wave + wi) * batchSize, count = Math.Min(batchSize, lineCount - first);
+                    var worker = workers[wi];
+                    for (var slot = 0; slot < count; slot++)
+                    {
+                        int line = first + slot, width = dimensions[line * 6 + 2], height = dimensions[line * 6 + 3];
+                        Crop(worker, line, dimensions);
+                        using var cropImage = Image.LoadPixelData<Rgb24>(worker.Gpu.Read<byte>(worker.Crop, checked(width * height * 3)), width, height);
+                        cropImage.SaveAsPng(Path.Combine(artifacts, $"crop-{line:D3}.png"));
+                        if (dumpTensors) worker.Session.Dump(Path.Combine(artifacts, $"rec-tensors-{line:D3}"), recWidth, 48, slot);
+                    }
+                }
             }
         }
+        finally { foreach (var worker in workers) worker.Complete(); }
         var packedTokens = gpu.Read<int>(tokens, checked(lineCount * (steps + 1)));
         var confidences = gpu.Read<float>(confidence, lineCount);
         var polygons = gpu.Read<double>(sorted, lineCount * 9);
@@ -155,7 +181,7 @@ public sealed class HipOcrPipeline : IDisposable
             lines[line] = new TextLine(line, quad, (float)polygons[line * 9 + 8], text.ToString(), confidences[line], $"crop-{line:D3}.png");
             if (confidences[line] >= textThreshold) texts.Add(text.ToString());
         }
-        var recognitionSamples = Enumerable.Range(0, lineCount).Select(i => (double)HipEvent.ElapsedTime(recEvents[i][1], recEvents[i][2])).ToArray();
+        var recognitionSamples = Enumerable.Range(0, batchCount).Select(i => (double)HipEvent.ElapsedTime(recEvents[i][1], recEvents[i][2])).ToArray();
         double detTime = detector is null ? 0 : HipEvent.ElapsedTime(detEvents[2], detEvents[3]), recTime = recognitionSamples.Sum();
         var stages = new Dictionary<string, double[]>
         {
@@ -164,18 +190,60 @@ public sealed class HipOcrPipeline : IDisposable
             ["detectorInferenceGpuWithDeviceCopies"] = [detTime],
             ["detectorPostprocessGpu"] = [HipEvent.ElapsedTime(detEvents[3], detEvents[4])],
             ["inferenceGpuWithDeviceCopiesTotal"] = [detTime + recTime],
-            ["recognitionPreprocessGpuTotal"] = [Enumerable.Range(0, lineCount).Sum(i => (double)HipEvent.ElapsedTime(recEvents[i][0], recEvents[i][1]))],
-            ["recognitionPostprocessGpuTotal"] = [Enumerable.Range(0, lineCount).Sum(i => (double)HipEvent.ElapsedTime(recEvents[i][2], recEvents[i][3]))],
+            ["recognitionPreprocessGpuTotal"] = [Enumerable.Range(0, batchCount).Sum(i => (double)HipEvent.ElapsedTime(recEvents[i][0], recEvents[i][1]))],
+            ["recognitionPostprocessGpuTotal"] = [Enumerable.Range(0, batchCount).Sum(i => (double)HipEvent.ElapsedTime(recEvents[i][2], recEvents[i][3]))],
         };
-        if (lineCount > 0) stages["recognitionLineGpuWithDeviceCopies"] = recognitionSamples;
+        if (lineCount > 0) stages["recognitionBatchGpuWithDeviceCopies"] = recognitionSamples;
         if (artifacts is not null && dumpTensors && detector is not null) detector.Dump(Path.Combine(artifacts, "det-tensors"), dw, dh);
         return new(new OcrResult(lines, texts.ToArray(), detTime, recTime), stages);
     }
 
+    private void Crop(RecognitionWorker worker, int line, int[] dimensions)
+        => worker.Gpu.Launch("perspective_crop", checked(dimensions[line * 6 + 2] * dimensions[line * 6 + 3] * 3),
+            P(image), P(worker.Crop), I(sw), I(sh), P(sorted), I(line), P(meta));
+
     public void Dispose()
     {
         gpu.Stream.Synchronize();
+        foreach (var worker in workers) worker.Dispose();
         foreach (var e in detEvents.Concat(recEvents.SelectMany(e => e))) e.Dispose();
-        detector?.Dispose(); recognizer.Dispose(); gpu.Dispose();
+        detector?.Dispose(); gpu.Dispose();
+    }
+
+    private sealed class RecognitionWorker : IDisposable
+    {
+        public HipRuntimeContext Gpu { get; }
+        public HipInferenceSession Session { get; }
+        public HipDeviceMemory Crop { get; }
+        public HipDeviceMemory Horizontal { get; }
+        public HipDeviceMemory Ids { get; }
+        public HipDeviceMemory Scores { get; }
+        private MIGraphXHipAsyncRun? pending;
+
+        public RecognitionWorker(HipRuntimeContext owner, string native, string model, int width, int batch, int edge, int classes)
+        {
+            Gpu = owner.CreateWorker();
+            try
+            {
+                Session = new HipInferenceSession(Gpu, native, model, "x", width, 48, batch);
+                var shape = Session.OutputShapes.Single().Lengths;
+                if (shape.Count != 3 || shape[0] != batch || shape[2] != classes)
+                    throw new InvalidOperationException("Recognizer must return [rec-batch,time,dictionary classes]. Use an ONNX export with a compatible batch dimension.");
+                int steps = checked((int)shape[1]);
+                Crop = Gpu.Allocate(checked((long)edge * edge * 3));
+                Horizontal = Gpu.Allocate(checked((long)edge * width * 3 * sizeof(float)));
+                Ids = Gpu.Allocate(checked((long)steps * batch * sizeof(int)));
+                Scores = Gpu.Allocate(checked((long)steps * batch * sizeof(float)));
+            }
+            catch { Session?.Dispose(); Gpu.Dispose(); throw; }
+        }
+
+        public void Enqueue() => pending = Session.Enqueue();
+        public void Complete()
+        {
+            if (pending is null) return;
+            pending.Synchronize(); pending.Dispose(); pending = null;
+        }
+        public void Dispose() { Complete(); Session.Dispose(); Gpu.Dispose(); }
     }
 }
