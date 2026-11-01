@@ -72,6 +72,7 @@ try
             textQueries
         });
         File.WriteAllText(Path.Combine(output, "index.html"), "<!doctype html><meta charset=utf-8><title>CLIP 图文检索</title><style>body{font:16px sans-serif;max-width:1000px;margin:auto;background:#0c1424;color:#eef}section{padding:20px;border-bottom:1px solid #456}img{max-width:280px;max-height:220px}</style><h1>CLIP 图文匹配</h1><p>分数为当前候选组内的 Softmax，不是业务概率。</p>" + string.Join("", result.Select((r, i) => $"<section><h2>{WebUtility.HtmlEncode(r.Id)}</h2><img src=\"data:image/png;base64,{Preview(images[i])}\"><ol>{string.Join("", r.Matches.Select(m => $"<li>{WebUtility.HtmlEncode(m.Text)} · cosine {m.Cosine:F4} · score {m.CandidateScore:F4}</li>"))}</ol></section>")));
+        File.AppendAllText(Path.Combine(output, "index.html"), "<h1>文字检索图片</h1>" + string.Join("", textQueries.Select(q => $"<section><h2>{WebUtility.HtmlEncode(q.Text)}</h2><ol>{string.Join("", q.images.Select(m => $"<li>{WebUtility.HtmlEncode(m.Key)} · cosine {m.Cosine:F4} · score {m.CandidateScore:F4}</li>"))}</ol></section>")));
         foreach (var r in result) Console.WriteLine($"{r.Id}: {r.Matches[0].Key}, cosine={r.Matches[0].Cosine:F4}");
         Console.WriteLine($"All-image pipeline mean {mean:F2} ms; {1000 * images.Count / mean:F2} images/s.");
         return 0;

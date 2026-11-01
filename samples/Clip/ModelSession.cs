@@ -138,4 +138,3 @@ public sealed class Arguments
         return value >= minimum && value <= maximum ? value : throw new ArgumentOutOfRangeException(name);
     }
 }
-

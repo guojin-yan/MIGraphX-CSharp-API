@@ -231,4 +231,3 @@ extern "C" __global__ void ctc_compact(const int* ids,const float* scores,int st
     for(int t=0;t<steps;t++){int id=ids[t];if(id!=0&&id!=previous){out[1+n++]=id;sum+=scores[t];}previous=id;}
     out[0]=n;confidence[line]=n?(float)(sum/n):0;
 }
-

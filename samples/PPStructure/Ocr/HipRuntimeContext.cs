@@ -216,4 +216,3 @@ public sealed class HipInferenceSession : IDisposable
 
     public void Dispose() { gpu.Stream.Synchronize(); program.Dispose(); }
 }
-
