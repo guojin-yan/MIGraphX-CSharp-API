@@ -1,5 +1,5 @@
 
-namespace MIGraphXSharp.Samples.PaddleOcrV6;
+namespace MIGraphXSharp.Samples.PaddleOcr;
 
 public sealed record TextBox(PointD[] Polygon, float Score);
 

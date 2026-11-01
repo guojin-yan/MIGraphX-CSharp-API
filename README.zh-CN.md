@@ -26,14 +26,14 @@
 
 **MIGraphX C# API 是 AMD MIGraphX 的 .NET 封装库，让 C# 开发者直接在应用中完成 ONNX 模型加载、GPU 编译、张量操作和模型推理。** 通过可选的 HIP 适配器，还可以在同一条 GPU 流上衔接前处理、模型推理与后处理。
 
-项目提供 **YOLO26** 与 **PP-OCRv6** 完整案例，包含图像处理、推理、结果解析和耗时统计。案例由 C# 与 HIP 实现，运行时无需 Python 或 OpenCV。
+项目提供 **YOLO26** 与 **PP-OCRv4/v5/v6** 完整案例，包含图像处理、推理、结果解析和耗时统计。三代 OCR 模型在同一个 PaddleOcr 项目中使用。案例由 C# 与 HIP 实现，运行时无需 Python 或 OpenCV。
 
 | 核心优势 | 能为项目带来什么 |
 | --- | --- |
 | 🚀 AMD GPU 推理 | 通过 C# 托管 API 使用 MIGraphX 的模型编译与推理能力 |
 | ⚡ GPU 图像流水线 | 利用 HIP 流与显存缓冲区，在 GPU 上完成数值前后处理 |
 | 🧩 .NET 项目集成 | 覆盖 .NET Framework 4.6 到 .NET 10 的 15 个目标框架，提供中英文 XML 注释 |
-| 📚 完整应用案例 | YOLO26 五任务、PP-OCRv6 检测与识别，支持 OCR 多 batch 和多识别实例 |
+| 📚 完整应用案例 | YOLO26 五任务、PP-OCRv4/v5/v6 检测与识别，支持 OCR 多 batch 和多识别实例 |
 
 ## 📢 0.0.2 更新摘要
 
@@ -91,7 +91,7 @@ Console.WriteLine(string.Join(", ", result));
 dotnet run -c Release
 ~~~
 
-图像模型可以直接参考 [YOLO26 案例](samples/Yolo26/README.md)或 [PP-OCRv6 案例](samples/PaddleOcrV6/README.md)。安装与原生库加载诊断见[入门指南](docs/guides/getting-started.md)。
+图像模型可以直接参考 [YOLO26 案例](samples/Yolo26/README.md)或 [PaddleOCR 案例](samples/PaddleOcr/README.md)。安装与原生库加载诊断见[入门指南](docs/guides/getting-started.md)。
 
 ## ✨ 完整特性列表
 
@@ -129,9 +129,11 @@ dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
 | 案例 | 支持任务 | 包含内容 |
 | --- | --- | --- |
 | [YOLO26](samples/Yolo26/README.md) | 目标检测、图像分类、实例分割、姿态估计、旋转框检测 | HIP 缩放与归一化、输出解码、mask、关键点和结果标注 |
-| [PP-OCRv6](samples/PaddleOcrV6/README.md) | tiny/small/medium 文本检测与识别、仅识别 | HIP 文本框提取、透视裁剪、多 batch、多实例与 CTC 解码 |
+| [PP-OCRv4/v5/v6](samples/PaddleOcr/README.md) | v4/v5 mobile、server；v6 tiny、small、medium；整图与仅识别 | HIP 文本框提取、透视裁剪、多 batch、多实例与 CTC 解码 |
 
 两个项目各自包含完整代码，目标框架为 .NET 10，提供 JSON/PNG/SVG 输出、预热与重复计时，并保留 CPU 前后处理选项。两种后端均使用 MIGraphX 执行 GPU 模型推理。模型、输入图片与 OCR 字典由使用者另行准备。
+
+v4/v5 支持与统一 `PaddleOcr` 入口在当前 main 源码中提供；已发布的 v0.0.2 标签保留原 `PaddleOcrV6` 示例。
 
 在文档所列 gfx1100、FP32 环境中，HIP 整图平均耗时为：**YOLO26n 检测 2.75 ms，PP-OCRv6 tiny 识别 16 行文本 10.97 ms**。计时不含文件解码、编译、绘图与导出。完整数据和测试条件见 [0.0.2 版本说明](docs/release-notes/0.0.2.md#性能参考)，运行参数见[视觉案例指南](docs/guides/vision-samples.md)。
 
@@ -190,7 +192,7 @@ MIGraphXSharp/
 │   └── JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/  # HIP 适配器
 ├── samples/
 │   ├── Yolo26/                                    # 五类视觉任务
-│   └── PaddleOcrV6/                               # 文本检测与识别
+│   └── PaddleOcr/                                 # 文本检测与识别
 ├── docs/
 │   ├── guides/                                    # 安装与使用
 │   ├── release-notes/                             # 版本记录

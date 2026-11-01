@@ -2,7 +2,7 @@
 
 ![MIGraphXSharp 0.0.2：让 C# 接入 AMD GPU 原生推理](assets/migraphxsharp-0.0.2/cover.png)
 
-作者：Guojin Yan · 适用版本：0.0.2
+作者：Guojin Yan · 核心包版本：0.0.2 · OCR v4/v5 示例使用仓库 main 源码
 
 ## 前言
 
@@ -14,7 +14,7 @@
 
 现在，**MIGraphXSharp 0.0.2 已经发布到 NuGet 和 GitHub。** 模型解析、GPU 编译、张量输入输出、动态尺寸和程序缓存，都可以在 C# 中完成。配合 HIP，还可以让前处理、模型推理和后处理连续在 GPU 上执行。
 
-这次随库提供的 YOLO26 和 PP-OCRv6 案例，也已经完成了 GPU 数值前后处理。其中 OCR 支持批量识别和多个独立推理实例。后面会把整图耗时一起列出来，看看这些处理对实际应用有多大影响。
+这次随库提供的 YOLO26 和 PaddleOCR 案例，也已经完成了 GPU 数值前后处理。OCR 在一个项目中支持 v4、v5、v6，并支持批量识别和多个独立推理实例。后面会把整图耗时一起列出来，看看这些处理对实际应用有多大影响。
 
 这篇文章先给大家介绍这个库的特点和主要 API，再用几段代码看看具体怎么用。环境安装和视觉模型的完整教程，后面再单独展开。
 
@@ -245,18 +245,21 @@ run.Synchronize();
 
 ## 六、视觉模型支持与应用示例
 
-### 6.1 YOLO26 五任务与 PP-OCRv6
+### 6.1 YOLO26 五任务与 PaddleOCR 三代模型
 
-模型接口之外，我也把两套常用视觉应用一起做了出来：YOLO26 和 PP-OCRv6。C# 负责组织调用，HIP 负责图像与张量处理，MIGraphX 负责模型推理，覆盖以下任务：
+模型接口之外，我也把两套常用视觉应用一起做了出来：YOLO26 和 PaddleOCR。C# 负责组织调用，HIP 负责图像与张量处理，MIGraphX 负责模型推理，覆盖以下任务：
 
 ![C# 视觉应用：图像预处理、MIGraphX 推理、结果后处理，以及检测、分类、分割、姿态、旋转框和 OCR 输出](assets/migraphxsharp-0.0.2/vision-workflow.png)
 
 | 模型 | 已实现的任务 |
 | --- | --- |
 | YOLO26 | 目标检测、图像分类、实例分割、人体姿态、旋转框检测 |
-| PP-OCRv6 | tiny/small/medium 文本检测与识别，以及文本行单独识别 |
+| PP-OCRv4 / v5 | mobile、server 文本检测与识别，以及文本行单独识别 |
+| PP-OCRv6 | tiny、small、medium 文本检测与识别，以及文本行单独识别 |
 
-两个示例是各自包含完整代码的独立项目，分别放在 `samples/Yolo26` 和 `samples/PaddleOcrV6`。从读取图片到输出检测框、mask、关键点或文字，处理代码都在对应项目中，方便直接查看和修改。运行时无需 Python 或 OpenCV，图片读写由 ImageSharp 完成。两个案例使用 .NET 10，模型、输入图片和 OCR 字典另行准备。
+两个示例是各自包含完整代码的独立项目，分别放在 `samples/Yolo26` 和 `samples/PaddleOcr`。从读取图片到输出检测框、mask、关键点或文字，处理代码都在对应项目中，方便直接查看和修改。运行时无需 Python 或 OpenCV，图片读写由 ImageSharp 完成。两个案例使用 .NET 10，模型、输入图片和 OCR 字典另行准备。
+
+OCR 三代模型共用同一套图像、显存和识别调度代码，按版本选择模型文件和字典即可。v4/v5 的 mobile、server 与 v6 的 tiny、small、medium 都有对应配置，不需要分别维护三个项目。识别字典仍需严格匹配模型，不能跨版本混用。
 
 ### 6.2 哪些处理已经放到 GPU
 

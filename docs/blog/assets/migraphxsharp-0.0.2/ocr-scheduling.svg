@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1000" viewBox="0 0 1800 1000" role="img" aria-labelledby="title desc">
-  <title id="title">PP-OCRv6：文本行分批与双实例识别</title>
+  <title id="title">PaddleOCR：文本行分批与双实例识别</title>
   <desc id="desc">16 行文字按 batch 4 分成四批，每轮向两个独立识别实例各提交一批，等待本轮完成后继续下一轮，结果按原始行号回填。各实例独立持有模型、HIP Stream 和可写显存缓冲区。本图为调度示意，并非 GPU 执行时间线。</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#050d1b"/><stop offset=".52" stop-color="#09192c"/><stop offset="1" stop-color="#05101d"/></linearGradient>

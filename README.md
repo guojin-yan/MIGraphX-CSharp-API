@@ -26,14 +26,14 @@
 
 **MIGraphX C# API is a .NET wrapper for AMD MIGraphX. It lets C# developers load ONNX models, compile GPU programs, work with tensors and run inference directly from their applications.** The optional HIP adapter connects GPU preprocessing, model execution and postprocessing on the same stream.
 
-The repository includes complete **YOLO26** and **PP-OCRv6** examples. Image processing, inference, result decoding and timing are written in C# and HIP; running the examples requires no Python or OpenCV.
+The repository includes complete **YOLO26** and **PP-OCRv4/v5/v6** examples. All three OCR generations use one PaddleOcr project. Image processing, inference, result decoding and timing are written in C# and HIP; running the examples requires no Python or OpenCV.
 
 | Core advantage | What it means for your application |
 | --- | --- |
 | 🚀 AMD GPU inference | Use MIGraphX model compilation and execution through a managed C# API |
 | ⚡ GPU image pipelines | Keep numerical preprocessing and postprocessing on the GPU with HIP streams and device buffers |
 | 🧩 .NET integration | 15 target frameworks from .NET Framework 4.6 to .NET 10, with Chinese/English XML API comments |
-| 📚 Complete examples | YOLO26 five tasks and PP-OCRv6 detection/recognition, including OCR batching and multiple recognition instances |
+| 📚 Complete examples | YOLO26 five tasks and PP-OCRv4/v5/v6 detection/recognition, including OCR batching and multiple recognition instances |
 
 ## 📢 0.0.2 Update Summary
 
@@ -91,7 +91,7 @@ Console.WriteLine(string.Join(", ", result));
 dotnet run -c Release
 ~~~
 
-Start with the [YOLO26 example](samples/Yolo26/README.md) or [PP-OCRv6 example](samples/PaddleOcrV6/README.md) for image models. The [getting started guide](docs/guides/getting-started.md) covers installation and native-library diagnostics.
+Start with the [YOLO26 example](samples/Yolo26/README.md) or [PaddleOCR example](samples/PaddleOcr/README.md) for image models. The [getting started guide](docs/guides/getting-started.md) covers installation and native-library diagnostics.
 
 ## ✨ Features
 
@@ -129,9 +129,11 @@ The adapter requires core <code>0.0.2</code> and HipSharp <code>0.10.0</code>; N
 | Example | Tasks | Included functionality |
 | --- | --- | --- |
 | [YOLO26](samples/Yolo26/README.md) | Detection, classification, instance segmentation, pose and oriented boxes | HIP resize/normalization, output decoding, masks, keypoints and annotated results |
-| [PP-OCRv6](samples/PaddleOcrV6/README.md) | tiny/small/medium text detection + recognition; recognition only | HIP text-box extraction, perspective crops, batched recognition, multiple instances and CTC decoding |
+| [PP-OCRv4/v5/v6](samples/PaddleOcr/README.md) | v4/v5 mobile and server; v6 tiny, small and medium; full images or recognition only | HIP text-box extraction, perspective crops, batched recognition, multiple instances and CTC decoding |
 
 Both projects contain their own complete implementation and target .NET 10. They include JSON/PNG/SVG output, warmup and repeated timing, and a CPU preprocessing/postprocessing option for comparison. Both backends use MIGraphX GPU model execution. Supply the ONNX models, test images and OCR dictionary separately.
+
+The unified `PaddleOcr` entry point and v4/v5 support are available in the current main source. The published v0.0.2 tag retains the original `PaddleOcrV6` example.
 
 On the documented gfx1100 FP32 baseline, whole-image HIP processing averages **2.75 ms for YOLO26n detection** and **10.97 ms for PP-OCRv6 tiny with 16 text lines**. These timings exclude file decode, compilation, drawing and export. The [0.0.2 notes](docs/release-notes/0.0.2.md#性能参考) contain the complete results and measurement conditions; the [vision guide](docs/guides/vision-samples.md) explains the options.
 
@@ -190,7 +192,7 @@ MIGraphXSharp/
 │   └── JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/  # HIP adapter
 ├── samples/
 │   ├── Yolo26/                                    # Five vision tasks
-│   └── PaddleOcrV6/                               # Text detection and recognition
+│   └── PaddleOcr/                                 # Text detection and recognition
 ├── docs/
 │   ├── guides/                                    # Installation and usage
 │   ├── release-notes/                             # Version history

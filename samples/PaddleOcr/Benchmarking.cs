@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace MIGraphXSharp.Samples.PaddleOcrV6;
+namespace MIGraphXSharp.Samples.PaddleOcr;
 
 public sealed record TimedValue<T>(T Value, IReadOnlyDictionary<string, double[]> Stages);
 public sealed record LatencyStatistics(int Samples, double Mean, double P50, double P95, double Minimum, double Maximum);

@@ -2,7 +2,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace MIGraphXSharp.Samples.PaddleOcrV6;
+namespace MIGraphXSharp.Samples.PaddleOcr;
 
 public sealed record TextLine(int Index, PointD[] Polygon, float DetectionConfidence, string Text, float Confidence, string Crop);
 public sealed record OcrResult(TextLine[] Lines, string[] AcceptedText, double DetectionMilliseconds, double RecognitionMilliseconds);
@@ -23,24 +23,24 @@ public sealed class OcrPipeline : IDisposable
     public object RecognizerInfo => new { recognizer.ModelSha256, recognizer.AssemblyIdentity, recognizer.ParseMilliseconds, recognizer.CompileMilliseconds, inputWidth = recWidth, classes = dictionary.Length };
     public object? DetectorInfo => detector is null ? null : new { detector.ModelSha256, detector.ParseMilliseconds, detector.CompileMilliseconds, inputWidth = detWidth, inputHeight = detHeight };
 
-    public OcrPipeline(Image<Rgb24> image, Arguments options)
+    public OcrPipeline(Image<Rgb24> image, Arguments options, OcrModels models)
     {
         this.image = image;
         recWidth = options.Integer("rec-width", 320);
-        dictionary = Recognition.LoadDictionary(options.Required("dictionary"));
+        dictionary = Recognition.LoadDictionary(models.DictionaryPath);
         detThreshold = options.Probability("det-threshold", .2f);
         boxThreshold = options.Probability("box-threshold", .4f);
         textThreshold = options.Probability("text-threshold", .5f);
         var native = options.Required("native");
-        recognizer = new InferenceSession(native, options.Required("rec-model"), "x", recWidth, 48);
+        recognizer = new InferenceSession(native, models.RecognizerPath, "x", recWidth, 48);
         try
         {
-            if (!options.Has("det-model")) return;
+            if (models.DetectorPath is null) return;
             var limit = options.Integer("det-limit", 960);
             var ratio = Math.Min(1d, (double)limit / Math.Max(image.Width, image.Height));
             detWidth = Math.Max(32, (int)Math.Round(image.Width * ratio / 32) * 32);
             detHeight = Math.Max(32, (int)Math.Round(image.Height * ratio / 32) * 32);
-            detector = new InferenceSession(native, options.Required("det-model"), "x", detWidth, detHeight);
+            detector = new InferenceSession(native, models.DetectorPath, "x", detWidth, detHeight);
         }
         catch { recognizer.Dispose(); throw; }
     }

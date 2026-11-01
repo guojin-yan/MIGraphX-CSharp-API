@@ -3,7 +3,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
-namespace MIGraphXSharp.Samples.PaddleOcrV6;
+namespace MIGraphXSharp.Samples.PaddleOcr;
 
 public sealed record RecognizedText(string Text, float Confidence);
 

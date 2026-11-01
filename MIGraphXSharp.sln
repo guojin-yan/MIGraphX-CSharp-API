@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiSurface", "tools\ApiSurf
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Yolo26", "samples\Yolo26\Yolo26.csproj", "{EC51B67B-8B05-46C7-87BA-E3BD8756565B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaddleOcrV6", "samples\PaddleOcrV6\PaddleOcrV6.csproj", "{B18DEE8D-7230-4C1F-9737-F46CA10A43D4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaddleOcr", "samples\PaddleOcr\PaddleOcr.csproj", "{B18DEE8D-7230-4C1F-9737-F46CA10A43D4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vision.SampleTests", "tests\Vision.SampleTests\Vision.SampleTests.csproj", "{BC7E2E7C-ECAA-4CC7-BECC-9F2B6993CD67}"
 EndProject

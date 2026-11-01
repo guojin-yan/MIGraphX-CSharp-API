@@ -56,7 +56,7 @@ finally
 
 This path performs D2D copies, not zero-copy output borrowing. It creates no host tensor snapshots; `run.Outputs` throws because results reside in the supplied device buffers. Input/output owners, program state and native outputs stay leased until stream completion, including after a partial copy submission failure. Later kernels must use the same stream or an explicit synchronization boundary. Synchronize before reusing those destinations on another stream.
 
-The YOLO26 and PP-OCRv6 samples use this path for HIP preprocessing, inference and postprocessing. Their `--backend cpu` option retains the original CPU preprocessing/postprocessing baseline. See [vision samples](vision-samples.md).
+The YOLO26 and PaddleOCR v4/v5/v6 samples use this path for HIP preprocessing, inference and postprocessing. Their `--backend cpu` option retains the original CPU preprocessing/postprocessing baseline. See [vision samples](vision-samples.md).
 
 Bounded official-runtime checks cover host completion, multiple submissions, stream isolation, early disposal leases, device-input reference output and input rejection on the fixed gfx1100 baseline. These do not establish zero-copy, overlap or arbitrary workload performance; see [platform support](../compatibility/platforms.md).
 

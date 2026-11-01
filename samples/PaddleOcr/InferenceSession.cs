@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using JYPPX.ROCm.MIGraphXSharp;
 
-namespace MIGraphXSharp.Samples.PaddleOcrV6;
+namespace MIGraphXSharp.Samples.PaddleOcr;
 
 public sealed record Tensor(long[] Shape, float[] Data);
 

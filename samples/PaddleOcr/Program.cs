@@ -1,22 +1,23 @@
-using MIGraphXSharp.Samples.PaddleOcrV6;
+using MIGraphXSharp.Samples.PaddleOcr;
 
 try
 {
     var options = new Arguments(args);
+    var models = OcrModels.Resolve(options);
     var output = Path.GetFullPath(options.Required("output"));
     Directory.CreateDirectory(output);
     using var image = Images.Load(options.Required("image"));
     var backend = options.Get("backend", "hip");
     if (backend == "hip")
     {
-        using var gpuPipeline = new HipOcrPipeline(image, options);
+        using var gpuPipeline = new HipOcrPipeline(image, options, models);
         var gpuMeasured = Benchmarking.Measure(() => gpuPipeline.Run(), options.Integer("warmup", 0, minimum: 0, maximum: 1000), options.Integer("iterations", 1, maximum: 10000));
         var gpuResult = gpuPipeline.Run(output, options.Has("dump-tensors")).Value;
         if (!gpuResult.AcceptedText.SequenceEqual(gpuMeasured.Value.AcceptedText)) throw new InvalidOperationException("OCR text changed between measurement and export.");
         using var gpuVisualization = new Visualization(image);
         foreach (var line in gpuResult.Lines) gpuVisualization.Polygon(line.Polygon, $"{line.Text} {line.Confidence:F2}", "#2050ff");
         gpuVisualization.Save(output); File.WriteAllLines(Path.Combine(output, "text.txt"), gpuResult.AcceptedText);
-        JsonOutput.Write(Path.Combine(output, "result.json"), new { task = "paddleocr-v6", backend, gpuPipeline.DetectorInfo, gpuPipeline.RecognizerInfo,
+        JsonOutput.Write(Path.Combine(output, "result.json"), new { task = "paddleocr", ocrVersion = models.Version, variant = models.Variant, backend, gpuPipeline.DetectorInfo, gpuPipeline.RecognizerInfo,
             lines = gpuResult.Lines, acceptedText = gpuResult.AcceptedText, performance = gpuMeasured.Report,
             timingScope = "pipeline=RGB upload+HIP detector preprocessing+MIGraphX+D2D outputs+GPU DB decode/order+GPU perspective crops+batched GPU recognition preprocessing+independent recognition programs/streams+GPU CTC+compact result readback and Unicode formatting. Small counts/dimensions control host launches. GPU stages use HIP events and include D2D output copies; sums across streams may overlap and are not wall-clock latency. recognitionBatch pools batches, including the padded final batch. File decode, model/kernel compilation, drawing, crop/tensor export and file I/O excluded." });
         Console.WriteLine(string.Join(Environment.NewLine, gpuResult.AcceptedText));
@@ -26,7 +27,7 @@ try
     }
     if (backend != "cpu") throw new ArgumentException("--backend hip|cpu");
     if (options.Has("rec-batch") || options.Has("rec-workers")) throw new ArgumentException("--rec-batch and --rec-workers select HIP recognition scheduling; use --backend hip.");
-    using var pipeline = new OcrPipeline(image, options);
+    using var pipeline = new OcrPipeline(image, options, models);
     var measured = Benchmarking.Measure(() => pipeline.Run(),
         options.Integer("warmup", 0, minimum: 0, maximum: 1000), options.Integer("iterations", 1, maximum: 10000));
     // Save one final demonstration outside the benchmark so tensor/PNG I/O never enters latency samples.
@@ -38,7 +39,7 @@ try
     File.WriteAllLines(Path.Combine(output, "text.txt"), result.AcceptedText);
     JsonOutput.Write(Path.Combine(output, "result.json"), new
     {
-        task = "paddleocr-v6", image = new { image.Width, image.Height }, detector = pipeline.DetectorInfo,
+        task = "paddleocr", ocrVersion = models.Version, variant = models.Variant, backend, image = new { image.Width, image.Height }, detector = pipeline.DetectorInfo,
         recognizer = pipeline.RecognizerInfo, detectionWithHostCopiesMilliseconds = result.DetectionMilliseconds,
         recognitionWithHostCopiesMilliseconds = result.RecognitionMilliseconds, lines = result.Lines, acceptedText = result.AcceptedText,
         timingScope = "pipeline=detector preprocessing+inference+DB decode+perspective crops+recognizer preprocessing+inference+CTC decode; excludes image I/O, compilation, visualization and artifact I/O. inference stages=Program.Run+host readback; excludes argument/map setup. recognitionLine pools all measured text lines.",
@@ -52,6 +53,6 @@ try
 catch (Exception exception)
 {
     Console.Error.WriteLine(exception);
-    Console.Error.WriteLine("Usage: --native /path/libmigraphx_c.so --rec-model rec.onnx --dictionary dict.txt --image text.jpg --output /outside/source/results [--backend hip --gpu-architecture gfx1100] [--det-model det.onnx] [--rec-width 320] [--rec-batch 4 --rec-workers 2] [--dump-tensors true] [--warmup 5 --iterations 30]");
+    Console.Error.WriteLine("Usage: --native /path/libmigraphx_c.so --ocr-version v4|v5|v6 --variant mobile|server|tiny|small|medium --model-dir /models/PP-OCRvN --image text.jpg --output /outside/source/results [--recognition-only true] [--backend hip --gpu-architecture gfx1100] [--rec-width 320] [--rec-batch 4 --rec-workers 2] [--dump-tensors true] [--warmup 5 --iterations 30]. Explicit --rec-model, --dictionary and optional --det-model paths override the profile paths.");
     return 1;
 }

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
   <title id="title">MIGraphXSharp</title>
-  <desc id="desc">C# and ONNX models connect to AMD GPU inference through MIGraphX. YOLO26 and PP-OCRv6 examples.</desc>
+  <desc id="desc">C# and ONNX models connect to AMD GPU inference through MIGraphX. YOLO26 and unified PP-OCRv4/v5/v6 examples.</desc>
   <rect width="1200" height="300" rx="20" fill="#111722"/>
   <path d="M0 20Q0 0 20 0H1180Q1200 0 1200 20V8H0Z" fill="#e44045"/>
   <g font-family="Segoe UI,Arial,sans-serif">
@@ -10,7 +10,7 @@
     <rect x="48" y="213" width="108" height="30" rx="15" fill="#1e2939" stroke="#35445b"/>
     <text x="102" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">YOLO26</text>
     <rect x="168" y="213" width="118" height="30" rx="15" fill="#1e2939" stroke="#35445b"/>
-    <text x="227" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">PP-OCRv6</text>
+    <text x="227" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">OCR v4/v5/v6</text>
     <rect x="298" y="213" width="154" height="30" rx="15" fill="#1e2939" stroke="#35445b"/>
     <text x="375" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">15 .NET targets</text>
     <rect x="618" y="87" width="118" height="126" rx="14" fill="#1e2939" stroke="#35445b" stroke-width="2"/>

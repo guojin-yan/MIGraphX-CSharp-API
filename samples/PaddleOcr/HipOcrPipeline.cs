@@ -4,9 +4,9 @@ using JYPPX.ROCm.HipSharp.Streams;
 using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
-using static MIGraphXSharp.Samples.PaddleOcrV6.HipRuntimeContext;
+using static MIGraphXSharp.Samples.PaddleOcr.HipRuntimeContext;
 
-namespace MIGraphXSharp.Samples.PaddleOcrV6;
+namespace MIGraphXSharp.Samples.PaddleOcr;
 
 /// <summary>GPU DB decode, perspective crops, recognition preparation, argmax and CTC collapse.</summary>
 public sealed class HipOcrPipeline : IDisposable
@@ -31,29 +31,29 @@ public sealed class HipOcrPipeline : IDisposable
     public object? DetectorInfo => detector is null ? null : new { detector.ModelSha256, detector.ParseMilliseconds, detector.CompileMilliseconds,
         inputWidth = dw, inputHeight = dh, dbCandidateLimit = MaximumLines };
 
-    public HipOcrPipeline(Image<Rgb24> source, Arguments options)
+    public HipOcrPipeline(Image<Rgb24> source, Arguments options, OcrModels models)
     {
         sw = source.Width; sh = source.Height;
         recWidth = options.Integer("rec-width", 320);
-        batchSize = options.Integer("rec-batch", options.Has("det-model") ? 4 : 1, maximum: 32);
-        int workerCount = options.Integer("rec-workers", options.Has("det-model") ? 2 : 1, maximum: 4);
+        batchSize = options.Integer("rec-batch", models.DetectorPath is not null ? 4 : 1, maximum: 32);
+        int workerCount = options.Integer("rec-workers", models.DetectorPath is not null ? 2 : 1, maximum: 4);
         maxEdge = Math.Clamp((int)Math.Ceiling(Math.Sqrt((double)sw * sw + (double)sh * sh)) + 1, 1, 8192);
-        dictionary = Recognition.LoadDictionary(options.Required("dictionary"));
+        dictionary = Recognition.LoadDictionary(models.DictionaryPath);
         detThreshold = options.Probability("det-threshold", .2f); boxThreshold = options.Probability("box-threshold", .4f); textThreshold = options.Probability("text-threshold", .5f);
         gpu = new HipRuntimeContext(options);
         try
         {
             var native = options.Required("native");
             for (var i = 0; i < workerCount; i++)
-                workers.Add(new RecognitionWorker(gpu, native, options.Required("rec-model"), recWidth, batchSize, maxEdge, dictionary.Length));
+                workers.Add(new RecognitionWorker(gpu, native, models.RecognizerPath, recWidth, batchSize, maxEdge, dictionary.Length));
             var shape = Recognizer.OutputShapes.Single().Lengths;
             steps = checked((int)shape[1]);
-            if (options.Has("det-model"))
+            if (models.DetectorPath is not null)
             {
                 int limit = options.Integer("det-limit", 960);
                 double ratio = Math.Min(1d, (double)limit / Math.Max(sw, sh));
                 dw = Math.Max(32, (int)Math.Round(sw * ratio / 32) * 32); dh = Math.Max(32, (int)Math.Round(sh * ratio / 32) * 32);
-                detector = new HipInferenceSession(gpu, native, options.Required("det-model"), "x", dw, dh);
+                detector = new HipInferenceSession(gpu, native, models.DetectorPath, "x", dw, dh);
                 var detShape = detector.OutputShapes.Single().Lengths;
                 if (!detShape.SequenceEqual(new long[] { 1, 1, dh, dw })) throw new InvalidOperationException("Expected a full-resolution [1,1,H,W] DB map.");
                 horizontal = gpu.Allocate(checked((long)dw * sh * 3 * sizeof(float))); resized = gpu.Allocate(checked((long)dw * dh * 3));

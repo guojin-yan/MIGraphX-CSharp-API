@@ -11,7 +11,7 @@ using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace MIGraphXSharp.Samples.PaddleOcrV6;
+namespace MIGraphXSharp.Samples.PaddleOcr;
 
 /// <summary>One GPU, one ordered stream; reusable allocations and kernels belong to this sample.</summary>
 public sealed class HipRuntimeContext : IDisposable

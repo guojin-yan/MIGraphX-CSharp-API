@@ -1,4 +1,4 @@
-using MIGraphXSharp.Samples.PaddleOcrV6;
+using MIGraphXSharp.Samples.PaddleOcr;
 using MIGraphXSharp.Samples.Yolo26;
 using Tensor = MIGraphXSharp.Samples.Yolo26.Tensor;
 using Letterbox = MIGraphXSharp.Samples.Yolo26.Letterbox;
@@ -6,7 +6,7 @@ using Images = MIGraphXSharp.Samples.Yolo26.Images;
 using PointD = MIGraphXSharp.Samples.Yolo26.PointD;
 using Visualization = MIGraphXSharp.Samples.Yolo26.Visualization;
 using Benchmarking = MIGraphXSharp.Samples.Yolo26.Benchmarking;
-using OcrTensor = MIGraphXSharp.Samples.PaddleOcrV6.Tensor;
+using OcrTensor = MIGraphXSharp.Samples.PaddleOcr.Tensor;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Metadata.Profiles.Exif;
