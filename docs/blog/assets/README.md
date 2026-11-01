@@ -4,7 +4,7 @@
 
 | 目录 | 文章与配图 |
 | --- | --- |
-| `migraphxsharp-0.0.2/` | 库首发长幅封面、四类案例总览与 API 等图源；`ocr-scheduling.png` 同时用于 OCR 实战解释 batch/worker |
+| `migraphxsharp-0.0.2/` | 首发长幅封面 `cover-four-models.png/.svg`、四类案例总览与 API 等图源；`ocr-scheduling.png` 同时用于 OCR 实战解释 batch/worker |
 | `yolo26/` | 五任务封面、设备数据流、CPU/HIP 前后处理耗时、真实预测拼图 |
 | `paddleocr/` | 三代模型封面、OCR 流程、CTC 原理、七配置耗时、真实文字框与结果 |
 | `pp-structure/` | 文档封面、页面流程、表格对齐、报刊/混排与费用表实际输出 |

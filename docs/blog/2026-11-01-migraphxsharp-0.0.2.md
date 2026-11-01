@@ -1,6 +1,6 @@
 # MIGraphXSharp 发布：让 C# 接入 AMD GPU 原生推理
 
-![MIGraphXSharp：C# 接入 AMD GPU，提供 YOLO26、PaddleOCR、PP-Structure 和 CLIP 四类案例](assets/migraphxsharp-0.0.2/cover.png)
+![MIGraphXSharp：C# 接入 AMD GPU，提供 YOLO26、PaddleOCR、PP-Structure 和 CLIP 四类案例](assets/migraphxsharp-0.0.2/cover-four-models.png)
 
 作者：Guojin Yan · 核心包版本：0.0.2 · 本文案例以仓库当前 main 源码为准
 
