@@ -125,6 +125,7 @@ public sealed class HipInferenceSession : IDisposable
 {
     private readonly MIGraphXProgram program;
     private readonly HipRuntimeContext gpu;
+    private readonly string inputName;
     private readonly MIGraphXHipDeviceInput[] inputs;
     public HipDeviceMemory Input { get; }
     public HipDeviceMemory[] Outputs { get; }
@@ -136,6 +137,7 @@ public sealed class HipInferenceSession : IDisposable
     public HipInferenceSession(HipRuntimeContext gpu, string native, string model, string inputName, int width, int height)
     {
         this.gpu = gpu;
+        this.inputName = inputName;
         ModelSha256 = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(model))).ToLowerInvariant();
         using var options = new MIGraphXOnnxOptions(native);
         options.SetInputParameterShape(inputName, new long[] { 1, 3, height, width });
@@ -144,17 +146,23 @@ public sealed class HipInferenceSession : IDisposable
         ParseMilliseconds = timer.Elapsed.TotalMilliseconds;
         try
         {
+            var declared = program.GetParameterShapes();
+            if (declared.Count != 1 || !declared.TryGetValue(inputName, out var declaredInput) ||
+                declaredInput.DataType != MIGraphXShapeDataType.Float32 || !declaredInput.Lengths.SequenceEqual(new long[] { 1, 3, height, width }))
+                throw new InvalidOperationException("Expected exactly one static float32 NCHW model input.");
             using var target = new MIGraphXTarget(native, "gpu");
             using var compile = new MIGraphXCompileOptions(native, offloadCopy: false);
             timer.Restart();
             program.Compile(target, compile);
             CompileMilliseconds = timer.Elapsed.TotalMilliseconds;
             var shapes = program.GetParameterShapes();
-            if (shapes.Count != 1 || !shapes.TryGetValue(inputName, out var shape) ||
+            if (!shapes.TryGetValue(inputName, out var shape) ||
                 shape.DataType != MIGraphXShapeDataType.Float32 || !shape.Lengths.SequenceEqual(new long[] { 1, 3, height, width }))
-                throw new InvalidOperationException("Expected exactly one static float32 NCHW input.");
-            Input = gpu.Allocate(shape.ByteCount);
-            inputs = [new MIGraphXHipDeviceInput(inputName, shape, Input)];
+                throw new InvalidOperationException("The compiled model changed its image input shape.");
+            // offloadCopy=false can add compiler-owned output/scratch parameters.
+            // They also need persistent device storage in the complete parameter map.
+            inputs = shapes.Select(item => new MIGraphXHipDeviceInput(item.Key, item.Value, gpu.Allocate(item.Value.ByteCount))).ToArray();
+            Input = inputs.Single(item => item.Name == inputName).Memory;
             OutputShapes = program.GetOutputShapes().ToArray();
             if (OutputShapes.Any(s => s.IsDynamic || !s.IsStandard || !s.IsPacked || s.DataType != MIGraphXShapeDataType.Float32))
                 throw new InvalidOperationException("The vision kernels require static packed float32 outputs.");
@@ -173,7 +181,8 @@ public sealed class HipInferenceSession : IDisposable
         for (var index = 0; index < Outputs.Length; index++)
             File.WriteAllBytes(Path.Combine(directory, $"output-{index}.f32"),
                 MemoryMarshal.AsBytes(gpu.Read<float>(Outputs[index], checked((int)OutputShapes[index].ElementCount)).AsSpan()).ToArray());
-        JsonOutput.Write(Path.Combine(directory, "tensors.json"), new { modelSha256 = ModelSha256,
+        JsonOutput.Write(Path.Combine(directory, "tensors.json"), new { modelSha256 = ModelSha256, inputName,
+            assemblyIdentity = typeof(MIGraphXProgram).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion,
             inputShape = new[] { 1, 3, height, width }, outputs = OutputShapes.Select((s, index) => new { index, shape = s.Lengths }) });
     }
 
