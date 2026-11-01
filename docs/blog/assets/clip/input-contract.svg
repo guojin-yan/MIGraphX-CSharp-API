@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">CLIP / INPUT CONTRACT</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">图片采样与 token，都要对应模型</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">图形是原理示意，不能替代真实输入结果</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="65" y="270" width="680" height="480" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="270" width="6" height="480" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="89" y="292" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">图片：先缩放，再裁剪</text>
+<rect x="105" y="385" width="260" height="175" rx="5" fill="#1b3d54" stroke="#48d6f2" stroke-width="2"/>
+<rect x="150" y="385" width="175" height="175" rx="2" fill="none" stroke="#67e3b6" stroke-width="4"/>
+<polyline points="390,475 470,475" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="456.8362615716444,482.19138307906303 470,475 456.8362615716444,467.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<rect x="500" y="390" width="160" height="160" rx="3" fill="#1b3d54" stroke="#67e3b6" stroke-width="2"/>
+<text x="108" y="610" font-size="29" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">短边 → 224</text>
+<text x="475" y="610" font-size="29" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">224×224</text>
+<text x="106" y="673" font-size="23" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">bicubic → RGB CHW → CLIP mean/std</text>
+<rect x="805" y="270" width="730" height="480" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="805" y="270" width="6" height="480" rx="2" fill="#beabff" stroke="none" stroke-width="2"/>
+<text x="829" y="292" font-size="30" fill="#beabff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">文本：固定 77 个位置</text>
+<rect x="845" y="392" width="142" height="90" rx="10" fill="#12233c" stroke="#48d6f2" stroke-width="2"/>
+<text x="865" y="421" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">BOS</text>
+<rect x="1011" y="392" width="142" height="90" rx="10" fill="#12233c" stroke="#eff6ff" stroke-width="2"/>
+<text x="1031" y="421" font-size="30" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">正文</text>
+<rect x="1177" y="392" width="142" height="90" rx="10" fill="#12233c" stroke="#67e3b6" stroke-width="2"/>
+<text x="1197" y="421" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">EOS</text>
+<rect x="1343" y="392" width="142" height="90" rx="10" fill="#12233c" stroke="#a5b9d0" stroke-width="2"/>
+<text x="1363" y="421" font-size="30" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">PAD</text>
+<text x="847" y="525" font-size="23" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">49406      ≤75 tokens     49407       49407</text>
+<text x="847" y="593" font-size="25" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">mask：有效 token = 1，padding = 0</text>
+<text x="847" y="655" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">只接受本例支持的 ASCII 英文</text>
+<text x="64" y="849" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">同维度不等于同语义：更换模型时，词表、合并表、采样与归一化也必须重新核对。</text>
+</svg>

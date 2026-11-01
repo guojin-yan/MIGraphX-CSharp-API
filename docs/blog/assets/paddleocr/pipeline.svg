@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">PADDLE OCR / GPU PIPELINE</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">一张图，先检测，再识别所有文字行</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">数值处理在 HIP，模型执行在 MIGraphX GPU，最终字符映射在 CPU</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="65" y="267" width="420" height="197" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="267" width="6" height="197" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="89" y="289" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">检测前处理</text>
+<text x="89" y="343" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">BGR / 归一化</text>
+<text x="89" y="380" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">尺寸对齐 32</text>
+<rect x="590" y="267" width="420" height="197" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="590" y="267" width="6" height="197" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="614" y="289" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">DET → DB 解码</text>
+<text x="614" y="343" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">概率图 → 连通域</text>
+<text x="614" y="380" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">四边形与原图坐标</text>
+<rect x="1115" y="267" width="420" height="197" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="1115" y="267" width="6" height="197" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="1139" y="289" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">排序与透视裁剪</text>
+<text x="1139" y="343" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">保留行号</text>
+<text x="1139" y="380" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">按 batch 组装识别输入</text>
+<polyline points="485,363 580,363" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="566.8362615716444,370.19138307906303 580,363 566.8362615716444,355.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1010,363 1105,363" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1091.8362615716444,370.19138307906303 1105,363 1091.8362615716444,355.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1325,464 1325,560" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1317.8086169209369,546.8362615716444 1325,560 1332.1913830790631,546.8362615716444" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<rect x="1115" y="570" width="420" height="197" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="1115" y="570" width="6" height="197" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="1139" y="592" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">REC 多实例</text>
+<text x="1139" y="646" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">独立 program / stream</text>
+<text x="1139" y="683" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">尾批补零，只读有效行</text>
+<rect x="590" y="570" width="420" height="197" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="590" y="570" width="6" height="197" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="614" y="592" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">HIP CTC</text>
+<text x="614" y="646" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">argmax / 合并重复</text>
+<text x="614" y="683" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">保留 blank 分隔的重复</text>
+<rect x="65" y="570" width="420" height="197" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="570" width="6" height="197" rx="2" fill="#ffc875" stroke="none" stroke-width="2"/>
+<text x="89" y="592" font-size="30" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">文字与坐标</text>
+<text x="89" y="646" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">紧凑字符 ID 回传</text>
+<text x="89" y="683" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">CPU 字典 → Unicode</text>
+<polyline points="1115,669 1020,669" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1033.1637384283556,661.808616920937 1020,669 1033.1637384283556,676.191383079063" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="590,669 495,669" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="508.1637384283556,661.808616920937 495,669 508.1637384283556,676.191383079063" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<text x="64" y="849" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">整图 pipeline 包含所有文字行；多 stream 的分项耗时不能相加作为墙钟时间。</text>
+</svg>

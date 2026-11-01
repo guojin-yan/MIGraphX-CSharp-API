@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="820" viewBox="0 0 1920 820">
+<rect width="1920" height="820" fill="#091426"/>
+<polyline points="0,0 0,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="60,0 60,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="120,0 120,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="180,0 180,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="240,0 240,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="300,0 300,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="360,0 360,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="420,0 420,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="480,0 480,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="540,0 540,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="600,0 600,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="660,0 660,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="720,0 720,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="780,0 780,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="840,0 840,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="900,0 900,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="960,0 960,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1020,0 1020,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1080,0 1080,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1140,0 1140,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1200,0 1200,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1260,0 1260,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1320,0 1320,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1380,0 1380,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1440,0 1440,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1500,0 1500,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1560,0 1560,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1620,0 1620,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1680,0 1680,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1740,0 1740,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1800,0 1800,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="1860,0 1860,820" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,0 1920,0" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,60 1920,60" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,120 1920,120" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,180 1920,180" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,240 1920,240" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,300 1920,300" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,360 1920,360" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,420 1920,420" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,480 1920,480" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,540 1920,540" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,600 1920,600" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,660 1920,660" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,720 1920,720" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<polyline points="0,780 1920,780" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
+<rect x="50" y="48" width="1820" height="724" rx="28" fill="none" stroke="#294361" stroke-width="2"/>
+<text x="90" y="90" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphXSharp   /   C# × AMD GPU</text>
+<text x="87" y="195" font-size="105" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">PaddleOCR</text>
+<text x="90" y="335" font-size="53" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">v4 / v5 / v6 统一部署</text>
+<text x="92" y="428" font-size="28" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">模型接入 · 关键实现 · 真实结果 · 速度实测</text>
+<rect x="1290" y="228" width="304" height="250" rx="26" fill="#162f4b" stroke="#294361" stroke-width="2"/>
+<rect x="1270" y="197" width="304" height="250" rx="24" fill="#0c1e35" stroke="#67e3b6" stroke-width="3"/>
+<polyline points="1330,167 1330,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1240,232 1270,232" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1365,167 1365,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1240,267 1270,267" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1400,167 1400,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1240,302 1270,302" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1435,167 1435,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1240,337 1270,337" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1470,167 1470,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1240,372 1270,372" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1505,167 1505,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1240,407 1270,407" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1540,167 1540,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1240,442 1270,442" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<text x="1321" y="263" font-size="58" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">AMD</text>
+<text x="1321" y="341" font-size="37" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphX</text>
+<rect x="92" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
+<text x="109" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">三代模型</text>
+<rect x="286" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
+<text x="303" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">HIP 流水线</text>
+<rect x="480" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
+<text x="497" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">多 Batch</text>
+<rect x="674" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
+<text x="691" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">独立实例</text>
+<polyline points="1155,610 1760,610" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="1168" y="650" width="132" height="69" rx="10" fill="#12233c" stroke="#67e3b6" stroke-width="2"/>
+<text x="1185" y="670" font-size="29" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">DET</text>
+<rect x="1319" y="650" width="132" height="69" rx="10" fill="#12233c" stroke="#67e3b6" stroke-width="2"/>
+<text x="1336" y="670" font-size="29" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">CROP</text>
+<rect x="1470" y="650" width="132" height="69" rx="10" fill="#12233c" stroke="#67e3b6" stroke-width="2"/>
+<text x="1487" y="670" font-size="29" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">REC</text>
+<rect x="1621" y="650" width="132" height="69" rx="10" fill="#12233c" stroke="#67e3b6" stroke-width="2"/>
+<text x="1638" y="670" font-size="29" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">CTC</text>
+<text x="93" y="692" font-size="23" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">C# / .NET 10     •     ROCm 7.2.1     •     MIGraphX 2.15</text>
+</svg>

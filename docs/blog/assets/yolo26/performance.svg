@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050">
+<rect width="1600" height="1050" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">BENCHMARK / MEAN LATENCY</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">同一 GPU 推理，比较前后处理路径</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">gfx1100 · ROCm 7.2.1 · MIGraphX 2.15 · FP32 · 预热 5 / 测量 30</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="395.0,285 395.0,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="382.0" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">0</text>
+<polyline points="545.7142857142858,285 545.7142857142858,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="532.7142857142858" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">10</text>
+<polyline points="696.4285714285714,285 696.4285714285714,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="683.4285714285714" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">20</text>
+<polyline points="847.1428571428571,285 847.1428571428571,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="834.1428571428571" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">30</text>
+<polyline points="997.8571428571429,285 997.8571428571429,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="984.8571428571429" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">40</text>
+<polyline points="1148.5714285714284,285 1148.5714285714284,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="1135.5714285714284" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">50</text>
+<polyline points="1299.2857142857142,285 1299.2857142857142,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="1286.2857142857142" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">60</text>
+<polyline points="1450.0,285 1450.0,880" fill="none" stroke="#294361" stroke-width="1" stroke-linejoin="round"/>
+<text x="1437.0" y="897" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">70</text>
+<text x="65" y="307.0" font-size="27" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26n detect</text>
+<rect x="395" y="300.0" width="237.67642857142857" height="22.0" rx="3" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="644.6764285714286" y="298.0" font-size="21" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">15.77</text>
+<rect x="395" y="330.0" width="41.446428571428555" height="22.0" rx="3" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="448.44642857142856" y="328.0" font-size="21" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">2.75</text>
+<text x="65" y="406.1666666666667" font-size="27" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26s detect</text>
+<rect x="395" y="399.1666666666667" width="279.8764285714285" height="22.0" rx="3" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="686.8764285714285" y="397.1666666666667" font-size="21" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">18.57</text>
+<rect x="395" y="429.1666666666667" width="67.21857142857141" height="22.0" rx="3" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="474.2185714285714" y="427.1666666666667" font-size="21" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">4.46</text>
+<text x="65" y="505.33333333333337" font-size="27" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26s classify</text>
+<rect x="395" y="498.33333333333337" width="82.29000000000002" height="22.0" rx="3" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="489.29" y="496.33333333333337" font-size="21" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">5.46</text>
+<rect x="395" y="528.3333333333334" width="22.607142857142833" height="22.0" rx="3" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="429.60714285714283" y="526.3333333333334" font-size="21" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">1.50</text>
+<text x="65" y="604.5" font-size="27" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26s segment</text>
+<rect x="395" y="597.5" width="923.8785714285714" height="22.0" rx="3" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="1330.8785714285714" y="595.5" font-size="21" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">61.30</text>
+<rect x="395" y="627.5" width="112.13142857142861" height="22.0" rx="3" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="519.1314285714286" y="625.5" font-size="21" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">7.44</text>
+<text x="65" y="703.6666666666667" font-size="27" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26s pose</text>
+<rect x="395" y="696.6666666666667" width="279.4242857142857" height="22.0" rx="3" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="686.4242857142857" y="694.6666666666667" font-size="21" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">18.54</text>
+<rect x="395" y="726.6666666666667" width="74.90499999999997" height="22.0" rx="3" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="481.905" y="724.6666666666667" font-size="21" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">4.97</text>
+<text x="65" y="802.8333333333334" font-size="27" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26s obb</text>
+<rect x="395" y="795.8333333333334" width="636.7678571428571" height="22.0" rx="3" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="1043.767857142857" y="793.8333333333334" font-size="21" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">42.25</text>
+<rect x="395" y="825.8333333333334" width="109.11714285714288" height="22.0" rx="3" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="516.1171428571429" y="823.8333333333334" font-size="21" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">7.24</text>
+<text x="1457" y="902" font-size="23" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">ms</text>
+<rect x="400" y="950" width="25" height="22" rx="3" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="440" y="948" font-size="23" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">CPU 前后处理</text>
+<rect x="770" y="950" width="25" height="22" rx="3" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="810" y="948" font-size="23" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">HIP 前后处理</text>
+<text x="64" y="999" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">两组模型均在 GPU 执行。整图流水线计时，排除解码、编译、绘图与导出。</text>
+</svg>

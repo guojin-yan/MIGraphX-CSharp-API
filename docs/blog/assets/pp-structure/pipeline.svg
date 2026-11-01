@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1040" viewBox="0 0 1600 1040">
+<rect width="1600" height="1040" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">PP-STRUCTURE / PAGE PIPELINE</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">先组织页面，再处理区域内容</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">模型位置明确标记；页面整体前后处理与区域关联仍有 CPU 工作</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="65" y="264" width="420" height="195" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="264" width="6" height="195" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="89" y="286" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">方向校正 GPU</text>
+<text x="89" y="340" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">PP-LCNet / 4 类</text>
+<text x="89" y="377" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">分数 ≥0.8 才校正</text>
+<rect x="590" y="264" width="420" height="195" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="590" y="264" width="6" height="195" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="614" y="286" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">版面分析 GPU</text>
+<text x="614" y="340" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">PP-DocLayout / 23 类</text>
+<text x="614" y="377" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">校正页坐标</text>
+<rect x="1115" y="264" width="420" height="195" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="1115" y="264" width="6" height="195" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="1139" y="286" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">整页 OCR 一次</text>
+<text x="1139" y="340" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">MIGraphX GPU + HIP</text>
+<text x="1139" y="377" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">文字按中心点归区域</text>
+<polyline points="485,360 580,360" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="566.8362615716444,367.19138307906303 580,360 566.8362615716444,352.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1010,360 1105,360" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1091.8362615716444,367.19138307906303 1105,360 1091.8362615716444,352.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1325,459 1325,510 275,510" fill="none" stroke="#294361" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="275,510 275,560" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="267.80861692093697,546.8362615716444 275,560 282.19138307906303,546.8362615716444" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<rect x="65" y="570" width="420" height="193" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="570" width="6" height="193" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="89" y="592" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">正文 / 标题</text>
+<text x="89" y="646" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">复用整页 OCR</text>
+<text x="89" y="683" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">保留双坐标</text>
+<polyline points="800,510 800,560" fill="none" stroke="#ffc875" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="792.808616920937,546.8362615716444 800,560 807.191383079063,546.8362615716444" fill="none" stroke="#ffc875" stroke-width="4" stroke-linejoin="round"/>
+<rect x="590" y="570" width="420" height="193" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="590" y="570" width="6" height="193" rx="2" fill="#ffc875" stroke="none" stroke-width="2"/>
+<text x="614" y="592" font-size="30" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">表格 GPU 模型</text>
+<text x="614" y="646" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">分类 / 格子 / 结构</text>
+<text x="614" y="683" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">C# 解码与对齐</text>
+<polyline points="1325,510 1325,560" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1317.8086169209369,546.8362615716444 1325,560 1332.1913830790631,546.8362615716444" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<rect x="1115" y="570" width="420" height="193" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="1115" y="570" width="6" height="193" rx="2" fill="#beabff" stroke="none" stroke-width="2"/>
+<text x="1139" y="592" font-size="30" fill="#beabff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">公式 ORT CPU</text>
+<text x="1139" y="646" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">显式 ort-cpu 才启用</text>
+<text x="1139" y="683" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">默认保留区域并待复核</text>
+<polyline points="275,763 275,807 1325,807 1325,763" fill="none" stroke="#294361" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="800,807 800,851" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="792.808616920937,837.8362615716444 800,851 807.191383079063,837.8362615716444" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<rect x="340" y="860" width="920" height="83" rx="15" fill="#12233c" stroke="#67e3b6" stroke-width="2"/>
+<text x="397" y="885" font-size="31" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">JSON / Markdown / 表格 HTML / 原图定位</text>
+<text x="64" y="989" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">当前不含 PDF 渲染、多栏阅读顺序恢复与跨页表格；公式时间纳入页面整体耗时。</text>
+</svg>

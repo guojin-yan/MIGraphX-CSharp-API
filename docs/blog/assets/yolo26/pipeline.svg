@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26 / MEMORY FLOW</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">推理前后，继续在显存中处理</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">文件解码与绘图在 CPU；GPU 完成数值前后处理</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="65" y="300" width="310" height="230" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="300" width="6" height="230" rx="2" fill="#a5b9d0" stroke="none" stroke-width="2"/>
+<text x="89" y="322" font-size="30" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">RGB 上传</text>
+<text x="89" y="376" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">已解码像素</text>
+<text x="89" y="413" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">一次 H2D</text>
+<rect x="450" y="300" width="310" height="230" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="450" y="300" width="6" height="230" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="474" y="322" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">HIP 前处理</text>
+<text x="474" y="376" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">resize / letterbox</text>
+<text x="474" y="413" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">RGB → NCHW → /255</text>
+<rect x="835" y="300" width="310" height="230" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="835" y="300" width="6" height="230" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="859" y="322" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphX GPU</text>
+<text x="859" y="376" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">模型执行</text>
+<text x="859" y="413" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">D2D 到复用输出</text>
+<rect x="1220" y="300" width="310" height="230" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="1220" y="300" width="6" height="230" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="1244" y="322" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">HIP 后处理</text>
+<text x="1244" y="376" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">框 / Top-5 / 关键点</text>
+<text x="1244" y="413" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">实例 mask / 旋转框</text>
+<polyline points="375,413 440,413" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="426.8362615716444,420.19138307906303 440,413 426.8362615716444,405.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="760,413 825,413" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="811.8362615716444,420.19138307906303 825,413 811.8362615716444,405.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1145,413 1210,413" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1196.8362615716444,420.19138307906303 1210,413 1196.8362615716444,405.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1375,530 1375,639 830,639" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="843.1637384283556,631.808616920937 830,639 843.1637384283556,646.191383079063" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<rect x="450" y="591" width="380" height="153" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="450" y="591" width="6" height="153" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="474" y="613" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">紧凑结果回传</text>
+<text x="474" y="667" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">框、分数、类别与关键点</text>
+<text x="890" y="697" font-size="26" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">mask 保存时才回传；不是零复制</text>
+<text x="64" y="849" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">同一 stream 有序提交：前处理 → 模型 → D2D → 后处理；完成后再复用缓冲区。</text>
+</svg>

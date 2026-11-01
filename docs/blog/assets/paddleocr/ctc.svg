@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">CTC / DECODE RULE</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">blank 会隔开两个相同字符</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">示意序列用于解释规则，不是某个模型的真实输出张量</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="130" y="285" width="190" height="120" rx="18" fill="#12233c" stroke="#48d6f2" stroke-width="2"/>
+<text x="160" y="325" font-size="42" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">A</text>
+<rect x="355" y="285" width="190" height="120" rx="18" fill="#12233c" stroke="#48d6f2" stroke-width="2"/>
+<text x="385" y="325" font-size="42" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">A</text>
+<rect x="580" y="285" width="190" height="120" rx="18" fill="#12233c" stroke="#ffc875" stroke-width="2"/>
+<text x="610" y="325" font-size="42" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">blank</text>
+<rect x="805" y="285" width="190" height="120" rx="18" fill="#12233c" stroke="#48d6f2" stroke-width="2"/>
+<text x="835" y="325" font-size="42" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">A</text>
+<rect x="1030" y="285" width="190" height="120" rx="18" fill="#12233c" stroke="#48d6f2" stroke-width="2"/>
+<text x="1060" y="325" font-size="42" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">B</text>
+<rect x="1255" y="285" width="190" height="120" rx="18" fill="#12233c" stroke="#48d6f2" stroke-width="2"/>
+<text x="1285" y="325" font-size="42" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">B</text>
+<polyline points="800,432 800,485" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="792.808616920937,471.8362615716444 800,485 807.191383079063,471.8362615716444" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<text x="250" y="515" font-size="32" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">合并相邻重复</text>
+<text x="730" y="508" font-size="44" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">A   blank   A   B</text>
+<polyline points="930,575 930,631" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="922.808616920937,617.8362615716444 930,631 937.191383079063,617.8362615716444" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<text x="250" y="666" font-size="32" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">移除 blank</text>
+<text x="730" y="655" font-size="52" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">A   A   B</text>
+<text x="64" y="849" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">先更新 previous（包括 blank），再处理下一个时间步；不能先删 blank 再去重。</text>
+</svg>

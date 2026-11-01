@@ -2,7 +2,7 @@
 
 这里收录可独立阅读、用于博客发表的中文技术文章。文章注明适用版本，代码和数据按对应版本核对；日常 API 查询与部署说明见[使用文档](../index.md)。
 
-首篇以 `0.0.2` 核心包和当前源码示例为基线，介绍库的定位、主要 API、HIP 显存流水线与 OCR v4/v5/v6 批量识别，并附整图性能实测。
+首篇介绍库的定位、主要 API 与 HIP 显存流水线。四篇实战文章分别展开 YOLO26、PaddleOCR v4/v5/v6、PP-Structure 与 CLIP，包含工程准备、关键 C# 代码、处理原理、真实输出及性能。文章使用 `0.0.2` 核心 API 和当前 main 的示例；新增示例与发布标签的差异在正文中注明。
 
 ## 首发系列
 
@@ -10,8 +10,8 @@
 | --- | --- | --- |
 | 1 | [MIGraphXSharp 发布：让 C# 接入 AMD GPU 原生推理](2026-11-01-migraphxsharp-0.0.2.md) | 适用 0.0.2，尚未在外部博客发表 |
 | 2 | 从环境安装到第一次 ONNX 推理 | 待编写 |
-| 3 | YOLO26 五任务实战 | 待整理 |
-| 4 | PaddleOCR v4/v5/v6 文本检测与识别实战 | 待整理 |
+| 3 | [用 C# 在 AMD GPU 上部署 YOLO26：检测、分类、分割、姿态与旋转框实战](2026-11-01-yolo26-five-tasks.md) | 正文与配图完成，尚未在外部博客发表 |
+| 4 | [用 C# 在 AMD GPU 上部署 PaddleOCR v4/v5/v6：从文字检测到多 Batch 识别](2026-11-01-paddleocr-v4-v5-v6.md) | 正文与配图完成，尚未在外部博客发表 |
 | 5 | C# 图片推理性能实测 | 待编写 |
 
 ## 进阶系列
@@ -27,5 +27,7 @@
 
 | 文章 | 适用范围 |
 | --- | --- |
-| [用 C# 在 AMD GPU 上运行 CLIP：从商品图片到图文检索](2026-11-01-clip-image-text-retrieval.md) | main 的独立 CLIP 示例、GPU 双编码器、英文 BPE、速度实测 |
-| [用 C# 组合 PP-Structure：文档版面、OCR 与表格处理](2026-11-01-pp-structure-document-processing.md) | main 的独立文档示例；公式为显式 ORT CPU 选项 |
+| [用 C# 在 AMD GPU 上组合 PP-Structure：版面分析、OCR、表格重建与公式处理](2026-11-01-pp-structure-document-processing.md) | 六种页面、整页 HIP OCR、GPU 表格解码、结构对齐与逐页速度；公式为显式 ORT CPU 选项 |
+| [用 C# 在 AMD GPU 上部署 CLIP：从商品图片分类到图文双向检索](2026-11-01-clip-image-text-retrieval.md) | GPU 双编码器、英文 BPE、512 维特征、双向检索与批量速度 |
+
+应用案例均已完成正文与配图，尚未在外部博客发表。博客正文中的外部地址以代码呈现，便于复制到不同发布平台；素材来源和图源说明见 `assets/README.md`。

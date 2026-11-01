@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<rect width="1600" height="900" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">CLIP / DUAL ENCODER</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">两种输入，一个特征空间</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">缓存不变的一侧；固定分类缓存文本，图片检索缓存图库特征</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="65" y="286" width="390" height="202" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="286" width="6" height="202" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="89" y="308" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">图片输入</text>
+<text x="89" y="362" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">短边 224 → 中心裁剪</text>
+<text x="89" y="399" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">RGB / CLIP 归一化</text>
+<rect x="580" y="286" width="390" height="202" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="580" y="286" width="6" height="202" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="604" y="308" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">图像编码器 GPU</text>
+<text x="604" y="362" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">MIGraphX 编译与执行</text>
+<text x="604" y="399" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">输出 [batch,512]</text>
+<polyline points="455,386 568,386" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="554.8362615716444,393.19138307906303 568,386 554.8362615716444,378.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="970,386 1110,386" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1096.8362615716444,393.19138307906303 1110,386 1096.8362615716444,378.80861692093697" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<rect x="65" y="563" width="390" height="202" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="563" width="6" height="202" rx="2" fill="#beabff" stroke="none" stroke-width="2"/>
+<text x="89" y="585" font-size="30" fill="#beabff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">英文描述</text>
+<text x="89" y="639" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">BPE / BOS / EOS</text>
+<text x="89" y="676" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">77 tokens + mask</text>
+<rect x="580" y="563" width="390" height="202" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="580" y="563" width="6" height="202" rx="2" fill="#beabff" stroke="none" stroke-width="2"/>
+<text x="604" y="585" font-size="30" fill="#beabff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">文本编码器 GPU</text>
+<text x="604" y="639" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">MIGraphX 编译与执行</text>
+<text x="604" y="676" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">输出 [batch,512]</text>
+<polyline points="455,663 568,663" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="554.8362615716444,670.191383079063 568,663 554.8362615716444,655.808616920937" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="970,663 1110,663" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1096.8362615716444,670.191383079063 1110,663 1096.8362615716444,655.808616920937" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<rect x="1125" y="355" width="410" height="312" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="1125" y="355" width="6" height="312" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="1149" y="377" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">L2 → 余弦相似度</text>
+<text x="1149" y="431" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">图片 → 文本候选排序</text>
+<text x="1149" y="468" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">文本 → 图片检索</text>
+<text x="1149" y="505" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">CPU 归一化与排序</text>
+<text x="64" y="849" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">图像与文本编码器在 GPU；本例 resize、向量归一化、排序在 CPU，未使用 HIP 前后处理。</text>
+</svg>

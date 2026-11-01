@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1060" viewBox="0 0 1600 1060">
+<rect width="1600" height="1060" fill="#091426"/>
+<text x="64" y="44" font-size="23" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">TABLE / ALIGNMENT</text>
+<text x="64" y="94" font-size="43" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">检测格子、结构标签、OCR 文字分别保留</text>
+<text x="64" y="156" font-size="25" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">对齐通过再填字；不完整结果保留原图与复核原因</text>
+<polyline points="64,210 1536,210" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
+<rect x="540" y="250" width="520" height="149" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="540" y="250" width="6" height="149" rx="2" fill="#ffc875" stroke="none" stroke-width="2"/>
+<text x="564" y="272" font-size="30" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">表格分类 GPU</text>
+<text x="564" y="326" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">wired / wireless 选择对应模型对</text>
+<polyline points="800,399 800,438 275,438 275,464" fill="none" stroke="#294361" stroke-width="3" stroke-linejoin="round"/>
+<polyline points="800,438 1325,438 1325,464" fill="none" stroke="#ffc875" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1317.8086169209369,450.8362615716444 1325,464 1332.1913830790631,450.8362615716444" fill="none" stroke="#ffc875" stroke-width="4" stroke-linejoin="round"/>
+<rect x="65" y="477" width="420" height="170" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="65" y="477" width="6" height="170" rx="2" fill="#48d6f2" stroke="none" stroke-width="2"/>
+<text x="89" y="499" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">RT-DETR-L GPU</text>
+<text x="89" y="553" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">单元格位置</text>
+<text x="89" y="590" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">局部坐标</text>
+<rect x="590" y="477" width="420" height="170" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="590" y="477" width="6" height="170" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="614" y="499" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">整页 OCR 结果</text>
+<text x="614" y="553" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">文字与四边形</text>
+<text x="614" y="590" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">本页只识别一次</text>
+<rect x="1115" y="477" width="420" height="170" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="1115" y="477" width="6" height="170" rx="2" fill="#ffc875" stroke="none" stroke-width="2"/>
+<text x="1139" y="499" font-size="30" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">SLANeXt GPU</text>
+<text x="1139" y="553" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">encoder + step</text>
+<text x="1139" y="590" font-size="24" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">C# 循环 / EOS</text>
+<polyline points="275,647 275,691 660,691 660,715" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="652.808616920937,701.8362615716444 660,715 667.191383079063,701.8362615716444" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="800,647 800,715" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="792.808616920937,701.8362615716444 800,715 807.191383079063,701.8362615716444" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1325,647 1325,691 940,691 940,715" fill="none" stroke="#ffc875" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="932.808616920937,701.8362615716444 940,715 947.191383079063,701.8362615716444" fill="none" stroke="#ffc875" stroke-width="4" stroke-linejoin="round"/>
+<rect x="490" y="728" width="620" height="80" rx="15" fill="#12233c" stroke="#ffc875" stroke-width="2"/>
+<text x="530" y="750" font-size="30" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">EOS / 格数 / 行几何 / 跨行检查</text>
+<polyline points="620,808 620,853 400,853 400,879" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="392.80861692093697,865.8362615716444 400,879 407.19138307906303,865.8362615716444" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="980,808 980,853 1200,853 1200,879" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<polyline points="1192.8086169209369,865.8362615716444 1200,879 1207.1913830790631,865.8362615716444" fill="none" stroke="#beabff" stroke-width="4" stroke-linejoin="round"/>
+<rect x="150" y="889" width="500" height="100" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="150" y="889" width="6" height="100" rx="2" fill="#67e3b6" stroke="none" stroke-width="2"/>
+<text x="174" y="911" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">通过 → 安全填字 HTML</text>
+<rect x="950" y="889" width="500" height="100" rx="18" fill="#12233c" stroke="#294361" stroke-width="2"/>
+<rect x="950" y="889" width="6" height="100" rx="2" fill="#beabff" stroke="none" stroke-width="2"/>
+<text x="974" y="911" font-size="30" fill="#beabff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">未通过 → 结构 + 诊断</text>
+<text x="64" y="1009" font-size="22" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">结构循环的 hidden/memory 当前经主机数组传递；rowspan 跨行对齐保留复核。</text>
+</svg>
