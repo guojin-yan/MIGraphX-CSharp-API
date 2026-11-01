@@ -4,204 +4,233 @@
   <img alt="MIGraphXSharp — AMD GPU inference for C# and .NET" src="docs/images/readme/hero-light.svg" width="100%">
 </picture>
 
-# MIGraphX C# API · MIGraphXSharp
+<h1 align="center">MIGraphX C# API · MIGraphXSharp</h1>
 
-[![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/)
-[![Downloads](https://img.shields.io/nuget/dt/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/)
-[![Release](https://img.shields.io/github/v/release/guojin-yan/MIGraphX-CSharp-API)](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases)
-[![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-4.6_to_10.0-512BD4)](docs/compatibility/frameworks.md)
-[![ROCm](https://img.shields.io/badge/ROCm-7.2.1-ED1C24)](docs/guides/runtime-deployment.md)
-[![Stars](https://img.shields.io/github/stars/guojin-yan/MIGraphX-CSharp-API?style=flat)](https://github.com/guojin-yan/MIGraphX-CSharp-API/stargazers)
+<p align="center">Run ONNX models on AMD GPUs from C#, with MIGraphX inference and HIP image processing.</p>
 
-English | [简体中文](README.zh-CN.md)
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue.svg" alt="Apache-2.0 license"></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/"><img src="https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg" alt="NuGet version"></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/"><img src="https://img.shields.io/nuget/dt/JYPPX.ROCm.MIGraphX.CSharp.API.svg" alt="NuGet downloads"></a>
+  <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/releases"><img src="https://img.shields.io/github/v/release/guojin-yan/MIGraphX-CSharp-API" alt="GitHub Release"></a>
+  <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/MIGraphX-CSharp-API?style=flat&amp;logo=github" alt="GitHub stars"></a>
+  <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-4.6_to_10.0-512BD4" alt=".NET 4.6 to 10.0"></a>
+  <a href="docs/guides/runtime-deployment.md"><img src="https://img.shields.io/badge/ROCm-7.2.1-ED1C24" alt="ROCm 7.2.1"></a>
+</p>
 
-MIGraphXSharp brings AMD MIGraphX inference to C# and .NET. Load ONNX models, compile for AMD GPUs, prepare typed tensors, and manage native resource lifetimes. The optional HIP adapter connects device inputs and outputs to your GPU processing on the same stream.
+<p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
-The two complete vision examples run **YOLO26 detection, classification, segmentation, pose and oriented boxes**, plus **PP-OCRv6 text detection and recognition**. Their default HIP backend keeps numerical preprocessing and postprocessing on the GPU; a C# CPU backend is also included. Running them requires no Python or OpenCV.
+## 📖 Introduction
 
-[Quick start](#quick-start) · [Samples](#vision-samples) · [Documentation](#documentation) · [Release notes](CHANGELOG.md) · [Report an issue](https://github.com/guojin-yan/MIGraphX-CSharp-API/issues)
+[AMD MIGraphX](https://rocm.docs.amd.com/projects/AMDMIGraphX/en/latest/) is a graph inference engine in the ROCm ecosystem. It compiles deep learning models into GPU programs and optimizes their execution for AMD hardware.
 
-## Release 0.0.2
+**MIGraphX C# API is a .NET wrapper for AMD MIGraphX. It lets C# developers load ONNX models, compile GPU programs, work with tensors and run inference directly from their applications.** The optional HIP adapter connects GPU preprocessing, model execution and postprocessing on the same stream.
 
-Version 0.0.2 adds `RunDeviceIntoAsync` and complete HIP vision pipelines to the core library, optional adapter, bilingual XML documentation and two independent samples. Download packages, source and offline documentation from [v0.0.2](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2). Version 0.0.1 remains available as the initial release.
+The repository includes complete **YOLO26** and **PP-OCRv6** examples. Image processing, inference, result decoding and timing are written in C# and HIP; running the examples requires no Python or OpenCV.
 
-Official runtime checks cover the supplied vision models, dynamic inputs, program persistence/cache and HIP host/device-input workflows on Ubuntu 24.04, ROCm 7.2.1, MIGraphX 2.15.0 and gfx1100. See [platform support](docs/compatibility/platforms.md) for the scope of these checks.
-
-## Features
-
-| Area | What you can do |
+| Core advantage | What it means for your application |
 | --- | --- |
-| ONNX inference | Parse from file or memory, configure input dimensions, compile a target, execute and copy typed outputs |
-| Tensors and ownership | Inspect immutable shapes, create typed host arguments, use multiple inputs/outputs, dispose native resources |
-| Dynamic shapes and cache | Set dimension ranges, validate concrete inputs, save/load programs and reuse compiled models |
-| Graph APIs | Create program-owned modules, parameters, literals and instructions; build typed operation attributes |
-| HIP integration | Submit on HipSharp streams, retain device inputs/outputs and enqueue GPU postprocessing without full host tensor copies |
-| Advanced APIs | TensorFlow parsing, FP16/BF16/INT8/FP8 quantization and experimental custom-operation callbacks |
-| Vision samples | YOLO26 five tasks and PP-OCRv6 tiny/small/medium; JSON, image previews, masks, text and timing |
-| .NET integration | 15 target frameworks, consistent public APIs, Chinese/English XML comments and loader diagnostics |
+| 🚀 AMD GPU inference | Use MIGraphX model compilation and execution through a managed C# API |
+| ⚡ GPU image pipelines | Keep numerical preprocessing and postprocessing on the GPU with HIP streams and device buffers |
+| 🧩 .NET integration | 15 target frameworks from .NET Framework 4.6 to .NET 10, with Chinese/English XML API comments |
+| 📚 Complete examples | YOLO26 five tasks and PP-OCRv6 detection/recognition, including OCR batching and multiple recognition instances |
 
-## Packages and requirements
+## 📢 0.0.2 Update Summary
 
-| Package | Version | Purpose |
-| --- | --- | --- |
-| [JYPPX.ROCm.MIGraphX.CSharp.API](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2) | 0.0.2 | Core inference and managed resource API |
-| [JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/0.0.2) | 0.0.2 | Optional stream/device-input integration; exact core and HipSharp 0.10.0 dependencies |
+- Adds <code>RunDeviceIntoAsync</code> for device output buffers and subsequent HIP processing.
+- Moves numerical preprocessing and postprocessing in both vision examples to HIP.
+- Adds OCR recognition batching and multiple instances; full-image recognition defaults to batch 4 with 2 instances.
 
-The C# namespace is <code>JYPPX.ROCm.MIGraphXSharp</code>. Both packages contain managed assemblies for <code>net46</code>–<code>net481</code>, <code>netcoreapp3.1</code> and <code>net5.0</code>–<code>net10.0</code>. The vision samples target .NET 10.
+[Complete 0.0.2 release notes](docs/release-notes/0.0.2.md) · [All releases](docs/release-notes/README.md) · [Download v0.0.2](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2)
 
-| Component | Validated baseline |
-| --- | --- |
-| Operating system | Ubuntu 24.04 x86-64 |
-| AMD runtime | ROCm 7.2.1 and MIGraphX 2.15.0.70201-81~24.04 |
-| GPU architecture | gfx1100 |
-| Native library | /opt/rocm/lib/libmigraphx_c.so.3 |
+## 🚀 Quick Start
 
-Install ROCm/MIGraphX from [AMD's official system repository](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html). The NuGet packages do not bundle AMD native libraries. Windows managed builds are available; an official Windows MIGraphX runtime is not supplied. Other devices and runtime versions need application validation.
+### 1. Install the NuGet package
 
-## Quick start
-
-### 1. Install
+Install ROCm 7.2.1 and MIGraphX 2.15.0 on a compatible Linux host first; see the [runtime deployment guide](docs/guides/runtime-deployment.md). Then create your application:
 
 ~~~bash
 dotnet new console -n MigraphxDemo
 cd MigraphxDemo
 dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
-
-# Optional HIP stream and device-input integration:
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
 ~~~
 
-Offline installation is also available from the Release assets. See [Getting started](docs/guides/getting-started.md).
+### 2. Write inference code
 
-### 2. Run an ONNX model
-
-For an existing model with one static, standard float32 input/output and four input elements:
+This example uses a static float32 ONNX model whose input is named <code>input</code> and contains four elements. Replace the model path, input name and data with those required by your model.
 
 ~~~csharp
 using JYPPX.ROCm.MIGraphXSharp;
 
-var result = MIGraphXOnnxWorkflow.RunFile(
-    "/opt/rocm/lib/libmigraphx_c.so.3",
-    "/absolute/path/to/model.onnx",
-    new[] { 1f, 2f, 3f, 4f });
+const string nativePath = "/opt/rocm/lib/libmigraphx_c.so.3";
 
-Console.WriteLine(string.Join(", ", result.Output));
+// Parse the model and read its input shapes.
+using var options = new MIGraphXOnnxOptions(nativePath);
+using var program = MIGraphXProgram.ParseOnnxFile("/models/model.onnx", options);
+var inputShapes = program.GetParameterShapes();
+
+// Compile once, then reuse the program for subsequent inputs.
+using var target = new MIGraphXTarget(nativePath, "gpu");
+using var compileOptions = new MIGraphXCompileOptions(nativePath, offloadCopy: true);
+program.Compile(target, compileOptions);
+
+// Supply the model input and execute inference.
+using var input = MIGraphXArgument.Create(
+    nativePath, inputShapes["input"], new[] { 1f, 2f, 3f, 4f });
+using var parameters = new MIGraphXParameterMap(nativePath);
+parameters.Add("input", input);
+
+using var outputs = program.Run(parameters);
+float[] result = outputs[0].ToArray<float>();
+Console.WriteLine(string.Join(", ", result));
 ~~~
 
-Use absolute paths and supply the exact number of input elements required by your model. This helper compiles for GPU with host offload-copy and returns a managed output copy. For image models, begin with the samples below; for multiple inputs/outputs, use [managed objects](docs/guides/managed-objects.md).
-
-### 3. Diagnose the runtime
-
-~~~csharp
-var report = MIGraphXEnvironment.Probe("/opt/rocm/lib/libmigraphx_c.so.3");
-Console.WriteLine(report.State);
-foreach (var diagnostic in report.Diagnostics)
-    Console.WriteLine(diagnostic);
-~~~
-
-See [deployment and troubleshooting](docs/guides/runtime-deployment.md) for native library loading and runtime setup.
-
-## Vision samples
-
-Each sample contains its own complete image, inference, postprocessing and timing code. They reference this library and ImageSharp, with no shared sample project. Supply your own ONNX models, images, labels and OCR dictionary.
-
-| Project | Task | Typical input | Output |
-| --- | --- | --- | --- |
-| [Yolo26](samples/Yolo26/README.md) | Detection | 640 × 640 | Boxes, classes and scores |
-| Yolo26 | Classification | 224 × 224 | Top-5 classes |
-| Yolo26 | Instance segmentation | 640 × 640 | Per-instance masks and boxes |
-| Yolo26 | Pose | 640 × 640 | 17 keypoints per person and skeleton |
-| Yolo26 | Oriented boxes | 1024 × 1024 | Rotated quadrilaterals |
-| [PaddleOcrV6](samples/PaddleOcrV6/README.md) | Text detection + recognition / recognition only | Detector sizes aligned to 32; recognition 48 × 320 | Text, quadrilaterals, crops and confidence |
-
-Run from the repository root on the configured Linux host:
+### 3. Run the application
 
 ~~~bash
-dotnet run --project samples/Yolo26 -c Release -- \
-  --native /opt/rocm/lib/libmigraphx_c.so.3 --task detect \
-  --backend hip --gpu-architecture gfx1100 \
-  --model /models/yolo26n.onnx --image /images/bus.jpg \
-  --output /results/yolo26 --warmup 5 --iterations 30
-
-dotnet run --project samples/PaddleOcrV6 -c Release -- \
-  --native /opt/rocm/lib/libmigraphx_c.so.3 \
-  --backend hip --gpu-architecture gfx1100 \
-  --det-model /models/PP-OCRv6_tiny_det_inference.onnx \
-  --rec-model /models/PP-OCRv6_tiny_rec_inference.onnx \
-  --dictionary /models/PP-OCRv6_tiny_rec_dict.txt \
-  --image /images/document.jpg --output /results/ocr
+dotnet run -c Release
 ~~~
 
-Change the YOLO task and matching model for other tasks. OCR small/medium use the same entry point with matching models/dictionaries. Omit the detector argument to recognize a cropped text line. Both projects save JSON, PNG and standalone SVG; segmentation also saves masks, and OCR saves text/crops.
+Start with the [YOLO26 example](samples/Yolo26/README.md) or [PP-OCRv6 example](samples/PaddleOcrV6/README.md) for image models. The [getting started guide](docs/guides/getting-started.md) covers installation and native-library diagnostics.
 
-For the tested pose model on MIGraphX 2.15.0, set <code>MIGRAPHX_DISABLE_REDUCE_FUSION=1</code> before starting the process. Model weights and sample images are not redistributed.
+## ✨ Features
 
-### Measured image latency
-
-Ubuntu 24.04, ROCm 7.2.1, MIGraphX 2.15.0, gfx1100, 16-core CPU quota, float32; 5 warmups and 30 measured iterations per case. Both paths use MIGraphX GPU inference. The table compares whole-image wall-clock latency with CPU versus HIP preprocessing/postprocessing.
-
-| Model / workload | CPU pre/post pipeline, ms | HIP pipeline, ms | HIP P95, ms | Speedup |
-| --- | ---: | ---: | ---: | ---: |
-| YOLO26 n detection | 15.77 | 2.75 | 2.83 | 5.74× |
-| YOLO26 s detection | 18.57 | 4.46 | 4.56 | 4.17× |
-| YOLO26 s classification | 5.46 | 1.50 | 1.53 | 3.65× |
-| YOLO26 s segmentation | 61.30 | 7.44 | 7.55 | 8.23× |
-| YOLO26 s pose | 18.54 | 4.97 | 5.04 | 3.73× |
-| YOLO26 s oriented boxes | 42.25 | 7.24 | 7.29 | 5.84× |
-| PP-OCRv6 tiny / 16 lines | 66.09 | 10.97 | 11.08 | 6.02× |
-| PP-OCRv6 small / 16 lines | 107.51 | 16.98 | 17.06 | 6.33× |
-| PP-OCRv6 medium / 16 lines | 118.68 | 31.63 | 31.88 | 3.75× |
-
-YOLO uses batch=1. OCR detection uses batch=1; the CPU baseline recognizes lines sequentially, while HIP recognition uses batch=4 and 2 independent instances for all 16 lines. The HIP pipeline includes upload, GPU processing, model execution, D2D output copies and compact result readback; the CPU path includes C# processing and full tensor readback. Both exclude file decode, model/kernel compilation, drawing and file output. GPU clocks/power were not locked. OCR batch/instance counts also affect memory and compilation cost; use the [sample timing options](docs/guides/vision-samples.md) for your workload.
-
-## Documentation
-
-Read the [Chinese technical blog](docs/blog/README.md) for standalone release and application articles.
-
-| Start here | Reference |
+| Feature | Description |
 | --- | --- |
-| [Installation and first inference](docs/guides/getting-started.md) | [API reference](docs/api/index.md) |
-| [Managed objects and resource ownership](docs/guides/managed-objects.md) | [Framework compatibility](docs/compatibility/frameworks.md) |
-| [Dynamic inputs, persistence and cache](docs/guides/dynamic-shapes-cache.md) | [Platform support and limits](docs/compatibility/platforms.md) |
-| [Typed operation attributes](docs/guides/operation-attributes.md) | [Versioning](docs/guides/api-versioning.md) |
-| [HIP asynchronous execution](docs/guides/hip-interop.md) | [Deployment and troubleshooting](docs/guides/runtime-deployment.md) |
-| [Graph, TensorFlow and quantization](docs/guides/advanced-apis.md) | [Vision sample guide](docs/guides/vision-samples.md) |
+| ONNX inference | Parse models from files or memory, compile for GPU and execute with multiple inputs/outputs |
+| Typed tensors | Inspect shapes, types and strides; create typed host inputs and copy results into C# arrays |
+| Dynamic shapes | Configure fixed input overrides or dimension ranges before parsing |
+| Program reuse | Save/load compiled programs and use an explicit model cache |
+| HIP integration | Host/device-input asynchronous submission, stream synchronization and caller-owned device output buffers |
+| Graph APIs | Program-owned modules, parameters, literals, instructions and typed operation attributes |
+| Advanced APIs | TensorFlow parsing, FP16/BF16/INT8/FP8 quantization and experimental custom-operation callbacks |
+| Resource management | Deterministic <code>Dispose</code>, native loading diagnostics and resource leases for pending HIP work |
 
-The Release includes offline HTML documentation. Open <code>index.html</code> after extracting the documentation archive.
+See the [API guides](docs/index.md) and [platform support](docs/compatibility/platforms.md) for the applicable runtime and experimental feature boundaries.
 
-## Supported scope
+## 📦 NuGet Packages
 
-Common integer, float, Boolean, string, null and array attributes are available through the typed builder. Modules created or obtained through a program retain that program's lifetime. General C format varargs and independent modules without a native destroy contract are outside the public wrapper.
+| Package | Purpose | Version |
+| --- | --- | --- |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API</code> | Core model, tensor, compilation and inference API | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/) |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop</code> | Optional HIP stream/device-buffer adapter | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/) |
+| <code>JYPPX.ROCm.HIP.CSharp.API</code> | HipSharp runtime, memory, stream and kernel APIs; adapter dependency | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) |
 
-Experimental custom-operation callbacks have host-reference numerical checks; GPU/device callback memory and complete provider lifetimes remain unqualified. No zero-copy, overlap or arbitrary workload performance guarantee is made. OCR uses rectangle unclip and does not include page layout, orientation classification or table recognition. See the platform guide before integrating experimental paths.
+Install the adapter only when you need HIP integration:
 
-## Build from source
+~~~bash
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
+~~~
 
-Install the SDK selected by <code>global.json</code>, PowerShell 7 and the [HipSharp source dependency](CONTRIBUTING.md), then run:
+The adapter requires core <code>0.0.2</code> and HipSharp <code>0.10.0</code>; NuGet restores these dependencies. The core namespace is <code>JYPPX.ROCm.MIGraphXSharp</code>. AMD native libraries are installed separately. [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases) also provide packages, source and offline HTML documentation.
+
+## 🧪 Examples
+
+| Example | Tasks | Included functionality |
+| --- | --- | --- |
+| [YOLO26](samples/Yolo26/README.md) | Detection, classification, instance segmentation, pose and oriented boxes | HIP resize/normalization, output decoding, masks, keypoints and annotated results |
+| [PP-OCRv6](samples/PaddleOcrV6/README.md) | tiny/small/medium text detection + recognition; recognition only | HIP text-box extraction, perspective crops, batched recognition, multiple instances and CTC decoding |
+
+Both projects contain their own complete implementation and target .NET 10. They include JSON/PNG/SVG output, warmup and repeated timing, and a CPU preprocessing/postprocessing option for comparison. Both backends use MIGraphX GPU model execution. Supply the ONNX models, test images and OCR dictionary separately.
+
+On the documented gfx1100 FP32 baseline, whole-image HIP processing averages **2.75 ms for YOLO26n detection** and **10.97 ms for PP-OCRv6 tiny with 16 text lines**. These timings exclude file decode, compilation, drawing and export. The [0.0.2 notes](docs/release-notes/0.0.2.md#性能参考) contain the complete results and measurement conditions; the [vision guide](docs/guides/vision-samples.md) explains the options.
+
+## 📖 Documentation
+
+| Resource | Contents |
+| --- | --- |
+| [Getting started](docs/guides/getting-started.md) | Install packages and run the first inference |
+| [Managed objects](docs/guides/managed-objects.md) | Models, tensors, inputs/outputs and resource ownership |
+| [Dynamic shapes and cache](docs/guides/dynamic-shapes-cache.md) | Input overrides, program persistence and cache reuse |
+| [HIP integration](docs/guides/hip-interop.md) | Asynchronous execution and GPU buffers |
+| [Advanced APIs](docs/guides/advanced-apis.md) | Graphs, TensorFlow and quantization |
+| [API reference](docs/api/index.md) | API documentation and offline reference |
+| [Release history](docs/release-notes/README.md) | Changes, compatibility and upgrade instructions by version |
+| [Technical blog](docs/blog/README.md) | Chinese project and application articles |
+
+## 🚀 More Usage Examples
+
+### Override an input shape
+
+Set your model's input dimensions before parsing; compile and run it using the same object API shown above.
+
+~~~csharp
+using var options = new MIGraphXOnnxOptions(nativePath);
+options.SetInputParameterShape("images", new long[] { 1, 3, 640, 640 });
+using var program = MIGraphXProgram.ParseOnnxFile("/models/yolo26n.onnx", options);
+~~~
+
+### Save a compiled program
+
+~~~csharp
+using var fileOptions = new MIGraphXFileOptions(nativePath, "msgpack");
+program.Save("/models/compiled.msgpack", fileOptions);
+using var restored = MIGraphXProgram.Load("/models/compiled.msgpack", fileOptions);
+~~~
+
+Use a compatible native runtime and compilation target when reusing a saved program. Device output and GPU postprocessing are covered in the [HIP guide](docs/guides/hip-interop.md).
+
+## 💻 System Requirements
+
+| Component | Requirements |
+| --- | --- |
+| Managed library | .NET Framework 4.6–4.8.1, .NET Core 3.1, .NET 5–10; 15 target frameworks |
+| Validated native platform | Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX 2.15.0, gfx1100 |
+| Native library | <code>/opt/rocm/lib/libmigraphx_c.so.3</code>, or the absolute path in your ROCm installation |
+| Vision examples | .NET 10; HIPRTC with the matching GPU architecture, or a precompiled HIP module |
+
+Managed framework compatibility does not provide a Windows/macOS MIGraphX runtime. Use the [AMD installation instructions](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html) and [deployment guide](docs/guides/runtime-deployment.md) to prepare the target host. Other GPU/runtime combinations are described in [platform support](docs/compatibility/platforms.md).
+
+## 🏗️ Project Structure
+
+~~~text
+MIGraphXSharp/
+├── src/
+│   ├── JYPPX.ROCm.MIGraphX.CSharp.API/              # Core library
+│   └── JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/  # HIP adapter
+├── samples/
+│   ├── Yolo26/                                    # Five vision tasks
+│   └── PaddleOcrV6/                               # Text detection and recognition
+├── docs/
+│   ├── guides/                                    # Installation and usage
+│   ├── release-notes/                             # Version history
+│   └── blog/                                      # Technical articles
+├── eng/                                           # Build and packaging scripts
+└── MIGraphXSharp.sln
+~~~
+
+## 🔧 Build from Source
+
+Install the SDK selected by <code>global.json</code>, PowerShell 7 and the [HipSharp source dependency](CONTRIBUTING.md). Run from the repository root:
 
 ~~~powershell
 ./eng/build.ps1 -Configuration Release -Version 0.0.2
 ./eng/pack.ps1 -Configuration Release -Version 0.0.2 -NoBuild
 ~~~
 
-Development builds without an explicit version use <code>0.0.0</code>. Build output, packages and generated documentation go to the sibling <code>MIGraphXSharp.Workspace/</code> directory. [CONTRIBUTING.md](CONTRIBUTING.md) covers the complete build setup.
+Builds without an explicit version use <code>0.0.0</code>. Outputs go to the sibling <code>MIGraphXSharp.Workspace/</code> directory. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full build setup.
 
-## Project layout
+## 🤝 Contributing
 
-| Directory | Contents |
-| --- | --- |
-| src/ | Core library and optional HIP adapter |
-| samples/ | Runnable C# examples |
-| docs/ | User guides, deployment and API documentation |
-| tests/, native/ | Managed tests and native test sources |
-| eng/, tools/ | Build, packaging, generation and diagnostic tools |
-| eng/contracts/ | Generator inputs, public API snapshots and native/package contracts |
+Issues and pull requests are welcome. Include package versions, ROCm/MIGraphX versions, operating system, GPU and a minimal reproduction when [reporting an issue](https://github.com/guojin-yan/MIGraphX-CSharp-API/issues).
 
-## Community and license
+## 📄 License and Acknowledgments
 
-Report problems through [GitHub Issues](https://github.com/guojin-yan/MIGraphX-CSharp-API/issues), including package/native versions, OS, GPU and a minimal reproduction. Contributions are welcome.
+The project is licensed under [Apache-2.0](LICENSE); see [NOTICE](NOTICE). Thanks to [AMD MIGraphX](https://github.com/ROCm/AMDMIGraphX) and [ROCm](https://github.com/ROCm) for the native inference and GPU computing stack. Third-party libraries and model assets retain their own licenses.
 
-Related .NET inference projects: [OpenVINO C# API](https://github.com/guojin-yan/OpenVINO-CSharp-API) · [TensorRT C# API](https://github.com/guojin-yan/TensorRT-CSharp-API) · [HIP C# API](https://github.com/guojin-yan/HIP-CSharp-API).
+Related projects: [OpenVINO C# API](https://github.com/guojin-yan/OpenVINO-CSharp-API) · [TensorRT C# API](https://github.com/guojin-yan/TensorRT-CSharp-API) · [HIP C# API](https://github.com/guojin-yan/HIP-CSharp-API).
 
-Copyright 2026 Guojin Yan. Licensed under [Apache-2.0](LICENSE); see [NOTICE](NOTICE). AMD, ROCm, MIGraphX, ImageSharp and model assets retain their respective licenses.
+## 📮 Contact and Sponsorship
+
+- GitHub: [@guojin-yan](https://github.com/guojin-yan)
+- NuGet: [JYPPX.ROCm.MIGraphX.CSharp.API](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/)
+
+<p align="center">
+  <img src="docs/images/readme/contact-support-en.png" width="100%" alt="Developer contacts, community links and sponsorship QR codes">
+</p>
+
+## ⚖️ Software and Usage Notice
+
+This project uses AI-assisted development. Feedback, issue reports and contributions help improve the library. The software is provided under the Apache-2.0 license without warranties; evaluate your application's models, native runtime and deployment requirements before production use. Refer to [platform support](docs/compatibility/platforms.md) for known limitations and experimental APIs.
+
+Copyright © 2026 Guojin Yan.

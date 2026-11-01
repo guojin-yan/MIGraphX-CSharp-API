@@ -4,6 +4,8 @@
 
 ## 发布版本
 
+发布前在 `docs/release-notes/<version>.md` 维护本版本说明，可复制 [模板](../docs/release-notes/TEMPLATE.md)。同时更新[版本索引](../docs/release-notes/README.md)、根目录 `CHANGELOG.md` 与中英文 README 的简短摘要。`prepare-release.ps1` 将对应单版本文件作为分发包的 `RELEASE-NOTES.md` 来源，不混入其他版本的记录。
+
 所有者授权发布后，在干净且已推送的 `main` 上选择版本，例如 `0.0.2`。创建目标为精确 HEAD 的 GitHub draft release，再手动运行 `publish-release` 工作流。工作流从 NuGet.org 下载并核对下文固定哈希的 HipSharp 0.10.0。`eng/prepare-release.ps1` 负责构建、API/包检查、干净消费、漏洞查询、文档及离线分发材料，产物全部位于仓库外。
 
 发布 job 使用 NuGet Trusted Publishing：`NuGet/login@v1` 将 GitHub OIDC 身份换取有效期一小时的临时 API Key，不再读取仓库 secret `NUGET_API_KEY`。包检查通过后发布本项目的 core/adapter 同版本包，再将 draft release 公开。HipSharp 是已有依赖，不重复推送。若发布中途失败，先检查 NuGet 是否已经接受部分包，禁止替换同版本内容后重试。

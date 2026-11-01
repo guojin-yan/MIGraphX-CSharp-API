@@ -4,204 +4,233 @@
   <img alt="MIGraphXSharp — 面向 C# 与 .NET 的 AMD GPU 推理" src="docs/images/readme/hero-light.svg" width="100%">
 </picture>
 
-# MIGraphX C# API · MIGraphXSharp
+<h1 align="center">MIGraphX C# API · MIGraphXSharp</h1>
 
-[![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/)
-[![Downloads](https://img.shields.io/nuget/dt/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/)
-[![Release](https://img.shields.io/github/v/release/guojin-yan/MIGraphX-CSharp-API)](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases)
-[![License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![.NET](https://img.shields.io/badge/.NET-4.6_to_10.0-512BD4)](docs/compatibility/frameworks.md)
-[![ROCm](https://img.shields.io/badge/ROCm-7.2.1-ED1C24)](docs/guides/runtime-deployment.md)
-[![Stars](https://img.shields.io/github/stars/guojin-yan/MIGraphX-CSharp-API?style=flat)](https://github.com/guojin-yan/MIGraphX-CSharp-API/stargazers)
+<p align="center">用 C# 在 AMD GPU 上运行 ONNX 模型，结合 MIGraphX 推理与 HIP 图像处理。</p>
 
-[English](README.md) | 简体中文
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache--2.0-blue.svg" alt="Apache-2.0 许可证"></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/"><img src="https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg" alt="NuGet 版本"></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/"><img src="https://img.shields.io/nuget/dt/JYPPX.ROCm.MIGraphX.CSharp.API.svg" alt="NuGet 下载量"></a>
+  <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/releases"><img src="https://img.shields.io/github/v/release/guojin-yan/MIGraphX-CSharp-API" alt="GitHub Release"></a>
+  <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/MIGraphX-CSharp-API?style=flat&amp;logo=github" alt="GitHub Stars"></a>
+  <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-4.6_to_10.0-512BD4" alt=".NET 4.6 至 10.0"></a>
+  <a href="docs/guides/runtime-deployment.md"><img src="https://img.shields.io/badge/ROCm-7.2.1-ED1C24" alt="ROCm 7.2.1"></a>
+</p>
 
-MIGraphXSharp 是 AMD MIGraphX 的 C# / .NET 封装库。通过具有明确生命周期的托管对象，加载 ONNX 模型、编译 AMD GPU 程序、准备类型化张量并读取推理结果；可选 HIP 适配器可将设备输入、输出和 GPU 前后处理接入同一条流。
+<p align="center"><a href="README.md">English</a> | <strong>简体中文</strong></p>
 
-项目提供两个完整视觉案例：**YOLO26 检测、分类、实例分割、姿态、旋转框五任务**，以及 **PP-OCRv6 文本检测与识别**。默认通过 HIP 在 GPU 上完成数值前后处理，也保留 C# CPU 路径作为对照；运行时无需 Python 或 OpenCV。
+## 📖 项目简介
 
-[快速开始](#快速开始) · [视觉案例](#视觉案例) · [使用文档](#使用文档) · [发行说明](CHANGELOG.md) · [问题反馈](https://github.com/guojin-yan/MIGraphX-CSharp-API/issues)
+[AMD MIGraphX](https://rocm.docs.amd.com/projects/AMDMIGraphX/en/latest/) 是 ROCm 生态中的图推理引擎，能够将深度学习模型编译为 GPU 程序，并针对 AMD 硬件优化执行过程。
 
-## 0.0.2 版本
+**MIGraphX C# API 是 AMD MIGraphX 的 .NET 封装库，让 C# 开发者直接在应用中完成 ONNX 模型加载、GPU 编译、张量操作和模型推理。** 通过可选的 HIP 适配器，还可以在同一条 GPU 流上衔接前处理、模型推理与后处理。
 
-0.0.2 新增 `RunDeviceIntoAsync` 和完整的 HIP 视觉流水线，继续提供核心托管包、可选适配包、中英文 XML 文档与两个独立示例。软件包、源码与离线文档见 [v0.0.2 Release](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2)。初始版本 0.0.1 保留供历史使用。
+项目提供 **YOLO26** 与 **PP-OCRv6** 完整案例，包含图像处理、推理、结果解析和耗时统计。案例由 C# 与 HIP 实现，运行时无需 Python 或 OpenCV。
 
-在 Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 上，已执行所附视觉模型、动态输入、持久化/缓存、HIP 主机异步与设备输入的官方运行时检查。具体适用范围见[平台支持说明](docs/compatibility/platforms.md)。
-
-## 主要功能
-
-| 功能 | 使用方式 |
+| 核心优势 | 能为项目带来什么 |
 | --- | --- |
-| ONNX 推理 | 从文件或内存解析、配置输入尺寸、编译目标、执行并读取类型化输出 |
-| 张量与资源管理 | 不可变形状快照、类型化主机输入、多输入/输出、显式释放原生资源 |
-| 动态形状与缓存 | 设置维度范围、校验具体输入、保存/加载程序、复用编译结果 |
-| 图构建 | program 管理的 module、parameter、literal、instruction 与类型化算子属性 |
-| HIP 集成 | 在 HipSharp 流上提交、等待或轮询，保持设备输入/输出并继续 GPU 后处理 |
-| 高级接口 | TensorFlow 解析、FP16/BF16/INT8/FP8 量化与实验性自定义算子回调 |
-| 视觉案例 | YOLO26 五任务、PP-OCRv6 三种规格；JSON、预览图、mask、文本与计时输出 |
-| .NET 接入 | 15 个目标框架、一致的公开 API、中英文 XML 注释及加载诊断 |
+| 🚀 AMD GPU 推理 | 通过 C# 托管 API 使用 MIGraphX 的模型编译与推理能力 |
+| ⚡ GPU 图像流水线 | 利用 HIP 流与显存缓冲区，在 GPU 上完成数值前后处理 |
+| 🧩 .NET 项目集成 | 覆盖 .NET Framework 4.6 到 .NET 10 的 15 个目标框架，提供中英文 XML 注释 |
+| 📚 完整应用案例 | YOLO26 五任务、PP-OCRv6 检测与识别，支持 OCR 多 batch 和多识别实例 |
 
-## 软件包与运行环境
+## 📢 0.0.2 更新摘要
 
-| 软件包 | 版本 | 用途 |
-| --- | --- | --- |
-| [JYPPX.ROCm.MIGraphX.CSharp.API](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/0.0.2) | 0.0.2 | 核心推理与托管资源 API |
-| [JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/0.0.2) | 0.0.2 | 可选流/设备输入集成；精确依赖同版本核心包与 HipSharp 0.10.0 |
+- 新增 <code>RunDeviceIntoAsync</code>，支持显存输出缓冲区与后续 HIP 处理。
+- 两个视觉案例的数值前处理、后处理迁移至 HIP。
+- OCR 新增批量识别与多实例，整图识别默认 batch 4、2 个识别实例。
 
-核心命名空间为 <code>JYPPX.ROCm.MIGraphXSharp</code>。两个包均提供 <code>net46</code>–<code>net481</code>、<code>netcoreapp3.1</code>、<code>net5.0</code>–<code>net10.0</code> 的程序集，共 15 个目标框架。视觉示例使用 .NET 10。
+[查看 0.0.2 完整版本说明](docs/release-notes/0.0.2.md) · [查看全部版本记录](docs/release-notes/README.md) · [下载 v0.0.2](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2)
 
-| 组件 | 已验证基线 |
-| --- | --- |
-| 操作系统 | Ubuntu 24.04 x86-64 |
-| AMD 运行环境 | ROCm 7.2.1、MIGraphX 2.15.0.70201-81~24.04 |
-| GPU 架构 | gfx1100 |
-| 原生库路径 | /opt/rocm/lib/libmigraphx_c.so.3 |
+## 🚀 快速上手
 
-ROCm/MIGraphX 通过 [AMD 官方系统仓库](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html)安装，NuGet 包不携带 AMD 原生运行库。Windows 可构建托管程序集，本项目不提供官方 Windows MIGraphX 运行时。其他设备和运行库版本需按实际应用验证。
+### 1. 安装 NuGet 包
 
-## 快速开始
-
-### 1. 安装软件包
+先在兼容的 Linux 主机安装 ROCm 7.2.1 与 MIGraphX 2.15.0，具体见[运行环境部署指南](docs/guides/runtime-deployment.md)，然后创建应用：
 
 ~~~bash
 dotnet new console -n MigraphxDemo
 cd MigraphxDemo
 dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
-
-# 可选：HIP 流与设备输入集成
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
 ~~~
 
-Release 同时提供离线包，配置方法见[入门指南](docs/guides/getting-started.md)。
+### 2. 编写推理代码
 
-### 2. 执行 ONNX 推理
-
-下面演示一个已有模型：单个静态、标准布局的 float32 输入/输出，输入共四个元素。
+下面使用一个静态 float32 ONNX 模型，输入名为 <code>input</code>、包含 4 个元素。实际接入时，请替换为自己模型的路径、输入名称和数据。
 
 ~~~csharp
 using JYPPX.ROCm.MIGraphXSharp;
 
-var result = MIGraphXOnnxWorkflow.RunFile(
-    "/opt/rocm/lib/libmigraphx_c.so.3",
-    "/absolute/path/to/model.onnx",
-    new[] { 1f, 2f, 3f, 4f });
+const string nativePath = "/opt/rocm/lib/libmigraphx_c.so.3";
 
-Console.WriteLine(string.Join(", ", result.Output));
+// 解析模型并读取输入形状。
+using var options = new MIGraphXOnnxOptions(nativePath);
+using var program = MIGraphXProgram.ParseOnnxFile("/models/model.onnx", options);
+var inputShapes = program.GetParameterShapes();
+
+// 编译一次，后续输入复用同一个 program。
+using var target = new MIGraphXTarget(nativePath, "gpu");
+using var compileOptions = new MIGraphXCompileOptions(nativePath, offloadCopy: true);
+program.Compile(target, compileOptions);
+
+// 设置模型输入并执行推理。
+using var input = MIGraphXArgument.Create(
+    nativePath, inputShapes["input"], new[] { 1f, 2f, 3f, 4f });
+using var parameters = new MIGraphXParameterMap(nativePath);
+parameters.Add("input", input);
+
+using var outputs = program.Run(parameters);
+float[] result = outputs[0].ToArray<float>();
+Console.WriteLine(string.Join(", ", result));
 ~~~
 
-路径使用绝对路径，输入数量必须与自己的模型一致。此入口启用 GPU host offload-copy，返回托管输出副本。图片模型可直接使用下方案例；多输入、多输出用法见[托管对象指南](docs/guides/managed-objects.md)。
-
-### 3. 检查运行环境
-
-~~~csharp
-var report = MIGraphXEnvironment.Probe("/opt/rocm/lib/libmigraphx_c.so.3");
-Console.WriteLine(report.State);
-foreach (var diagnostic in report.Diagnostics)
-    Console.WriteLine(diagnostic);
-~~~
-
-原生库定位、版本和部署问题见[部署与故障排查](docs/guides/runtime-deployment.md)。
-
-## 视觉案例
-
-每个案例项目都包含完整的图像、推理、后处理与计时代码，仅引用本库及 ImageSharp，无需单独的公共示例项目。ONNX、图片、标签和 OCR 字典由使用者准备。
-
-| 项目 | 任务 | 典型输入 | 输出 |
-| --- | --- | --- | --- |
-| [Yolo26](samples/Yolo26/README.md) | 目标检测 | 640 × 640 | 检测框、类别与分数 |
-| Yolo26 | 图像分类 | 224 × 224 | Top-5 类别 |
-| Yolo26 | 实例分割 | 640 × 640 | 每实例 mask 与检测框 |
-| Yolo26 | 人体姿态 | 640 × 640 | 每人 17 个关键点与骨架 |
-| Yolo26 | 旋转框检测 | 1024 × 1024 | 旋转四边形 |
-| [PaddleOcrV6](samples/PaddleOcrV6/README.md) | 文本检测识别 / 仅识别 | 检测尺寸为 32 的倍数；识别 48 × 320 | 文字、四边形、裁剪和置信度 |
-
-在已经配置运行环境的 Linux 主机上，从仓库根目录执行：
+### 3. 运行程序
 
 ~~~bash
-dotnet run --project samples/Yolo26 -c Release -- \
-  --native /opt/rocm/lib/libmigraphx_c.so.3 --task detect \
-  --backend hip --gpu-architecture gfx1100 \
-  --model /models/yolo26n.onnx --image /images/bus.jpg \
-  --output /results/yolo26 --warmup 5 --iterations 30
-
-dotnet run --project samples/PaddleOcrV6 -c Release -- \
-  --native /opt/rocm/lib/libmigraphx_c.so.3 \
-  --backend hip --gpu-architecture gfx1100 \
-  --det-model /models/PP-OCRv6_tiny_det_inference.onnx \
-  --rec-model /models/PP-OCRv6_tiny_rec_inference.onnx \
-  --dictionary /models/PP-OCRv6_tiny_rec_dict.txt \
-  --image /images/document.jpg --output /results/ocr
+dotnet run -c Release
 ~~~
 
-其他 YOLO 任务更换任务名与配套模型；OCR small/medium 使用同一入口，更换配套模型和字典。省略 detector 参数可直接识别文本行。两个案例均保存 JSON、PNG 和独立 SVG，分割额外保存 mask，OCR 额外保存文字与裁剪。
+图像模型可以直接参考 [YOLO26 案例](samples/Yolo26/README.md)或 [PP-OCRv6 案例](samples/PaddleOcrV6/README.md)。安装与原生库加载诊断见[入门指南](docs/guides/getting-started.md)。
 
-本次姿态模型在 MIGraphX 2.15.0 下需要启动前设置 <code>MIGRAPHX_DISABLE_REDUCE_FUSION=1</code>。模型权重和演示图片不随库分发。
+## ✨ 完整特性列表
 
-### 图片实测速度
-
-Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100，CPU 配额 16 核，float32。每组预热 5 次、测量 30 次，同一图片顺序运行。两组均由 MIGraphX 在 GPU 推理，下表比较不同前后处理路径的整图墙钟时间。
-
-| 模型 / 工作负载 | CPU 前后处理路径 ms | HIP 流水线 ms | HIP P95 ms | 加速比 |
-| --- | ---: | ---: | ---: | ---: |
-| YOLO26 n 检测 | 15.77 | 2.75 | 2.83 | 5.74× |
-| YOLO26 s 检测 | 18.57 | 4.46 | 4.56 | 4.17× |
-| YOLO26 s 分类 | 5.46 | 1.50 | 1.53 | 3.65× |
-| YOLO26 s 分割 | 61.30 | 7.44 | 7.55 | 8.23× |
-| YOLO26 s 姿态 | 18.54 | 4.97 | 5.04 | 3.73× |
-| YOLO26 s 旋转框 | 42.25 | 7.24 | 7.29 | 5.84× |
-| PP-OCRv6 tiny / 16 行 | 66.09 | 10.97 | 11.08 | 6.02× |
-| PP-OCRv6 small / 16 行 | 107.51 | 16.98 | 17.06 | 6.33× |
-| PP-OCRv6 medium / 16 行 | 118.68 | 31.63 | 31.88 | 3.75× |
-
-YOLO batch=1。OCR 检测 batch=1，CPU 对照逐行识别；HIP 识别 batch=4、2 个独立实例，包含整图 16 行文字。HIP 流水线包含上传、GPU 前后处理、模型执行、D2D 输出复制和紧凑结果回传；CPU 路径包含 C# 前后处理及完整张量回传。两组均排除文件解码、模型/kernel 编译、绘制和写盘，未锁定 GPU 时钟或功耗。OCR 的 batch/实例数会影响显存和编译时间，具体应用请按[案例计时参数](docs/guides/vision-samples.md)测量。
-
-## 使用文档
-
-独立的发布介绍和应用文章见[中文技术博客](docs/blog/README.md)。
-
-| 入门与用法 | 参考资料 |
+| 特性 | 说明 |
 | --- | --- |
-| [安装与首次推理](docs/guides/getting-started.md) | [API 参考](docs/api/index.md) |
-| [托管对象与资源所有权](docs/guides/managed-objects.md) | [框架兼容性](docs/compatibility/frameworks.md) |
-| [动态输入、持久化与缓存](docs/guides/dynamic-shapes-cache.md) | [平台支持与限制](docs/compatibility/platforms.md) |
-| [类型化算子属性](docs/guides/operation-attributes.md) | [版本规则](docs/guides/api-versioning.md) |
-| [HIP 异步执行](docs/guides/hip-interop.md) | [部署与故障排查](docs/guides/runtime-deployment.md) |
-| [图构建、TensorFlow 与量化](docs/guides/advanced-apis.md) | [视觉案例指南](docs/guides/vision-samples.md) |
+| ONNX 推理 | 从文件或内存解析模型、编译 GPU 程序，支持多输入与多输出 |
+| 类型化张量 | 查看形状、类型与步长，创建类型化主机输入，将结果复制为 C# 数组 |
+| 动态形状 | 解析前设置固定输入尺寸或动态维度范围 |
+| 程序复用 | 保存、加载编译程序，使用显式模型缓存 |
+| HIP 集成 | 主机/设备输入异步提交、流同步、调用方显存输出缓冲区 |
+| 图构建 API | program 所属 module、参数、常量、指令与类型化算子属性 |
+| 高级 API | TensorFlow 解析、FP16/BF16/INT8/FP8 量化与实验性自定义算子回调 |
+| 资源管理 | 确定性 <code>Dispose</code>、原生库加载诊断与 HIP 在途任务资源保活 |
 
-Release 附带离线 HTML 文档，解压文档包后打开 <code>index.html</code>。
+各项功能的运行环境要求与实验性功能边界见[使用文档](docs/index.md)和[平台支持说明](docs/compatibility/platforms.md)。
 
-## 功能边界
+## 📦 NuGet 包
 
-常用整数、浮点数、Boolean、字符串、null 和数组属性可通过类型化构建器使用；通过 program 创建或取得的 module 由 program 租约管理生命周期。任意 C 格式化可变参数，以及缺少原生销毁契约的独立 module，不属于公开封装接口。
+| 包 | 用途 | 版本 |
+| --- | --- | --- |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API</code> | 模型、张量、编译与推理核心 API | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/) |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop</code> | 可选 HIP 流与显存适配器 | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/) |
+| <code>JYPPX.ROCm.HIP.CSharp.API</code> | HipSharp 运行时、显存、流与 kernel API；由适配包依赖 | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) |
 
-实验性自定义算子回调已有主机参考目标数值检查，GPU/device 回调内存及完整 provider 生命周期尚未全面验证。库不作零拷贝、并行重叠或任意工作负载性能保证。OCR 使用矩形 unclip，不包含版面分析、页面方向分类或表格识别。接入实验性功能前请阅读平台说明。
+需要 HIP 集成时，再安装适配包：
 
-## 从源码构建
+~~~bash
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
+~~~
 
-安装 <code>global.json</code> 指定的 SDK、PowerShell 7，并配置 [HipSharp 源码依赖](CONTRIBUTING.md)，然后执行：
+适配包精确依赖核心包 <code>0.0.2</code> 与 HipSharp <code>0.10.0</code>，由 NuGet 恢复依赖。核心命名空间为 <code>JYPPX.ROCm.MIGraphXSharp</code>。AMD 原生库需单独安装。[GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases) 同时提供 NuGet 包、源码和离线 HTML 文档。
+
+## 🧪 应用案例
+
+| 案例 | 支持任务 | 包含内容 |
+| --- | --- | --- |
+| [YOLO26](samples/Yolo26/README.md) | 目标检测、图像分类、实例分割、姿态估计、旋转框检测 | HIP 缩放与归一化、输出解码、mask、关键点和结果标注 |
+| [PP-OCRv6](samples/PaddleOcrV6/README.md) | tiny/small/medium 文本检测与识别、仅识别 | HIP 文本框提取、透视裁剪、多 batch、多实例与 CTC 解码 |
+
+两个项目各自包含完整代码，目标框架为 .NET 10，提供 JSON/PNG/SVG 输出、预热与重复计时，并保留 CPU 前后处理选项。两种后端均使用 MIGraphX 执行 GPU 模型推理。模型、输入图片与 OCR 字典由使用者另行准备。
+
+在文档所列 gfx1100、FP32 环境中，HIP 整图平均耗时为：**YOLO26n 检测 2.75 ms，PP-OCRv6 tiny 识别 16 行文本 10.97 ms**。计时不含文件解码、编译、绘图与导出。完整数据和测试条件见 [0.0.2 版本说明](docs/release-notes/0.0.2.md#性能参考)，运行参数见[视觉案例指南](docs/guides/vision-samples.md)。
+
+## 📖 详细文档
+
+| 资源 | 内容 |
+| --- | --- |
+| [快速入门](docs/guides/getting-started.md) | 安装与首次推理 |
+| [托管对象](docs/guides/managed-objects.md) | 模型、张量、输入输出与资源所有权 |
+| [动态形状与缓存](docs/guides/dynamic-shapes-cache.md) | 输入尺寸、程序持久化与缓存复用 |
+| [HIP 集成](docs/guides/hip-interop.md) | 异步执行与显存缓冲区 |
+| [高级 API](docs/guides/advanced-apis.md) | 图构建、TensorFlow 与量化 |
+| [API 参考](docs/api/index.md) | 接口文档与离线参考 |
+| [版本记录](docs/release-notes/README.md) | 各版本变更、兼容性与升级方法 |
+| [技术博客](docs/blog/README.md) | 项目介绍与应用文章 |
+
+## 🚀 更多使用示例
+
+### 指定模型输入尺寸
+
+在解析模型前设置输入维度，后续按上面的对象 API 编译与执行。
+
+~~~csharp
+using var options = new MIGraphXOnnxOptions(nativePath);
+options.SetInputParameterShape("images", new long[] { 1, 3, 640, 640 });
+using var program = MIGraphXProgram.ParseOnnxFile("/models/yolo26n.onnx", options);
+~~~
+
+### 保存编译程序
+
+~~~csharp
+using var fileOptions = new MIGraphXFileOptions(nativePath, "msgpack");
+program.Save("/models/compiled.msgpack", fileOptions);
+using var restored = MIGraphXProgram.Load("/models/compiled.msgpack", fileOptions);
+~~~
+
+复用程序时需保持兼容的原生运行时与编译目标。显存输出与 GPU 后处理的使用方法见 [HIP 指南](docs/guides/hip-interop.md)。
+
+## 💻 系统要求
+
+| 组件 | 要求 |
+| --- | --- |
+| 托管类库 | .NET Framework 4.6–4.8.1、.NET Core 3.1、.NET 5–10，共 15 个目标框架 |
+| 已验证的原生平台 | Ubuntu 24.04 x86-64、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 |
+| 原生库 | <code>/opt/rocm/lib/libmigraphx_c.so.3</code>，或实际 ROCm 安装中的绝对路径 |
+| 视觉案例 | .NET 10；匹配 GPU 架构的 HIPRTC，或预编译 HIP 模块 |
+
+托管框架兼容性不代表提供 Windows/macOS MIGraphX 原生运行时。请按 [AMD 安装说明](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html)与[部署指南](docs/guides/runtime-deployment.md)准备目标设备，其他 GPU/运行时组合见[平台支持说明](docs/compatibility/platforms.md)。
+
+## 🏗️ 项目结构
+
+~~~text
+MIGraphXSharp/
+├── src/
+│   ├── JYPPX.ROCm.MIGraphX.CSharp.API/              # 核心类库
+│   └── JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/  # HIP 适配器
+├── samples/
+│   ├── Yolo26/                                    # 五类视觉任务
+│   └── PaddleOcrV6/                               # 文本检测与识别
+├── docs/
+│   ├── guides/                                    # 安装与使用
+│   ├── release-notes/                             # 版本记录
+│   └── blog/                                      # 技术文章
+├── eng/                                           # 构建与打包脚本
+└── MIGraphXSharp.sln
+~~~
+
+## 🔧 从源码构建
+
+安装 <code>global.json</code> 指定的 SDK、PowerShell 7，并配置 [HipSharp 源码依赖](CONTRIBUTING.md)，在仓库根目录执行：
 
 ~~~powershell
 ./eng/build.ps1 -Configuration Release -Version 0.0.2
 ./eng/pack.ps1 -Configuration Release -Version 0.0.2 -NoBuild
 ~~~
 
-不指定版本的开发构建使用 <code>0.0.0</code>。构建输出、包和生成文档写入相邻的 <code>MIGraphXSharp.Workspace/</code>，完整环境说明见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+不指定版本的构建使用 <code>0.0.0</code>，输出写入相邻的 <code>MIGraphXSharp.Workspace/</code> 目录。完整构建配置见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-## 项目结构
+## 🤝 如何贡献
 
-| 目录 | 内容 |
-| --- | --- |
-| src/ | 核心库与可选 HIP 适配器 |
-| samples/ | 可直接运行的 C# 示例 |
-| docs/ | 使用指南、部署和 API 文档 |
-| tests/、native/ | 托管测试与原生测试源码 |
-| eng/、tools/ | 构建、打包、生成与诊断脚本 |
-| eng/contracts/ | 生成器输入、公共 API 快照和原生库/包分发契约 |
+欢迎提交 Issue 和 Pull Request。[反馈问题](https://github.com/guojin-yan/MIGraphX-CSharp-API/issues)时，请附上包版本、ROCm/MIGraphX 版本、操作系统、GPU 和最小复现代码。
 
-## 交流与许可证
+## 📄 许可证与致谢
 
-欢迎通过 [GitHub Issues](https://github.com/guojin-yan/MIGraphX-CSharp-API/issues)反馈问题，并附上包版本、原生库版本、系统、GPU 和最小复现。也欢迎提交改进。
+本项目采用 [Apache-2.0](LICENSE) 开源协议，另见 [NOTICE](NOTICE)。感谢 [AMD MIGraphX](https://github.com/ROCm/AMDMIGraphX) 与 [ROCm](https://github.com/ROCm) 提供原生推理和 GPU 计算能力。第三方库与模型素材分别适用各自许可证。
 
-相关 .NET 推理项目：[OpenVINO C# API](https://github.com/guojin-yan/OpenVINO-CSharp-API) · [TensorRT C# API](https://github.com/guojin-yan/TensorRT-CSharp-API) · [HIP C# API](https://github.com/guojin-yan/HIP-CSharp-API)。
+相关项目：[OpenVINO C# API](https://github.com/guojin-yan/OpenVINO-CSharp-API) · [TensorRT C# API](https://github.com/guojin-yan/TensorRT-CSharp-API) · [HIP C# API](https://github.com/guojin-yan/HIP-CSharp-API)。
 
-Copyright 2026 Guojin Yan。项目采用 [Apache-2.0](LICENSE) 许可证，另见 [NOTICE](NOTICE)。AMD、ROCm、MIGraphX、ImageSharp 及模型素材分别适用各自许可证。
+## 📮 联系与赞助
+
+- GitHub：[@guojin-yan](https://github.com/guojin-yan)
+- NuGet：[JYPPX.ROCm.MIGraphX.CSharp.API](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/)
+
+<p align="center">
+  <img src="docs/images/readme/contact-support-zh.png" width="100%" alt="开发者联系方式、社区入口与赞助二维码">
+</p>
+
+## ⚖️ 软件声明与使用说明
+
+本项目在开发过程中使用了 AI 辅助，欢迎通过反馈问题、提交改进共同完善。软件按 Apache-2.0 协议提供，不附带担保；投入实际项目前，请结合自己的模型、原生运行时和部署环境评估。已知限制及实验性 API 范围见[平台支持说明](docs/compatibility/platforms.md)。
+
+Copyright © 2026 Guojin Yan。

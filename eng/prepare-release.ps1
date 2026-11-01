@@ -7,6 +7,10 @@ param(
 
 . (Join-Path $PSScriptRoot 'common.ps1')
 $root = Get-RepositoryRoot
+$releaseNotesPath = Join-Path $root "docs/release-notes/$Version.md"
+if (-not (Test-Path -LiteralPath $releaseNotesPath -PathType Leaf)) {
+    throw "Release notes are missing: docs/release-notes/$Version.md"
+}
 $commit = (& git -C $root rev-parse HEAD).Trim()
 $origin = (& git -C $root rev-parse origin/main).Trim()
 if ((& git -C $root branch --show-current).Trim() -ne 'main' -or $commit -ne $origin -or
@@ -43,7 +47,9 @@ try {
     & git archive --format=zip "--prefix=MIGraphXSharp-v$Version/" "--output=$archive" $commit
     if ($LASTEXITCODE -ne 0) { throw 'Source archive creation failed.' }
     Compress-Archive -Path (Join-Path (Get-ArtifactsRoot) 'docs/*') -DestinationPath (Join-Path $distribution "MIGraphXSharp-v$Version-docs.zip")
-    $notes = (Get-Content -Raw -LiteralPath (Join-Path $root 'CHANGELOG.md')).Replace('](docs/', "](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/v$Version/docs/")
+    $notes = (Get-Content -Raw -LiteralPath $releaseNotesPath).
+        Replace('](../../', "](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/v$Version/").
+        Replace('](../', "](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/v$Version/docs/")
     $notes += "`nRelease source: ``$commit``. Both MIGraphX packages are built from this exact commit. The adapter is built and consumer-checked against the published HipSharp 0.10.0 dependency. Runtime scope and device-output/vision pipeline behavior are documented in the platform and HIP interop guides; package checks do not extend that scope to other models or devices.`n"
     [IO.File]::WriteAllText((Join-Path $distribution 'RELEASE-NOTES.md'), $notes, [Text.UTF8Encoding]::new($false))
     $checksums = Get-ChildItem -LiteralPath $distribution -File | Sort-Object Name | ForEach-Object {

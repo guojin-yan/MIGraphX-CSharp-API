@@ -1,5 +1,12 @@
 - name: Home
   href: index.md
+- name: Release notes / 版本记录
+  href: release-notes/README.md
+  items:
+  - name: 0.0.2 — HIP 流水线与 OCR 加速
+    href: release-notes/0.0.2.md
+  - name: 0.0.1 — 首次发布
+    href: release-notes/0.0.1.md
 - name: Blog（中文）
   href: blog/README.md
   items:
