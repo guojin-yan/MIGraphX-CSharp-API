@@ -1,6 +1,8 @@
 #if !defined(__HIPCC_RTC__)
 #include <hip/hip_runtime.h>
 #include <math.h>
+#else
+#define INFINITY __builtin_huge_valf()
 #endif
 
 // All images are packed RGB bytes. Resize uses separable, antialiased triangle

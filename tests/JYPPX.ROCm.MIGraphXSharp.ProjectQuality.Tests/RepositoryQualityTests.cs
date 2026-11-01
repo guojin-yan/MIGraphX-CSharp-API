@@ -213,13 +213,13 @@ public sealed class RepositoryQualityTests
             .Select(line => line.Split('|')[2].Split(';')[0])
             .ToHashSet(StringComparer.Ordinal);
         Assert.True(baselineTypes.SetEquals(types.Select(type => type.FullName!)));
-        Assert.Equal(11, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
+        Assert.Equal(12, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
 
         var memberCount = types.Sum(type =>
             type.GetConstructors(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
-        Assert.Equal(11, memberCount);
+        Assert.Equal(12, memberCount);
         foreach (var type in types)
         {
             foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly))
