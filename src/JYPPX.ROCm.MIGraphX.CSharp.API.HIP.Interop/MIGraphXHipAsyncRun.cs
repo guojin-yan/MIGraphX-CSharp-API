@@ -21,13 +21,13 @@ public sealed class MIGraphXHipAsyncRun : IDisposable
         this.hasHostOutputs = hasHostOutputs;
     }
 
-    /// <summary>获取完成回调是否已经固化 owned host outputs；此属性不查询 stream。 Gets whether completion copied owned host outputs; this property does not query the stream.</summary>
+    /// <summary>获取完成回调是否已结束执行并释放提交租约；此属性不查询 stream。 Gets whether completion finalized execution and released submission leases; this property does not query the stream.</summary>
     public bool IsCompleted { get { lock (sync) { ThrowIfDisposed(); return nativeRun.IsCompleted; } } }
 
-    /// <summary>获取完成后由此结果拥有的 host output 集合；完成前访问失败。 Gets the owned host-output collection after completion; access before completion fails.</summary>
+    /// <summary>获取完成后的 owned host outputs；完成前或 RunDeviceIntoAsync 路径访问失败。 Gets owned host outputs after completion; unavailable before completion or for RunDeviceIntoAsync.</summary>
     public MIGraphXArgumentCollection Outputs { get { lock (sync) { ThrowIfDisposed(); if (!hasHostOutputs) throw new InvalidOperationException("This run writes device destinations; no host outputs were requested."); return nativeRun.Outputs; } } }
 
-    /// <summary>非阻塞查询 stream，并在完成时固化 outputs 或报告完成错误。 Queries the stream without blocking and snapshots outputs or reports a completion error when ready.</summary>
+    /// <summary>非阻塞查询 stream，完成时清理执行并按所选模式固化主机输出或报告错误。 Queries the stream without blocking, finalizes execution and, when requested, snapshots host outputs or reports errors.</summary>
     /// <returns>stream 和此次执行是否已经完成。 Whether the stream and this run completed.</returns>
     public bool TryComplete()
     {
@@ -40,7 +40,7 @@ public sealed class MIGraphXHipAsyncRun : IDisposable
         }
     }
 
-    /// <summary>阻塞等待 stream，固化 outputs，并报告 HIP 或 output-copy 错误。 Blocks for the stream, snapshots outputs, and reports HIP or output-copy errors.</summary>
+    /// <summary>阻塞等待 stream，完成执行并报告 HIP 或输出复制错误。 Blocks for the stream, finalizes execution and reports HIP or output-copy errors.</summary>
     public void Synchronize()
     {
         lock (sync)

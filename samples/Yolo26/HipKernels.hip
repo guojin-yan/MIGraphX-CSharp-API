@@ -1,5 +1,7 @@
+#if !defined(__HIPCC_RTC__)
 #include <hip/hip_runtime.h>
 #include <math.h>
+#endif
 
 // All images are packed RGB bytes. Resize uses separable, antialiased triangle
 // or Catmull-Rom cubic filtering; normalization and layout conversion stay on GPU.
@@ -67,7 +69,7 @@ extern "C" __global__ void yolo_select(const float* data,int n,int fields,int ta
     int iw,int ih,int rw,int rh,int left,int top,int sw,int sh,int* selected,float* records,int* count,int* error){
     int i=blockIdx.x*blockDim.x+threadIdx.x;if(i>=n)return;
     const float* p=data+i*fields;float score=p[4];
-    if(!isfinite(score)||score<0||score>1||!isfinite(p[5])||p[5]<0||p[5]!=truncf(p[5])){atomicExch(error,1);return;}
+    if(!isfinite(score)||score<0||score>1||!isfinite(p[5])||p[5]<0||p[5]>=2147483648.f||p[5]!=truncf(p[5])){atomicExch(error,1);return;}
     if(score<farg(thresholdBits))return;
     int rank=0;for(int j=0;j<n;j++){float s=data[j*fields+4];if(s>score||(s==score&&j<i))rank++;}
     if(rank>=maximum)return;

@@ -1,6 +1,6 @@
 # YOLO26 与 PP-OCRv6 图片推理示例
 
-`samples/Yolo26` 提供检测、分类、实例分割、人体姿态和旋转框五个任务。`samples/PaddleOcrV6` 提供图片文字检测与识别，也支持只识别已经裁剪的文本行。它们直接使用本库的 ONNX parse、GPU compile、typed argument 和 host output API，图像预处理及任务后处理均为 C#。
+`samples/Yolo26` 提供检测、分类、实例分割、人体姿态和旋转框五个任务。`samples/PaddleOcrV6` 提供图片文字检测与识别，也支持只识别已经裁剪的文本行。默认使用 HIP 完成前后处理，并用本库的 `RunDeviceIntoAsync` 保持模型输出在显存；`--backend cpu` 保留 C# 前后处理作为对照。
 
 两个示例各自包含完整实现，仅直接引用本库和 ImageSharp，没有独立的公共示例项目。
 
@@ -9,10 +9,12 @@
 ```bash
 dotnet run --project samples/Yolo26 -c Release -- \
   --native /opt/rocm/lib/libmigraphx_c.so.3 --task detect \
+  --backend hip --gpu-architecture gfx1100 \
   --model /models/yolo26n.onnx --image /images/bus.jpg --output /results/detect
 
 dotnet run --project samples/PaddleOcrV6 -c Release -- \
   --native /opt/rocm/lib/libmigraphx_c.so.3 \
+  --backend hip --gpu-architecture gfx1100 \
   --det-model /models/PP-OCRv6_tiny_det_inference.onnx \
   --rec-model /models/PP-OCRv6_tiny_rec_inference.onnx \
   --dictionary /models/PP-OCRv6_tiny_rec_dict.txt \
@@ -21,10 +23,12 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 仓库根执行上述命令。YOLO 的 `--task` 可换为 `classify`、`segment`、`pose`、`obb`，同时更换对应模型。默认输入边长分别为 224、640、640、1024，检测也是 640。YOLO 必须是示例支持的端到端输出布局；类别标签用 `--labels` 传入按索引排列的 UTF-8 文件。OCR 的识别字典必须与模型版本/大小配套。
 
+架构参数须与 GPU 对应，HIPRTC 仅在初始化时编译内嵌 kernel。也可用 `--hip-module` 加载预编译模块。HIP 路径从解码后的 RGB 图片上传开始，在 GPU 执行 resize、布局转换、归一化、模型推理和数值后处理；模型输出在同一 stream 上 D2D 复制到复用缓冲区。CPU 处理少量调度数据、最终标签/Unicode、文件和绘图。分割 mask、OCR 概率图及识别张量不因普通推理回传，仅导出时回传。
+
 两种示例都输出 JSON、PNG 几何预览和独立 SVG 标签图；OCR 另输出文本与裁剪，分割另输出每实例 mask。所有输出放在源码仓库外。增加 `--dump-tensors true` 可保留实际 float32 输入/输出，方便把完全相同的预处理结果交给其他引擎复核。
 
 输入图片会先按 EXIF 标记统一方向。ROCm 7.2.1 / MIGraphX 2.15.0 的 gfx1100 上，所用姿态模型需要在启动前设置 `MIGRAPHX_DISABLE_REDUCE_FUSION=1`，详见 YOLO26 示例 README 的版本说明。
 
-速度测试使用 `--warmup 5 --iterations 30`，JSON 将保留原始样本和平均/P50/P95。`pipeline` 包含从已解码图片到任务结果的预处理、推理与后处理；OCR 包含检测、裁剪和全部文本行识别，分割包含 mask 计算。文件读取、解析/编译、绘制与写盘排除。推理分项包含同步执行和主机输出复制，不能当作纯 GPU kernel 时间。默认无预热、仅一次测量。
+速度测试使用 `--warmup 5 --iterations 30`，JSON 将保留原始样本和平均/P50/P95。`pipeline` 包含从已解码图片到最终紧凑结果的上传、预处理、推理与后处理；OCR 包含检测、裁剪和全部文本行识别，分割包含 mask 计算。文件解码、模型/kernel 编译、绘制、完整张量/mask 导出与写盘排除。HIP 推理分项使用 event，包含 D2D 输出复制；CPU backend 推理分项是同步执行加主机输出读取。比较整体速度应使用 pipeline，不能直接比较不同口径的推理分项。默认无预热、仅一次测量。
 
 模型相关性、数值误差、后处理和速度应以实际应用数据校验；当前支持范围仍以[平台说明](../compatibility/platforms.md)为准。更完整的参数、预处理和输出说明位于各示例目录的 README。

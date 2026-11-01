@@ -1,5 +1,7 @@
+#if !defined(__HIPCC_RTC__)
 #include <hip/hip_runtime.h>
 #include <math.h>
+#endif
 
 // All images are packed RGB bytes. Resize uses separable, antialiased triangle
 // or Catmull-Rom cubic filtering; normalization and layout conversion stay on GPU.
