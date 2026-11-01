@@ -27,6 +27,8 @@ dotnet run --project samples/PaddleOcrV6 -c Release -- \
 
 两种示例都输出 JSON、PNG 几何预览和独立 SVG 标签图；OCR 另输出文本与裁剪，分割另输出每实例 mask。所有输出放在源码仓库外。增加 `--dump-tensors true` 可保留实际 float32 输入/输出，方便把完全相同的预处理结果交给其他引擎复核。
 
+OCR 整图 HIP 路径默认以 4 行为一个识别 batch、使用 2 个独立识别实例；仅识别单行时默认 batch=1、实例数=1。可用 `--rec-batch`（1–32）和 `--rec-workers`（1–4）调整。每个实例有独立 program、非阻塞 stream 和可写缓冲区，各实例先提交再等待；末批补 0，结果保持原始行顺序。模型须支持所选 batch；更多实例会增加显存和编译成本，并不保证每种 GPU 都更快。可与 `--rec-batch 1 --rec-workers 1` 基线比较 pipeline。跨 stream 的 GPU 分项合计存在重叠，应以整图墙钟时间衡量加速。
+
 输入图片会先按 EXIF 标记统一方向。ROCm 7.2.1 / MIGraphX 2.15.0 的 gfx1100 上，所用姿态模型需要在启动前设置 `MIGRAPHX_DISABLE_REDUCE_FUSION=1`，详见 YOLO26 示例 README 的版本说明。
 
 速度测试使用 `--warmup 5 --iterations 30`，JSON 将保留原始样本和平均/P50/P95。`pipeline` 包含从已解码图片到最终紧凑结果的上传、预处理、推理与后处理；OCR 包含检测、裁剪和全部文本行识别，分割包含 mask 计算。文件解码、模型/kernel 编译、绘制、完整张量/mask 导出与写盘排除。HIP 推理分项使用 event，包含 D2D 输出复制；CPU backend 推理分项是同步执行加主机输出读取。比较整体速度应使用 pipeline，不能直接比较不同口径的推理分项。默认无预热、仅一次测量。

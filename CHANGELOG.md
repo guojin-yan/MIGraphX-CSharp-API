@@ -1,5 +1,20 @@
 # Release notes / 发行说明
 
+## 0.0.2 — 2026-11-01
+
+新增显存输出与完整 HIP 视觉流水线。0.0.1 保留为初始发行版，本次核心包和 HIP 适配包均升级为 0.0.2，HipSharp 依赖仍为公开的 0.10.0。
+
+- `RunDeviceIntoAsync`：按输出形状接受调用方显存缓冲区，在同一 stream 上 D2D 复制模型输出，可直接提交 GPU 后处理，无需完整张量回传。输入、输出、program 和原生结果保活至执行完成；支持部分复制提交失败后的安全清理。
+- YOLO26 五任务：HIP resize/归一化/布局转换、Top-5、检测框/旋转框/关键点解码、实例 mask 生成和计数。普通推理只回传紧凑结果，mask 保存时才回传。
+- PP-OCRv6：HIP 检测预处理、8 邻域连通域、凸包/最小面积矩形、框排序、透视裁剪、识别预处理和 CTC。CPU 负责少量调度数据、最终 Unicode 映射和图片文件读写。
+- OCR 识别支持 `--rec-batch` 和 `--rec-workers`：独立 program、非阻塞 stream 与可写缓冲区，按批次提交文本行；末批补齐、只解码有效行，保持原始行顺序。整图默认 batch=4、2 个识别实例；仅识别单行默认 1/1。
+- 两个示例默认 `--backend hip`，需指定对应设备的 `--gpu-architecture`（HIPRTC）或 `--hip-module`（预编译模块）；`--backend cpu` 保留原 C# 前后处理。两种后端均由 MIGraphX 执行 GPU 模型推理。
+- HIP 阶段用 event 计时，模型阶段包含 D2D 复制；整体 pipeline 用墙钟计时，包含上传、前后处理和紧凑结果回传，排除文件解码、编译、绘制及产物导出。不能将旧的“推理+主机复制”分项当作相同口径。
+
+原生基线仍为 Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100。设备输出、同流后处理及提前释放已使用公开 HipSharp 0.10.0 执行；全部视觉任务已完成 GPU 运行。预处理浮点/字节舍入与 ImageSharp CPU 路径可有细小差异，不承诺逐元素一致。此接口使用 D2D 复制，不是零复制；实验性回调及其他平台边界仍见[平台说明](docs/compatibility/platforms.md)。
+
+The new device-output API keeps tensors on the GPU through ordered D2D copies into leased caller buffers. The self-contained YOLO26 and PP-OCRv6 samples now default to HIP preprocessing/postprocessing and retain the CPU backend for comparison. Existing host-output APIs keep their behavior.
+
 ## 0.0.1 — 2026-10-31
 
 首个 GitHub / NuGet 版本，同时提供可直接作为本地 NuGet 源使用的离线包。核心功能和图片示例已完成开发；实验性功能继续按使用文档中的边界提供。

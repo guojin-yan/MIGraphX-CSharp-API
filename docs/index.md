@@ -13,6 +13,6 @@ MIGraphXSharp is a managed API for AMD MIGraphX. Start with the [installation an
 | Look up types and methods | [API reference](api/index.md) |
 | Read Chinese release and application articles | [Technical blog](blog/README.md) |
 
-Download version `0.0.1` from [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.1). Install the coherent ROCm 7.2.1 / MIGraphX 2.15.0 system runtime separately. Real-runtime qualification is partial; the platform guide describes the limits that affect application choices.
+Download version `0.0.2` from [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2). Install the coherent ROCm 7.2.1 / MIGraphX 2.15.0 system runtime separately. Real-runtime qualification is partial; the platform guide describes the limits that affect application choices.
 
 中文提示：请先阅读入门和部署指南；高级 API 的存在不代表所有真实运行语义已经验证。

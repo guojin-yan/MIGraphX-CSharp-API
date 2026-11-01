@@ -28,6 +28,8 @@ Compile with `offloadCopy: false`, create a `MIGraphXHipDeviceInput` for every e
 
 Device input is borrowed until completion. The adapter retains program, arguments, map, native output and device-memory leases while work is pending. Completion explicitly copies device outputs into independently owned host arguments.
 
+Enumerate `GetParameterShapes()` **after compilation** and supply every compiled parameter. With `offloadCopy: false`, MIGraphX can add output or scratch parameters beyond the ONNX inputs; these also require device allocations. Initialize the actual model inputs, and retain the compiler-added storage through completion. The vision samples demonstrate this allocation pattern.
+
 Raw device pointers, free-form backend names, graph capture and pooled/async allocations are excluded. Native stream submission uses the fixed `ihipStream_t` C ABI spelling.
 
 ## Keep outputs on the GPU (0.0.2)

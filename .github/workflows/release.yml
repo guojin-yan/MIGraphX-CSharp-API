@@ -7,7 +7,7 @@ on:
         description: Version to publish (without v)
         required: true
         type: string
-        default: '0.0.1'
+        default: '0.0.2'
 
 permissions:
   contents: read

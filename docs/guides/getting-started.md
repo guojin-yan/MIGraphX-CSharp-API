@@ -1,18 +1,18 @@
 # Getting started
 
-The core package is `JYPPX.ROCm.MIGraphX.CSharp.API`; its C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Version `0.0.1` is distributed through NuGet.org and [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.1).
+The core package is `JYPPX.ROCm.MIGraphX.CSharp.API`; its C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Version `0.0.2` is distributed through NuGet.org and [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2).
 
 ## Install and build
 
 Install from NuGet.org:
 
 ```bash
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.1
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
 # Optional HIP stream/device-input adapter:
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.1
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
 ```
 
-The optional adapter resolves exact core `0.0.1` and HipSharp `0.10.0` dependencies. The HipSharp dependency does not install ROCm or HIP native libraries. Prebuilt packages do not require a HipSharp source checkout.
+The optional adapter resolves exact core `0.0.2` and HipSharp `0.10.0` dependencies. The HipSharp dependency does not install ROCm or HIP native libraries. Prebuilt packages do not require a HipSharp source checkout.
 
 For offline installation, download the `.nupkg` assets from GitHub Releases into an absolute directory outside the checkout. Include all three packages when using the adapter, add that directory with `dotnet nuget add source /absolute/path/to/packages --name migraphx-release`, and use it for both `JYPPX.ROCm.MIGraphX.*` and `JYPPX.ROCm.HIP.CSharp.API` if your application uses package-source mapping. Verify downloaded files against the release's `SHA256SUMS.txt`.
 

@@ -42,3 +42,5 @@ ROCm 7.2.1 / MIGraphX 2.15.0 的 gfx1100 测试中，所用姿态 ONNX 在默认
 JSON 保存全部原始样本、平均/P50/P95/min/max、首次执行、预热次数和测量次数。百分位使用 nearest-rank；`imagesPerSecond=1000/pipeline.mean` 是当前单进程顺序处理、同一张图片上的吞吐换算。示例为 batch=1、float32、静态尺寸，不包含摄像头、视频跟踪或训练。
 
 依赖 ImageSharp 3.1.12 处理图像，许可证见 [Six Labors](https://sixlabors.com/license/)。模型、标签与演示原图由使用者提供；Ultralytics 模型适用其自身许可，未随本库重新分发。
+
+ImageSharp 3.1.12 有公开安全公告，本示例面向可信本地图片；不要直接用它接收不可信图片上传。升级新版须按 Six Labors 的许可证配置。两个已发布库包均不依赖 ImageSharp。

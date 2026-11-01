@@ -4,7 +4,7 @@
 
 ## 发布版本
 
-所有者授权发布后，在干净且已推送的 `main` 上选择版本，例如 `0.0.1`。创建目标为精确 HEAD 的 GitHub draft release，再手动运行 `publish-release` 工作流。工作流从 NuGet.org 下载并核对下文固定哈希的 HipSharp 0.10.0。`eng/prepare-release.ps1` 负责构建、API/包检查、干净消费、漏洞查询、文档及离线分发材料，产物全部位于仓库外。
+所有者授权发布后，在干净且已推送的 `main` 上选择版本，例如 `0.0.2`。创建目标为精确 HEAD 的 GitHub draft release，再手动运行 `publish-release` 工作流。工作流从 NuGet.org 下载并核对下文固定哈希的 HipSharp 0.10.0。`eng/prepare-release.ps1` 负责构建、API/包检查、干净消费、漏洞查询、文档及离线分发材料，产物全部位于仓库外。
 
 发布 job 只使用仓库 secret `NUGET_API_KEY`，不会读取或导出其内容。包检查通过后发布本项目的 core/adapter 同版本包，再将 draft release 公开。HipSharp 是已有依赖，不重复推送。若发布中途失败，先检查 NuGet 是否已经接受部分包，禁止替换同版本内容后重试。
 
@@ -14,10 +14,10 @@
 
 准备 NuGet.org 上的 `JYPPX.ROCm.HIP.CSharp.API` 0.10.0 包，将路径填入以下变量。脚本核对其 SHA-256 为 `096f82ae8d8ecb1cd3ad0e1f5e213e811656cde10767a0ddf88563747e9a1558`，包内源码提交为 `53ae5a75c354d27e4df3420356351942267cc666`。适配器通过包引用重新构建，不能仅使用解决方案的源码引用输出。
 
-此前 runtime 检查使用的本地 HipSharp 0.9.1 候选包含内部 stream lease 接口；公开的 0.9.1 缺少该接口，不能互换。公开 0.10.0 含相同的接口和相关流/内存实现。历史 runtime 材料保留原依赖身份；此次发布执行真实公开依赖的托管编译与干净消费检查，不宣称重新进行了 GPU 验证。
+公开的 HipSharp 0.9.1 缺少适配器需要的内部 stream lease 接口，不能互换。当前适配器精确依赖公开 0.10.0；0.0.2 的设备输出、同流后处理和提前释放已在该依赖上执行真实 GPU 检查。历史检查材料保留各自的依赖身份，不混用源码候选与公开包结果。
 
 ```powershell
-$version = '0.0.1-rc.1' # Example; choose the intended candidate version.
+$version = '0.0.2-rc.1' # Example; choose the intended candidate version.
 $commit = (git rev-parse HEAD).Trim()
 $hipPackage = '/absolute/path/JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg'
 $core = ./eng/pack.ps1 -Configuration Release -Version $version
