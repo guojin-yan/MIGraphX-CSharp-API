@@ -6,7 +6,33 @@
 
 所有者授权发布后，在干净且已推送的 `main` 上选择版本，例如 `0.0.2`。创建目标为精确 HEAD 的 GitHub draft release，再手动运行 `publish-release` 工作流。工作流从 NuGet.org 下载并核对下文固定哈希的 HipSharp 0.10.0。`eng/prepare-release.ps1` 负责构建、API/包检查、干净消费、漏洞查询、文档及离线分发材料，产物全部位于仓库外。
 
-发布 job 只使用仓库 secret `NUGET_API_KEY`，不会读取或导出其内容。包检查通过后发布本项目的 core/adapter 同版本包，再将 draft release 公开。HipSharp 是已有依赖，不重复推送。若发布中途失败，先检查 NuGet 是否已经接受部分包，禁止替换同版本内容后重试。
+发布 job 使用 NuGet Trusted Publishing：`NuGet/login@v1` 将 GitHub OIDC 身份换取有效期一小时的临时 API Key，不再读取仓库 secret `NUGET_API_KEY`。包检查通过后发布本项目的 core/adapter 同版本包，再将 draft release 公开。HipSharp 是已有依赖，不重复推送。若发布中途失败，先检查 NuGet 是否已经接受部分包，禁止替换同版本内容后重试。
+
+### 首次配置 Trusted Publishing
+
+登录 NuGet.org 的 `GuojinYan` 账户，在 [Trusted Publishing](https://www.nuget.org/account/trustedpublishing) 添加 GitHub 策略：
+
+| 字段 | 值 |
+| --- | --- |
+| Repository Owner | `guojin-yan` |
+| Repository | `MIGraphX-CSharp-API` |
+| Workflow File | `release.yml`，只填文件名 |
+| Environment | 留空，当前 job 未使用 GitHub Environment |
+| Package Owner | 拥有这两个包的 `GuojinYan` 账户 |
+| Scope | 允许推送现有包的新版本 |
+| Package pattern | `JYPPX.ROCm.MIGraphX.CSharp.API*` |
+
+账户名称是 NuGet 用户名，不是邮箱。发布 job 已配置 `id-token: write`，无需设置新的 GitHub secret。具体机制见 [NuGet 官方文档](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing)。
+
+### 复用已准备的发布包
+
+仅认证或发布步骤失败、准备 job 已成功时，可以在最新 `main` 上重新运行工作流，将 `prepared_run_id` 填为原运行 ID。准备 job 将跳过；发布 job 检查原运行来自本仓库 `main` 的同一发布工作流，且存在成功的准备 job，再下载其原始分发材料。包版本、源码提交和 draft release 目标必须一致，文件校验和必须通过。
+
+```powershell
+gh workflow run release.yml --ref main -f version=0.0.2 -f prepared_run_id=41267546459
+```
+
+这样可以在切换认证方式后复用已经验证的包，保留原始源码提交和 NuGet 包字节。正常准备新版本时，`prepared_run_id` 留空。只有认证配置变化时，不需要再次进行 GPU 模型验证。
 
 ## 准备候选包
 
