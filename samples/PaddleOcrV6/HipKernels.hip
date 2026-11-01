@@ -88,15 +88,30 @@ extern "C" __global__ void db_count(const float* map,int* parents,int* counts,in
     int i=blockIdx.x*blockDim.x+threadIdx.x;if(i>=w*h||parents[i]<0)return;
     int r=root(parents,i);atomicExch(parents+i,r);if(boundary(map,i,w,h,farg(thresholdBits)))atomicAdd(counts+r,1);
 }
-extern "C" __global__ void db_offsets(const int* parents,int* counts,int* components,int* offsets,int* sizes,int n,int* control){
-    if(blockIdx.x||threadIdx.x)return;int component=0,total=0;
-    for(int i=0;i<n;i++){
-        components[i]=-1;
-        if(parents[i]!=i)continue;
-        if(component>=3000){control[1]=2;continue;}
-        components[i]=component;offsets[component]=total;sizes[component]=counts[i];total+=counts[i];component++;counts[i]=0;
+// Deterministic two-level prefix scan: parallel pixels, then only one pair of
+// totals per 256-pixel block on the serial path. Root IDs retain pixel order.
+extern "C" __global__ void db_scan_local(const int* parents,const int* counts,int* components,int* pointOffsets,
+    int* blockRoots,int* blockPoints,int n){
+    int i=blockIdx.x*blockDim.x+threadIdx.x,t=threadIdx.x;
+    int isRoot=i<n&&parents[i]==i,points=isRoot?counts[i]:0;
+    __shared__ int roots[256],sizes[256];roots[t]=isRoot;sizes[t]=points;__syncthreads();
+    for(int stride=1;stride<256;stride*=2){
+        int a=t>=stride?roots[t-stride]:0,b=t>=stride?sizes[t-stride]:0;
+        __syncthreads();roots[t]+=a;sizes[t]+=b;__syncthreads();
     }
-    control[0]=component;
+    if(i<n){components[i]=isRoot?roots[t]-1:-1;pointOffsets[i]=sizes[t]-points;}
+    if(t==255){blockRoots[blockIdx.x]=roots[t];blockPoints[blockIdx.x]=sizes[t];}
+}
+extern "C" __global__ void db_scan_blocks(int* blockRoots,int* blockPoints,int blocks,int* control){
+    if(blockIdx.x||threadIdx.x)return;int roots=0,points=0;
+    for(int b=0;b<blocks;b++){int r=blockRoots[b],p=blockPoints[b];blockRoots[b]=roots;blockPoints[b]=points;roots+=r;points+=p;}
+    control[0]=min(roots,3000);if(roots>3000)control[1]=2;
+}
+extern "C" __global__ void db_scan_finalize(int* counts,int* components,const int* pointOffsets,const int* blockRoots,
+    const int* blockPoints,int* offsets,int* sizes,int n){
+    int i=blockIdx.x*blockDim.x+threadIdx.x;if(i>=n||components[i]<0)return;
+    int c=components[i]+blockRoots[blockIdx.x];components[i]=c<3000?c:-1;
+    if(c<3000){offsets[c]=pointOffsets[i]+blockPoints[blockIdx.x];sizes[c]=counts[i];counts[i]=0;}
 }
 extern "C" __global__ void db_gather(const float* map,const int* parents,int* counts,const int* components,
     const int* offsets,int* points,int w,int h,int thresholdBits){

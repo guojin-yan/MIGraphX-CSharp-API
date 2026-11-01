@@ -18,7 +18,7 @@ public sealed class HipOcrPipeline : IDisposable
     private readonly HipInferenceSession? detector;
     private readonly HipDeviceMemory image, meta, boxes, sorted, order, control, resultCount;
     private readonly HipDeviceMemory tokens, confidence;
-    private readonly HipDeviceMemory? horizontal, resized, parents, counts, components, offsets, sizes, points, hull;
+    private readonly HipDeviceMemory? horizontal, resized, parents, counts, components, offsets, sizes, points, hull, blockRoots, blockPoints;
     private readonly byte[] pixels;
     private readonly string[] dictionary;
     private readonly int sw, sh, dw, dh, recWidth, steps, maxEdge, batchSize;
@@ -60,6 +60,8 @@ public sealed class HipOcrPipeline : IDisposable
                 int n = checked(dw * dh);
                 parents = gpu.Allocate((long)n * sizeof(int)); counts = gpu.Allocate((long)n * sizeof(int));
                 components = gpu.Allocate((long)n * sizeof(int)); points = gpu.Allocate((long)n * sizeof(int)); hull = gpu.Allocate((long)n * sizeof(int));
+                int blocks = (n + 255) / 256;
+                blockRoots = gpu.Allocate((long)blocks * sizeof(int)); blockPoints = gpu.Allocate((long)blocks * sizeof(int));
                 offsets = gpu.Allocate(MaximumLines * sizeof(int)); sizes = gpu.Allocate(MaximumLines * sizeof(int));
             }
             (image, pixels) = gpu.Image(source);
@@ -91,7 +93,11 @@ public sealed class HipOcrPipeline : IDisposable
             gpu.Launch("db_init", n, P(detector.Outputs[0]), P(parents!), P(counts!), I(n), F(detThreshold), P(resultCount));
             gpu.Launch("db_union", n, P(parents!), I(dw), I(dh));
             gpu.Launch("db_count", n, P(detector.Outputs[0]), P(parents!), P(counts!), I(dw), I(dh), F(detThreshold));
-            gpu.Serial("db_offsets", P(parents!), P(counts!), P(components!), P(offsets!), P(sizes!), I(n), P(control));
+            // hull is scratch until rectangle decoding, so it can temporarily hold
+            // per-pixel point offsets without another full-resolution allocation.
+            gpu.Launch("db_scan_local", n, P(parents!), P(counts!), P(components!), P(hull!), P(blockRoots!), P(blockPoints!), I(n));
+            gpu.Serial("db_scan_blocks", P(blockRoots!), P(blockPoints!), I((n + 255) / 256), P(control));
+            gpu.Launch("db_scan_finalize", n, P(counts!), P(components!), P(hull!), P(blockRoots!), P(blockPoints!), P(offsets!), P(sizes!), I(n));
             gpu.Launch("db_gather", n, P(detector.Outputs[0]), P(parents!), P(counts!), P(components!), P(offsets!), P(points!), I(dw), I(dh), F(detThreshold));
             gpu.Launch("db_rectangles", MaximumLines, P(detector.Outputs[0]), P(points!), P(hull!), P(offsets!), P(sizes!), P(control), P(boxes), I(dw), I(dh), I(sw), I(sh), F(boxThreshold));
             // Check the map error before reusing resultCount for the final compact count.
