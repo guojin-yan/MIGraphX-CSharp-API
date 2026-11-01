@@ -4,7 +4,7 @@ Install the coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packag
 
 | Area | Application boundary |
 | --- | --- |
-| Linux native runtime | Official execution on the fixed gfx1100 baseline covers static float32 reference models, all five YOLO26 tasks, and PP-OCRv6 tiny/small/medium detection/recognition. Other models, distributions, versions and devices need application validation. |
+| Linux native runtime | Official execution on the fixed gfx1100 baseline covers static float32 reference models, all five YOLO26 tasks, PP-OCRv4/v5 mobile/server and PP-OCRv6 tiny/small/medium detection/recognition. The seven OCR profiles also match independent ONNX Runtime CPU tensor/CTC checks on the supplied image. Other models, distributions, versions and devices need application validation. |
 | Windows native runtime | The fixed official MIGraphX baseline targets Linux. Windows managed builds and loader diagnostics do not supply an official Windows MIGraphX runtime. |
 | macOS | No official native runtime support claim. |
 | ONNX options | Loop limits/defaults, external-data roots, fast-math and tuning setters are exposed. Historical setter acceptance does not qualify dedicated model semantics, tuning or accuracy. |
@@ -16,7 +16,7 @@ Install the coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packag
 | Custom operations | Experimental callbacks are exposed. Host-reference numerical diagnostics do not qualify GPU/device callback memory or complete provider lifetimes. |
 | Reliability and performance | Functional/reference checks and repeated single-image measurements exist for the supplied vision models. These do not establish arbitrary workload throughput, long-term leak freedom, or GPU clock/power-controlled comparisons. |
 
-The OCR HIP sample also covers fixed recognition batches and independently compiled recognition instances/streams. Batch=4 with two instances has executed for tiny/small/medium; partial batches, a single text line, zero detected lines, and deterministic DB scan ordering/capacity boundaries have focused checks. These are application-specific results on the fixed baseline, not an arbitrary-model concurrency guarantee.
+The OCR HIP sample also covers fixed recognition batches and independently compiled recognition instances/streams. Batch=4 with two instances has executed for all seven OCR profiles; partial batches, a single text line, zero detected lines, and deterministic DB scan ordering/capacity boundaries have focused checks. These are application-specific results on the fixed baseline, not an arbitrary-model concurrency guarantee.
 
 Local substitute-library tests check managed ownership, validation and ABI handling. They are distinct from execution against the official native runtime. Historical results do not automatically qualify the current source revision.
 
