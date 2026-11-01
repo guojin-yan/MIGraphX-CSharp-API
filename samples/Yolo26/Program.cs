@@ -11,6 +11,21 @@ try
     var output = Path.GetFullPath(options.Required("output"));
     Directory.CreateDirectory(output);
     using var image = Images.Load(options.Required("image"));
+    var backend = options.Get("backend", "hip");
+    if (backend == "hip")
+    {
+        using var pipeline = new HipYoloPipeline(image, options);
+        var benchmark = Benchmarking.Measure(pipeline.Run, options.Integer("warmup", 0, minimum: 0, maximum: 1000), options.Integer("iterations", 1, maximum: 10000));
+        pipeline.Save(image, benchmark.Value, output, options.Has("dump-tensors"));
+        var gpuCount = task == "classify" ? benchmark.Value.Classes.Length : benchmark.Value.Detections.Length;
+        JsonOutput.Write(Path.Combine(output, "result.json"), new { task, backend, model = Path.GetFileName(model), pipeline.ModelInfo,
+            results = benchmark.Value, count = gpuCount, performance = benchmark.Report,
+            timingScope = "pipeline=RGB upload+HIP preprocessing+MIGraphX+D2D outputs+HIP postprocessing+compact result readback; masks remain on device until export. GPU stages use HIP events; inference includes D2D output copies. Image decode, compilation, drawing, full tensor/mask export and file I/O excluded." });
+        Console.WriteLine($"{task} / HIP: {gpuCount} results; pipeline mean {benchmark.Report.Pipeline.Mean:F2} ms, P95 {benchmark.Report.Pipeline.P95:F2} ms.");
+        if (gpuCount < options.Integer("expect-min-results", 0, minimum: 0, maximum: 300)) throw new InvalidOperationException("Fewer results than required.");
+        return 0;
+    }
+    if (backend != "cpu") throw new ArgumentException("--backend hip|cpu");
     var defaultSize = task == "classify" ? 224 : task == "obb" ? 1024 : 640;
     var size = options.Integer("size", defaultSize);
     var labels = options.Has("labels") ? File.ReadAllLines(options.Required("labels")) : Array.Empty<string>();

@@ -847,7 +847,8 @@ EXPORT migraphx_status migraphx_arguments_get(const struct fake_argument** out, 
 {
     int null_output;
     if(out == NULL || value == NULL || idx >= (shape_mode == 6 ? 2u : 1u)) return migraphx_status_bad_param;
-    if(value->pending) return migraphx_status_unknown_error;
+    /* Shape and device address metadata are available before stream completion;
+       data must only be consumed by work ordered on that stream. */
     null_output = take_named_null_for("migraphx_arguments_get");
     *out = shape_mode == 9 || null_output ? NULL : &value->argument;
     return (migraphx_status)take_status_for("migraphx_arguments_get");

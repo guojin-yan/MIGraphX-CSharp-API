@@ -10,6 +10,59 @@ namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
 
 public sealed class HipAsyncTests
 {
+    [Fact]
+    public void DeviceDestinationsStayLeasedUntilStreamCompletionAndDoNotCreateHostSnapshots()
+    {
+        var path = MIGraphXPath();
+        using var migraphx = new MIGraphXControls(path);
+        using var hip = new HipControls(HipPath()); migraphx.Reset(); hip.Reset();
+        using var runtime = new HipRuntime(HipPath());
+        using var stream = runtime.CreateStream();
+        using var program = CreateProgram(path, offloadCopy: false);
+        var shape = program.GetParameterShapes()["input"];
+        using var input = runtime.Allocate((ulong)shape.ByteCount);
+        using var destination = runtime.Allocate((ulong)shape.ByteCount);
+        var values = new[] { 3f, 1f, 4f, 2f }; var bytes = new byte[16]; Buffer.BlockCopy(values, 0, bytes, 0, 16); input.CopyFrom(bytes);
+        using var run = program.RunDeviceIntoAsync(new[] { new MIGraphXHipDeviceInput("input", shape, input) }, new[] { destination }, stream);
+        Assert.Throws<InvalidOperationException>(() => run.Outputs);
+        Assert.Throws<InvalidOperationException>(() => program.Clone());
+        Assert.False(run.TryComplete());
+        var copiesBeforeCompletion = hip.MemcpyCount();
+        migraphx.CompleteAll();
+        run.Synchronize();
+        Assert.True(run.IsCompleted);
+        Assert.Equal(copiesBeforeCompletion, hip.MemcpyCount()); // Completion never performs D2H.
+        var actual = new byte[16]; destination.CopyTo(actual); var floats = new float[4]; Buffer.BlockCopy(actual, 0, floats, 0, 16);
+        Assert.Equal(values, floats);
+        using var afterCompletion = program.Clone();
+    }
+
+    [Fact]
+    public void DeviceOutputRejectionAndFailedCopyRetainOwnersUntilSafeCompletion()
+    {
+        var path = MIGraphXPath();
+        using var migraphx = new MIGraphXControls(path);
+        using var hip = new HipControls(HipPath()); migraphx.Reset(); hip.Reset();
+        using var runtime = new HipRuntime(HipPath()); using var stream = runtime.CreateStream();
+        using var program = CreateProgram(path, offloadCopy: false);
+        var shape = program.GetParameterShapes()["input"];
+        var input = runtime.Allocate((ulong)shape.ByteCount); var destination = runtime.Allocate((ulong)shape.ByteCount);
+        using var tooSmall = runtime.Allocate(1);
+        var inputs = new[] { new MIGraphXHipDeviceInput("input", shape, input) };
+        Assert.Throws<ArgumentException>(() => program.RunDeviceIntoAsync(inputs, new[] { tooSmall }, stream));
+        Assert.Throws<ArgumentException>(() => program.RunDeviceIntoAsync(inputs, new[] { input }, stream));
+        Assert.Equal(0, migraphx.AsyncRunCount());
+        hip.SetMemcpyStatus(1);
+        Assert.ThrowsAny<Exception>(() => program.RunDeviceIntoAsync(inputs, new[] { destination }, stream));
+        Assert.Equal(1, migraphx.AsyncRunCount());
+        input.Dispose(); destination.Dispose();
+        Assert.Equal(0, hip.FreeCount());
+        Assert.Throws<InvalidOperationException>(() => program.Clone());
+        hip.SetMemcpyStatus(0); migraphx.CompleteAll(); stream.Synchronize();
+        Assert.Equal(2, hip.FreeCount());
+        using var afterFailure = program.Clone();
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(1)]

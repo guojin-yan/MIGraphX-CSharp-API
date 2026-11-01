@@ -12,6 +12,13 @@ public static class Decoder
     private static readonly (int A, int B)[] Skeleton =
     [(15,13),(13,11),(16,14),(14,12),(11,12),(5,11),(6,12),(5,6),(5,7),(6,8),(7,9),(8,10),(1,2),(0,1),(0,2),(1,3),(2,4),(3,5),(4,6)];
 
+    public static void DrawPose(Keypoint[] points, Visualization visualization)
+    {
+        foreach (var p in points) if (p.Confidence >= .5f) visualization.Dot(new PointD(p.X, p.Y));
+        foreach (var (a, b) in Skeleton) if (points[a].Confidence >= .5f && points[b].Confidence >= .5f)
+            visualization.Segment(new PointD(points[a].X, points[a].Y), new PointD(points[b].X, points[b].Y));
+    }
+
     public static Classification[] Classify(Tensor output, string[] labels)
     {
         if (output.Shape.Length != 2 || output.Shape[0] != 1 || output.Shape[1] != output.Data.Length)

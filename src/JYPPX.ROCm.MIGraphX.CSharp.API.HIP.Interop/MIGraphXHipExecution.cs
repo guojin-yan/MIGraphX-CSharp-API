@@ -70,6 +70,102 @@ public static class MIGraphXHipExecution
         }
     }
 
+    /// <summary>在同一 stream 上运行并将输出 D2D 复制到调用方显存；不创建主机输出。 Runs and copies outputs D2D into caller-owned device buffers on the same stream, without host output copies.</summary>
+    /// <param name="program">以 offloadCopy=false 编译的 program。 Program compiled with offloadCopy=false.</param>
+    /// <param name="inputs">具名显存输入。 Named device inputs.</param>
+    /// <param name="outputs">按 GetOutputShapes 顺序分配的独立显存缓冲区。 Independent device buffers allocated in GetOutputShapes order.</param>
+    /// <param name="stream">模型与后处理共用的 stream。 Stream shared by inference and postprocessing.</param>
+    /// <returns>完成与清理对象；Outputs 不可用。 Completion object; its Outputs property is unavailable.</returns>
+    /// <remarks>要求静态 standard packed 输出。可在返回后向同一 stream 继续提交后处理；所有缓冲区保活至 stream 完成。 Requires static standard packed outputs. Enqueue subsequent postprocessing on the same stream; all buffers remain leased until stream completion.</remarks>
+    public static MIGraphXHipAsyncRun RunDeviceIntoAsync(this MIGraphXProgram program, IReadOnlyList<MIGraphXHipDeviceInput> inputs, IReadOnlyList<HipDeviceMemory> outputs, HipStream stream)
+    {
+        if (program is null) throw new ArgumentNullException(nameof(program));
+        if (inputs is null) throw new ArgumentNullException(nameof(inputs));
+        if (outputs is null) throw new ArgumentNullException(nameof(outputs));
+        if (stream is null) throw new ArgumentNullException(nameof(stream));
+        var supplied = inputs.ToArray();
+        var destinations = outputs.ToArray();
+        if (supplied.Any(input => input is null)) throw new ArgumentException("Device inputs must not contain null values.", nameof(inputs));
+        ValidateDeviceInputs(program, supplied, stream);
+        var shapes = program.GetOutputShapes();
+        if (destinations.Length != shapes.Count) throw new ArgumentException("Provide one device destination per model output.", nameof(outputs));
+        for (var index = 0; index < destinations.Length; index++)
+        {
+            var memory = destinations[index];
+            var shape = shapes[index];
+            if (memory is null || !ReferenceEquals(memory.NativeApi, stream.NativeApi) || memory.DeviceOrdinal != stream.DeviceOrdinal)
+                throw new ArgumentException("Device destinations must share the stream runtime and device.", nameof(outputs));
+            if (shape.IsDynamic || !shape.IsStandard || !shape.IsPacked || shape.ByteCount < 0 || (ulong)shape.ByteCount > memory.ByteLength)
+                throw new ArgumentException("Device destinations require sufficient capacity for static standard packed outputs.", nameof(outputs));
+        }
+        var leases = new List<IDisposable>();
+        var transferred = false;
+        using (var parameters = new MIGraphXParameterMap(program.Runtime))
+        {
+            try
+            {
+                var addresses = new HashSet<IntPtr>();
+                foreach (var input in supplied)
+                {
+                    var pointer = input.Memory.DangerousAcquireHandle(out var addedReference);
+                    leases.Add(new DevicePointerLease(input.Memory, addedReference));
+                    addresses.Add(pointer);
+                    parameters.AddExternal(input.Name, input.Shape, pointer);
+                }
+                var destinationPointers = new IntPtr[destinations.Length];
+                for (var index = 0; index < destinations.Length; index++)
+                {
+                    var pointer = destinations[index].DangerousAcquireHandle(out var addedReference);
+                    leases.Add(new DevicePointerLease(destinations[index], addedReference));
+                    if (!addresses.Add(pointer)) throw new ArgumentException("Output buffers must not alias inputs or other outputs.", nameof(outputs));
+                    destinationPointers[index] = pointer;
+                }
+                var state = stream.EnqueuePending(handle =>
+                {
+                    var run = program.EnqueueNativeAsync(parameters, handle, requireOffloadCopy: false, leases);
+                    transferred = true;
+                    try
+                    {
+                        run.EnqueueDeviceOutputCopies(shapes, (index, pointer, count) =>
+                        {
+                            if (count == 0) return;
+                            HipCall.ThrowIfFailed(stream.NativeApi, stream.NativeApi.MemcpyAsync(
+                                destinationPointers[index], pointer, HipDeviceMemory.ToUIntPtr((ulong)count, nameof(outputs)), HipMemoryCopyKind.DeviceToDevice, handle),
+                                "hipMemcpyAsync(MIGraphX device output)");
+                        });
+                        return run;
+                    }
+                    catch
+                    {
+                        // Submission may already have queued GPU work. Retain every owner until
+                        // a subsequent stream completion, even when a later copy fails.
+                        stream.AddPendingLease(new FailedDeviceRunLease(run));
+                        throw;
+                    }
+                }, run => run.CompleteWithoutHostCopies());
+                return new MIGraphXHipAsyncRun(stream, state, hasHostOutputs: false);
+            }
+            catch
+            {
+                if (!transferred) for (var index = leases.Count - 1; index >= 0; index--) leases[index].Dispose();
+                throw;
+            }
+        }
+    }
+
+    private sealed class FailedDeviceRunLease : IDisposable
+    {
+        private MIGraphXNativeAsyncRun? run;
+        internal FailedDeviceRunLease(MIGraphXNativeAsyncRun run) => this.run = run;
+        public void Dispose()
+        {
+            var value = System.Threading.Interlocked.Exchange(ref run, null);
+            if (value is null) return;
+            value.CompleteWithoutHostCopies();
+            value.Dispose();
+        }
+    }
+
     private static void ValidateDeviceInputs(MIGraphXProgram program, MIGraphXHipDeviceInput[] inputs, HipStream stream)
     {
         var required = program.GetParameterShapes();

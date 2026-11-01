@@ -30,6 +30,32 @@ Device input is borrowed until completion. The adapter retains program, argument
 
 Raw device pointers, free-form backend names, graph capture and pooled/async allocations are excluded. Native stream submission uses the fixed `ihipStream_t` C ABI spelling.
 
+## Keep outputs on the GPU (0.0.2)
+
+`RunDeviceIntoAsync` accepts device inputs and one caller-owned `HipDeviceMemory` destination for each `program.GetOutputShapes()` entry. Compile with `offloadCopy: false`. Outputs must have static, standard packed shapes, sufficient capacity, and use the same HIP runtime and device as the stream. Destinations cannot alias an input or another destination.
+
+```csharp
+var shapes = program.GetOutputShapes();
+var destinations = shapes.Select(shape => hip.Allocate((ulong)shape.ByteCount)).ToArray();
+try
+{
+    using var run = program.RunDeviceIntoAsync(inputs, destinations, stream);
+    // Enqueue your HIP kernels here on the same stream, using destinations.
+    // The model outputs reach these buffers through ordered device-to-device copies.
+    run.Synchronize();
+    // Copy only the final postprocessed results to the host when needed.
+}
+finally
+{
+    stream.Synchronize();
+    foreach (var buffer in destinations) buffer.Dispose();
+}
+```
+
+This path performs D2D copies, not zero-copy output borrowing. It creates no host tensor snapshots; `run.Outputs` throws because results reside in the supplied device buffers. Input/output owners, program state and native outputs stay leased until stream completion, including after a partial copy submission failure. Later kernels must use the same stream or an explicit synchronization boundary. Synchronize before reusing those destinations on another stream.
+
+The YOLO26 and PP-OCRv6 samples use this path for HIP preprocessing, inference and postprocessing. Their `--backend cpu` option retains the original CPU preprocessing/postprocessing baseline. See [vision samples](vision-samples.md).
+
 Bounded official-runtime checks cover host completion, multiple submissions, stream isolation, early disposal leases, device-input reference output and input rejection on the fixed gfx1100 baseline. These do not establish zero-copy, overlap or arbitrary workload performance; see [platform support](../compatibility/platforms.md).
 
-中文提示：主机输入启用 offload-copy，设备输入关闭 offload-copy。执行结果完成前由租约保活，完成后显式复制输出到主机；异步提交不代表已经完成推理。
+中文提示：主机输入启用 offload-copy，设备输入关闭 offload-copy。`RunDeviceAsync` 完成后复制输出到主机；`RunDeviceIntoAsync` 将输出 D2D 复制到调用方缓冲区，可继续在显存中处理。异步提交不代表已经完成推理，设备资源应保留到 stream 完成。

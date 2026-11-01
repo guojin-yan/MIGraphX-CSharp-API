@@ -47,6 +47,37 @@ internal sealed class MIGraphXNativeAsyncRun : IDisposable
     }
 
     internal void Complete(Func<IntPtr, int, byte[]>? copyDeviceBuffer = null)
+        => CompleteCore(copyDeviceBuffer, copyOutputs: true);
+
+    internal void CompleteWithoutHostCopies() => CompleteCore(null, copyOutputs: false);
+
+    // Inspect only shape metadata and device addresses. Never dereference device data on the host.
+    internal void EnqueueDeviceOutputCopies(IReadOnlyList<MIGraphXShape> expected, Action<int, IntPtr, long> enqueueCopy)
+    {
+        lock (sync)
+        {
+            if (disposed || IsCompleted) throw new InvalidOperationException("The native outputs are no longer available for device copies.");
+            var native = nativeOutputs ?? throw new ObjectDisposedException(nameof(MIGraphXNativeAsyncRun));
+            var handle = native.DangerousGetHandle();
+            var count = ReadStableSize(handle);
+            if (count != expected.Count) throw new InvalidOperationException("The native output count differs from the destination count.");
+            for (var index = 0; index < count; index++)
+            {
+                NativeStatus.ThrowIfFailed(NativeMethods.ArgumentsGet(out var argument, handle, new UIntPtr((uint)index)), "migraphx_arguments_get");
+                argument = NativeBorrowedOutput.RequireHandle(argument, "migraphx_arguments_get");
+                NativeStatus.ThrowIfFailed(NativeMethods.ArgumentShape(out var shapeHandle, argument), "migraphx_argument_shape");
+                shapeHandle = NativeBorrowedOutput.RequireHandle(shapeHandle, "migraphx_argument_shape");
+                var shape = MIGraphXShape.FromNative(shapeHandle, $"device output {index}");
+                if (!shape.HasSameNativeContent(expected[index])) throw new InvalidOperationException($"Device output {index} changed shape before submission.");
+                NativeStatus.ThrowIfFailed(NativeMethods.ArgumentBuffer(out var pointer, argument), "migraphx_argument_buffer");
+                if (shape.ByteCount != 0 && pointer == IntPtr.Zero) throw new InvalidOperationException("A nonempty device output has a null buffer.");
+                enqueueCopy(index, pointer, shape.ByteCount);
+            }
+            EnsureStableSize(handle, count);
+        }
+    }
+
+    private void CompleteCore(Func<IntPtr, int, byte[]>? copyDeviceBuffer, bool copyOutputs)
     {
         if (Interlocked.CompareExchange(ref completionState, 1, 0) != 0) return;
 
@@ -55,7 +86,7 @@ internal sealed class MIGraphXNativeAsyncRun : IDisposable
         {
             var native = nativeOutputs ?? throw new ObjectDisposedException(nameof(MIGraphXNativeAsyncRun));
             var count = ReadSize(native.DangerousGetHandle());
-            for (var index = 0; index < count; index++)
+            for (var index = 0; copyOutputs && index < count; index++)
             {
                 NativeStatus.ThrowIfFailed(
                     NativeMethods.ArgumentsGet(out var argument, native.DangerousGetHandle(), new UIntPtr((uint)index)),

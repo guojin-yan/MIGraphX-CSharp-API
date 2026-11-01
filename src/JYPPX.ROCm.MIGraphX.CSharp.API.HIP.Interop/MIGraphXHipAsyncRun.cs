@@ -11,19 +11,21 @@ public sealed class MIGraphXHipAsyncRun : IDisposable
     private readonly object sync = new object();
     private readonly HipStream stream;
     private readonly MIGraphXNativeAsyncRun nativeRun;
+    private readonly bool hasHostOutputs;
     private bool disposed;
 
-    internal MIGraphXHipAsyncRun(HipStream stream, MIGraphXNativeAsyncRun nativeRun)
+    internal MIGraphXHipAsyncRun(HipStream stream, MIGraphXNativeAsyncRun nativeRun, bool hasHostOutputs = true)
     {
         this.stream = stream;
         this.nativeRun = nativeRun;
+        this.hasHostOutputs = hasHostOutputs;
     }
 
     /// <summary>获取完成回调是否已经固化 owned host outputs；此属性不查询 stream。 Gets whether completion copied owned host outputs; this property does not query the stream.</summary>
     public bool IsCompleted { get { lock (sync) { ThrowIfDisposed(); return nativeRun.IsCompleted; } } }
 
     /// <summary>获取完成后由此结果拥有的 host output 集合；完成前访问失败。 Gets the owned host-output collection after completion; access before completion fails.</summary>
-    public MIGraphXArgumentCollection Outputs { get { lock (sync) { ThrowIfDisposed(); return nativeRun.Outputs; } } }
+    public MIGraphXArgumentCollection Outputs { get { lock (sync) { ThrowIfDisposed(); if (!hasHostOutputs) throw new InvalidOperationException("This run writes device destinations; no host outputs were requested."); return nativeRun.Outputs; } } }
 
     /// <summary>非阻塞查询 stream，并在完成时固化 outputs 或报告完成错误。 Queries the stream without blocking and snapshots outputs or reports a completion error when ready.</summary>
     /// <returns>stream 和此次执行是否已经完成。 Whether the stream and this run completed.</returns>

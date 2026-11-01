@@ -4,6 +4,8 @@
 
 `MIGraphXHipExecution` provides `RunHostAsync` for programs compiled with `offloadCopy=true` and `RunDeviceAsync` for validated `HipDeviceMemory` input with `offloadCopy=false`. Both return a `MIGraphXHipAsyncRun`.
 
+`RunDeviceIntoAsync` (0.0.2) keeps outputs on the GPU through ordered D2D copies into caller-owned `HipDeviceMemory`. It supports subsequent HIP postprocessing on the same stream; its result has no host `Outputs` collection. Input/output buffers and native resources remain leased until stream completion, including partial copy submission failures.
+
 Native submission uses the fixed `ihipStream_t` backend. `TryComplete` polls; `Synchronize` waits; disposing a pending run also waits. Outputs become available only after completion. Program, parameter map, argument and device-buffer leases remain held until then.
 
 Device completion explicitly copies outputs to owned host arguments. Bounded official-runtime checks cover completion, multiple submissions, stream isolation, early disposal and device-input reference output on the documented gfx1100 baseline. Arbitrary external pointers, graph capture and pooled/async allocations are excluded; no zero-copy, overlap or general performance guarantee is made.

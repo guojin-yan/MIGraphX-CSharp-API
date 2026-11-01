@@ -16,6 +16,20 @@ static int free_count;
 static int memcpy_count;
 static int memcpy_status;
 static int next_stream = 1;
+typedef struct pending_copy { void* stream; void* destination; const void* source; size_t bytes; } pending_copy;
+static pending_copy pending_copies[256];
+static int pending_copy_count;
+static void complete_copies(void* stream)
+{
+    int i, keep = 0;
+    for(i = 0; i < pending_copy_count; ++i)
+    {
+        if(pending_copies[i].stream == stream)
+            memcpy(pending_copies[i].destination, pending_copies[i].source, pending_copies[i].bytes);
+        else pending_copies[keep++] = pending_copies[i];
+    }
+    pending_copy_count = keep;
+}
 
 EXPORT void fake_hip_reset(void)
 {
@@ -25,6 +39,7 @@ EXPORT void fake_hip_reset(void)
     free_count = 0;
     memcpy_count = 0;
     memcpy_status = 0;
+    pending_copy_count = 0;
 }
 EXPORT void fake_hip_set_query_status(int status) { query_status = status; }
 EXPORT void fake_hip_set_device(int device) { current_device = device; }
@@ -54,8 +69,8 @@ EXPORT int hipStreamDestroy(void* stream)
     stream_destroy_count++;
     return 0;
 }
-EXPORT int hipStreamSynchronize(void* stream) { return stream == NULL ? 1 : 0; }
-EXPORT int hipStreamQuery(void* stream) { return stream == NULL ? 1 : query_status; }
+EXPORT int hipStreamSynchronize(void* stream) { if(stream == NULL) return 1; complete_copies(stream); return 0; }
+EXPORT int hipStreamQuery(void* stream) { if(stream == NULL) return 1; if(query_status == 0) complete_copies(stream); return query_status; }
 EXPORT int hipStreamBeginCapture(void* stream, int mode) { (void)mode; return stream == NULL ? 1 : 0; }
 EXPORT int hipStreamEndCapture(void* stream, void** graph) { if(stream == NULL || graph == NULL) return 1; *graph = malloc(1); return *graph == NULL ? 2 : 0; }
 EXPORT int hipGraphDestroy(void* graph) { if(graph == NULL) return 1; free(graph); return 0; }
@@ -72,6 +87,17 @@ EXPORT int hipMemcpy(void* destination, const void* source, size_t bytes, int ki
     if(destination == NULL || source == NULL) return 1;
     if(memcpy_status != 0) return memcpy_status;
     memcpy(destination, source, bytes);
+    memcpy_count++;
+    return 0;
+}
+EXPORT int hipMemcpyAsync(void* destination, const void* source, size_t bytes, int kind, void* stream)
+{
+    pending_copy* copy;
+    (void)kind;
+    if(destination == NULL || source == NULL || stream == NULL || pending_copy_count >= 256) return 1;
+    if(memcpy_status != 0) return memcpy_status;
+    copy = &pending_copies[pending_copy_count++];
+    copy->stream = stream; copy->destination = destination; copy->source = source; copy->bytes = bytes;
     memcpy_count++;
     return 0;
 }
