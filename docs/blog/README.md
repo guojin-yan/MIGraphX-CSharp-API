@@ -22,3 +22,10 @@
 | 7 | HIP 流与设备内存集成 | 待编写 |
 
 配图与可编辑图源放在 `assets/<文章主题>/`，正文通过相对路径引用。外部博客发表后在此补充对应链接。
+
+## 应用案例
+
+| 文章 | 适用范围 |
+| --- | --- |
+| [用 C# 在 AMD GPU 上运行 CLIP：从商品图片到图文检索](2026-11-01-clip-image-text-retrieval.md) | main 的独立 CLIP 示例、GPU 双编码器、英文 BPE、速度实测 |
+| [用 C# 组合 PP-Structure：文档版面、OCR 与表格处理](2026-11-01-pp-structure-document-processing.md) | main 的独立文档示例；公式为显式 ORT CPU 选项 |

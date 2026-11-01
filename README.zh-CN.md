@@ -130,10 +130,12 @@ dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
 | --- | --- | --- |
 | [YOLO26](samples/Yolo26/README.md) | 目标检测、图像分类、实例分割、姿态估计、旋转框检测 | HIP 缩放与归一化、输出解码、mask、关键点和结果标注 |
 | [PP-OCRv4/v5/v6](samples/PaddleOcr/README.md) | v4/v5 mobile、server；v6 tiny、small、medium；整图与仅识别 | HIP 文本框提取、透视裁剪、多 batch、多实例与 CTC 解码 |
+| [CLIP](samples/Clip/README.md) | 图片与英文描述匹配、双向检索 | ViT-B/32 双编码器、BPE、图片 batch 和 HTML |
+| [PP-Structure](samples/PPStructure/README.md) | 文档方向、版面、OCR 与表格 | MIGraphX GPU 文档/表格模型、HIP OCR；公式可显式选择 ORT CPU |
 
-两个项目各自包含完整代码，目标框架为 .NET 10，提供 JSON/PNG/SVG 输出、预热与重复计时，并保留 CPU 前后处理选项。两种后端均使用 MIGraphX 执行 GPU 模型推理。模型、输入图片与 OCR 字典由使用者另行准备。
+四个项目各自包含完整代码，目标框架为 .NET 10。YOLO26、PaddleOcr 保留 CPU 前后处理选项，两种选项均使用 MIGraphX GPU 推理。CLIP 使用 CPU 图像处理和 GPU 双编码器；PP-Structure 的公式可显式选择 ORT CPU。模型与输入另行准备，各示例分别说明处理位置及计时范围。
 
-v4/v5 支持与统一 `PaddleOcr` 入口在当前 main 源码中提供；已发布的 v0.0.2 标签保留原 `PaddleOcrV6` 示例。
+v4/v5 支持、统一 `PaddleOcr` 入口、CLIP 和 PP-Structure 在当前 main 源码中提供；已发布的 v0.0.2 标签保留原 `PaddleOcrV6` 示例。
 
 在文档所列 gfx1100、FP32 环境中，HIP 整图平均耗时为：**YOLO26n 检测 2.75 ms，PP-OCRv6 tiny 识别 16 行文本 10.97 ms**。计时不含文件解码、编译、绘图与导出。完整数据和测试条件见 [0.0.2 版本说明](docs/release-notes/0.0.2.md#性能参考)，运行参数见[视觉案例指南](docs/guides/vision-samples.md)。
 

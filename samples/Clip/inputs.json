@@ -1,0 +1,15 @@
+{
+  "prompts": [
+    { "key": "running-shoe", "text": "a product photo of a running shoe." },
+    { "key": "wristwatch", "text": "a product photo of a wristwatch." },
+    { "key": "instant-camera", "text": "a product photo of an instant camera." },
+    { "key": "backpack", "text": "a product photo of a backpack." },
+    { "key": "water-bottle", "text": "a product photo of a water bottle." },
+    { "key": "headphones", "text": "a product photo of headphones." }
+  ],
+  "images": [
+    { "id": "shoe", "path": "demo-inputs/running-shoe.jpg" },
+    { "id": "watch", "path": "demo-inputs/wristwatch.jpg" },
+    { "id": "camera", "path": "demo-inputs/instant-camera.jpg" }
+  ]
+}

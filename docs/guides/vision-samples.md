@@ -34,3 +34,11 @@ OCR 整图 HIP 路径默认以 4 行为一个识别 batch、使用 2 个独立�
 速度测试使用 `--warmup 5 --iterations 30`，JSON 将保留原始样本和平均/P50/P95。`pipeline` 包含从已解码图片到最终紧凑结果的上传、预处理、推理与后处理；OCR 包含检测、裁剪和全部文本行识别，分割包含 mask 计算。文件解码、模型/kernel 编译、绘制、完整张量/mask 导出与写盘排除。HIP 推理分项使用 event，包含 D2D 输出复制；CPU backend 推理分项是同步执行加主机输出读取。比较整体速度应使用 pipeline，不能直接比较不同口径的推理分项。默认无预热、仅一次测量。
 
 模型相关性、数值误差、后处理和速度应以实际应用数据校验；当前支持范围仍以[平台说明](../compatibility/platforms.md)为准。更完整的参数、预处理和输出说明位于各示例目录的 README。
+
+## CLIP 与 PP-Structure
+
+main 另提供两个独立 .NET 10 项目：[CLIP](../../samples/Clip/README.md) 和 [PP-Structure](../../samples/PPStructure/README.md)。它们都自带完整代码、下载脚本、输入清单及计时输出。
+
+CLIP 使用 ViT-B/32 GPU 图像/文本编码器，提供英文 BPE、图片 batch、图到文匹配和文到图检索；图像处理与特征排序在 CPU。PP-Structure 使用 GPU 方向/版面/表格模型及 HIP OCR，SLANeXt 由原始图拆成 encoder/step 后在 C# 调度。公式必须显式选择 `--formula-backend ort-cpu`，否则区域保留并标为待复核；FormulaNet 原始动态循环当前无法由 MIGraphX 2.15 执行。
+
+这两个项目不在 v0.0.2 标签内，不能把新增 sample 能力视为该版本发布内容。文档示例中的 Python 脚本只负责一次性 ONNX 准备；核心库没有新增图像、分词或 ORT 依赖。

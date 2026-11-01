@@ -4,5 +4,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" /><PackageReference Include="xunit" /><PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <ProjectReference Include="../../samples/Yolo26/Yolo26.csproj" />
     <ProjectReference Include="../../samples/PaddleOcr/PaddleOcr.csproj" />
+    <ProjectReference Include="../../samples/Clip/Clip.csproj" />
+    <ProjectReference Include="../../samples/PPStructure/PPStructure.csproj" />
   </ItemGroup>
 </Project>

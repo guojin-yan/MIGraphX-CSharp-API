@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><GenerateDocumentationFile>false</GenerateDocumentationFile></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../src/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.csproj" />
+    <PackageReference Include="SixLabors.ImageSharp" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" />
+    <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Microsoft.ML.OnnxRuntime" />
+    <EmbeddedResource Include="Ocr/HipKernels.hip" LogicalName="HipKernels.hip" />
+  </ItemGroup>
+</Project>

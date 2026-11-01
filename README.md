@@ -130,10 +130,12 @@ The adapter requires core <code>0.0.2</code> and HipSharp <code>0.10.0</code>; N
 | --- | --- | --- |
 | [YOLO26](samples/Yolo26/README.md) | Detection, classification, instance segmentation, pose and oriented boxes | HIP resize/normalization, output decoding, masks, keypoints and annotated results |
 | [PP-OCRv4/v5/v6](samples/PaddleOcr/README.md) | v4/v5 mobile and server; v6 tiny, small and medium; full images or recognition only | HIP text-box extraction, perspective crops, batched recognition, multiple instances and CTC decoding |
+| [CLIP](samples/Clip/README.md) | Image/text matching and retrieval | ViT-B/32 GPU dual encoders, English BPE, image batching and HTML results |
+| [PP-Structure](samples/PPStructure/README.md) | Document orientation, layout, OCR and tables | MIGraphX GPU document/table models and HIP OCR; optional, explicitly selected ORT CPU formula recognition |
 
-Both projects contain their own complete implementation and target .NET 10. They include JSON/PNG/SVG output, warmup and repeated timing, and a CPU preprocessing/postprocessing option for comparison. Both backends use MIGraphX GPU model execution. Supply the ONNX models, test images and OCR dictionary separately.
+All four projects are self-contained and target .NET 10. YOLO26 and PaddleOcr include a CPU preprocessing/postprocessing option; both options use MIGraphX GPU model execution. CLIP uses CPU image processing with GPU encoders. PP-Structure's formula recognition is an explicit ORT CPU option. Supply models and inputs separately; each example documents its processing and timing scope.
 
-The unified `PaddleOcr` entry point and v4/v5 support are available in the current main source. The published v0.0.2 tag retains the original `PaddleOcrV6` example.
+The unified `PaddleOcr` entry point, v4/v5 support, CLIP and PP-Structure are available in the current main source. The published v0.0.2 tag retains the original `PaddleOcrV6` example.
 
 On the documented gfx1100 FP32 baseline, whole-image HIP processing averages **2.75 ms for YOLO26n detection** and **10.97 ms for PP-OCRv6 tiny with 16 text lines**. These timings exclude file decode, compilation, drawing and export. The [0.0.2 notes](docs/release-notes/0.0.2.md#性能参考) contain the complete results and measurement conditions; the [vision guide](docs/guides/vision-samples.md) explains the options.
 

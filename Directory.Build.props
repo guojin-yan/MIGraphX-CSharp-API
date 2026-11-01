@@ -44,7 +44,7 @@
     <HipSharpPackageVersion Condition="'$(HipSharpPackageVersion)' == ''">0.10.0</HipSharpPackageVersion>
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Yolo26' or '$(MSBuildProjectName)' == 'PaddleOcr' or '$(MSBuildProjectName)' == 'Vision.SampleTests'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Yolo26' or '$(MSBuildProjectName)' == 'PaddleOcr' or '$(MSBuildProjectName)' == 'Clip' or '$(MSBuildProjectName)' == 'PPStructure' or '$(MSBuildProjectName)' == 'Vision.SampleTests'">
     <!-- ImageSharp 3.1 advisories remain visible for these local-image examples.
          The published core/adapter packages do not depend on ImageSharp and are audited separately. -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1902;NU1903</WarningsNotAsErrors>

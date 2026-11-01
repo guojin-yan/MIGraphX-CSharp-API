@@ -1,0 +1,8 @@
+[
+  { "id": "news", "path": "demo-inputs/news-page.png", "kind": "auto" },
+  { "id": "layout", "path": "demo-inputs/layout.jpg", "kind": "auto" },
+  { "id": "paper", "path": "demo-inputs/demo_paper.png", "kind": "auto" },
+  { "id": "formula", "path": "demo-inputs/general_formula_rec_001.png", "kind": "formula", "autoOrient": false },
+  { "id": "expenses", "path": "demo-inputs/expense-table.jpg", "kind": "table", "autoOrient": false },
+  { "id": "rotated", "path": "demo-inputs/img_rot180_demo.jpg", "kind": "text" }
+]
