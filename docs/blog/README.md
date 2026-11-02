@@ -1,14 +1,14 @@
-# MIGraphXSharp 技术博客
+# MIGraphX CSharp API 技术博客
 
 这里收录可独立阅读、用于博客发表的中文技术文章。文章注明适用版本，代码和数据按对应版本核对；日常 API 查询与部署说明见[使用文档](../index.md)。
 
-首篇介绍库的定位、主要 API、HIP 显存流水线及四类案例的用途、结果和速度。四篇实战文章均以“MIGraphXSharp 项目简介”为第一章，再分别展开 YOLO26、PaddleOCR v4/v5/v6、PP-Structure 与 CLIP。文章使用 `0.0.2` 核心 API 和当前 main 的示例；新增示例与发布标签的差异在正文中注明。
+首篇介绍库的定位、主要 API、HIP 显存流水线及四类案例的用途、结果和速度。四篇实战文章均以“MIGraphX CSharp API 项目简介”为第一章，再分别展开 YOLO26、PaddleOCR v4/v5/v6、PP-Structure 与 CLIP。文章使用 `0.0.2` 核心 API 和当前 main 的示例；新增示例与发布标签的差异在正文中注明。
 
 ## 首发系列
 
 | 顺序 | 文章 | 状态 |
 | --- | --- | --- |
-| 1 | [MIGraphXSharp 发布：让 C# 接入 AMD GPU 原生推理](2026-11-01-migraphxsharp-0.0.2.md) | 核心 0.0.2、案例 main，尚未在外部博客发表 |
+| 1 | [MIGraphX CSharp API 发布：让 C# 接入 AMD GPU 原生推理](2026-11-01-migraphxsharp-0.0.2.md) | 核心 0.0.2、案例 main，尚未在外部博客发表 |
 | 2 | 从环境安装到第一次 ONNX 推理 | 待编写 |
 | 3 | [用 C# 在 AMD GPU 上部署 YOLO26：检测、分类、分割、姿态与旋转框实战](2026-11-01-yolo26-five-tasks.md) | 正文与配图完成，尚未在外部博客发表 |
 | 4 | [用 C# 在 AMD GPU 上部署 PaddleOCR v4/v5/v6：从文字检测到多 Batch 识别](2026-11-01-paddleocr-v4-v5-v6.md) | 正文与配图完成，尚未在外部博客发表 |

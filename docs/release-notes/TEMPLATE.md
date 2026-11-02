@@ -1,4 +1,4 @@
-# MIGraphX C# API `<API_VERSION>` 版本说明
+# MIGraphX CSharp API `<API_VERSION>` 版本说明
 
 > 复制为对应版本文件，填写实际发布内容，删除提示文字和不适用的小节。
 

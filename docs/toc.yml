@@ -10,7 +10,7 @@
 - name: Blog（中文）
   href: blog/README.md
   items:
-  - name: MIGraphXSharp 0.0.2 发布
+  - name: MIGraphX CSharp API 0.0.2 发布
     href: blog/2026-11-01-migraphxsharp-0.0.2.md
 - name: Getting started
   href: guides/getting-started.md

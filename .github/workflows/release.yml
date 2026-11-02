@@ -154,5 +154,5 @@ jobs:
             dotnet nuget push "$id.$env:RELEASE_VERSION.nupkg" --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300
             if ($LASTEXITCODE -ne 0) { throw "NuGet publication failed for $id." }
           }
-          gh release edit "v$env:RELEASE_VERSION" --repo $env:GITHUB_REPOSITORY --draft=false --latest --title "MIGraphXSharp v$env:RELEASE_VERSION" --notes-file RELEASE-NOTES.md
+          gh release edit "v$env:RELEASE_VERSION" --repo $env:GITHUB_REPOSITORY --draft=false --latest --title "MIGraphX CSharp API v$env:RELEASE_VERSION" --notes-file RELEASE-NOTES.md
           if ($LASTEXITCODE -ne 0) { throw 'GitHub release publication failed.' }

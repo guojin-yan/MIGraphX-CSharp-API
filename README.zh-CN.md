@@ -1,10 +1,10 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/images/readme/hero-light.svg">
-  <img alt="MIGraphXSharp — 面向 C# 与 .NET 的 AMD GPU 推理" src="docs/images/readme/hero-light.svg" width="100%">
+  <img alt="MIGraphX CSharp API — 面向 C# 与 .NET 的 AMD GPU 推理" src="docs/images/readme/hero-light.svg" width="100%">
 </picture>
 
-<h1 align="center">MIGraphX C# API · MIGraphXSharp</h1>
+<h1 align="center">MIGraphX CSharp API</h1>
 
 <p align="center">用 C# 在 AMD GPU 上运行 ONNX 模型，结合 MIGraphX 推理与 HIP 图像处理。</p>
 
@@ -24,7 +24,7 @@
 
 [AMD MIGraphX](https://rocm.docs.amd.com/projects/AMDMIGraphX/en/latest/) 是 ROCm 生态中的图推理引擎，能够将深度学习模型编译为 GPU 程序，并针对 AMD 硬件优化执行过程。
 
-**MIGraphX C# API 是 AMD MIGraphX 的 .NET 封装库，让 C# 开发者直接在应用中完成 ONNX 模型加载、GPU 编译、张量操作和模型推理。** 通过可选的 HIP 适配器，还可以在同一条 GPU 流上衔接前处理、模型推理与后处理。
+**MIGraphX CSharp API 是 AMD MIGraphX 的 .NET 封装库，让 C# 开发者直接在应用中完成 ONNX 模型加载、GPU 编译、张量操作和模型推理。** 通过可选的 HIP 适配器，还可以在同一条 GPU 流上衔接前处理、模型推理与后处理。
 
 项目提供 **YOLO26** 与 **PP-OCRv4/v5/v6** 完整案例，包含图像处理、推理、结果解析和耗时统计。三代 OCR 模型在同一个 PaddleOcr 项目中使用。案例由 C# 与 HIP 实现，运行时无需 Python 或 OpenCV。
 

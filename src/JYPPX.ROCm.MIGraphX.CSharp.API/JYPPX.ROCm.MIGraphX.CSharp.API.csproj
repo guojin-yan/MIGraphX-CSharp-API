@@ -4,7 +4,7 @@
     <AssemblyName>JYPPX.ROCm.MIGraphX.CSharp.API</AssemblyName>
     <RootNamespace>JYPPX.ROCm.MIGraphXSharp</RootNamespace>
     <PackageId>$(MIGraphXSharpPackageId)</PackageId>
-    <Title>MIGraphXSharp</Title>
+    <Title>MIGraphX CSharp API</Title>
     <Description>Managed bindings and resource wrappers for the AMD MIGraphX C API. Native MIGraphX and ROCm are installed separately.</Description>
     <PackageTags>AMD;ROCm;MIGraphX;interop;inference</PackageTags>
     <PackageProjectUrl>$(MIGraphXSharpRepositoryUrl)</PackageProjectUrl>

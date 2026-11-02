@@ -43,8 +43,8 @@
     ],
     "dest": "../MIGraphXSharp.Workspace/artifacts/docs",
     "globalMetadata": {
-      "_appName": "MIGraphXSharp",
-      "_appTitle": "MIGraphXSharp Documentation",
+      "_appName": "MIGraphX CSharp API",
+      "_appTitle": "MIGraphX CSharp API Documentation",
       "_gitContribute": {
         "repo": "https://github.com/guojin-yan/MIGraphX-CSharp-API"
       }

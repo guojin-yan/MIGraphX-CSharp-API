@@ -1,32 +1,32 @@
-# MIGraphXSharp 发布：让 C# 接入 AMD GPU 原生推理
+# MIGraphX CSharp API 发布：让 C# 接入 AMD GPU 原生推理
 
-![MIGraphXSharp：C# 接入 AMD GPU，提供 YOLO26、PaddleOCR、PP-Structure 和 CLIP 四类案例](assets/migraphxsharp-0.0.2/cover-four-models.png)
+![MIGraphX CSharp API：C# 接入 AMD GPU，提供 YOLO26、PaddleOCR、PP-Structure 和 CLIP 四类案例](assets/migraphxsharp-0.0.2/cover-four-models.png)
 
 作者：Guojin Yan · 核心包版本：0.0.2 · 本文案例以仓库当前 main 源码为准
 
 ## 前言
 
-之前和大家分享过 OpenVINO、TensorRT 的 C# 接口，这次带来一个新的开源项目：**MIGraphXSharp**。
+之前和大家分享过 OpenVINO、TensorRT 的 C# 接口，这次带来一个新的开源项目：**MIGraphX CSharp API**。
 
 做模型部署时，大家通常先看模型，再根据设备选择推理引擎。到了 AMD GPU，模型在 Python 中跑通之后，怎样接进自己的 C# 项目，又成了一个需要单独解决的问题。原生接口怎么声明，张量怎么传，模型和显存什么时候释放，这些都要处理。
 
 我在做 HIP 的 C# 接口时，就想把模型推理这部分一起补上：图像和张量计算使用 HIP，已有 ONNX 模型交给 MIGraphX，应用继续放在熟悉的 .NET 工程中。
 
-现在，**MIGraphXSharp 0.0.2 已经发布到 NuGet 和 GitHub。** 模型解析、GPU 编译、张量输入输出、动态尺寸和程序缓存，都可以在 C# 中完成。配合 HIP，还可以让前处理、模型推理和后处理连续在 GPU 上执行。
+现在，**MIGraphX CSharp API 0.0.2 已经发布到 NuGet 和 GitHub。** 模型解析、GPU 编译、张量输入输出、动态尺寸和程序缓存，都可以在 C# 中完成。配合 HIP，还可以让前处理、模型推理和后处理连续在 GPU 上执行。
 
 配套案例也从视觉检测和文字识别，扩展到了文档处理和图文检索。**YOLO26 覆盖五类任务，PaddleOCR 在一个项目中支持 v4、v5、v6；当前 main 还提供 PP-Structure 文档处理与 CLIP 图文双向检索。** 四个案例各自包含完整代码，后面会分别介绍用途、结果和实际耗时。
 
 这篇文章先给大家介绍这个库的特点和主要 API，再用几段代码看看怎么调用模型。四篇配套实战文章会分别展开模型准备、前后处理、C# 代码和业务接入。
 
-## 一、什么是 MIGraphXSharp
+## 一、什么是 MIGraphX CSharp API
 
-**MIGraphXSharp 是 AMD MIGraphX 的 C# / .NET 封装库。** MIGraphX 是 AMD ROCm 生态中的模型推理引擎，负责模型计算图的优化、编译和执行；MIGraphXSharp 将这些能力封装成 C# 接口，供 .NET 应用调用。
+**MIGraphX CSharp API 是 AMD MIGraphX 的 C# / .NET 封装库。** MIGraphX 是 AMD ROCm 生态中的模型推理引擎，负责模型计算图的优化、编译和执行；MIGraphX CSharp API 将这些能力封装成 C# 接口，供 .NET 应用调用。
 
 简单说，就是把 ONNX 模型交给 MIGraphX 编译，在 C# 中准备输入，再拿到模型输出。模型运算由 AMD 原生引擎执行，应用层继续使用 .NET 的工程、日志、配置和服务组件。
 
 对于已有的 C# 项目，可以直接引用 NuGet 包，逐步接入模型调用，不必再为每个模型单独维护一套原生导出接口。对于需要自己写 GPU 前后处理的项目，模型也能接到已有的 HIP Stream 和显存缓冲区中。
 
-![MIGraphXSharp 应用场景：在 Linux AMD GPU 主机上，将模型推理接入 C# 视觉、OCR 和服务程序](assets/migraphxsharp-0.0.2/applications.png)
+![MIGraphX CSharp API 应用场景：在 Linux AMD GPU 主机上，将模型推理接入 C# 视觉、OCR 和服务程序](assets/migraphxsharp-0.0.2/applications.png)
 
 对于正在使用 AMD GPU 的朋友，这个库可以用在以下场景：
 
@@ -42,11 +42,11 @@
 
 ### 2.1 按 C# 的习惯使用模型和张量
 
-MIGraphXSharp 将模型程序、输入参数、张量和编译选项分别封装成对象。输入使用类型化数组，输出可以通过 `ToArray<T>()` 读取；张量形状、元素类型和数据长度也有对应的检查。接入模型时，可以先查询实际输入信息，再准备数据。
+MIGraphX CSharp API 将模型程序、输入参数、张量和编译选项分别封装成对象。输入使用类型化数组，输出可以通过 `ToArray<T>()` 读取；张量形状、元素类型和数据长度也有对应的检查。接入模型时，可以先查询实际输入信息，再准备数据。
 
 持有原生资源的对象实现了 `IDisposable`，可以直接配合 `using` 使用。调用代码里能看清对象在哪创建、在哪释放，比较适合放进已有的 C# 项目。
 
-![MIGraphXSharp 核心特性：类型化 API、资源管理、动态尺寸与缓存、可选 HIP 集成、加载诊断和 .NET 兼容](assets/migraphxsharp-0.0.2/feature-map.png)
+![MIGraphX CSharp API 核心特性：类型化 API、资源管理、动态尺寸与缓存、可选 HIP 集成、加载诊断和 .NET 兼容](assets/migraphxsharp-0.0.2/feature-map.png)
 
 ### 2.2 模型编译、动态输入和缓存
 
@@ -72,7 +72,7 @@ MIGraphXSharp 将模型程序、输入参数、张量和编译选项分别封装
 
 从应用到 GPU，调用关系如下：
 
-![MIGraphXSharp 架构：C# 应用、Core、可选 HIP 适配包、AMD 原生运行库和 GPU](assets/migraphxsharp-0.0.2/runtime-stack.png)
+![MIGraphX CSharp API 架构：C# 应用、Core、可选 HIP 适配包、AMD 原生运行库和 GPU](assets/migraphxsharp-0.0.2/runtime-stack.png)
 
 核心包提供模型和张量 API，下面调用 AMD MIGraphX 的 C 接口；可选适配包再与 HipSharp 对接。项目本身使用 C# 编写，模型优化和 GPU 运算由原生 MIGraphX 完成。
 
@@ -92,7 +92,7 @@ HIP 适配包仍按实验性扩展提供，本文介绍的是已经在下述环�
 
 使用时主要接触下面几个类。先了解它们各自负责什么，后面的代码就比较容易看懂。
 
-![MIGraphXSharp 主要 API：模型解析与编译、张量与参数表、同步执行和类型化输出](assets/migraphxsharp-0.0.2/api-map.png)
+![MIGraphX CSharp API 主要 API：模型解析与编译、张量与参数表、同步执行和类型化输出](assets/migraphxsharp-0.0.2/api-map.png)
 
 | 类 | 主要用途 | 常用入口 |
 | --- | --- | --- |
@@ -251,7 +251,7 @@ run.Synchronize();
 
 只有模型加载接口，离实际使用还差图像处理、解码和结果组织。因此我把四类常见应用整理成独立案例，大家可以先查看输入输出，再按自己的业务调整。
 
-![MIGraphXSharp 四类独立案例：YOLO26、PaddleOCR、PP-Structure 与 CLIP 的任务和输出](assets/migraphxsharp-0.0.2/model-cases.png)
+![MIGraphX CSharp API 四类独立案例：YOLO26、PaddleOCR、PP-Structure 与 CLIP 的任务和输出](assets/migraphxsharp-0.0.2/model-cases.png)
 
 | 案例 | 已实现的任务 | 可以拿到的结果 |
 | --- | --- | --- |
@@ -373,7 +373,7 @@ CLIP 预热 3 次、测量 20 次，三张有效图片换算约 **146.91 张/秒
 
 ## 八、总结与项目地址
 
-MIGraphXSharp 现在提供了从 ONNX 解析、GPU 编译、张量输入输出，到 HIP 数值前后处理的 C# 使用方式。普通模型调用可以从核心包开始，需要减少中间张量回传时，再接入 HIP 适配包。
+MIGraphX CSharp API 现在提供了从 ONNX 解析、GPU 编译、张量输入输出，到 HIP 数值前后处理的 C# 使用方式。普通模型调用可以从核心包开始，需要减少中间张量回传时，再接入 HIP 适配包。
 
 对于手上已经有 AMD GPU、又希望继续使用 C# 开发的朋友，可以先看看库的对象 API，再根据任务选择 YOLO26、PaddleOCR、PP-Structure 或 CLIP。四篇配套文章已放在 `docs/blog/`：视觉任务看输出解码，OCR 看字典与批量调度，文档看区域与表格组织，图文检索看双编码器和特征复用。
 

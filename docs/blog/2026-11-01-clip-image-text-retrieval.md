@@ -2,9 +2,9 @@
 
 ![CLIP 图文双向检索：C#、MIGraphX 与共享特征空间](assets/clip/cover.png)
 
-## 一、MIGraphXSharp 项目简介
+## 一、MIGraphX CSharp API 项目简介
 
-**MIGraphXSharp** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 解析、GPU 编译、张量输入输出和资源管理接口，方便将模型接入自己的 .NET 应用。
+**MIGraphX CSharp API** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 解析、GPU 编译、张量输入输出和资源管理接口，方便将模型接入自己的 .NET 应用。
 
 项目提供类型化数组、形状检查、`IDisposable`、动态输入和模型缓存。普通模型调用使用核心包，需要与自己编写的 HIP kernel 配合时，再使用可选 HIP 适配包连接设备内存与 stream。
 
@@ -58,7 +58,7 @@ CLIP 的图像编码器接收图片，文本编码器接收 token。两者输出
 
 ### 3.1 本文运行环境
 
-本例通过 MIGraphXSharp 设置 ONNX 输入尺寸、编译 GPU program、传入 float32/int64 张量并读取输出，使用以下原生与托管环境：
+本例通过 MIGraphX CSharp API 设置 ONNX 输入尺寸、编译 GPU program、传入 float32/int64 张量并读取输出，使用以下原生与托管环境：
 
 | 项目 | 本文配置 |
 | --- | --- |
@@ -135,7 +135,7 @@ tokenizer 接受可打印 ASCII 英文，进行两次 HTML 反转义、空白合
 
 ### 5.1 先看能够串起流程的代码
 
-下面代码可以替换 `samples/Clip/Program.cs`，保留项目内其余文件。`ModelSession`、`ClipTokenizer`、`ClipProcessing` 是案例中的封装，底层调用的才是 MIGraphXSharp 核心 API。
+下面代码可以替换 `samples/Clip/Program.cs`，保留项目内其余文件。`ModelSession`、`ClipTokenizer`、`ClipProcessing` 是案例中的封装，底层调用的才是 MIGraphX CSharp API 核心 API。
 
 ```csharp
 using MIGraphXSharp.Samples.Clip;

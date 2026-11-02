@@ -2,12 +2,12 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
   "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
 <svg xmlns:xlink="http://www.w3.org/1999/xlink" width="1296pt" height="856.8pt" viewBox="0 0 1296 856.8" xmlns="http://www.w3.org/2000/svg" version="1.1">
- <title>MIGraphXSharp 0.0.2：CPU 与 HIP 前后处理的整图流水线耗时</title>
+ <title>MIGraphX CSharp API 0.0.2：CPU 与 HIP 前后处理的整图流水线耗时</title>
  <metadata>
   <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
    <cc:Work>
     <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
-    <dc:title>MIGraphXSharp 0.0.2：CPU 与 HIP 前后处理的整图流水线耗时</dc:title>
+    <dc:title>MIGraphX CSharp API 0.0.2：CPU 与 HIP 前后处理的整图流水线耗时</dc:title>
     <dc:description>gfx1100 / ROCm 7.2.1 / MIGraphX 2.15.0；FP32，5 次预热、30 次测量。YOLO batch1；HIP OCR识别batch4、2实例，CPU OCR batch1。</dc:description>
     <dc:format>image/svg+xml</dc:format>
     <dc:creator>
@@ -908,7 +908,7 @@ z
    <text style="font-size: 16px; font-family: 'Microsoft YaHei', 'DejaVu Sans'; text-anchor: start; fill: #9fb7cf" x="57.6" y="775.44" transform="rotate(-0 57.6 775.44)">均包含前后处理和结果回传，排除解码、编译、绘制与写盘；未锁频，非多图片吞吐。</text>
   </g>
   <g id="text_52">
-   <text style="font-size: 12px; font-family: 'Microsoft YaHei', 'DejaVu Sans'; text-anchor: start; fill: #9fb7cf" x="57.6" y="833.76" transform="rotate(-0 57.6 833.76)">MIGraphXSharp / v0.0.2</text>
+   <text style="font-size: 12px; font-family: 'Microsoft YaHei', 'DejaVu Sans'; text-anchor: start; fill: #9fb7cf" x="57.6" y="833.76" transform="rotate(-0 57.6 833.76)">MIGraphX CSharp API / v0.0.2</text>
   </g>
   <g id="text_53">
    <text style="font-size: 12px; font-family: 'Microsoft YaHei', 'DejaVu Sans'; text-anchor: end; fill: #9fb7cf" x="1238.4" y="833.76" transform="rotate(-0 1238.4 833.76)">2026-11-01 GPU 实测 · 指定单图 · 单进程</text>

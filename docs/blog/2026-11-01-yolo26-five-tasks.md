@@ -1,10 +1,10 @@
 # 用 C# 在 AMD GPU 上部署 YOLO26：检测、分类、分割、姿态与旋转框实战
 
-![MIGraphXSharp YOLO26 五任务：C# 接入 AMD GPU，HIP 完成数值前后处理](assets/yolo26/cover.png)
+![MIGraphX CSharp API YOLO26 五任务：C# 接入 AMD GPU，HIP 完成数值前后处理](assets/yolo26/cover.png)
 
-## 一、MIGraphXSharp 项目简介
+## 一、MIGraphX CSharp API 项目简介
 
-**MIGraphXSharp** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 模型解析、GPU 编译、张量输入输出和资源管理接口，方便大家在现有 .NET 工程中部署模型。
+**MIGraphX CSharp API** 是一个面向 **C# / .NET 开发者**的 AMD MIGraphX 接口库，由「椒颜皮皮虾」（Guojin Yan）开发，项目源码遵循 **Apache License 2.0**。它通过 MIGraphX C ABI 调用 AMD 原生推理引擎，提供 ONNX 模型解析、GPU 编译、张量输入输出和资源管理接口，方便大家在现有 .NET 工程中部署模型。
 
 项目按 C# 的使用习惯提供类型化数组、形状检查和 `IDisposable` 资源管理，也支持动态输入、程序保存加载与模型缓存。需要自己写 GPU 前后处理时，可以通过可选的 HIP 适配包，把模型接入已有的设备缓冲区和 stream。
 

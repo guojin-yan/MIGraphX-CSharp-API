@@ -47,7 +47,7 @@
 <polyline points="0,720 1920,720" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
 <polyline points="0,780 1920,780" fill="none" stroke="#102139" stroke-width="1" stroke-linejoin="round"/>
 <rect x="50" y="48" width="1820" height="724" rx="28" fill="none" stroke="#294361" stroke-width="2"/>
-<text x="90" y="90" font-size="30" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphXSharp   /   C# × AMD GPU</text>
+<text x="90" y="90" font-size="30" fill="#ffc875" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphX CSharp API   /   C# × AMD GPU</text>
 <text x="87" y="195" font-size="105" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">PP-Structure</text>
 <text x="90" y="335" font-size="53" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">从文字识别到文档结构</text>
 <text x="92" y="428" font-size="28" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">模型接入 · 关键实现 · 真实结果 · 速度实测</text>

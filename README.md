@@ -1,10 +1,10 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/images/readme/hero-light.svg">
-  <img alt="MIGraphXSharp — AMD GPU inference for C# and .NET" src="docs/images/readme/hero-light.svg" width="100%">
+  <img alt="MIGraphX CSharp API — AMD GPU inference for C# and .NET" src="docs/images/readme/hero-light.svg" width="100%">
 </picture>
 
-<h1 align="center">MIGraphX C# API · MIGraphXSharp</h1>
+<h1 align="center">MIGraphX CSharp API</h1>
 
 <p align="center">Run ONNX models on AMD GPUs from C#, with MIGraphX inference and HIP image processing.</p>
 
@@ -24,7 +24,7 @@
 
 [AMD MIGraphX](https://rocm.docs.amd.com/projects/AMDMIGraphX/en/latest/) is a graph inference engine in the ROCm ecosystem. It compiles deep learning models into GPU programs and optimizes their execution for AMD hardware.
 
-**MIGraphX C# API is a .NET wrapper for AMD MIGraphX. It lets C# developers load ONNX models, compile GPU programs, work with tensors and run inference directly from their applications.** The optional HIP adapter connects GPU preprocessing, model execution and postprocessing on the same stream.
+**MIGraphX CSharp API is a .NET wrapper for AMD MIGraphX. It lets C# developers load ONNX models, compile GPU programs, work with tensors and run inference directly from their applications.** The optional HIP adapter connects GPU preprocessing, model execution and postprocessing on the same stream.
 
 The repository includes complete **YOLO26** and **PP-OCRv4/v5/v6** examples. All three OCR generations use one PaddleOcr project. Image processing, inference, result decoding and timing are written in C# and HIP; running the examples requires no Python or OpenCV.
 

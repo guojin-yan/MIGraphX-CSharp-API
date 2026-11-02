@@ -1,6 +1,6 @@
 # System-native deployment and troubleshooting
 
-MIGraphXSharp distributes managed assemblies only. It does not publish a Runtime nupkg, copy AMD binaries into the managed packages, or stage a native closure during build. Install MIGraphX and ROCm through AMD's official system installation path before running the managed API.
+MIGraphX CSharp API distributes managed assemblies only. It does not publish a Runtime nupkg, copy AMD binaries into the managed packages, or stage a native closure during build. Install MIGraphX and ROCm through AMD's official system installation path before running the managed API.
 
 ## Install the audited baseline
 

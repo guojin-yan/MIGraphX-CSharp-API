@@ -1,6 +1,6 @@
-# MIGraphXSharp documentation
+# MIGraphX CSharp API documentation
 
-MIGraphXSharp is a managed API for AMD MIGraphX. Start with the [installation and first inference guide](guides/getting-started.md), then use the [managed object workflow](guides/managed-objects.md) to compose explicit model, target, argument and output resources.
+MIGraphX CSharp API is a managed API for AMD MIGraphX. Start with the [installation and first inference guide](guides/getting-started.md), then use the [managed object workflow](guides/managed-objects.md) to compose explicit model, target, argument and output resources.
 
 | Task | Guide |
 | --- | --- |

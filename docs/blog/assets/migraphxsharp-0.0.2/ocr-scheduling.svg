@@ -74,7 +74,7 @@
     <text x="900" y="829" font-size="26" fill="#eef7ff" font-weight="600" text-anchor="middle">每批：透视裁剪与归一化 → MIGraphX 识别 → HIP CTC 解码</text>
     <text x="900" y="866" font-size="22" fill="#9fb7cf" text-anchor="middle">末批不足时补零，只解码有效行；模型须支持所选 batch，实例数与 batch 会增加显存占用。</text>
     <path d="M80 930H1720" stroke="#24405b"/>
-    <text x="80" y="968" font-size="17" fill="#9fb7cf">MIGraphXSharp / v0.0.2</text>
+    <text x="80" y="968" font-size="17" fill="#9fb7cf">MIGraphX CSharp API / v0.0.2</text>
     <text x="1720" y="968" font-size="17" fill="#9fb7cf" text-anchor="end">调度示意，非 GPU 执行时间线 · 不表示两个实例必定等比例提速</text>
   </g>
 </svg>

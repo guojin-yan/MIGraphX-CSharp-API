@@ -1,8 +1,8 @@
 # 版本说明 / Release Notes
 
-本目录集中保存 MIGraphX C# API 的正式版本记录，从 0.0.1 起按版本维护。根目录 README 只保留当前版本摘要；完整变更、兼容性、升级方法、性能参考和已知限制见对应版本文件。
+本目录集中保存 MIGraphX CSharp API 的正式版本记录，从 0.0.1 起按版本维护。根目录 README 只保留当前版本摘要；完整变更、兼容性、升级方法、性能参考和已知限制见对应版本文件。
 
-This directory contains the published MIGraphX C# API release history. The root README contains only the current release summary; per-version notes describe changes, compatibility, migration and known limitations.
+This directory contains the published MIGraphX CSharp API release history. The root README contains only the current release summary; per-version notes describe changes, compatibility, migration and known limitations.
 
 ## 版本索引 / Release Index
 

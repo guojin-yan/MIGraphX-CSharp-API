@@ -1,6 +1,6 @@
 # Platform support and limitations
 
-Install the coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packages on Ubuntu 24.04 x86-64. MIGraphXSharp packages contain managed assemblies only.
+Install the coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packages on Ubuntu 24.04 x86-64. MIGraphX CSharp API packages contain managed assemblies only.
 
 | Area | Application boundary |
 | --- | --- |

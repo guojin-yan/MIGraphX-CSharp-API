@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title desc">
-  <title id="title">MIGraphXSharp</title>
+  <title id="title">MIGraphX CSharp API</title>
   <desc id="desc">C# and ONNX models connect to AMD GPU inference through MIGraphX. YOLO26 and unified PP-OCRv4/v5/v6 examples.</desc>
   <rect width="1200" height="300" rx="20" fill="#111722"/>
   <path d="M0 20Q0 0 20 0H1180Q1200 0 1200 20V8H0Z" fill="#e44045"/>
   <g font-family="Segoe UI,Arial,sans-serif">
     <text x="48" y="78" fill="#e44045" font-size="15" font-weight="700" letter-spacing="3">AMD GPU INFERENCE FOR .NET</text>
-    <text x="45" y="137" fill="#eef3fc" font-size="48" font-weight="700">MIGraphXSharp</text>
+    <text x="45" y="137" fill="#eef3fc" font-size="48" font-weight="700">MIGraphX CSharp API</text>
     <text x="48" y="177" fill="#a9bad1" font-size="21">C# models. Native AMD inference.</text>
     <rect x="48" y="213" width="108" height="30" rx="15" fill="#1e2939" stroke="#35445b"/>
     <text x="102" y="234" fill="#eef3fc" font-size="14" text-anchor="middle">YOLO26</text>
