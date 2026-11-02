@@ -49,8 +49,8 @@
 <rect x="50" y="48" width="1820" height="724" rx="28" fill="none" stroke="#294361" stroke-width="2"/>
 <text x="90" y="90" font-size="30" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphX CSharp API   /   C# × AMD GPU</text>
 <text x="87" y="195" font-size="105" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">PaddleOCR</text>
-<text x="90" y="335" font-size="53" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">v4 / v5 / v6 统一部署</text>
-<text x="92" y="428" font-size="28" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">模型接入 · 关键实现 · 真实结果 · 速度实测</text>
+<text x="90" y="335" font-size="53" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">多模型、Batch 与异步调度</text>
+<text x="92" y="428" font-size="28" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">解析与编译 · 类型化输入 · 执行与释放 · 实测结果</text>
 <rect x="1290" y="228" width="304" height="250" rx="26" fill="#162f4b" stroke="#294361" stroke-width="2"/>
 <rect x="1270" y="197" width="304" height="250" rx="24" fill="#0c1e35" stroke="#67e3b6" stroke-width="3"/>
 <polyline points="1330,167 1330,197" fill="none" stroke="#67e3b6" stroke-width="4" stroke-linejoin="round"/>
@@ -70,13 +70,13 @@
 <text x="1321" y="263" font-size="58" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">AMD</text>
 <text x="1321" y="341" font-size="37" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphX</text>
 <rect x="92" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="109" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">三代模型</text>
+<text x="109" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">DET / REC</text>
 <rect x="286" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="303" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">HIP 流水线</text>
+<text x="303" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">批量张量</text>
 <rect x="480" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="497" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">多 Batch</text>
+<text x="497" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">多实例</text>
 <rect x="674" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="691" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">独立实例</text>
+<text x="691" y="547" font-size="24" fill="#67e3b6" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">完成点</text>
 <polyline points="1155,610 1760,610" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
 <rect x="1168" y="650" width="132" height="69" rx="10" fill="#12233c" stroke="#67e3b6" stroke-width="2"/>
 <text x="1185" y="670" font-size="29" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">DET</text>

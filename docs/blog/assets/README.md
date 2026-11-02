@@ -2,6 +2,8 @@
 
 文章引用 PNG 成图；流程、原理、封面与性能图同时保留同名 SVG，便于修改文字或导出其他分辨率。图内数据与正文表格对应，性能条件以正文为准。
 
+四篇案例的 `library-api.png/.svg` 展示实际库调用和资源关系：YOLO26 对照主机张量与设备缓冲，PaddleOCR 展开 Batch 和 worker 完成点，PP-Structure 展开命名输入与循环状态，CLIP 对照 int64/float32 输入及特征复用。这些是 API 示意图，不是软件截图或性能结果。
+
 | 目录 | 文章与配图 |
 | --- | --- |
 | `migraphxsharp-0.0.2/` | 首发长幅封面 `cover-four-models.png/.svg`、四类案例总览与 API 等图源；`ocr-scheduling.png` 同时用于 OCR 实战解释 batch/worker |

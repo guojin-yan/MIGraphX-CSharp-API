@@ -1,6 +1,6 @@
-# 用 C# 在 AMD GPU 上部署 YOLO26：检测、分类、分割、姿态与旋转框实战
+# MIGraphX CSharp API 实战：用 YOLO26 理解模型编译、张量与 HIP 显存推理
 
-![MIGraphX CSharp API YOLO26 五任务：C# 接入 AMD GPU，HIP 完成数值前后处理](assets/yolo26/cover.png)
+![MIGraphX CSharp API YOLO26 技术实战：模型编译、类型化张量与 HIP 显存执行](assets/yolo26/cover.png)
 
 ## 一、MIGraphX CSharp API 项目简介
 
@@ -26,11 +26,24 @@ HIP 适配包：JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop 0.0.2
 
 做过 YOLO 部署的小伙伴应该遇到过这种情况：模型推理只需要几毫秒，图片从读进来到拿到结果，却花了十几甚至几十毫秒。尤其是实例分割，模型后面还有 mask 计算、缩放和坐标恢复，单看一次推理时间，很容易低估整个程序的开销。
 
-这次我把 YOLO26 的五类任务整理到同一个 C# 示例中。除了调用 MIGraphX 执行模型，也把 resize、letterbox、输出解码和实例 mask 计算放到了 HIP 显存流水线中。这样，大家既可以看到五类模型怎样使用，也能看清楚前后处理究竟影响了多少时间。
+这篇就以 YOLO26 为例，从 MIGraphX CSharp API 的模型生命周期开始写：怎样给 ONNX 指定输入，怎样编译 GPU program，怎样将 C# 数组绑定成张量，以及怎样把主机输入换成显存输入。五种任务会用到不同的输出结构，正好可以把单输出、多输出和 GPU 后处理一起讲清楚。
 
-本文按当前 main 的 `samples/Yolo26` 编写，核心 API 为 `0.0.2`。图像、HIP kernel、模型会话、解码和计时代码都在同一个项目中，便于直接阅读或移入现有工程。接下来从模型文件、输入输出、C# 调用一直讲到实际结果和速度，检测、分类、分割、姿态和旋转框分别展开。
+本文按当前 main 的 `samples/Yolo26` 编写，核心 API 为 `0.0.2`。图像、HIP kernel、模型会话、解码和计时代码都在同一个项目中，便于直接阅读或移入现有工程。正文中的推理代码直接调用库接口，图片转换沿用案例中的辅助函数。掌握这条调用过程后，换成自己的 ONNX 时，主要改的是输入约定与输出解析。
 
-### 2.2 五个任务，结果各不相同
+### 2.2 先把库的调用过程对应起来
+
+![YOLO26 中的库调用：ONNX 选项、program 编译、主机张量与 HIP 设备缓冲两条路径](assets/yolo26/library-api.png)
+
+| 要完成的工作 | 使用的库接口 | 本例需要检查什么 |
+| --- | --- | --- |
+| 指定模型输入 | `MIGraphXOnnxOptions.SetInputParameterShape` | `images`、float32、NCHW、实际导出尺寸 |
+| 解析计算图 | `MIGraphXProgram.ParseOnnxFile` | ONNX 算子及输入信息能否解析 |
+| 为 GPU 编译 | `MIGraphXTarget`、`MIGraphXCompileOptions`、`Compile` | GPU target 与 copy 策略 |
+| 绑定主机输入 | `MIGraphXArgument.Create`、`MIGraphXParameterMap.Add` | 名称、类型、长度与 shape 对应 |
+| 同步推理 | `Run`、`ToArray<float>()` | 输出形状及端到端检测字段 |
+| 接入显存 | `MIGraphXHipDeviceInput`、`RunDeviceIntoAsync` | 编译后全部参数、输出缓冲及 stream |
+
+### 2.3 五个任务，结果各不相同
 
 | 任务 | 用途举例 | 示例返回什么 |
 | --- | --- | --- |
@@ -70,7 +83,16 @@ dotnet build samples/Yolo26/Yolo26.csproj -c Release \
   -p:JYPPXManagedTargetFrameworks=net10.0
 ```
 
-工程通过项目引用使用库源码。自己创建应用时，再安装前面列出的两个 NuGet 包，并配置 ROCm、MIGraphX、HIP/HIPRTC。`--native` 指向实际的 `libmigraphx_c`，`--gpu-architecture` 必须与设备对应；`gfx1100` 只是本文设备参数。
+工程通过项目引用使用库源码。独立工程可以先安装：
+
+```bash
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
+```
+
+核心包用于同步主机张量推理，第二个包用于 HIP 显存与 stream 集成，依赖的 HipSharp 为 `0.10.0`。下面代码中的 `JYPPX.ROCm.MIGraphXSharp` 是现有核心命名空间，项目展示名统一为 MIGraphX CSharp API。
+
+安装托管包后，还要配置 ROCm、MIGraphX、HIP/HIPRTC。`--native` 指向实际的 `libmigraphx_c`，`--gpu-architecture` 必须与设备对应；`gfx1100` 只是本文设备参数。
 
 ### 3.2 准备正确的 YOLO26 导出
 
@@ -114,64 +136,176 @@ HIP 路径以 `offloadCopy: false` 编译模型，为输入、编译器附加参
 
 姿态读取 17 组 `(x,y,confidence)`，只绘制分数达到 0.5 的点和连接；OBB 则根据弧度角把中心、宽高变成四个顶点。做业务判断时，应使用四边形或关键点数据，绘图只负责展示。
 
-## 五、C# 代码怎样调用
+## 五、先用核心 API 跑通一次检测
 
-### 5.1 直接使用示例中的完整流水线
+### 5.1 模型初始化与每次推理分开
 
-下面是精简后的调用入口，可替换 `samples/Yolo26/Program.cs` 体验。`Arguments`、`Images`、`HipYoloPipeline` 都是**本案例的源码类**，需要保留项目中其他文件；并非只安装 NuGet 就能使用的类。
-
-```csharp
-using MIGraphXSharp.Samples.Yolo26;
-
-var options = new Arguments(new[]
-{
-    "--native", "/opt/rocm/lib/libmigraphx_c.so.3",
-    "--gpu-architecture", "gfx1100",
-    "--task", "detect",
-    "--model", "/data/yolo26/models/yolo26n.onnx",
-    "--image", "/data/yolo26/images/bus.jpg",
-    "--labels", "/data/yolo26/models/coco-labels.txt"
-});
-
-using var image = Images.Load(options.Required("image"));
-using var pipeline = new HipYoloPipeline(image, options);
-
-// 模型与设备缓冲区已在构造阶段准备，后续复用。
-var result = pipeline.Run().Value;
-foreach (var item in result.Detections)
-{
-    Console.WriteLine($"{item.Label}: {item.Score:F3}");
-    foreach (var point in item.Polygon)
-        Console.WriteLine($"  ({point.X:F1}, {point.Y:F1})");
-}
-foreach (var item in result.Classes)
-    Console.WriteLine($"{item.Label}: {item.Score:F3}");
-```
-
-切换任务时，修改 `--task`、模型与标签即可。`Detections` 保存几何任务结果，`Classes` 保存分类结果。上面只展示调用和读取结果；仓库原版入口还包括计时、图片保存、JSON 导出和错误处理。
-
-### 5.2 往下看，核心推理 API 是这些
-
-如果希望先理解 MIGraphX 的模型生命周期，可以看同目录的 `InferenceSession.cs`。它使用下面的方式设置输入、解析并编译 ONNX：
+下面可以替换 `samples/Yolo26/Program.cs`。只借用 `Images` 做图片读取和 letterbox，其余模型解析、编译、参数绑定和输出读取都直接调用库。`Images` 来自案例源码；只安装 NuGet 的工程需要自行准备同样的 NCHW 数组。
 
 ```csharp
 using JYPPX.ROCm.MIGraphXSharp;
+using MIGraphXSharp.Samples.Yolo26;
 
 var native = "/opt/rocm/lib/libmigraphx_c.so.3";
+var model = "/data/yolo26/models/yolo26n.onnx";
+
+using var options = new MIGraphXOnnxOptions(native);
+options.SetInputParameterShape("images", new long[] { 1, 3, 640, 640 });
+using var program = MIGraphXProgram.ParseOnnxFile(model, options);
+
+var expected = new MIGraphXShape(MIGraphXShapeDataType.Float32,
+    new long[] { 1, 3, 640, 640 });
+var declared = program.GetParameterShapes();
+if (declared.Count != 1 || !declared.TryGetValue("images", out var inputShape)
+    || !inputShape.HasSameNativeContent(expected))
+    throw new InvalidDataException("需要 float32 images[1,3,640,640]。");
+
+using var target = new MIGraphXTarget(native, "gpu");
+using var compile = new MIGraphXCompileOptions(native, offloadCopy: true);
+program.Compile(target, compile);
+
+// 实际应用把初始化放在请求循环外，复用已编译的 program。
+using var image = Images.Load("/data/yolo26/images/bus.jpg");
+var prepared = Images.PrepareYolo(image, 640, 640, classification: false);
+using var argument = MIGraphXArgument.Create(native, inputShape, prepared.Tensor);
+using var parameters = new MIGraphXParameterMap(native);
+parameters.Add("images", argument);
+using var outputs = program.Run(parameters);
+
+if (outputs.Count != 1) throw new InvalidDataException("检测模型应返回一个张量。");
+var shape = outputs[0].Shape;
+if (shape.DataType != MIGraphXShapeDataType.Float32 || shape.Rank != 3
+    || shape.Lengths[0] != 1 || shape.Lengths[2] != 6)
+    throw new InvalidDataException("需要端到端检测输出 [1,N,6]。");
+
+float[] values = outputs[0].ToArray<float>();
+for (var row = 0; row < shape.Lengths[1]; row++)
+{
+    var offset = checked((int)row * 6);
+    if (values[offset + 4] < .25f) continue;
+    var leftTop = prepared.Restore(values[offset], values[offset + 1]);
+    var rightBottom = prepared.Restore(values[offset + 2], values[offset + 3]);
+    Console.WriteLine($"class={values[offset + 5]}, score={values[offset + 4]:F3}, " +
+        $"({leftTop.X:F1},{leftTop.Y:F1})-({rightBottom.X:F1},{rightBottom.Y:F1})");
+}
+```
+
+这里的 `offloadCopy: true` 仍然使用 GPU 计算，只是输入输出以主机张量交给 MIGraphX 管理复制。不要把“主机输入”理解为 CPU 推理。
+
+`SetInputParameterShape` 在解析前确定本次输入尺寸，不是图片缩放函数，也不能保证任意静态模型可以随意修改尺寸。解析后再通过 `GetParameterShapes()` 检查模型是否接受了这个配置。
+
+### 5.2 Argument、参数表和输出分别做什么
+
+`MIGraphXShape` 描述元素类型、长度和步幅，本身是托管形状信息。`MIGraphXArgument.Create` 按这个形状深拷贝数组，创建拥有独立主机缓冲的 argument；C# 数组长度和元素类型不匹配时，会在提交前被检查。它不是把数组临时固定后直接借给 GPU，创建之后修改原数组，也不会更新这个 argument。
+
+float32 `[1,3,640,640]` 包含 1,228,800 个元素，对应 4,915,200 字节。图像宽高正确但用了交错 RGB 数据，元素数仍然可能一致；类型和 shape 检查无法代替 NCHW 排列，因此前处理和参数绑定需要分别核对。
+
+`MIGraphXParameterMap` 将 argument 绑定到模型参数名。这里必须写实际的 `images`，库不会按加入顺序猜测输入。`program.Run(parameters)` 返回需要释放的输出集合；在它的作用域内读取 `Shape`，再用 `ToArray<float>()` 得到独立的托管结果。
+
+因此，一个长时间运行的服务通常保留 `program`，每个请求创建自己的 argument、参数表和输出集合。上面用 `using` 展示释放顺序；不要在循环里反复解析并编译同一个模型，也不要把尚未复制出来的原生输出当成长期托管数据使用。
+
+### 5.3 换任务时，先换输出解析
+
+分类输出是 `[1,classes]`，直接读已归一化的分数；分割则有检测结果和 prototype 两个张量。先枚举 `program.GetOutputShapes()`，核对数量、类型和维度，再决定哪个输出交给哪段后处理。
+
+分割的 `[1,N,38]` 中，前 6 项描述检测结果，后 32 项是 mask coefficients；另一个 `[1,32,160,160]` 是 prototype。两者一起才能重建实例 mask。姿态的最后一维是 57，旋转框为 7，不能把它们都按 6 列检测框读取。
+
+案例的 `Decoder.cs` 集中处理这些含义。库负责保留张量信息，任务层负责解释其中每一列；这一分工也适用于自训练模型。
+
+## 六、用 HIP 适配 API 接入自己的显存
+
+### 6.1 显存输入需要完整的编译后参数
+
+前一节先读回输出，适合核对模型。需要后处理继续在 GPU 上执行时，改用 `offloadCopy: false`，并提供自己的设备缓冲区。
+
+下面同样可以替换案例入口。为了单独看清设备绑定，这段仍用 CPU 准备输入，并在最后读回首个张量；它演示适配 API，完整 HIP 前后处理在下一小节对应到源码。
+
+```csharp
+using System.Runtime.InteropServices;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Memory;
+using JYPPX.ROCm.MIGraphXSharp;
+using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
+using MIGraphXSharp.Samples.Yolo26;
+
+var native = "/opt/rocm/lib/libmigraphx_c.so.3";
+using var hip = new HipRuntime();
+hip.GetDevice(0).MakeCurrent();
+using var stream = hip.CreateStream();
 using var options = new MIGraphXOnnxOptions(native);
 options.SetInputParameterShape("images", new long[] { 1, 3, 640, 640 });
 using var program = MIGraphXProgram.ParseOnnxFile(
     "/data/yolo26/models/yolo26n.onnx", options);
 using var target = new MIGraphXTarget(native, "gpu");
-using var compile = new MIGraphXCompileOptions(native, offloadCopy: true);
+using var compile = new MIGraphXCompileOptions(native, offloadCopy: false);
 program.Compile(target, compile);
+
+var owners = new List<HipDeviceMemory>();
+HipDeviceMemory Allocate(long bytes)
+{
+    var memory = hip.Allocate(checked((ulong)bytes));
+    owners.Add(memory);
+    return memory;
+}
+
+try
+{
+    // Compile 之后枚举，包含编译器附加的输出或 scratch 参数。
+    var inputs = program.GetParameterShapes().Select(p =>
+        new MIGraphXHipDeviceInput(p.Key, p.Value, Allocate(p.Value.ByteCount)))
+        .ToArray();
+    var shapes = program.GetOutputShapes().ToArray();
+    var destinations = shapes.Select(s => Allocate(s.ByteCount)).ToArray();
+    using var image = Images.Load("/data/yolo26/images/bus.jpg");
+    var prepared = Images.PrepareYolo(image, 640, 640, classification: false);
+    var bytes = MemoryMarshal.AsBytes(prepared.Tensor.AsSpan()).ToArray();
+    inputs.Single(p => p.Name == "images").Memory.CopyFromAsync(bytes, stream);
+
+    using var run = program.RunDeviceIntoAsync(inputs, destinations, stream);
+    // 此处可以在同一 stream 接后处理 kernel，读取 destinations。
+    var rawOutput = new byte[checked((int)shapes[0].ByteCount)];
+    destinations[0].CopyToAsync(rawOutput, stream);
+    run.Synchronize();
+    Console.WriteLine($"首个输出复制完成：{rawOutput.Length} bytes");
+}
+finally
+{
+    stream.Synchronize();
+    for (var i = owners.Count - 1; i >= 0; i--) owners[i].Dispose();
+}
 ```
 
-这一段只演示模型初始化，主机输入版的 `Run`、argument/map 和输出读取见 `InferenceSession`。HIP 显存输入版本在 `HipRuntimeContext.cs` 的 `HipInferenceSession` 中，它采用不同的 copy 配置，不能只把上面一个开关改掉就完成显存集成。
+这里有两组不同的缓冲：一组按编译后的参数表分配，供模型执行使用；另一组按 `GetOutputShapes()` 分配，接收模型输出。输出目标必须与输入、其他输出分开，不能把模型参数里的某一块直接当作输出目标复用。
 
-理解这两个层次后，扩展自己的模型也比较清楚：底层 API 负责模型与张量，任务代码负责图像和结果含义。
+适配器会检查设备、运行时、容量和形状。当前路径要求具体、标准连续的形状；不要把非连续 stride 或只描述范围的动态 shape 直接拿来分配这套静态缓冲。
 
-## 六、分别运行五个任务
+### 6.2 完整案例如何接上前后处理 kernel
+
+在 `HipYoloPipeline.Run` 中，前处理 kernel 写入 `HipInferenceSession.Input`，`Enqueue()` 内部调用刚才的 `RunDeviceIntoAsync`，后处理继续读取 `Outputs`。这些工作使用同一 stream，依次提交：
+
+```text
+RGB 上传 → resize/letterbox/tensorize → RunDeviceIntoAsync
+        → 输出 D2D 复制 → 框/关键点/mask kernel → 紧凑结果回传
+```
+
+同一 stream 的顺序保证后处理读取到本次模型结果，因此不用在每两个 kernel 之间插入一次主机等待。到 CPU 真正要访问结果、复用可写缓冲或释放资源时，再同步。
+
+`RunDeviceIntoAsync` 返回 `MIGraphXHipAsyncRun`，它描述这次待完成执行，并保留需要的资源租约。这里不能读 `run.Outputs`，因为该路径没有创建主机输出集合；结果在调用方传入的 `destinations` 中。
+
+### 6.3 复用资源时，边界要清楚
+
+| 对象 | 通常保留多久 | 再次使用前的要求 |
+| --- | --- | --- |
+| `MIGraphXProgram` | 模型服务或会话生命周期 | 不在待完成执行中修改图或重新编译 |
+| 输入、输出和 scratch 显存 | 同一尺寸流水线生命周期 | 前一次使用结束后再写入下一张图 |
+| `MIGraphXHipAsyncRun` | 一次提交到完成 | 完成后释放；未完成时 Dispose 会等待 |
+| 后处理 kernel 和 stream | 流水线生命周期 | 跨流共享数据前建立明确同步 |
+
+案例用 `HipRuntimeContext` 统一拥有 kernel 和显存，`HipInferenceSession` 拥有 program。它们是示例层的资源组织方式，实际推理调用仍是本文展开的库 API。
+
+这条路径包含有序 D2D 输出复制，也有最终结果回传。它减少了完整输出过早回主机的开销，但不能称为零复制，也不能仅凭异步接口就声称多个任务已经并行。
+
+## 七、运行完整案例并核对输出
 
 保留仓库原版 `Program.cs` 时，可以直接使用命令行。先以检测为例，执行完整保存和计时：
 
@@ -204,9 +338,9 @@ export MIGRAPHX_DISABLE_REDUCE_FUSION=1
 
 输出文件各有用途：`result.json` 用于业务接入和性能读取，`preview.png` 展示几何与 mask，`annotated.svg` 带类别和分数，分割额外生成 `mask-xxx.png`。需要检查原始模型输入输出时，增加 `--dump-tensors true`；日常应用无需每张图导出完整张量。
 
-## 七、速度实测：比较整条流水线
+## 八、速度实测：比较整条流水线
 
-### 7.1 HIP 前后处理带来了多少变化
+### 8.1 HIP 前后处理带来了多少变化
 
 以下数据来自 `0.0.2` 发布实测：Ubuntu 24.04、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100，CPU 配额 16 核，FP32、batch=1，每项预热 5 次、测量 30 次，未锁定 GPU 频率与功耗。
 
@@ -225,7 +359,7 @@ export MIGRAPHX_DISABLE_REDUCE_FUSION=1
 
 分割从 61.30 ms 降到 7.44 ms，变化尤其明显，因为 mask 处理本身就有较大计算量。这里的收益也包括缓冲复用和减少完整输出回传，不能全部归因于某一个 kernel。
 
-### 7.2 表中的时间包含什么
+### 8.2 表中的时间包含什么
 
 HIP pipeline 从已解码 RGB 上传开始，包含 GPU 前处理、模型执行、D2D 输出复制、后处理及紧凑结果回传。图片文件解码、模型和 kernel 编译、绘图、完整 mask/张量导出、写盘均排除。
 
@@ -233,7 +367,7 @@ HIP pipeline 从已解码 RGB 上传开始，包含 GPU 前处理、模型执行
 
 JSON 同时保存 mean、P50、P95、首次执行和原始样本。先确认两次比较使用相同计时范围，再判断优化是否有效。只拿模型 event 时间与整图墙钟比较，通常会得到错误结论。
 
-## 八、换成自己的模型时，先检查这些地方
+## 九、把同一套接口接到自己的模型
 
 自训练检测模型首先核对是否为本文支持的端到端输出、输入名是否为 `images`，再检查输入尺寸与类别表。`--size` 可以指定边长，但必须与导出合同一致；示例不会自动把任意静态模型改成其他尺寸。
 
@@ -241,4 +375,6 @@ JSON 同时保存 mean、P50、P95、首次执行和原始样本。先确认两�
 
 当前案例处理静态图片，不包含摄像头采集、视频跟踪或训练。做视频时可以在此基础上接入帧输入，但还需要解决队列、缓冲复用和显示线程；单张图片的 `1000/mean` 也不能直接当作完整视频系统 FPS。
 
-这套代码把 YOLO26 的五类任务连到了同一条 C# → MIGraphX → HIP 路径。大家可以先用对应图片确认结果，再将类别、坐标、mask 或关键点接入自己的业务。完整实现与参数说明就在 `samples/Yolo26`，无需另外寻找一套隐藏的前后处理代码。
+排查时可以沿调用过程定位：解析失败看模型与原生算子支持；编译失败看 target、尺寸和原生日志；argument 创建失败看数组元素类型与 shape；结果错位看 letterbox；HIP 结果不稳定看 stream 顺序与缓冲复用。先确定问题发生在哪一层，再修改对应代码。
+
+读源码时，`InferenceSession.cs` 对应第五节，`HipRuntimeContext.cs` 对应第六节的显存分配与提交，`HipYoloPipeline.cs` 连接 kernel，`Decoder.cs` 解释五类输出。下一种模型仍然沿用解析、编译、绑定、执行和释放这些接口，变化的是它的张量约定。

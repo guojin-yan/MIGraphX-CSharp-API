@@ -1,6 +1,6 @@
-# 用 C# 在 AMD GPU 上组合 PP-Structure：版面分析、OCR、表格重建与公式处理
+# MIGraphX CSharp API 实战：用 PP-Structure 组织多输入模型与循环解码
 
-![PP-Structure 文档处理：从页面图片到区域、文字、表格与结构化结果](assets/pp-structure/cover.png)
+![MIGraphX CSharp API PP-Structure 技术实战：命名输入、混合类型输出与循环状态传递](assets/pp-structure/cover.png)
 
 ## 一、MIGraphX CSharp API 项目简介
 
@@ -28,7 +28,7 @@ PaddleOCR 可以完成文字检测与识别，读出图片里的内容。但换�
 
 文档处理需要在 OCR 上面再加一层结构。我这次将 Paddle 文档模型组合成一个独立 C# 案例，接入页面方向、版面、整页 OCR、表格分类、单元格检测、结构解码，并导出 JSON、Markdown、HTML 和原图定位。
 
-代码位于当前 main 的 `samples/PPStructure`，v0.0.2 发布标签尚不包含这个新项目，核心 API 沿用 `0.0.2`。本文按页面处理顺序介绍代码，再单独拆开表格路径；演示包含报刊、混排、论文、公式、费用表和倒置页六种输入，最后给出逐页耗时。
+代码位于当前 main 的 `samples/PPStructure`，v0.0.2 发布标签尚不包含这个新项目，核心 API 沿用 `0.0.2`。本文重点展开两个接口问题：版面模型怎样一次绑定图片与辅助张量，表格单步模型怎样在 C# 循环中传递 float32 状态和整数 token。页面处理用于串起这些调用，六页演示结果用于检查最后的组合效果。
 
 执行范围也分别说明：**方向、版面、OCR 和表格模型使用 MIGraphX GPU，OCR 数值前后处理使用 HIP；公式识别是显式选择的 ONNX Runtime CPU 路径。** FormulaNet 的动态图在当前 MIGraphX 2.15 下不能直接解析，因此这不是全 GPU 的公式方案。
 
@@ -39,6 +39,16 @@ PaddleOCR 可以完成文字检测与识别，读出图片里的内容。但换�
 报刊页得到 32 个区域、144 条文字行；混排页得到 14 个区域、192 条文字行。图中的框根据实际输出坐标绘制，低分文字也保留，没有手工调整成理想结果。
 
 这里返回的已经不只是文字列表。每个区域包含类别、位置、所属文字，以及可选的表格或公式；每条文字还保留校正页和原始方向页的两套坐标，方便在业务界面定位原文。
+
+![PP-Structure 中的库接口：三个命名输入绑定一个 program，encoder 和 step 用类型化张量传递循环状态](assets/pp-structure/library-api.png)
+
+| 任务中的问题 | 需要的库能力 |
+| --- | --- |
+| 版面模型有图片和两个辅助输入 | `GetParameterShapes()` + 多次 `MIGraphXParameterMap.Add` |
+| 一个模型返回浮点框和整数计数 | 查询输出 `DataType`，使用对应的 `ToArray<T>()` |
+| 表格模型需要逐步执行 | 复用两个 `MIGraphXProgram`，每步构造新的参数表 |
+| 下一步依赖本步 hidden/token | 在输出集合释放前复制类型化结果 |
+| 一页中包含多个模型 | 在应用层管理 program 生命周期、尺寸与执行阶段 |
 
 ## 三、一页文档需要哪些模型
 
@@ -99,6 +109,8 @@ dotnet build samples/PPStructure/PPStructure.csproj -c Release \
 
 脚本保留原模型，另外生成 `.migraphx.onnx`、表格 `.encoder.onnx` 和 `.step.onnx`，在模型目录写入 `prepared-models.json`。后续升级模型时，需要重新准备匹配文件，不要拿旧的 step 与新的 encoder 混用。
 
+独立项目调用 MIGraphX 时安装 `JYPPX.ROCm.MIGraphX.CSharp.API 0.0.2`；接入本文整页 HIP OCR 时再安装同版本 `.HIP.Interop`，它依赖 HipSharp `0.10.0`。ImageSharp、YAML、公式 tokenizer 和 ONNX Runtime 由案例按需引用，均不属于核心推理库的内置功能。
+
 ### 4.2 为什么要准备兼容图
 
 当前 MIGraphX 2.15 无法直接执行这些原始导出图中的部分动态循环与数组写入。版面、单元格模型对 scalar reshape 做等价 Squeeze 改写；SLANeXt 则把循环移到 C#，保留编码器和单步解码器。
@@ -126,65 +138,98 @@ dotnet build samples/PPStructure/PPStructure.csproj -c Release \
 
 `auto` 使用版面模型，明确写 `table` 或 `formula` 时将整张输入当作对应区域。路径相对清单目录解析，允许 1–100 页。ID 唯一，使用小写字母、数字、短横线，最多 64 字符。
 
-## 五、C# 如何得到结构化页面
+## 五、用核心 API 绑定版面模型的三个输入
 
-### 5.1 先跑通一张页面
+### 5.1 不要把模型输入简化成一张图片
 
-下面入口可以替换 `samples/PPStructure/Program.cs`，保留同项目的其他源文件。`DocumentPipeline` 是案例层封装，不是核心包内置的文档 API。
+当前兼容版 PP-DocLayout-L 使用以下输入。它们属于同一次模型执行，应加入同一张参数表：
+
+| 输入名 | 类型与形状 | 本例实际内容 |
+| --- | --- | --- |
+| `image` | float32 `[1,3,640,640]` | 校正页缩放到 640×640，RGB `/255` |
+| `im_shape` | float32 `[1,2]` | `[640,640]` |
+| `scale_factor` | float32 `[1,2]` | `[1,1]` |
+
+这里将模型坐标保留在 640 画布，之后由 `DecodeRegions` 按原图宽高恢复。辅助张量的值和后处理坐标公式必须配套；若改成原图 scale factor，再照旧乘一次宽高比例，坐标就会重复缩放。
+
+### 5.2 解析、校验、编译，再绑定三个 argument
+
+下面可替换 `samples/PPStructure/Program.cs`，单独执行版面分析。只借用 `DocumentProcessing` 做图片数组准备和区域解析，模型调用直接使用 MIGraphX CSharp API，不经过 `ModelSession`。
 
 ```csharp
-using System.Text.Json;
+using JYPPX.ROCm.MIGraphXSharp;
 using MIGraphXSharp.Samples.PPStructure;
-using Images = MIGraphXSharp.Samples.PPStructure.Ocr.Images;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 var native = "/opt/rocm/lib/libmigraphx_c.so.3";
-var models = "/data/document/models";
-var imagePath = "/data/document/demo-inputs/news-page.png";
-string[] options =
-[
-    "--native", native,
-    "--gpu-architecture", "gfx1100",
-    "--rec-batch", "4",
-    "--rec-workers", "2",
-    "--formula-backend", "disabled"
-];
-
-using var source = Images.Load(imagePath);
-using var pipeline = new DocumentPipeline(native, models, options);
-var page = pipeline.Run(new DocumentInput("news", imagePath), source);
-
-Console.WriteLine($"校正角度：{page.CorrectionCounterClockwise}°");
-Console.WriteLine($"区域：{page.Regions.Length}，文字行：{page.Lines.Length}");
-foreach (var region in page.Regions)
+using var source = Image.Load<Rgb24>("/data/document/demo-inputs/news-page.png");
+source.Mutate(c => c.AutoOrient());
+var dimensions = new Dictionary<string, long[]>
 {
-    Console.WriteLine($"[{region.Layout.Category}]");
-    foreach (var line in region.Lines)
-        Console.WriteLine($"  {line.Confidence:F3}  {line.Text}");
-    if (region.Table is { } table)
-        Console.WriteLine($"  表格：{table.Style}，填字完成：{table.FilledHtml is not null}");
-}
+    ["image"] = [1, 3, 640, 640],
+    ["im_shape"] = [1, 2],
+    ["scale_factor"] = [1, 2]
+};
+using var options = new MIGraphXOnnxOptions(native);
+foreach (var (name, lengths) in dimensions)
+    options.SetInputParameterShape(name, lengths);
+using var program = MIGraphXProgram.ParseOnnxFile(
+    "/data/document/models/pp-doclayout-l.migraphx.onnx", options);
+var shapes = program.GetParameterShapes();
+if (shapes.Count != dimensions.Count || dimensions.Keys.Except(shapes.Keys).Any())
+    throw new InvalidDataException("模型输入名不匹配。");
+foreach (var (name, lengths) in dimensions)
+    if (!shapes[name].HasSameNativeContent(
+        new MIGraphXShape(MIGraphXShapeDataType.Float32, lengths)))
+        throw new InvalidDataException("输入类型或尺寸不匹配：" + name);
+using var target = new MIGraphXTarget(native, "gpu");
+using var compile = new MIGraphXCompileOptions(native, offloadCopy: true);
+program.Compile(target, compile);
 
-Directory.CreateDirectory("/results/document-single");
-File.WriteAllText("/results/document-single/page.json",
-    JsonSerializer.Serialize(page, new JsonSerializerOptions { WriteIndented = true }));
+using var image = MIGraphXArgument.Create(native, shapes["image"],
+    DocumentProcessing.Tensor(source, 640, 640));
+using var imShape = MIGraphXArgument.Create(native, shapes["im_shape"],
+    new float[] { 640, 640 });
+using var scale = MIGraphXArgument.Create(native, shapes["scale_factor"],
+    new float[] { 1, 1 });
+using var parameters = new MIGraphXParameterMap(native);
+parameters.Add("image", image);
+parameters.Add("im_shape", imShape);
+parameters.Add("scale_factor", scale);
+using var outputs = program.Run(parameters);
+
+// 输出并非全是 float；按照实际元素类型复制。
+var tensors = outputs.Select(value => new ModelTensor(
+    value.Shape.Lengths.ToArray(), value.Shape.DataType switch
+    {
+        MIGraphXShapeDataType.Float32 => (Array)value.ToArray<float>(),
+        MIGraphXShapeDataType.Int64 => value.ToArray<long>(),
+        MIGraphXShapeDataType.Int32 => value.ToArray<int>(),
+        _ => throw new InvalidDataException("未处理的输出类型。")
+    })).ToArray();
+var regions = DocumentProcessing.DecodeRegions(tensors,
+    DocumentProcessing.Labels, source.Width, source.Height, .35f);
+foreach (var region in regions)
+    Console.WriteLine($"{region.Category}: {region.Score:F3}, {region.Bounds}");
 ```
 
-第一次调用会初始化实际用到的模型，不能拿这一次总时间当稳定页面时延。原版入口在预热之后再测量，并增加了 HTML、Markdown、图片与汇总导出。
+`ModelTensor` 是案例中保存托管数组和形状的简单 record，不负责推理。它保存了 `ToArray<T>()` 的结果，所以可以在原生输出集合释放之后，继续做区域筛选、坐标恢复和 JSON 序列化。
 
-模型会在进程内复用。OCR 保存当前尺寸的一套流水线，页面尺寸变化时释放旧的再创建新的，避免把每种页尺寸的模型都一直缓存到显存里；它没有承诺任意尺寸页面都不需要重新编译。
+### 5.3 参数名与类型比加入顺序更重要
 
-### 5.2 业务接口应该读取哪些字段
+`parameters.Add` 的名称来自 `GetParameterShapes()`。参数表不会因为第一个参数是图片，就自动补全另外两个输入。辅助数组虽然只有两个数，也必须给出 float32；把 `new int[] { 640,640 }` 传给 float32 shape 会被类型检查拒绝。
 
-| 字段 | 适合的用途 |
-| --- | --- |
-| `Regions[].Layout` | 标题、正文、图片、表格等区域类别和框 |
-| `Regions[].Lines` | 该区域关联的文字行 |
-| `Lines[].Polygon / SourcePolygon` | 校正页展示 / 原始方向页定位 |
-| `Regions[].Table` | 单元格、结构、可选填字 HTML、诊断 |
-| `Regions[].Formula` | 后端、LaTeX、是否完整 |
-| `Diagnostics` | 低分、缺失 EOS、未启用公式等复核原因 |
+同样，输出中的整数计数需要 `ToArray<int>()` 或 `ToArray<long>()`，不能因为后处理方便就统一读成 float。保留 dtype 可以避免索引、计数和 token 的语义在模型之间丢失。
 
-前端可以按区域高亮原图，后端可以保存结构化 JSON 与索引文字。低置信度或结构不完整的内容单独进入复核，保留原因，便于用户知道哪里需要处理。
+### 5.4 多模型复用怎样落到源码
+
+`DocumentPipeline.Session` 按模型名保存 `ModelSession`，第一次用到时解析并编译，后续页面复用。`ModelSession` 内部就是上面的 options、program、argument 和参数表，只是把重复代码收进了一个案例类。
+
+方向模型和表格分类模型是单输入，版面与单元格模型是三输入，它们可以复用同一套绑定方法，但不能复用错误的输入配置。整页 OCR 另外保留当前页面尺寸的一套 HIP 流水线，页面尺寸改变时释放旧实例再创建。
+
+各会话当前按顺序调用。若准备增加页面并发，需要给每个并发任务安排独立可写状态和缓冲，不能把一个保存当前尺寸的流水线直接交给多个线程同时改写。
 
 ## 六、表格重建：位置、结构和文字要对得上
 
@@ -196,13 +241,74 @@ File.WriteAllText("/results/document-single/page.json",
 
 不能把检测框从左到右排一下，就认为得到了完整 HTML。合并单元格、漏检、重复框都会破坏这种简单假设。
 
-### 6.2 SLANeXt 循环放在 C#，子模型仍在 GPU
+### 6.2 把循环状态变成明确的输入和输出
 
-编码器输出 memory，单步解码器接收 `hidden`、`token`、`memory0`，返回下一步状态与 token。`TableStructureSession.Run` 每次传入上一步结果，最多执行 501 步，token=49 即 EOS，随后停止。
+SLANeXt 的编码器输入为 `x[1,3,512,512]`。单步模型接收 `hidden[1,512]`、`token[1]` 和 `memory0[1,256,512]`；其中 hidden/memory 是 float32，输入 token 是 int32。
 
-两个子模型都使用 MIGraphX GPU。但当前 hidden 和 encoder memory 经主机数组传递，不能把这条结构解码写成“显存全程常驻”。长表格需要更多解码步，主机调度与复制也会进入页面耗时。
+先按这些形状分别解析并用 `offloadCopy: true` 编译 encoder 和 step，服务启动后复用两个 program。下面的辅助类只依赖核心库，展示它们怎样实际传递状态。它可以作为应用中的独立 `.cs` 文件；`encoder`、`step` 是调用方已经编译好的 program，`image` 是按 SLANeXt 规则准备的 float32 张量。
 
-这就是图中单独标出 C# 调度循环的原因：执行模型的位置和整个系统的数据流，是两个需要分别说明的问题。
+```csharp
+using JYPPX.ROCm.MIGraphXSharp;
+
+public static class TableApi
+{
+    public static (int[] Tokens, bool Complete) Decode(string native,
+        MIGraphXProgram encoder, MIGraphXProgram step, float[] image)
+    {
+        var encoderShapes = encoder.GetParameterShapes();
+        float[] memory;
+        using (var input = MIGraphXArgument.Create(native, encoderShapes["x"], image))
+        using (var map = new MIGraphXParameterMap(native))
+        {
+            map.Add("x", input);
+            using var output = encoder.Run(map);
+            if (!output[0].Shape.Lengths.SequenceEqual(new long[] { 1, 256, 512 }))
+                throw new InvalidDataException("编码器 memory 尺寸不匹配。");
+            memory = output[0].ToArray<float>();
+        }
+
+        var shapes = step.GetParameterShapes();
+        var hidden = new float[512];
+        var token = new int[] { 0 }; // SOS
+        var decoded = new List<int>();
+        // memory 不变，主机 argument 可以跨步骤复用。
+        using var memoryArg = MIGraphXArgument.Create(native, shapes["memory0"], memory);
+        for (var iteration = 0; iteration < 501; iteration++)
+        {
+            using var hiddenArg = MIGraphXArgument.Create(native, shapes["hidden"], hidden);
+            using var tokenArg = MIGraphXArgument.Create(native, shapes["token"], token);
+            using var map = new MIGraphXParameterMap(native);
+            map.Add("hidden", hiddenArg);
+            map.Add("token", tokenArg);
+            map.Add("memory0", memoryArg);
+            using var output = step.Run(map);
+            if (output.Count != 4 || output[0].Shape.ElementCount != 512
+                || output[3].Shape.ElementCount != 50)
+                throw new InvalidDataException("单步模型输出不匹配。");
+
+            // 在 output 释放前复制，交给下一步新建的 argument。
+            hidden = output[0].ToArray<float>();
+            var next = output[1].Shape.DataType switch
+            {
+                MIGraphXShapeDataType.Int32 => output[1].ToArray<int>().Single(),
+                MIGraphXShapeDataType.Int64 => checked((int)output[1].ToArray<long>().Single()),
+                _ => throw new InvalidDataException("下一 token 应为整数。")
+            };
+            if (next is < 0 or >= 50) throw new InvalidDataException("无效 token。");
+            if (next == 49) return (decoded.ToArray(), true); // EOS
+            decoded.Add(next);
+            token[0] = next;
+        }
+        return (decoded.ToArray(), false);
+    }
+}
+```
+
+这个版本只返回结构 token 与是否结束，便于看清库调用；源码 `TableStructureSession.Run` 还读取每步 logits、计算概率并交给结构解码。两者都把循环次数限制为 501，遇到 EOS=49 停止，不能用没有上限的 `while(true)` 处理异常输出。
+
+这里把不变的 memory 主机 argument 放在循环外，减少每步在托管数组与 argument 之间的重复创建；当前案例源码的通用 `ModelSession` 每步仍重新创建全部 argument。这是文章中展示的局部组织方式，不是已有性能表测量的另一套优化结果。
+
+**两个 program 都由 GPU 执行，hidden、token 和 memory 仍通过主机张量传递。** 主机 argument 复用也不等于显存常驻：模型执行所需的复制仍由 `offloadCopy` 路径处理。要进一步改成设备状态传递，需要重新设计缓冲、输出复制与停止条件，不能把这一段直接称为全 GPU 解码。
 
 ### 6.3 对齐通过，才把文字填入 HTML
 
@@ -267,7 +373,7 @@ dotnet run --project samples/PPStructure -c Release --no-build -- \
 
 ## 九、六种页面的速度与结果
 
-以下数据来自 2026-11-01，环境见第四节。每页预热 1 次，测量 10 次，FP32，OCR batch=4、worker=2，显式启用 ORT CPU 公式，CPU 公式 4 线程：
+以下数据来自 2026-11-01，环境见第四节。表中使用仓库原版 `ModelSession` 和 `TableStructureSession`，不包含上面单独示范的 memory argument 复用改写。每页预热 1 次，测量 10 次，FP32，OCR batch=4、worker=2，显式启用 ORT CPU 公式，CPU 公式 4 线程：
 
 | 页面 | 区域 / OCR 行 | 平均 ms | P95 ms | 本页工作量 |
 | --- | ---: | ---: | ---: | --- |
@@ -292,4 +398,6 @@ dotnet run --project samples/PPStructure -c Release --no-build -- \
 
 当前输入是页面图片，不含 PDF 渲染、多栏阅读顺序恢复、跨页表格合并或人工结果回写。PDF 可以在业务外层先渲染成页图，但转换耗时、页码和分辨率需要自己记录；Markdown 导出也只是结构化内容的起点。
 
-对 .NET 开发者而言，这个案例把多模型组合的代码放在同一个可阅读工程里：方向和版面先组织页面，OCR 提供文字，表格对齐后生成结构，可选公式明确记录 CPU 后端。先把这些结果接到自己的页面与复核流程中，再根据真实资料扩展，比只保留一段拼接后的文字更容易继续维护。
+读这套实现，可以按三个层次查找代码：`ModelSession.cs` 管理核心库的 program、类型化 argument 和输出复制；`TableStructureSession.cs` 管理解码状态；`DocumentPipeline.cs` 决定页面与区域调用哪些模型。前处理和坐标公式在 `DocumentProcessing.cs`。
+
+如果参数绑定失败，先查询输入名和 dtype；如果只有表格失败，检查 encoder/step 是否成套、hidden 维度与 token 类型是否对应；如果 HTML 内容错位，检查裁剪坐标、单元格结构与文字归属。这三种问题分别属于推理绑定、循环状态和文档后处理，需要在对应位置解决。

@@ -49,8 +49,8 @@
 <rect x="50" y="48" width="1820" height="724" rx="28" fill="none" stroke="#294361" stroke-width="2"/>
 <text x="90" y="90" font-size="30" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphX CSharp API   /   C# × AMD GPU</text>
 <text x="87" y="195" font-size="105" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">YOLO26</text>
-<text x="90" y="335" font-size="53" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">五任务部署实战</text>
-<text x="92" y="428" font-size="28" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">模型接入 · 关键实现 · 真实结果 · 速度实测</text>
+<text x="90" y="335" font-size="53" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">模型编译、张量与显存推理</text>
+<text x="92" y="428" font-size="28" fill="#a5b9d0" font-family="Microsoft YaHei" font-weight="400" dominant-baseline="text-before-edge">解析与编译 · 类型化输入 · 执行与释放 · 实测结果</text>
 <rect x="1290" y="228" width="304" height="250" rx="26" fill="#162f4b" stroke="#294361" stroke-width="2"/>
 <rect x="1270" y="197" width="304" height="250" rx="24" fill="#0c1e35" stroke="#48d6f2" stroke-width="3"/>
 <polyline points="1330,167 1330,197" fill="none" stroke="#48d6f2" stroke-width="4" stroke-linejoin="round"/>
@@ -70,15 +70,15 @@
 <text x="1321" y="263" font-size="58" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">AMD</text>
 <text x="1321" y="341" font-size="37" fill="#eff6ff" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">MIGraphX</text>
 <rect x="92" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="109" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">检测</text>
+<text x="109" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">ONNX 解析</text>
 <rect x="286" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="303" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">分类</text>
+<text x="303" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">GPU 编译</text>
 <rect x="480" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="497" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">实例分割</text>
+<text x="497" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">主机张量</text>
 <rect x="674" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="691" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">人体姿态</text>
+<text x="691" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">显存绑定</text>
 <rect x="868" y="530" width="178" height="57" rx="12" fill="#17304b" stroke="#294361" stroke-width="2"/>
-<text x="885" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">旋转框</text>
+<text x="885" y="547" font-size="24" fill="#48d6f2" font-family="Microsoft YaHei" font-weight="700" dominant-baseline="text-before-edge">HIP 后处理</text>
 <polyline points="1155,610 1760,610" fill="none" stroke="#294361" stroke-width="2" stroke-linejoin="round"/>
 <rect x="1170" y="650" width="90" height="70" rx="8" fill="none" stroke="#48d6f2" stroke-width="4"/>
 <rect x="1192" y="668" width="42" height="42" rx="4" fill="none" stroke="#67e3b6" stroke-width="3"/>
