@@ -398,6 +398,22 @@ dotnet run --project samples/PPStructure -c Release --no-build -- \
 
 当前输入是页面图片，不含 PDF 渲染、多栏阅读顺序恢复、跨页表格合并或人工结果回写。PDF 可以在业务外层先渲染成页图，但转换耗时、页码和分辨率需要自己记录；Markdown 导出也只是结构化内容的起点。
 
-读这套实现，可以按三个层次查找代码：`ModelSession.cs` 管理核心库的 program、类型化 argument 和输出复制；`TableStructureSession.cs` 管理解码状态；`DocumentPipeline.cs` 决定页面与区域调用哪些模型。前处理和坐标公式在 `DocumentProcessing.cs`。
+对于连续处理的页面，可以保留已编译的方向、版面和表格会话，按区域类型选择后续模型。整页 OCR 则沿用案例中当前尺寸的流水线，尺寸变化时重新准备对应实例。这样既保留了模型复用，也能明确每张页面使用的输入配置。
 
-如果参数绑定失败，先查询输入名和 dtype；如果只有表格失败，检查 encoder/step 是否成套、hidden 维度与 token 类型是否对应；如果 HTML 内容错位，检查裁剪坐标、单元格结构与文字归属。这三种问题分别属于推理绑定、循环状态和文档后处理，需要在对应位置解决。
+## 十一、总结与源码
+
+这篇通过 PP-Structure 展开了 MIGraphX CSharp API 在多模型任务中的用法：用命名参数表绑定版面模型的三个输入，按实际元素类型读取框与计数，再复用 encoder 和 step 两个 program，在 C# 中传递表格解码状态。OCR、区域归属和表格填字将这些模型结果组合成可以继续使用的页面数据。
+
+**MIGraphX CSharp API 将 AMD MIGraphX 的模型与张量能力开放给 .NET 应用，具体流程由开发者在 C# 中组织。** 对文档处理来说，类型化输入输出便于保留图片、计数和 token 的不同含义，明确的资源所有权便于复用多套模型，可选 HIP 适配包则让整页 OCR 接上 GPU 数值前后处理。新增一个文档模块时，可以沿用模型调用方式，再实现它自己的前处理和结果关联。
+
+六页实测完成了版面、文字、表格及可选公式的组合处理，也保留了需要复核的结果。当前表格循环仍经主机数组传递状态，公式使用显式选择的 ORT CPU；接入业务时，可以据此判断每个阶段的成本，再决定后续优化方向。
+
+欢迎大家到 GitHub 查看源码，并用自己的页面资料尝试这套实现。建议先看 `ModelSession.cs` 中的核心库调用，再看 `TableStructureSession.cs` 的循环状态和 `DocumentPipeline.cs` 的页面组合。项目中的模型准备脚本、前后处理与导出代码一并保留，便于对照修改，也欢迎提交问题和改进建议。
+
+```text
+MIGraphX CSharp API 项目源码：
+https://github.com/guojin-yan/MIGraphX-CSharp-API
+
+PP-Structure 完整案例：
+https://github.com/guojin-yan/MIGraphX-CSharp-API/tree/main/samples/PPStructure
+```
