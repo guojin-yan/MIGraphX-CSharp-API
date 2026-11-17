@@ -177,12 +177,12 @@
       "nativeVersion": "2.18.0",
       "rocmVersion": "10.1.0",
       "archiveAsset": "MIGraphX-native-ubuntu.24.04-x64-2.18.0.zip",
-      "archiveSha256": "bfbda5b118d69092da8cc6f5f6f39e6d472ce685f9e5439275714c6e798c5a40",
+      "archiveSha256": "1282b639e3431cc9f0625b919e2b51a35aa75c34e31c46fd45596bef7167c68a",
       "source": {
         "kind": "AMD-native-binary-with-relocated-rpath",
         "url": "https://stable.repo.amd.com/rocm/migraphx/tarball/amdrocm10-migraphx-2.18.0.tar.gz",
         "archiveSha256": "200ad8ef19057615f577c58af4b3010acc22ca1e8425a5866e96c42209f7d2a4",
-        "transformation": "patchelf --set-rpath $ORIGIN for ELF libraries/helper; duplicate SONAME libraries under unversioned loader names; device code unchanged",
+        "transformation": "patchelf --set-rpath $ORIGIN for ELF libraries/helper; device code unchanged",
         "gpuArchitectures": [
           "gfx1010",
           "gfx1030",
@@ -591,6 +591,15 @@
         "ROCm 10.1 HIP/HIPRTC, COMGR, HSA, MIOpen, rocBLAS, hipBLASLt and transitive libraries",
         "ROCm GPU device data, bitcode and WSL driver bridge when applicable"
       ],
+      "loaderAliases": {
+        "libmigraphx.so": "libmigraphx.so.2018000",
+        "libmigraphx_c.so": "libmigraphx_c.so.3",
+        "libmigraphx_gpu.so": "libmigraphx_gpu.so.2018000",
+        "libmigraphx_device.so": "libmigraphx_device.so.2018000",
+        "libmigraphx_onnx.so": "libmigraphx_onnx.so.2018000",
+        "libmigraphx_ref.so": "libmigraphx_ref.so.2018000",
+        "libmigraphx_tf.so": "libmigraphx_tf.so.2018000"
+      },
       "files": [
         {
           "path": "licenses/ComposableKernel-LICENSE.txt",
@@ -658,29 +667,14 @@
           "sha256": "6ffedbc0f7878612d2b23589f1ff2ab15633e1df7963a5d9fc750ec5500c7e7a"
         },
         {
-          "path": "native/libmigraphx.so",
-          "size": 128696992,
-          "sha256": "78381cff7f00ea36ff3e581ee02667e2309e350f2372dc336afe4bbbe781f929"
-        },
-        {
           "path": "native/libmigraphx.so.2018000",
           "size": 128696992,
           "sha256": "78381cff7f00ea36ff3e581ee02667e2309e350f2372dc336afe4bbbe781f929"
         },
         {
-          "path": "native/libmigraphx_c.so",
-          "size": 476296,
-          "sha256": "5008f91759ec88fab7587921e81fb4056e9ba7cdfe11b9787b0eecda7c20316a"
-        },
-        {
           "path": "native/libmigraphx_c.so.3",
           "size": 476296,
           "sha256": "5008f91759ec88fab7587921e81fb4056e9ba7cdfe11b9787b0eecda7c20316a"
-        },
-        {
-          "path": "native/libmigraphx_device.so",
-          "size": 26609232,
-          "sha256": "ecc2414cce9d7073101abdaa7a65913d6e1a10d379f6ceee0fb742be41c7587f"
         },
         {
           "path": "native/libmigraphx_device.so.2018000",
@@ -1113,19 +1107,9 @@
           "sha256": "eba84def28b009b5d8fa76f5e6f363816fb927e1de64a8b5815b6a75480c794e"
         },
         {
-          "path": "native/libmigraphx_gpu.so",
-          "size": 242439280,
-          "sha256": "6dbee9e6df777f705ac30ce3eacf050d8444287a281c9ea1eb1d4b391198b320"
-        },
-        {
           "path": "native/libmigraphx_gpu.so.2018000",
           "size": 242439280,
           "sha256": "6dbee9e6df777f705ac30ce3eacf050d8444287a281c9ea1eb1d4b391198b320"
-        },
-        {
-          "path": "native/libmigraphx_onnx.so",
-          "size": 5796992,
-          "sha256": "0d207b704433a293cadceb7c5ae0f767ab728031ef99a356293910f857652b84"
         },
         {
           "path": "native/libmigraphx_onnx.so.2018000",
@@ -1133,19 +1117,9 @@
           "sha256": "0d207b704433a293cadceb7c5ae0f767ab728031ef99a356293910f857652b84"
         },
         {
-          "path": "native/libmigraphx_ref.so",
-          "size": 3020344,
-          "sha256": "76e327a54a9853d3e66799427d8ea10d92ad68652fdeff464312829e1ef6c83e"
-        },
-        {
           "path": "native/libmigraphx_ref.so.2018000",
           "size": 3020344,
           "sha256": "76e327a54a9853d3e66799427d8ea10d92ad68652fdeff464312829e1ef6c83e"
-        },
-        {
-          "path": "native/libmigraphx_tf.so",
-          "size": 4537976,
-          "sha256": "b38348d572d79dfb371b68c549cca44c44bf1e14201e42287211e4521dbf5aed"
         },
         {
           "path": "native/libmigraphx_tf.so.2018000",

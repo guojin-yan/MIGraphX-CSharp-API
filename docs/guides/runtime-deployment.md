@@ -9,7 +9,7 @@ Version 1.0.0 distributes managed APIs and optional platform-specific MIGraphX e
 | `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64` | `runtimes/win-x64/native` | Radeon PRO W7900 / gfx1100 | Project build of AMD's rocm-10.1 source; included Windows patch |
 | `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64` | `runtimes/linux-x64/native` | Radeon PRO W7900 / gfx1100 | AMD MIGraphX 2.18.0 binary; ELF search paths relocated to `$ORIGIN` |
 
-The engine includes the C API, ONNX frontend, GPU/reference plugins, device code and HIPRTC helper. Ubuntu also supplies the TensorFlow frontend. Windows device code targets gfx1100. The Ubuntu binary contains additional GPU architectures, whose presence is not workload qualification. There is no macOS runtime package.
+The engine includes the C API, ONNX frontend, GPU/reference plugins, device code and HIPRTC helper. Ubuntu also supplies the TensorFlow frontend; its GPU validation used WSL2. Linux builds and published outputs create the required plugin symbolic links and helper executable permissions through the runtime package's MSBuild targets. Windows device code targets gfx1100. The Ubuntu binary contains additional GPU architectures, whose presence is not workload qualification. There is no macOS runtime package.
 
 ```bash
 dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 1.0.0

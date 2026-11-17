@@ -1,0 +1,16 @@
+<Project>
+  <!-- OpenCV 5.0.0 uses distro RIDs. Modern .NET only probes portable RIDs,
+       so copy the selected Linux payload to the application base directory. -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <OpenCvSampleRuntimePackage Condition="'$(OpenCvSampleRuntimePackage)' == ''">JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini</OpenCvSampleRuntimePackage>
+    <_OpenCvPackageDirectory>$([System.String]::Copy('$(OpenCvSampleRuntimePackage)').ToLowerInvariant())</_OpenCvPackageDirectory>
+    <_OpenCvRuntimeRid>$([System.String]::Copy('$(OpenCvSampleRuntimePackage)').Replace('JYPPX.OpenCV.runtime.', '').Replace('.mini', ''))</_OpenCvRuntimeRid>
+  </PropertyGroup>
+  <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <Content Include="$(NuGetPackageRoot)$(_OpenCvPackageDirectory)/5.0.0/runtimes/$(_OpenCvRuntimeRid)/native/*">
+      <Link>%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+</Project>

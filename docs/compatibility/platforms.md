@@ -1,6 +1,6 @@
 # Platform support and limitations
 
-Current source has additional bounded Windows 11 / W7900 / ROCm 10.1 / MIGraphX 2.18 validation. Its optional APIs, unavailable TensorFlow importer and tested paths are described in [2.18 development](../guides/runtime-2.18.md). The original Linux results below remain historical evidence. 当前源码的本机 Windows 验证范围与 2.18 功能限制见该指南。
+Release 1.0.0 has bounded Windows 11 and Ubuntu 24.04 / WSL2 package validation on W7900 / ROCm 10.1 / MIGraphX 2.18. Both platforms cover device I/O, callbacks, resource loops and clean build/publish discovery; Ubuntu also covers FP16/BF16/INT8/FP8. Optional APIs and native limitations are described in [2.18 development](../guides/runtime-2.18.md). The original Linux 2.15 results below remain historical evidence. 两个平台的 1.0.0 包均已完成真实 GPU 验证，范围不扩展到任意模型或设备。
 
 Release 1.0.0 provides separate MIGraphX 2.18 engine packages for Windows x64 and Ubuntu 24.04 x64, with ROCm 10.1 system prerequisites. Core and adapter packages contain managed assemblies only. The historical Ubuntu baseline below uses coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packages.
 

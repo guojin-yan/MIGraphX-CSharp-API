@@ -276,10 +276,10 @@ public sealed class RepositoryQualityTests
 
         foreach (var text in new[] { english, chinese })
         {
-            Assert.Contains("0.0.0", text, StringComparison.Ordinal);
+            Assert.Contains("1.0.0", text, StringComparison.Ordinal);
             Assert.Contains("JYPPX.ROCm.MIGraphX.CSharp.API", text, StringComparison.Ordinal);
             Assert.Contains("AMD", text, StringComparison.Ordinal);
-            Assert.Contains("ROCm 7.2.1", text, StringComparison.Ordinal);
+            Assert.Contains("ROCm 10.1", text, StringComparison.Ordinal);
             Assert.Contains("MIGraphXSharp.Workspace", text, StringComparison.Ordinal);
             Assert.Contains("docs/guides/getting-started.md", text, StringComparison.Ordinal);
             Assert.DoesNotContain("docs/validation/", text, StringComparison.Ordinal);

@@ -58,6 +58,7 @@ def package_entries(lock, source, version, commit):
                 "nativeVersion": lock["nativeVersion"], "rocmVersion": lock["rocmVersion"],
                 "sourceArchiveSha256": lock["archiveSha256"],
                 "source": lock["source"], "systemDependencies": lock["systemDependencies"],
+                "loaderAliases": lock.get("loaderAliases", {}),
                 "files": [{"path": n, "size": len(b), "sha256": digest(b)}
                           for n, b in sorted(entries.items())]}
     entries["native-manifest.json"] = (json.dumps(manifest, indent=2) + "\n").encode()
@@ -76,8 +77,24 @@ def package_entries(lock, source, version, commit):
     # Restore copies native assets to the application's RID directory. On Unix
     # the helper is an executable; NuGet ZIP extraction does not promise its mode.
     if lock["rid"] == "linux-x64":
-        target = '''<Project><Target Name="MIGraphXRuntimeExecutableMode" AfterTargets="CopyFilesToOutputDirectory;Publish" Condition="$([MSBuild]::IsOSPlatform('Linux'))"><ItemGroup><_MIGraphXHelper Include="$(TargetDir)**/migraphx-hiprtc-driver;$(PublishDir)**/migraphx-hiprtc-driver" /></ItemGroup><Exec Command="chmod +x &quot;%(_MIGraphXHelper.Identity)&quot;" Condition="Exists('%(_MIGraphXHelper.Identity)')" /></Target></Project>'''
-        entries[f"buildTransitive/{package_id}.targets"] = target.encode()
+        project = ET.Element("Project")
+        target = ET.SubElement(project, "Target", Name="MIGraphXRuntimeNativeLayout",
+                               AfterTargets="Build;Publish",
+                               Condition="$([MSBuild]::IsOSPlatform('Linux'))")
+        items = ET.SubElement(target, "ItemGroup")
+        ET.SubElement(items, "_MIGraphXHelper", Include="$(TargetDir)**/migraphx-hiprtc-driver;$(PublishDir)**/migraphx-hiprtc-driver")
+        ET.SubElement(target, "Exec", Command='chmod +x "%(_MIGraphXHelper.Identity)"',
+                      Condition="Exists('%(_MIGraphXHelper.Identity)')")
+        # ELF plugin loading uses unversioned names, while DT_NEEDED uses
+        # SONAMEs. Copies load the C++ registry twice and crash at exit; links
+        # must refer to the same inode. NuGet extraction cannot preserve links.
+        for alias, canonical in sorted(lock["loaderAliases"].items()):
+            if any(not re.fullmatch(r"[A-Za-z0-9_.-]+", n) for n in (alias, canonical)):
+                raise ValueError("Invalid native loader alias")
+            ET.SubElement(target, "Exec",
+                          Command=f'ln -sfn "{canonical}" "%(_MIGraphXHelper.RootDir)%(_MIGraphXHelper.Directory){alias}"',
+                          Condition="Exists('%(_MIGraphXHelper.Identity)')")
+        entries[f"buildTransitive/{package_id}.targets"] = ET.tostring(project, encoding="utf-8", xml_declaration=True)
     types = ET.Element("Types", xmlns="http://schemas.openxmlformats.org/package/2006/content-types")
     for ext in sorted({Path(n).suffix[1:] for n in entries if Path(n).suffix}):
         ET.SubElement(types, "Default", Extension=ext, ContentType="application/octet-stream")
