@@ -16,9 +16,14 @@ Invoke-DotNet -Arguments @('restore', $consumer, '--configfile', $config, '--pac
 Invoke-DotNet -Arguments @('build', $consumer, '-c', 'Release', '--no-restore', "-p:MIGraphXConsumerVersion=$Version", "-p:MIGraphXRuntimePlatform=$platform")
 & (Join-Path $root 'tests/fixtures/generate-onnx-identity.ps1') | Out-Host
 $assembly = Join-Path (Get-ArtifactsRoot) 'bin/RuntimePackageConsumer/Release/net10.0/RuntimePackageConsumer.dll'
-Invoke-DotNet -Arguments @($assembly, (Join-Path (Get-ArtifactsRoot) 'models/m2-identity-float32.onnx'))
+$model = Join-Path (Get-ArtifactsRoot) 'models/m2-identity-float32.onnx'
+$cache = Join-Path $audit 'reference.mxr'
+Invoke-DotNet -Arguments @($assembly, $model, 'save', $cache)
+Invoke-DotNet -Arguments @($assembly, $model, 'load', $cache)
 $rid = if ($IsWindows) { 'win-x64' } else { 'linux-x64' }
 $publish = Join-Path $audit 'publish'
 Invoke-DotNet -Arguments @('restore', $consumer, '--runtime', $rid, '--configfile', $config, '--packages', (Join-Path $audit 'packages'), '-p:SelfContained=false', "-p:MIGraphXConsumerVersion=$Version", "-p:MIGraphXRuntimePlatform=$platform")
 Invoke-DotNet -Arguments @('publish', $consumer, '-c', 'Release', '--no-restore', '--runtime', $rid, '--self-contained', 'false', '--output', $publish, "-p:MIGraphXConsumerVersion=$Version", "-p:MIGraphXRuntimePlatform=$platform")
-Invoke-DotNet -Arguments @((Join-Path $publish 'RuntimePackageConsumer.dll'), (Join-Path (Get-ArtifactsRoot) 'models/m2-identity-float32.onnx'))
+$publishedAssembly = Join-Path $publish 'RuntimePackageConsumer.dll'
+Invoke-DotNet -Arguments @($publishedAssembly, $model, 'save', $cache)
+Invoke-DotNet -Arguments @($publishedAssembly, $model, 'load', $cache)

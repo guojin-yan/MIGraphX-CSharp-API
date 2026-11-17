@@ -7,7 +7,7 @@
     <_OpenCvRuntimeRid>$([System.String]::Copy('$(OpenCvSampleRuntimePackage)').Replace('JYPPX.OpenCV.runtime.', '').Replace('.mini', ''))</_OpenCvRuntimeRid>
   </PropertyGroup>
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
-    <Content Include="$(NuGetPackageRoot)$(_OpenCvPackageDirectory)/5.0.0/runtimes/$(_OpenCvRuntimeRid)/native/*">
+    <Content Include="$(NuGetPackageRoot)/$(_OpenCvPackageDirectory)/5.0.0/runtimes/$(_OpenCvRuntimeRid)/native/*">
       <Link>%(Filename)%(Extension)</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

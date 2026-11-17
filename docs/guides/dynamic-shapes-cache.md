@@ -14,6 +14,8 @@ Synchronous host, asynchronous host and HIP device-input execution validate conc
 
 ## Save and load
 
+Save GPU model graphs before compilation, then compile the restored graph for the selected target. Restoring and recompiling an already compiled GPU snapshot is outside the 1.0.0 execution contract; on the tested Windows 2.18 engine it can produce invalid output shapes. A cache builder should return an uncompiled program. 请缓存编译前的 GPU 图，并在载入后针对目标设备重新编译；不要将已编译 GPU 快照当作可直接运行的缓存。
+
 ```csharp
 using var fileOptions = new MIGraphXFileOptions(nativePath, "msgpack");
 program.Save("/absolute/path/to/program.msgpack", fileOptions);

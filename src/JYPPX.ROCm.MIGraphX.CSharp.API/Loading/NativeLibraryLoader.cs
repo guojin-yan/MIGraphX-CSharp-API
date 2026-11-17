@@ -50,6 +50,18 @@ internal static class NativeLibraryLoader
 #endif
 
     internal static void LoadTargetPlugin(string targetName)
+        => LoadTargetPlugin(targetName, required: true);
+
+    internal static void LoadSerializationPlugins()
+    {
+        // Deserialization discovers the serialized target inside native code.
+        // Make sibling registries available first. A host-only reference file
+        // must remain loadable even when optional GPU dependencies are absent.
+        foreach (var name in new[] { "ref", "gpu", "cpu" })
+            LoadTargetPlugin(name, required: false);
+    }
+
+    private static void LoadTargetPlugin(string targetName, bool required)
     {
         if (!IsWindows()) return;
         var fileName = targetName == "ref" ? "migraphx_ref.dll"
@@ -63,9 +75,12 @@ internal static class NativeLibraryLoader
             // Older/system runtimes can provide plugins through their own loader.
             if (targetPlugins.ContainsKey(plugin) || !File.Exists(plugin)) return;
             if (!TryLoad(plugin, out var handle, out var failure))
+            {
+                if (!required) return;
                 throw new MIGraphXNativeLoadException(new[] {
                     new MIGraphXNativeDiagnostic(plugin, "selected-runtime-target-plugin", true,
                         MIGraphXNativeDiagnosticKind.LoadFailure, failure ?? "Target plugin loading failed.") });
+            }
             targetPlugins.Add(plugin, handle);
         }
     }

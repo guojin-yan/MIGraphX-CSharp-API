@@ -198,6 +198,7 @@ internal sealed class NativeProgramHandle : NativeOwnedHandle
 
     internal static NativeProgramHandle Load(IntPtr path, IntPtr options)
     {
+        Loading.NativeLibraryLoader.LoadSerializationPlugins();
         var slot = Marshal.AllocHGlobal(IntPtr.Size);
         try
         {
