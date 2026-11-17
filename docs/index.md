@@ -13,9 +13,9 @@ MIGraphX CSharp API is a managed API for AMD MIGraphX. Start with the [installat
 | Look up types and methods | [API reference](api/index.md) |
 | Review releases, compatibility and upgrade instructions | [Release history](release-notes/README.md) |
 | Read Chinese release and application articles | [Technical blog](blog/README.md) |
-| Run CLIP image/text matching | [CLIP sample](../samples/Clip/README.md) |
-| Parse document layout, OCR and tables | [PP-Structure sample](../samples/PPStructure/README.md) |
+| Run CLIP image/text matching | [CLIP sample](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/samples/Clip/README.md) |
+| Parse document layout, OCR and tables | [PP-Structure sample](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/samples/PPStructure/README.md) |
 
-Download version `0.0.2` from [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2). Install the coherent ROCm 7.2.1 / MIGraphX 2.15.0 system runtime separately. Real-runtime qualification is partial; the platform guide describes the limits that affect application choices.
+Download version `1.0.0` from [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v1.0.0). Add the platform runtime package for MIGraphX 2.18 and install the coherent ROCm 10.1 system libraries and driver separately. Real-runtime qualification is partial; the platform guide describes the limits that affect application choices.
 
 中文提示：请先阅读入门和部署指南；高级 API 的存在不代表所有真实运行语义已经验证。

@@ -39,6 +39,7 @@ typedef struct fake_dynamic_dimensions
     size_t count;
     size_t size_calls;
     fake_dynamic_dimension* values[8];
+    fake_dynamic_dimension owned_values[8];
 } *migraphx_dynamic_dimensions_t;
 typedef struct fake_optimals { size_t count; size_t values[8]; } *migraphx_optimals_t;
 typedef struct fake_file_options { char format[32]; } *migraphx_file_options_t;
@@ -1180,7 +1181,7 @@ EXPORT migraphx_status migraphx_dynamic_dimensions_create(migraphx_dynamic_dimen
     if(out == NULL || (count != 0 && values == NULL) || count > 8) return migraphx_status_bad_param;
     if(take_null_for("migraphx_dynamic_dimensions_create")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_create"); }
     *out = (migraphx_dynamic_dimensions_t)create_m5(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error;
-    (*out)->count = count; for(size_t i = 0; i < count; ++i) { if(values[i] == NULL) { destroy_m5(*out); *out = NULL; return migraphx_status_bad_param; } (*out)->values[i] = values[i]; }
+    (*out)->count = count; for(size_t i = 0; i < count; ++i) { if(values[i] == NULL) { destroy_m5(*out); *out = NULL; return migraphx_status_bad_param; } (*out)->owned_values[i] = *values[i]; (*out)->values[i] = &(*out)->owned_values[i]; }
     return (migraphx_status)take_status_for("migraphx_dynamic_dimensions_create");
 }
 EXPORT migraphx_status migraphx_dynamic_dimensions_size(size_t* out, migraphx_dynamic_dimensions_t value)
@@ -1211,7 +1212,7 @@ EXPORT migraphx_status migraphx_shape_dyn_dims(migraphx_dynamic_dimensions_t* ou
     if(out == NULL || shape == NULL || !shape->dynamic) return migraphx_status_bad_param;
     if(take_null_for("migraphx_shape_dyn_dims")) { *out = NULL; return (migraphx_status)take_status_for("migraphx_shape_dyn_dims"); }
     *out = (migraphx_dynamic_dimensions_t)create_m5(sizeof(**out)); if(*out == NULL) return migraphx_status_unknown_error;
-    (*out)->count = shape->dynamic_count; for(size_t i = 0; i < shape->dynamic_count; ++i) (*out)->values[i] = &shape->dynamic_values[i];
+    (*out)->count = shape->dynamic_count; for(size_t i = 0; i < shape->dynamic_count; ++i) { (*out)->owned_values[i] = shape->dynamic_values[i]; (*out)->values[i] = &(*out)->owned_values[i]; }
     return (migraphx_status)take_status_for("migraphx_shape_dyn_dims");
 }
 

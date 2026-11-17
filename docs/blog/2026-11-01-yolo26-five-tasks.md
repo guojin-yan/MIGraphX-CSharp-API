@@ -1,5 +1,7 @@
 # MIGraphX CSharp API 实战：用 YOLO26 理解模型编译、张量与 HIP 显存推理
 
+> 历史文章：本文图像代码及性能结果对应当时源码；当前 0.0.3 候选源码已迁移至 OpenCV，使用方式见[迁移指南](../guides/opencv-imaging.md)。
+
 ![MIGraphX CSharp API YOLO26 技术实战：模型编译、类型化张量与 HIP 显存执行](assets/yolo26/cover.png)
 
 ## 一、MIGraphX CSharp API 项目简介

@@ -1,0 +1,1163 @@
+{
+  "schemaVersion": 1,
+  "platforms": {
+    "win-x64": {
+      "platform": "win-x64",
+      "packageId": "JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64",
+      "rid": "win-x64",
+      "nativeVersion": "2.18.0",
+      "rocmVersion": "10.1.0",
+      "archiveAsset": "MIGraphX-native-win-x64-2.18.0.zip",
+      "archiveSha256": "ae12ab0244af11e50116b4e858c6d1a3a3958ad20b05ad2568e8749f4779c5ab",
+      "source": {
+        "kind": "project-source-build",
+        "url": "https://github.com/ROCm/AMDMIGraphX/archive/refs/tags/rocm-10.1.zip",
+        "archiveSha256": "7cd07fa948ac6bce4a19a86aa7b5445cb25791cf11a609273cbdef6eb6c387cd",
+        "patchSha256": "2e60bab96b08ae0683166c09aac7b1469dca0e4a3bc771e7469a812e4dcb704c",
+        "compiler": "ROCm clang 24 / MSVC 14.52; Release O3; type-erased matchers",
+        "gpuArchitectures": [
+          "gfx1100"
+        ],
+        "disabled": [
+          "TensorFlow importer",
+          "optimized CPU target",
+          "rocMLIR",
+          "Composable Kernel",
+          "Eigen"
+        ],
+        "inputFiles": [
+          {
+            "path": "bin/migraphx.dll",
+            "sha256": "423ed7b28d393617f99fe14c1f18e3fc9f03e663ca1223088a681f92fe4d2a19"
+          },
+          {
+            "path": "bin/migraphx_c.dll",
+            "sha256": "8e4ac30ebd51808ba0210d1a9292221d74041b1edb7fa576fa9d22909bb18aab"
+          },
+          {
+            "path": "bin/migraphx_gpu.dll",
+            "sha256": "149907d84ce85b521049e7b9a32744be45967a40a781b503727d444314ded335"
+          },
+          {
+            "path": "bin/migraphx_device.dll",
+            "sha256": "2db4a5b52b1099867f42194d55f06fe27319757125f5b48d397c8e2b8cc543fb"
+          },
+          {
+            "path": "bin/migraphx_onnx.dll",
+            "sha256": "83db66189938fc28bfb7f64974bffcdc3156497f29b291c14d94ffb6be0e737a"
+          },
+          {
+            "path": "bin/migraphx_ref.dll",
+            "sha256": "160b23390e523f72fb0b501446bc37c9033b199bfb76d77b4f3e423d2c62237d"
+          },
+          {
+            "path": "bin/migraphx-hiprtc-driver.exe",
+            "sha256": "cf7420db0bc82421b0841ac8889f30c3a49fb46f69464b51c7c85bc028f38539"
+          }
+        ]
+      },
+      "systemDependencies": [
+        "Windows x64 compatible AMD driver",
+        "Visual C++ x64 Redistributable / UCRT",
+        "ROCm 10.1 HIP/HIPRTC, COMGR, MIOpen, rocBLAS, hipBLASLt and transitive libraries",
+        "ROCm GPU device data and bitcode"
+      ],
+      "files": [
+        {
+          "path": "licenses/ComposableKernel-LICENSE.txt",
+          "size": 1726,
+          "sha256": "20f3b83dfda01bd18d285e0edbb9d044be6dde04cdf76a1ec18d9fc7127936bf"
+        },
+        {
+          "path": "licenses/Eigen-BSD.txt",
+          "size": 1516,
+          "sha256": "4f877e5ae4672568ef82cfd0023e2cef4a7cf55d867ab249efc9569a7eb9e5b1"
+        },
+        {
+          "path": "licenses/Eigen-MPL2.txt",
+          "size": 16726,
+          "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
+        },
+        {
+          "path": "licenses/MIGraphX-LICENSE.txt",
+          "size": 1117,
+          "sha256": "2282fd4f9d4acde1c5ab41a3d189752fd0af1048aec181519a903a0c8da8de53"
+        },
+        {
+          "path": "licenses/SQLite-PUBLIC-DOMAIN.txt",
+          "size": 71,
+          "sha256": "1b4174fdcc5123c37c673fface3bdb1e7ad7106b1f2e293bfaac7f804a5ce240"
+        },
+        {
+          "path": "licenses/abseil-LICENSE.txt",
+          "size": 11361,
+          "sha256": "c79a7fea0e3cac04cd43f20e7b648e5a0ff8fa5344e644b0ee09ca1162b62747"
+        },
+        {
+          "path": "licenses/msgpack-COPYING.txt",
+          "size": 200,
+          "sha256": "664550b43996452a5a2c7471bb0ff77185a58c69ccafa60f983dc4c162e1ee22"
+        },
+        {
+          "path": "licenses/msgpack-LICENSE_1_0.txt.txt",
+          "size": 1338,
+          "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+        },
+        {
+          "path": "licenses/msgpack-NOTICE.txt",
+          "size": 419,
+          "sha256": "10514de451bfef1eee4885ce1da8d0e3fdfe36f58357d9199ed0201cdae0334e"
+        },
+        {
+          "path": "licenses/protobuf-LICENSE.txt",
+          "size": 1732,
+          "sha256": "6e5e117324afd944dcf67f36cf329843bc1a92229a8cd9bb573d7a83130fea7d"
+        },
+        {
+          "path": "licenses/pybind11-LICENSE.txt",
+          "size": 1684,
+          "sha256": "83965b843b98f670d3a85bd041ed4b372c8ec50d7b4a5995a83ac697ba675dcb"
+        },
+        {
+          "path": "licenses/rocm-cmake-LICENSE.txt",
+          "size": 1085,
+          "sha256": "88d4e50ccb9e041cd667888f9639d21a9caf600b4aca5f899ea03f30752ba5f1"
+        },
+        {
+          "path": "licenses/xxHash-LICENSE.txt",
+          "size": 1389,
+          "sha256": "6ffedbc0f7878612d2b23589f1ff2ab15633e1df7963a5d9fc750ec5500c7e7a"
+        },
+        {
+          "path": "native/migraphx-hiprtc-driver.exe",
+          "size": 91136,
+          "sha256": "cf7420db0bc82421b0841ac8889f30c3a49fb46f69464b51c7c85bc028f38539"
+        },
+        {
+          "path": "native/migraphx.dll",
+          "size": 50515456,
+          "sha256": "423ed7b28d393617f99fe14c1f18e3fc9f03e663ca1223088a681f92fe4d2a19"
+        },
+        {
+          "path": "native/migraphx_c.dll",
+          "size": 366592,
+          "sha256": "8e4ac30ebd51808ba0210d1a9292221d74041b1edb7fa576fa9d22909bb18aab"
+        },
+        {
+          "path": "native/migraphx_device.dll",
+          "size": 2907136,
+          "sha256": "2db4a5b52b1099867f42194d55f06fe27319757125f5b48d397c8e2b8cc543fb"
+        },
+        {
+          "path": "native/migraphx_gpu.dll",
+          "size": 5237248,
+          "sha256": "149907d84ce85b521049e7b9a32744be45967a40a781b503727d444314ded335"
+        },
+        {
+          "path": "native/migraphx_onnx.dll",
+          "size": 3549696,
+          "sha256": "83db66189938fc28bfb7f64974bffcdc3156497f29b291c14d94ffb6be0e737a"
+        },
+        {
+          "path": "native/migraphx_ref.dll",
+          "size": 1078272,
+          "sha256": "160b23390e523f72fb0b501446bc37c9033b199bfb76d77b4f3e423d2c62237d"
+        },
+        {
+          "path": "sources/migraphx-windows.patch",
+          "size": 1815,
+          "sha256": "2e60bab96b08ae0683166c09aac7b1469dca0e4a3bc771e7469a812e4dcb704c"
+        }
+      ]
+    },
+    "ubuntu.24.04-x64": {
+      "platform": "ubuntu.24.04-x64",
+      "packageId": "JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64",
+      "rid": "linux-x64",
+      "nativeVersion": "2.18.0",
+      "rocmVersion": "10.1.0",
+      "archiveAsset": "MIGraphX-native-ubuntu.24.04-x64-2.18.0.zip",
+      "archiveSha256": "bfbda5b118d69092da8cc6f5f6f39e6d472ce685f9e5439275714c6e798c5a40",
+      "source": {
+        "kind": "AMD-native-binary-with-relocated-rpath",
+        "url": "https://stable.repo.amd.com/rocm/migraphx/tarball/amdrocm10-migraphx-2.18.0.tar.gz",
+        "archiveSha256": "200ad8ef19057615f577c58af4b3010acc22ca1e8425a5866e96c42209f7d2a4",
+        "transformation": "patchelf --set-rpath $ORIGIN for ELF libraries/helper; duplicate SONAME libraries under unversioned loader names; device code unchanged",
+        "gpuArchitectures": [
+          "gfx1010",
+          "gfx1030",
+          "gfx1100",
+          "gfx1101",
+          "gfx1102",
+          "gfx1103",
+          "gfx1150",
+          "gfx1151",
+          "gfx1152",
+          "gfx1153",
+          "gfx1200",
+          "gfx1201",
+          "gfx906",
+          "gfx908",
+          "gfx90a",
+          "gfx942",
+          "gfx950"
+        ],
+        "inputFiles": [
+          {
+            "path": "lib/libmigraphx.so.2018000",
+            "sha256": "734925781361ced910f17958819cb39b29ef87d11f60b9139e49fcb8763cbe91",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          },
+          {
+            "path": "lib/libmigraphx_c.so.3",
+            "sha256": "4961e0f38b1c27c52062a1155d5d34e55f2d8e01b5d388707b3778186c1eef82",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          },
+          {
+            "path": "lib/libmigraphx_gpu.so.2018000",
+            "sha256": "56024d4f13cd04be65d9abc95d54dc0e122155fbefc665b65b5d2bde9a60c9e9",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000",
+            "sha256": "76a8b155dc8c38a28356720eda3048c17e34e5310645d7fedb4075c6a33942f7",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          },
+          {
+            "path": "lib/libmigraphx_onnx.so.2018000",
+            "sha256": "3c369e6a28a5cc60215df15972efc3438f3720a710b50dfcd7939ecfadeed6ba",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          },
+          {
+            "path": "lib/libmigraphx_ref.so.2018000",
+            "sha256": "e3f3772fc3ff3c8ea182cf60fd975c760b0ab6d273c12b63791efb5007dc10a0",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          },
+          {
+            "path": "lib/libmigraphx_tf.so.2018000",
+            "sha256": "e21d07d025c56f4f2dd911f0b220156a25266880d77131f323a27ed75f80ec94",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1010",
+            "sha256": "53a24c7b855d4b10276dfcec5e7e21252ca5cb63a59b315558955c97634230ea"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1030",
+            "sha256": "016630b837fdd58e5a0e79f71b4718cfac334dca674cc2ec630846d1b83bacab"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1100",
+            "sha256": "badf571dbc7eebef8fcb83e5dcbd70707aa425765b240445eeb256311d71c00e"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1101",
+            "sha256": "f762654f0194f792fd107d31919dd264d1d15946dd012fb6ab86d8a842d471b4"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1102",
+            "sha256": "b04439d884e4ba2df55a0d56e7c1de46da3d24c77ddd1b2a93aeb7a9852d95e0"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1103",
+            "sha256": "d96c820a691a35b0c61f0c7d2b0a7c23cbf156f5a2faf59f082d2ed0f3c561d4"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1150",
+            "sha256": "088b4f8ab156e67a7b46e18478362b922a176ef34ddcdae01d230c1093ac962b"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1151",
+            "sha256": "fa8217d8cf1c2dc7e6d6966035dc1634b9872f4509e40b377299877f461a9cd0"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1152",
+            "sha256": "0fd9b0ac270c08e39ca9d78c541d57de0f672eb10cf2c373957f8abf57c299bc"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1153",
+            "sha256": "e2b8e61b4662d78624fb2de1b95eb899f255096a6208fbd325fba6c0a039dd1d"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1200",
+            "sha256": "f6a3bedf16bae755f73680646018166d02b321e44de10bc09ded9bd2fe178ddd"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1201",
+            "sha256": "11ec122e9869558dc3bf3948fdd0d344472bbe88cbe267b9cadb812c0e91e38a"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx906",
+            "sha256": "001addea154b42aa54d6468d1e062a24522206333a2ff4c500be088f89da46e1"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx908",
+            "sha256": "7b370d00e146428d708c84b6e7bf012d6d5318f0eba6b408bda34fbdaab8af56"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx90a",
+            "sha256": "a057a157b8ac973fc9bf53d4cb9c72f914e4c1a14af3bca916dd5dfde48e8804"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx942",
+            "sha256": "8958f93396e59335fd82f9a960ac0c0e8d474997bf255e91f1c3b75045e14815"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx950",
+            "sha256": "287c34e10bad5764da974c2e0fc29f440d3a151cc70aae6df434e3d4fbb943ab"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1010",
+            "sha256": "d696d626c9cd036ca102d22e94f2a96e20f3dd3345bf334626c727f6037f0883"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1030",
+            "sha256": "154ba8fbfd0f2f646a2acd02df2acc6c99425e7b4363f6ca2f72d503d88fcce6"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1100",
+            "sha256": "d391b482d232d24d767eb38292be0d734e7f3d06581a9abd9be8950a3891280f"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1101",
+            "sha256": "2ed95a855c5b74de380c18dc1ad587caaf74ab3b9d3070d8c8e9f4286b20b776"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1102",
+            "sha256": "796c55309ab7ed2789a2e703b4490304bae510aae02179de5447f3921f3c67c4"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1103",
+            "sha256": "d73db55efe063c36485443fe16fbda5b8df5c9b47bce4033ee7dc5b14a03821f"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1150",
+            "sha256": "56f73af895bd444e6347e1e5909b17d4395abcc2bec4f1cdfa52248f9cf42edf"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1151",
+            "sha256": "1c49fed7befb14008ccda9862b49ebe12b33b4570586b1403afef57e079a9d4b"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1152",
+            "sha256": "a961e84fa0e233d7c9343dad70ca738f5fc6a6ee84a2155489ccdfab6885cc03"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1153",
+            "sha256": "849fd36deb656f0ce76375903b46450e926db30d4ff06cccd9cc7e231531ee0a"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1200",
+            "sha256": "6b5f3548f008d443b3eb73b3c53e86995c65174128b2ef9e678e96197c9c6ec9"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1201",
+            "sha256": "289c6a467c7566344fd8df3898995d2056c6c4a337f4d4adb1c71fa332e95f0d"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx906",
+            "sha256": "5cc78d54483a4ecee2c0ec16c2423c78fdb0273aa47c98b58afbca51d7c06346"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx908",
+            "sha256": "8054478ea7a9b103e427f77d4094f2a725587ab9b06aec8c0de737645af72af0"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx90a",
+            "sha256": "297bf167661eff94980354e3d819f57c1336961e6015b45427f76f915e3acd42"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx942",
+            "sha256": "a8e2d253828472ea51c8b2af14c0317754e53bce006cfcaaf66a4a521d9aa1a6"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx950",
+            "sha256": "3d4956d2b18c7cb6c3bfb0bc36a3cadf25b3b1c5c59577d87301e9c616627129"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1010",
+            "sha256": "78cd24f58f4e1aa9e414e9676d116f26c7ebfc74c84f92fdde1731091fcde931"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1030",
+            "sha256": "4280830d00ec841b936c26380f2bfab61c0de7d7ec1809a312fcc6341b33aa0b"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1100",
+            "sha256": "04982cd4d2069d5161ded3beae474f14e9e63e562f537f063b22911790720fcc"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1101",
+            "sha256": "a2590f1028197361001d903765c5f33f19409aac37021529edac1b207ac9e5ef"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1102",
+            "sha256": "bab434f60caad7a1278a1b90d720748637c5843c260030cd14039958e869eec2"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1103",
+            "sha256": "e65f9aecb83971a7736db30c44f760f9e3c629218999822ed2b7b25bd8a9efe0"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1150",
+            "sha256": "f34c37deedfba3a84069ed4050776eff68c7c1dd7b498fead857214d47537fd7"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1151",
+            "sha256": "90c20efc46f1903cdb14a5ba961c29dee770172c0681e7807e95bcaa493f6c59"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1152",
+            "sha256": "455b0b2dc5ef6d82091f8e5b822fc26dfcc8a3108caaa4632f4f179fa64deac9"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1153",
+            "sha256": "5e50db1c950cb0451b3c7f23c201b340a732b43d59fc1a2bdfb2682cbba03b5e"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1200",
+            "sha256": "25502949c1ad4740058f60dab9d962400e7d019ddd5e15bdf230b00aab17ac0c"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1201",
+            "sha256": "60a3b380cd986465d504805921e4b9a143416816e731f62d94727a1d889d7b68"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx906",
+            "sha256": "04c5c714ec4d3b02e466bdd65dc3c42726fd2dd295664fbcb1457a9407f6c03a"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx908",
+            "sha256": "6fa228a74aa555b05c8d9077e5907b6d60995277bc607e7eddeb7ec886b948d9"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx90a",
+            "sha256": "a78bd30740aff665ab3483b633e5f487827652f4e808b8ebf69b02a9c9b9594d"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx942",
+            "sha256": "33a539b198d6af5aa2eac6f6cbf82076f0b12bfa1bc05f1ae221614794f14bbc"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx950",
+            "sha256": "ff3021dff9a53d3ad70a90fafeda15193db1ab4f7682b3b924472394e997384f"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1010",
+            "sha256": "ec2978e3b89968f23cdd1c95f86e56673cceab49bcb61a04f26946202abd602e"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1030",
+            "sha256": "817f436433b949cce6577a8286f920c0e54d32beadfe60c22caa4ac7bc0c7c24"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1100",
+            "sha256": "68a7f0604b9e40327eb72587858a29591a0f643fc618f312e2fd2333a31b2078"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1101",
+            "sha256": "d75f346f2c428296f2107bb53100c3f85229c5d70c0b8a85bb9e7f99ea2802df"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1102",
+            "sha256": "6f7900cc8f7b7a402cce055ea81862a7eabef2da691b5cf1d95f9a0f0100e978"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1103",
+            "sha256": "fa864cc9c40fc34efcb4fecf923fd8470c0c0abd09f9f81a716fa16670c296ee"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1150",
+            "sha256": "89bfcc25fed2397dee5577f972c259561048756f7ca862ee28f3ee8d9e9e75f5"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1151",
+            "sha256": "2f299e930f3e6338675074b6b289866e43aa0fce7c336a4b16160ff014ca8442"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1152",
+            "sha256": "2dbc61951a37d1814963fae8eed45e2d4f088907009740c569c4f61a6f38e883"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1153",
+            "sha256": "802146411a7bb4fcc84f69fa162889f1c0b2c9afb214de5f5d2f5d2f4e5ac8b6"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1200",
+            "sha256": "480dcb44e70625b1e1a9c962657ce80813bb08d30735add4973d968ea1bb379d"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1201",
+            "sha256": "b10fda5f87f5a6ba3b774ae2f5bf4ea2ae0ceaf72985426cf54ba0c74fc17cb5"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx906",
+            "sha256": "e4edba538cd14ef17eea2c8cde90299efa29c68a5bf379f10eb41fa209f3be24"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx908",
+            "sha256": "07cf707dd18bf63c37ed97de2de20934709315bb6a887f3c546158b29c6cb0d6"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx90a",
+            "sha256": "8b2e0d5618d91b6d5cc7031532f2c4a70e3041a5cd503ea51d1201304a7b4c2a"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx942",
+            "sha256": "1173f8c0073752259ee78c5e98b278e7a96e0941dadb314a5bc43e41dcf863ad"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx950",
+            "sha256": "fbbb437b0d2e1ff7c1dd08902a0dd57a7d4cdd4963011623fb87f7278dd77989"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1010",
+            "sha256": "437e843a0a02c365fa0c81c2b1f688e20c9fa8e8a0b5bc85f84f05a6ca8bdfe8"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1030",
+            "sha256": "e48743b2283870528f23405432a7e1f503a3f60c5f56ef29c6ea923d3cdb030a"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1100",
+            "sha256": "edea8572443aa2be24f666833b7dd7700ae163e1bf8a1bcf6d896f0456e40ed3"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1101",
+            "sha256": "1b8df23fdcaacee2978e803e1185b291681359aba0d67fa96a9712ea46c1c282"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1102",
+            "sha256": "ef315bc63ac065537799421a066367299de91809de81982dfdb9dab3d1f9547e"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1103",
+            "sha256": "90396a9a4cdc15e597193e102011f5e5c3fd287d96cb77e5f6ac2b9e2ee83dfa"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1150",
+            "sha256": "d62959db1e4bdda347b235659d37b865d17058616df9ac8d02c9c1f63d71056a"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1151",
+            "sha256": "83123f68ea8fc812bca5b1a83d514c8244b8b6ef89b89d2340db86307f2f43f6"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1152",
+            "sha256": "d93be5534625c7ccd5657f24e2e7b5d72f0014432e83bd2ee08dec1db2e0c189"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1153",
+            "sha256": "ab2af0026935222f33131f0bca3b511792fa4b9dc80a22a1edc5e35230f63c00"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1200",
+            "sha256": "19491158efe2ccd4b0d5f7644f3448f8790417bb86a03395afedfc1a667e002f"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1201",
+            "sha256": "c1714dcec594aa1f8141e3c65947822b82be7ce67d54d9b954155720ee36166d"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx906",
+            "sha256": "89402e4a335b6a3debf5cf672e1c55aae8ac978194abc03552b2f159b6b45b31"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx908",
+            "sha256": "f8ebb59abbacd1008641b5ead73d9e604e4e54b81e9966cbd9f6e5a3ac7ba39e"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx90a",
+            "sha256": "022af080919a3d31e5e59bb431ab011fe36714727e745f26e4d308eb103d6f58"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx942",
+            "sha256": "675b64c68704aff4b6afd9b4cb77fc04284e3e999969fd4560223e2663848201"
+          },
+          {
+            "path": "lib/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx950",
+            "sha256": "eba84def28b009b5d8fa76f5e6f363816fb927e1de64a8b5815b6a75480c794e"
+          },
+          {
+            "path": "bin/migraphx-hiprtc-driver",
+            "sha256": "13c173cc3e3e5d8acb39b44ae12145ecb2a89c50e8f1a3198956a1066bd24929",
+            "transformation": "patchelf --set-rpath $ORIGIN"
+          }
+        ]
+      },
+      "systemDependencies": [
+        "Ubuntu 24.04 x64; compatible AMD driver and GPU device access",
+        "glibc, libstdc++, libgcc, zlib, libnuma, libelf, libdrm and transitive OS libraries",
+        "ROCm 10.1 HIP/HIPRTC, COMGR, HSA, MIOpen, rocBLAS, hipBLASLt and transitive libraries",
+        "ROCm GPU device data, bitcode and WSL driver bridge when applicable"
+      ],
+      "files": [
+        {
+          "path": "licenses/ComposableKernel-LICENSE.txt",
+          "size": 1726,
+          "sha256": "20f3b83dfda01bd18d285e0edbb9d044be6dde04cdf76a1ec18d9fc7127936bf"
+        },
+        {
+          "path": "licenses/Eigen-BSD.txt",
+          "size": 1516,
+          "sha256": "4f877e5ae4672568ef82cfd0023e2cef4a7cf55d867ab249efc9569a7eb9e5b1"
+        },
+        {
+          "path": "licenses/Eigen-MPL2.txt",
+          "size": 16726,
+          "sha256": "fab3dd6bdab226f1c08630b1dd917e11fcb4ec5e1e020e2c16f83a0a13863e85"
+        },
+        {
+          "path": "licenses/MIGraphX-LICENSE.txt",
+          "size": 1117,
+          "sha256": "2282fd4f9d4acde1c5ab41a3d189752fd0af1048aec181519a903a0c8da8de53"
+        },
+        {
+          "path": "licenses/SQLite-PUBLIC-DOMAIN.txt",
+          "size": 71,
+          "sha256": "1b4174fdcc5123c37c673fface3bdb1e7ad7106b1f2e293bfaac7f804a5ce240"
+        },
+        {
+          "path": "licenses/abseil-LICENSE.txt",
+          "size": 11361,
+          "sha256": "c79a7fea0e3cac04cd43f20e7b648e5a0ff8fa5344e644b0ee09ca1162b62747"
+        },
+        {
+          "path": "licenses/msgpack-COPYING.txt",
+          "size": 200,
+          "sha256": "664550b43996452a5a2c7471bb0ff77185a58c69ccafa60f983dc4c162e1ee22"
+        },
+        {
+          "path": "licenses/msgpack-LICENSE_1_0.txt.txt",
+          "size": 1338,
+          "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+        },
+        {
+          "path": "licenses/msgpack-NOTICE.txt",
+          "size": 419,
+          "sha256": "10514de451bfef1eee4885ce1da8d0e3fdfe36f58357d9199ed0201cdae0334e"
+        },
+        {
+          "path": "licenses/protobuf-LICENSE.txt",
+          "size": 1732,
+          "sha256": "6e5e117324afd944dcf67f36cf329843bc1a92229a8cd9bb573d7a83130fea7d"
+        },
+        {
+          "path": "licenses/pybind11-LICENSE.txt",
+          "size": 1684,
+          "sha256": "83965b843b98f670d3a85bd041ed4b372c8ec50d7b4a5995a83ac697ba675dcb"
+        },
+        {
+          "path": "licenses/rocm-cmake-LICENSE.txt",
+          "size": 1085,
+          "sha256": "88d4e50ccb9e041cd667888f9639d21a9caf600b4aca5f899ea03f30752ba5f1"
+        },
+        {
+          "path": "licenses/xxHash-LICENSE.txt",
+          "size": 1389,
+          "sha256": "6ffedbc0f7878612d2b23589f1ff2ab15633e1df7963a5d9fc750ec5500c7e7a"
+        },
+        {
+          "path": "native/libmigraphx.so",
+          "size": 128696992,
+          "sha256": "78381cff7f00ea36ff3e581ee02667e2309e350f2372dc336afe4bbbe781f929"
+        },
+        {
+          "path": "native/libmigraphx.so.2018000",
+          "size": 128696992,
+          "sha256": "78381cff7f00ea36ff3e581ee02667e2309e350f2372dc336afe4bbbe781f929"
+        },
+        {
+          "path": "native/libmigraphx_c.so",
+          "size": 476296,
+          "sha256": "5008f91759ec88fab7587921e81fb4056e9ba7cdfe11b9787b0eecda7c20316a"
+        },
+        {
+          "path": "native/libmigraphx_c.so.3",
+          "size": 476296,
+          "sha256": "5008f91759ec88fab7587921e81fb4056e9ba7cdfe11b9787b0eecda7c20316a"
+        },
+        {
+          "path": "native/libmigraphx_device.so",
+          "size": 26609232,
+          "sha256": "ecc2414cce9d7073101abdaa7a65913d6e1a10d379f6ceee0fb742be41c7587f"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000",
+          "size": 26609232,
+          "sha256": "ecc2414cce9d7073101abdaa7a65913d6e1a10d379f6ceee0fb742be41c7587f"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1010",
+          "size": 656825,
+          "sha256": "53a24c7b855d4b10276dfcec5e7e21252ca5cb63a59b315558955c97634230ea"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1030",
+          "size": 660921,
+          "sha256": "016630b837fdd58e5a0e79f71b4718cfac334dca674cc2ec630846d1b83bacab"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1100",
+          "size": 660921,
+          "sha256": "badf571dbc7eebef8fcb83e5dcbd70707aa425765b240445eeb256311d71c00e"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1101",
+          "size": 660921,
+          "sha256": "f762654f0194f792fd107d31919dd264d1d15946dd012fb6ab86d8a842d471b4"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1102",
+          "size": 660921,
+          "sha256": "b04439d884e4ba2df55a0d56e7c1de46da3d24c77ddd1b2a93aeb7a9852d95e0"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1103",
+          "size": 660921,
+          "sha256": "d96c820a691a35b0c61f0c7d2b0a7c23cbf156f5a2faf59f082d2ed0f3c561d4"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1150",
+          "size": 660921,
+          "sha256": "088b4f8ab156e67a7b46e18478362b922a176ef34ddcdae01d230c1093ac962b"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1151",
+          "size": 660921,
+          "sha256": "fa8217d8cf1c2dc7e6d6966035dc1634b9872f4509e40b377299877f461a9cd0"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1152",
+          "size": 660921,
+          "sha256": "0fd9b0ac270c08e39ca9d78c541d57de0f672eb10cf2c373957f8abf57c299bc"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1153",
+          "size": 660921,
+          "sha256": "e2b8e61b4662d78624fb2de1b95eb899f255096a6208fbd325fba6c0a039dd1d"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1200",
+          "size": 665017,
+          "sha256": "f6a3bedf16bae755f73680646018166d02b321e44de10bc09ded9bd2fe178ddd"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx1201",
+          "size": 665017,
+          "sha256": "11ec122e9869558dc3bf3948fdd0d344472bbe88cbe267b9cadb812c0e91e38a"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx906",
+          "size": 650137,
+          "sha256": "001addea154b42aa54d6468d1e062a24522206333a2ff4c500be088f89da46e1"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx908",
+          "size": 655481,
+          "sha256": "7b370d00e146428d708c84b6e7bf012d6d5318f0eba6b408bda34fbdaab8af56"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx90a",
+          "size": 655481,
+          "sha256": "a057a157b8ac973fc9bf53d4cb9c72f914e4c1a14af3bca916dd5dfde48e8804"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx942",
+          "size": 655481,
+          "sha256": "8958f93396e59335fd82f9a960ac0c0e8d474997bf255e91f1c3b75045e14815"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.0.hip-amdgcn-amd-amdhsa--gfx950",
+          "size": 655481,
+          "sha256": "287c34e10bad5764da974c2e0fc29f440d3a151cc70aae6df434e3d4fbb943ab"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1010",
+          "size": 293257,
+          "sha256": "d696d626c9cd036ca102d22e94f2a96e20f3dd3345bf334626c727f6037f0883"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1030",
+          "size": 293257,
+          "sha256": "154ba8fbfd0f2f646a2acd02df2acc6c99425e7b4363f6ca2f72d503d88fcce6"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1100",
+          "size": 297353,
+          "sha256": "d391b482d232d24d767eb38292be0d734e7f3d06581a9abd9be8950a3891280f"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1101",
+          "size": 297353,
+          "sha256": "2ed95a855c5b74de380c18dc1ad587caaf74ab3b9d3070d8c8e9f4286b20b776"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1102",
+          "size": 297353,
+          "sha256": "796c55309ab7ed2789a2e703b4490304bae510aae02179de5447f3921f3c67c4"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1103",
+          "size": 297353,
+          "sha256": "d73db55efe063c36485443fe16fbda5b8df5c9b47bce4033ee7dc5b14a03821f"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1150",
+          "size": 297353,
+          "sha256": "56f73af895bd444e6347e1e5909b17d4395abcc2bec4f1cdfa52248f9cf42edf"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1151",
+          "size": 297353,
+          "sha256": "1c49fed7befb14008ccda9862b49ebe12b33b4570586b1403afef57e079a9d4b"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1152",
+          "size": 297353,
+          "sha256": "a961e84fa0e233d7c9343dad70ca738f5fc6a6ee84a2155489ccdfab6885cc03"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1153",
+          "size": 297353,
+          "sha256": "849fd36deb656f0ce76375903b46450e926db30d4ff06cccd9cc7e231531ee0a"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1200",
+          "size": 297353,
+          "sha256": "6b5f3548f008d443b3eb73b3c53e86995c65174128b2ef9e678e96197c9c6ec9"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx1201",
+          "size": 297353,
+          "sha256": "289c6a467c7566344fd8df3898995d2056c6c4a337f4d4adb1c71fa332e95f0d"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx906",
+          "size": 292009,
+          "sha256": "5cc78d54483a4ecee2c0ec16c2423c78fdb0273aa47c98b58afbca51d7c06346"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx908",
+          "size": 292609,
+          "sha256": "8054478ea7a9b103e427f77d4094f2a725587ab9b06aec8c0de737645af72af0"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx90a",
+          "size": 292609,
+          "sha256": "297bf167661eff94980354e3d819f57c1336961e6015b45427f76f915e3acd42"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx942",
+          "size": 292609,
+          "sha256": "a8e2d253828472ea51c8b2af14c0317754e53bce006cfcaaf66a4a521d9aa1a6"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.1.hip-amdgcn-amd-amdhsa--gfx950",
+          "size": 292609,
+          "sha256": "3d4956d2b18c7cb6c3bfb0bc36a3cadf25b3b1c5c59577d87301e9c616627129"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1010",
+          "size": 243457,
+          "sha256": "78cd24f58f4e1aa9e414e9676d116f26c7ebfc74c84f92fdde1731091fcde931"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1030",
+          "size": 243457,
+          "sha256": "4280830d00ec841b936c26380f2bfab61c0de7d7ec1809a312fcc6341b33aa0b"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1100",
+          "size": 243457,
+          "sha256": "04982cd4d2069d5161ded3beae474f14e9e63e562f537f063b22911790720fcc"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1101",
+          "size": 243457,
+          "sha256": "a2590f1028197361001d903765c5f33f19409aac37021529edac1b207ac9e5ef"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1102",
+          "size": 243457,
+          "sha256": "bab434f60caad7a1278a1b90d720748637c5843c260030cd14039958e869eec2"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1103",
+          "size": 243457,
+          "sha256": "e65f9aecb83971a7736db30c44f760f9e3c629218999822ed2b7b25bd8a9efe0"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1150",
+          "size": 243457,
+          "sha256": "f34c37deedfba3a84069ed4050776eff68c7c1dd7b498fead857214d47537fd7"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1151",
+          "size": 243457,
+          "sha256": "90c20efc46f1903cdb14a5ba961c29dee770172c0681e7807e95bcaa493f6c59"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1152",
+          "size": 243457,
+          "sha256": "455b0b2dc5ef6d82091f8e5b822fc26dfcc8a3108caaa4632f4f179fa64deac9"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1153",
+          "size": 243457,
+          "sha256": "5e50db1c950cb0451b3c7f23c201b340a732b43d59fc1a2bdfb2682cbba03b5e"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1200",
+          "size": 243457,
+          "sha256": "25502949c1ad4740058f60dab9d962400e7d019ddd5e15bdf230b00aab17ac0c"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx1201",
+          "size": 243457,
+          "sha256": "60a3b380cd986465d504805921e4b9a143416816e731f62d94727a1d889d7b68"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx906",
+          "size": 238121,
+          "sha256": "04c5c714ec4d3b02e466bdd65dc3c42726fd2dd295664fbcb1457a9407f6c03a"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx908",
+          "size": 238721,
+          "sha256": "6fa228a74aa555b05c8d9077e5907b6d60995277bc607e7eddeb7ec886b948d9"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx90a",
+          "size": 238721,
+          "sha256": "a78bd30740aff665ab3483b633e5f487827652f4e808b8ebf69b02a9c9b9594d"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx942",
+          "size": 238721,
+          "sha256": "33a539b198d6af5aa2eac6f6cbf82076f0b12bfa1bc05f1ae221614794f14bbc"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.2.hip-amdgcn-amd-amdhsa--gfx950",
+          "size": 238721,
+          "sha256": "ff3021dff9a53d3ad70a90fafeda15193db1ab4f7682b3b924472394e997384f"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1010",
+          "size": 95401,
+          "sha256": "ec2978e3b89968f23cdd1c95f86e56673cceab49bcb61a04f26946202abd602e"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1030",
+          "size": 95401,
+          "sha256": "817f436433b949cce6577a8286f920c0e54d32beadfe60c22caa4ac7bc0c7c24"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1100",
+          "size": 95401,
+          "sha256": "68a7f0604b9e40327eb72587858a29591a0f643fc618f312e2fd2333a31b2078"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1101",
+          "size": 95401,
+          "sha256": "d75f346f2c428296f2107bb53100c3f85229c5d70c0b8a85bb9e7f99ea2802df"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1102",
+          "size": 95401,
+          "sha256": "6f7900cc8f7b7a402cce055ea81862a7eabef2da691b5cf1d95f9a0f0100e978"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1103",
+          "size": 95401,
+          "sha256": "fa864cc9c40fc34efcb4fecf923fd8470c0c0abd09f9f81a716fa16670c296ee"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1150",
+          "size": 95401,
+          "sha256": "89bfcc25fed2397dee5577f972c259561048756f7ca862ee28f3ee8d9e9e75f5"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1151",
+          "size": 95401,
+          "sha256": "2f299e930f3e6338675074b6b289866e43aa0fce7c336a4b16160ff014ca8442"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1152",
+          "size": 95401,
+          "sha256": "2dbc61951a37d1814963fae8eed45e2d4f088907009740c569c4f61a6f38e883"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1153",
+          "size": 95401,
+          "sha256": "802146411a7bb4fcc84f69fa162889f1c0b2c9afb214de5f5d2f5d2f4e5ac8b6"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1200",
+          "size": 95401,
+          "sha256": "480dcb44e70625b1e1a9c962657ce80813bb08d30735add4973d968ea1bb379d"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx1201",
+          "size": 95401,
+          "sha256": "b10fda5f87f5a6ba3b774ae2f5bf4ea2ae0ceaf72985426cf54ba0c74fc17cb5"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx906",
+          "size": 94937,
+          "sha256": "e4edba538cd14ef17eea2c8cde90299efa29c68a5bf379f10eb41fa209f3be24"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx908",
+          "size": 95161,
+          "sha256": "07cf707dd18bf63c37ed97de2de20934709315bb6a887f3c546158b29c6cb0d6"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx90a",
+          "size": 95161,
+          "sha256": "8b2e0d5618d91b6d5cc7031532f2c4a70e3041a5cd503ea51d1201304a7b4c2a"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx942",
+          "size": 95161,
+          "sha256": "1173f8c0073752259ee78c5e98b278e7a96e0941dadb314a5bc43e41dcf863ad"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.3.hip-amdgcn-amd-amdhsa--gfx950",
+          "size": 95161,
+          "sha256": "fbbb437b0d2e1ff7c1dd08902a0dd57a7d4cdd4963011623fb87f7278dd77989"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1010",
+          "size": 859785,
+          "sha256": "437e843a0a02c365fa0c81c2b1f688e20c9fa8e8a0b5bc85f84f05a6ca8bdfe8"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1030",
+          "size": 867977,
+          "sha256": "e48743b2283870528f23405432a7e1f503a3f60c5f56ef29c6ea923d3cdb030a"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1100",
+          "size": 777865,
+          "sha256": "edea8572443aa2be24f666833b7dd7700ae163e1bf8a1bcf6d896f0456e40ed3"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1101",
+          "size": 777865,
+          "sha256": "1b8df23fdcaacee2978e803e1185b291681359aba0d67fa96a9712ea46c1c282"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1102",
+          "size": 777865,
+          "sha256": "ef315bc63ac065537799421a066367299de91809de81982dfdb9dab3d1f9547e"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1103",
+          "size": 777865,
+          "sha256": "90396a9a4cdc15e597193e102011f5e5c3fd287d96cb77e5f6ac2b9e2ee83dfa"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1150",
+          "size": 777865,
+          "sha256": "d62959db1e4bdda347b235659d37b865d17058616df9ac8d02c9c1f63d71056a"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1151",
+          "size": 777865,
+          "sha256": "83123f68ea8fc812bca5b1a83d514c8244b8b6ef89b89d2340db86307f2f43f6"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1152",
+          "size": 777865,
+          "sha256": "d93be5534625c7ccd5657f24e2e7b5d72f0014432e83bd2ee08dec1db2e0c189"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1153",
+          "size": 777865,
+          "sha256": "ab2af0026935222f33131f0bca3b511792fa4b9dc80a22a1edc5e35230f63c00"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1200",
+          "size": 835209,
+          "sha256": "19491158efe2ccd4b0d5f7644f3448f8790417bb86a03395afedfc1a667e002f"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx1201",
+          "size": 835209,
+          "sha256": "c1714dcec594aa1f8141e3c65947822b82be7ce67d54d9b954155720ee36166d"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx906",
+          "size": 854017,
+          "sha256": "89402e4a335b6a3debf5cf672e1c55aae8ac978194abc03552b2f159b6b45b31"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx908",
+          "size": 854801,
+          "sha256": "f8ebb59abbacd1008641b5ead73d9e604e4e54b81e9966cbd9f6e5a3ac7ba39e"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx90a",
+          "size": 858897,
+          "sha256": "022af080919a3d31e5e59bb431ab011fe36714727e745f26e4d308eb103d6f58"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx942",
+          "size": 699153,
+          "sha256": "675b64c68704aff4b6afd9b4cb77fc04284e3e999969fd4560223e2663848201"
+        },
+        {
+          "path": "native/libmigraphx_device.so.2018000.0.4.hip-amdgcn-amd-amdhsa--gfx950",
+          "size": 707441,
+          "sha256": "eba84def28b009b5d8fa76f5e6f363816fb927e1de64a8b5815b6a75480c794e"
+        },
+        {
+          "path": "native/libmigraphx_gpu.so",
+          "size": 242439280,
+          "sha256": "6dbee9e6df777f705ac30ce3eacf050d8444287a281c9ea1eb1d4b391198b320"
+        },
+        {
+          "path": "native/libmigraphx_gpu.so.2018000",
+          "size": 242439280,
+          "sha256": "6dbee9e6df777f705ac30ce3eacf050d8444287a281c9ea1eb1d4b391198b320"
+        },
+        {
+          "path": "native/libmigraphx_onnx.so",
+          "size": 5796992,
+          "sha256": "0d207b704433a293cadceb7c5ae0f767ab728031ef99a356293910f857652b84"
+        },
+        {
+          "path": "native/libmigraphx_onnx.so.2018000",
+          "size": 5796992,
+          "sha256": "0d207b704433a293cadceb7c5ae0f767ab728031ef99a356293910f857652b84"
+        },
+        {
+          "path": "native/libmigraphx_ref.so",
+          "size": 3020344,
+          "sha256": "76e327a54a9853d3e66799427d8ea10d92ad68652fdeff464312829e1ef6c83e"
+        },
+        {
+          "path": "native/libmigraphx_ref.so.2018000",
+          "size": 3020344,
+          "sha256": "76e327a54a9853d3e66799427d8ea10d92ad68652fdeff464312829e1ef6c83e"
+        },
+        {
+          "path": "native/libmigraphx_tf.so",
+          "size": 4537976,
+          "sha256": "b38348d572d79dfb371b68c549cca44c44bf1e14201e42287211e4521dbf5aed"
+        },
+        {
+          "path": "native/libmigraphx_tf.so.2018000",
+          "size": 4537976,
+          "sha256": "b38348d572d79dfb371b68c549cca44c44bf1e14201e42287211e4521dbf5aed"
+        },
+        {
+          "path": "native/migraphx-hiprtc-driver",
+          "size": 124232,
+          "sha256": "198f138a5d2b77c30b005b0fcc217dd2870c52cd21adf1c3f70980ddba5b2d6c"
+        }
+      ]
+    }
+  }
+}

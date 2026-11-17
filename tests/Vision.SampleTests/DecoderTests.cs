@@ -7,9 +7,8 @@ using PointD = MIGraphXSharp.Samples.Yolo26.PointD;
 using Visualization = MIGraphXSharp.Samples.Yolo26.Visualization;
 using Benchmarking = MIGraphXSharp.Samples.Yolo26.Benchmarking;
 using OcrTensor = MIGraphXSharp.Samples.PaddleOcr.Tensor;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Metadata.Profiles.Exif;
+using RgbImage = MIGraphXSharp.Samples.Yolo26.RgbImage;
+using RgbPixel = MIGraphXSharp.Samples.Yolo26.RgbPixel;
 using Xunit;
 
 namespace MIGraphXSharp.Samples.Tests;
@@ -41,16 +40,16 @@ public sealed class DecoderTests
         var path = Path.Combine(Path.GetTempPath(), $"vision-exif-{Guid.NewGuid():N}.png");
         try
         {
-            using (var source = new Image<Rgb24>(2, 1))
+            using (var source = new RgbImage(2, 1))
             {
-                source[0, 0] = new Rgb24(255, 0, 0);
-                source[1, 0] = new Rgb24(0, 0, 255);
-                source.Metadata.ExifProfile = new ExifProfile();
-                source.Metadata.ExifProfile.SetValue(ExifTag.Orientation, (ushort)3);
-                source.SaveAsPng(path);
+                source[0, 0] = new RgbPixel(255, 0, 0);
+                source[1, 0] = new RgbPixel(0, 0, 255);
+                // Embed TIFF EXIF orientation in PNG without using the removed codec dependency.
+                var png = source.EncodePng();
+                File.WriteAllBytes(path, ImageCodecFixtures.WithPngExifOrientation(png, 3));
             }
             using var loaded = Images.Load(path);
-            Assert.Equal(new Rgb24(0, 0, 255), loaded[0, 0]);
+            Assert.Equal(new RgbPixel(0, 0, 255), loaded[0, 0]);
             using var crop = Images.Rectify(loaded, [new(0,0),new(1,0),new(1,0),new(0,0)]);
             Assert.Equal(loaded[0, 0], crop[0, 0]);
         }
@@ -71,7 +70,7 @@ public sealed class DecoderTests
     [Fact]
     public void RecognitionPaddingIsZeroAfterBgrNormalization()
     {
-        using var crop = new Image<Rgb24>(1, 1, new Rgb24(255, 0, 0));
+        using var crop = new MIGraphXSharp.Samples.PaddleOcr.RgbImage(1, 1, new MIGraphXSharp.Samples.PaddleOcr.RgbPixel(255, 0, 0));
         var values = Recognition.Prepare(crop, 4, 2);
         Assert.Equal(new[] { -1f,-1,0,0,-1,-1,0,0, -1,-1,0,0,-1,-1,0,0, 1,1,0,0,1,1,0,0 }, values);
     }
@@ -79,7 +78,7 @@ public sealed class DecoderTests
     [Fact]
     public void LetterboxUsesSameScaleAndPaddingForInverseCoordinates()
     {
-        using var image = new Image<Rgb24>(200, 100, new Rgb24(255, 0, 0));
+        using var image = new RgbImage(200, 100, new RgbPixel(255, 0, 0));
         var result = Images.PrepareYolo(image, 100, 100, false);
         Assert.Equal(25, result.Top);
         Assert.Equal(new PointD(100, 50), result.Restore(50, 50));
@@ -93,7 +92,7 @@ public sealed class DecoderTests
     [InlineData("obb", 7)]
     public void EndToEndTasksRestoreCoordinatesWithoutApplyingSecondNms(string task, int fields)
     {
-        using var image = new Image<Rgb24>(100, 100);
+        using var image = new RgbImage(100, 100);
         using var view = new Visualization(image);
         var values = new float[fields * 2];
         for (var row = 0; row < 2; ++row)

@@ -177,15 +177,34 @@ public sealed class MIGraphXCacheMetadata
                 {
                     if (dimension != 0) { builder.Append(','); }
                     var value = InputOverrides[index].DynamicDimensions[dimension];
-                    builder.Append("{\"minimum\":").Append(value.Minimum.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(",\"maximum\":").Append(value.Maximum.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(",\"optimals\":[");
-                    for (var optimal = 0; optimal < value.Optimals.Count; optimal++) { if (optimal != 0) { builder.Append(','); } builder.Append(value.Optimals[optimal].ToString(System.Globalization.CultureInfo.InvariantCulture)); }
-                    builder.Append("]}");
+                    AppendDimension(builder, value);
                 }
                 builder.Append(']');
             }
             builder.Append('}');
         }
         return builder.Append("]}").ToString();
+    }
+
+    private static void AppendDimension(StringBuilder builder, MIGraphXDynamicDimension value)
+    {
+        builder.Append("{\"minimum\":").Append(value.Minimum.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(",\"maximum\":").Append(value.Maximum.ToString(System.Globalization.CultureInfo.InvariantCulture)).Append(",\"optimals\":[");
+        for (var optimal = 0; optimal < value.Optimals.Count; optimal++) { if (optimal != 0) builder.Append(','); builder.Append(value.Optimals[optimal].ToString(System.Globalization.CultureInfo.InvariantCulture)); }
+        builder.Append(']');
+        if (value.Expression is not null)
+        {
+            builder.Append(",\"expression\":").Append(Json(value.Expression)).Append(",\"symbols\":{");
+            var first = true;
+            foreach (var pair in value.Symbols.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+            {
+                if (!first) builder.Append(',');
+                first = false;
+                builder.Append(Json(pair.Key)).Append(':');
+                AppendDimension(builder, pair.Value);
+            }
+            builder.Append('}');
+        }
+        builder.Append('}');
     }
 
     internal string CanonicalJsonWithPayload(string payloadSha256)
@@ -350,8 +369,8 @@ public sealed class MIGraphXModelCache
                     if (built is null) { throw new InvalidOperationException("The cache builder returned null."); }
                     var payload = Path.Combine(rootDirectory, key + ".migraphx");
                     var sidecar = Path.Combine(rootDirectory, key + ".json");
-                    var temporaryPayload = Path.Combine(rootDirectory, key + "." + Guid.NewGuid().ToString("N") + ".tmp");
-                    var temporarySidecar = Path.Combine(rootDirectory, key + "." + Guid.NewGuid().ToString("N") + ".tmp");
+                    var temporaryPayload = Path.Combine(rootDirectory, Guid.NewGuid().ToString("N") + ".tmp");
+                    var temporarySidecar = Path.Combine(rootDirectory, Guid.NewGuid().ToString("N") + ".tmp");
                     try
                     {
                         built.Save(temporaryPayload, fileOptions);
@@ -365,7 +384,7 @@ public sealed class MIGraphXModelCache
                         DeleteIfExists(temporaryPayload);
                         DeleteIfExists(temporarySidecar);
                     }
-                    return new MIGraphXCacheResult(MIGraphXCacheLookupKind.Rebuilt, MIGraphXProgram.Load(payload, fileOptions), key, corrupt ? MIGraphXCacheLookupKind.Corrupt : MIGraphXCacheLookupKind.Miss);
+                    return new MIGraphXCacheResult(MIGraphXCacheLookupKind.Rebuilt, LoadPayload(payload, fileOptions, metadata), key, corrupt ? MIGraphXCacheLookupKind.Corrupt : MIGraphXCacheLookupKind.Miss);
                 }
             }
         }
@@ -417,7 +436,7 @@ public sealed class MIGraphXModelCache
             if (!envelope.StartsWith(marker, StringComparison.Ordinal) || !envelope.EndsWith("\"}", StringComparison.Ordinal)) { corrupt = true; return null; }
             var payloadHash = envelope.Substring(marker.Length, envelope.Length - marker.Length - 2);
             if (payloadHash.Length != 64 || !string.Equals(payloadHash, HashFile(payload), StringComparison.OrdinalIgnoreCase)) { corrupt = true; return null; }
-            return new MIGraphXCacheResult(MIGraphXCacheLookupKind.Hit, MIGraphXProgram.Load(payload, options), key);
+            return new MIGraphXCacheResult(MIGraphXCacheLookupKind.Hit, LoadPayload(payload, options, metadata), key);
         }
         catch
         {
@@ -425,6 +444,9 @@ public sealed class MIGraphXModelCache
             return null;
         }
     }
+
+    private static MIGraphXProgram LoadPayload(string path, MIGraphXFileOptions options, MIGraphXCacheMetadata metadata)
+        => MIGraphXProgram.Load(path, options, metadata.InputOverrides.Where(value => value.IsDynamic).ToArray());
 
     private static string HashFile(string path)
     {

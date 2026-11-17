@@ -17,6 +17,18 @@ public sealed class RepositoryQualityTests
     private static string RepositoryRoot => FindRepositoryRoot();
 
     [Fact]
+    public void SamplesUsePublishedOpenCvWithoutTheRemovedImageCodecDependency()
+    {
+        var packages = XDocument.Load(Path.Combine(RepositoryRoot, "Directory.Packages.props"));
+        Assert.DoesNotContain(packages.Descendants("PackageVersion"), item =>
+            ((string?)item.Attribute("Include"))?.StartsWith("SixLabors.", StringComparison.Ordinal) == true);
+        Assert.Equal("5.0.0", (string?)packages.Descendants("PackageVersion")
+            .Single(item => (string?)item.Attribute("Include") == "JYPPX.OpenCV.CSharp.API").Attribute("Version"));
+        foreach (var source in Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "samples"), "*.cs", SearchOption.AllDirectories))
+            Assert.DoesNotContain("SixLabors.", File.ReadAllText(source), StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CentralTargetFrameworkMatrixIsExact()
     {
         var props = XDocument.Load(Path.Combine(RepositoryRoot, "Directory.Build.props"));
@@ -161,8 +173,8 @@ public sealed class RepositoryQualityTests
         var exportedTypes = assembly.GetExportedTypes().Select(type => type.FullName!.Replace('+', '.')).ToHashSet(StringComparer.Ordinal);
         Assert.True(baselineTypes.SetEquals(exportedTypes),
             $"Public type baseline drift. Missing: {string.Join(", ", exportedTypes.Except(baselineTypes))}; stale: {string.Join(", ", baselineTypes.Except(exportedTypes))}");
-        Assert.Equal(45, baselineTypes.Count);
-        Assert.Equal(309, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
+        Assert.Equal(49, baselineTypes.Count);
+        Assert.Equal(335, baseline.Count(line => line.Length > 2 && line[1] == '|') - baselineTypes.Count);
 
         var m5Types = new[]
         {
@@ -181,7 +193,7 @@ public sealed class RepositoryQualityTests
             + type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(field => !field.IsSpecialName)
             + type.GetProperties(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length
             + type.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance | BindingFlags.DeclaredOnly).Count(method => !method.IsSpecialName));
-        Assert.Equal(141, classMemberCount);
+        Assert.Equal(153, classMemberCount);
 
         foreach (var type in m5Types)
         {
@@ -310,12 +322,12 @@ public sealed class RepositoryQualityTests
         {
             var workflowText = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", workflow));
             Assert.Contains("guojin-yan/HIP-CSharp-API", workflowText, StringComparison.Ordinal);
-            Assert.Contains("0c730005c37bacbd4f143b33d1f56e9ce517ac2f", workflowText, StringComparison.Ordinal);
+            Assert.Contains("7b6f75d0047bb87b72094aa910bcea8be2c5e2bc", workflowText, StringComparison.Ordinal);
             Assert.Contains("HipSharpRepositoryRoot", workflowText, StringComparison.Ordinal);
         }
         Assert.Contains("packageSourceMapping", adapterPack, StringComparison.Ordinal);
         Assert.Contains("JYPPX.ROCm.HIP.CSharp.API", adapterPack, StringComparison.Ordinal);
-        Assert.Contains("096f82ae8d8ecb1cd3ad0e1f5e213e811656cde10767a0ddf88563747e9a1558", adapterPack, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("c05e0e09cab60a5bdab0473b8ce9185548ac5c3289f3fa2eab2c448c00e8faf0", adapterPack, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("release-feed\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Contains("adapter-pack-restore\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
         Assert.Contains("adapter-pack-obj\\$Version\\$repositoryCommit", adapterPack, StringComparison.Ordinal);
@@ -424,9 +436,9 @@ public sealed class RepositoryQualityTests
         Assert.Contains("eng/generate-interop.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("eng/verify-native-abi.ps1", buildWorkflow, StringComparison.Ordinal);
         Assert.Contains("workflow_dispatch:", buildWorkflow, StringComparison.Ordinal);
-        Assert.DoesNotContain("pull_request:", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("pull_request:", buildWorkflow, StringComparison.Ordinal);
         Assert.DoesNotContain("pull_request_target", buildWorkflow, StringComparison.Ordinal);
-        Assert.DoesNotContain("push:", buildWorkflow, StringComparison.Ordinal);
+        Assert.Contains("push:", buildWorkflow, StringComparison.Ordinal);
 
         var pagesWorkflow = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", "docs-pages.yml"));
         Assert.Contains("actions/upload-pages-artifact@v5", pagesWorkflow, StringComparison.Ordinal);

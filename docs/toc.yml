@@ -3,6 +3,8 @@
 - name: Release notes / 版本记录
   href: release-notes/README.md
   items:
+  - name: 1.0.0 — 正式版本与 runtime 包
+    href: release-notes/1.0.0.md
   - name: 0.0.2 — HIP 流水线与 OCR 加速
     href: release-notes/0.0.2.md
   - name: 0.0.1 — 首次发布
@@ -26,8 +28,12 @@
   href: guides/advanced-apis.md
 - name: YOLO26 and PaddleOCR samples
   href: guides/vision-samples.md
+- name: OpenCV image migration
+  href: guides/opencv-imaging.md
 - name: Deployment and troubleshooting
   href: guides/runtime-deployment.md
+- name: ROCm 10.1 / MIGraphX 2.18
+  href: guides/runtime-2.18.md
 - name: API versioning
   href: guides/api-versioning.md
 - name: Compatibility

@@ -12,6 +12,20 @@ internal sealed class NativeRuntime
 
     internal string Path { get; }
 
+    internal void RequireFeature(MIGraphXFeature feature)
+    {
+        var missing = NativeLibraryLoader.MissingActiveExports(NativeFeatures.Exports(feature));
+        if (missing.Length != 0)
+            throw new NotSupportedException($"The loaded MIGraphX runtime '{Path}' does not support {feature}. Missing exports: {string.Join(", ", missing)}.");
+    }
+
+    internal static NativeRuntime LoadTensorFlow(string path)
+    {
+        var runtime = Load(path);
+        runtime.RequireFeature(MIGraphXFeature.TensorFlow);
+        return runtime;
+    }
+
     internal static NativeRuntime Load(string nativeLibraryPath)
     {
         var result = NativeLibraryLoader.LoadExplicit(nativeLibraryPath, requireOnnxWorkflow: true, requireManagedObjects: true);

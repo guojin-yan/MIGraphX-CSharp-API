@@ -15,18 +15,20 @@
   <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/releases"><img src="https://img.shields.io/github/v/release/guojin-yan/MIGraphX-CSharp-API" alt="GitHub Release"></a>
   <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/MIGraphX-CSharp-API?style=flat&amp;logo=github" alt="GitHub Stars"></a>
   <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-4.6_to_10.0-512BD4" alt=".NET 4.6 至 10.0"></a>
-  <a href="docs/guides/runtime-deployment.md"><img src="https://img.shields.io/badge/ROCm-7.2.1-ED1C24" alt="ROCm 7.2.1"></a>
+  <a href="docs/guides/runtime-deployment.md"><img src="https://img.shields.io/badge/ROCm-10.1-ED1C24" alt="ROCm 10.1"></a>
 </p>
 
 <p align="center"><a href="README.md">English</a> | <strong>简体中文</strong></p>
 
 ## 📖 项目简介
 
+当前源码新增本机 Windows ROCm 10.1 / MIGraphX 2.18 支持：符号维度、ONNX 维度参数、编译/目标选项、功能探测与执行跟踪元数据，已通过真实 GPU 验证。见 [2.18 开发与 GPU 验证指南](docs/guides/runtime-2.18.md)。已发布的 0.0.2 包保持其原有兼容范围。
+
 [AMD MIGraphX](https://rocm.docs.amd.com/projects/AMDMIGraphX/en/latest/) 是 ROCm 生态中的图推理引擎，能够将深度学习模型编译为 GPU 程序，并针对 AMD 硬件优化执行过程。
 
 **MIGraphX CSharp API 是 AMD MIGraphX 的 .NET 封装库，让 C# 开发者直接在应用中完成 ONNX 模型加载、GPU 编译、张量操作和模型推理。** 通过可选的 HIP 适配器，还可以在同一条 GPU 流上衔接前处理、模型推理与后处理。
 
-项目提供 **YOLO26** 与 **PP-OCRv4/v5/v6** 完整案例，包含图像处理、推理、结果解析和耗时统计。三代 OCR 模型在同一个 PaddleOcr 项目中使用。案例由 C# 与 HIP 实现，运行时无需 Python 或 OpenCV。
+项目提供 **YOLO26** 与 **PP-OCRv4/v5/v6** 完整案例，包含图像处理、推理、结果解析和耗时统计。三代 OCR 模型在同一个 PaddleOcr 项目中使用。案例由 C# 与 HIP 实现，图像编解码与 CPU 缩放使用 OpenCV CSharp API 5.0.0，推理运行时无需 Python。
 
 | 核心优势 | 能为项目带来什么 |
 | --- | --- |
@@ -34,6 +36,10 @@
 | ⚡ GPU 图像流水线 | 利用 HIP 流与显存缓冲区，在 GPU 上完成数值前后处理 |
 | 🧩 .NET 项目集成 | 覆盖 .NET Framework 4.6 到 .NET 10 的 15 个目标框架，提供中英文 XML 注释 |
 | 📚 完整应用案例 | YOLO26 五任务、PP-OCRv4/v5/v6 检测与识别，支持 OCR 多 batch 和多识别实例 |
+
+## 1.0.0
+
+当前源码将 HIP 适配器升级至正式版 HipSharp 1.0.0，补齐 MIGraphX 2.18 可选接口，四个视觉示例的图像依赖统一改为 OpenCV。见[版本说明](docs/release-notes/1.0.0.md)和[图像迁移指南](docs/guides/opencv-imaging.md)。同时提供 Windows x64 与 Ubuntu 24.04 x64 的 MIGraphX 2.18 runtime 包；ROCm 10.1 系统库与显卡驱动需另行安装。
 
 ## 📢 0.0.2 更新摘要
 
@@ -47,12 +53,12 @@
 
 ### 1. 安装 NuGet 包
 
-先在兼容的 Linux 主机安装 ROCm 7.2.1 与 MIGraphX 2.15.0，具体见[运行环境部署指南](docs/guides/runtime-deployment.md)，然后创建应用：
+先安装配套 ROCm 10.1 系统库，并添加对应平台的 1.0.0 MIGraphX runtime 包，具体见[运行环境部署指南](docs/guides/runtime-deployment.md)，然后创建应用：
 
 ~~~bash
 dotnet new console -n MigraphxDemo
 cd MigraphxDemo
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 1.0.0
 ~~~
 
 ### 2. 编写推理代码
@@ -114,15 +120,17 @@ dotnet run -c Release
 | --- | --- | --- |
 | <code>JYPPX.ROCm.MIGraphX.CSharp.API</code> | 模型、张量、编译与推理核心 API | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/) |
 | <code>JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop</code> | 可选 HIP 流与显存适配器 | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/) |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64</code> | 平台 MIGraphX 2.18 引擎；需系统安装 ROCm 10.1 库与驱动 | [1.0.0](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64/1.0.0) |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64</code> | 平台 MIGraphX 2.18 引擎；需系统安装 ROCm 10.1 库与驱动 | [1.0.0](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64/1.0.0) |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | HipSharp 运行时、显存、流与 kernel API；由适配包依赖 | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) |
 
 需要 HIP 集成时，再安装适配包：
 
 ~~~bash
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 1.0.0
 ~~~
 
-适配包精确依赖核心包 <code>0.0.2</code> 与 HipSharp <code>0.10.0</code>，由 NuGet 恢复依赖。核心命名空间为 <code>JYPPX.ROCm.MIGraphXSharp</code>。AMD 原生库需单独安装。[GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases) 同时提供 NuGet 包、源码和离线 HTML 文档。
+适配包精确依赖核心包 <code>1.0.0</code> 与 HipSharp <code>1.0.0</code>，由 NuGet 恢复依赖。核心命名空间为 <code>JYPPX.ROCm.MIGraphXSharp</code>。AMD 原生库需单独安装。[GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases) 同时提供 NuGet 包、源码和离线 HTML 文档。
 
 ## 🧪 应用案例
 
@@ -179,11 +187,11 @@ using var restored = MIGraphXProgram.Load("/models/compiled.msgpack", fileOption
 | 组件 | 要求 |
 | --- | --- |
 | 托管类库 | .NET Framework 4.6–4.8.1、.NET Core 3.1、.NET 5–10，共 15 个目标框架 |
-| 已验证的原生平台 | Ubuntu 24.04 x86-64、ROCm 7.2.1、MIGraphX 2.15.0、gfx1100 |
+| 已验证的原生平台 | Windows x64 / Ubuntu 24.04 x86-64、ROCm 10.1、MIGraphX 2.18.0、gfx1100 |
 | 原生库 | <code>/opt/rocm/lib/libmigraphx_c.so.3</code>，或实际 ROCm 安装中的绝对路径 |
 | 视觉案例 | .NET 10；匹配 GPU 架构的 HIPRTC，或预编译 HIP 模块 |
 
-托管框架兼容性不代表提供 Windows/macOS MIGraphX 原生运行时。请按 [AMD 安装说明](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html)与[部署指南](docs/guides/runtime-deployment.md)准备目标设备，其他 GPU/运行时组合见[平台支持说明](docs/compatibility/platforms.md)。
+Windows x64 与 Ubuntu 24.04 x64 引擎通过独立 runtime 包提供；macOS 没有随附引擎。请按[部署指南](docs/guides/runtime-deployment.md)准备 ROCm 系统依赖与目标设备，其他 GPU/运行时组合见[平台支持说明](docs/compatibility/platforms.md)。
 
 ## 🏗️ 项目结构
 
@@ -212,7 +220,7 @@ MIGraphXSharp/
 ./eng/pack.ps1 -Configuration Release -Version 0.0.2 -NoBuild
 ~~~
 
-不指定版本的构建使用 <code>0.0.0</code>，输出写入相邻的 <code>MIGraphXSharp.Workspace/</code> 目录。完整构建配置见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+不指定版本的构建使用 <code>1.0.0</code>，输出写入相邻的 <code>MIGraphXSharp.Workspace/</code> 目录。完整构建配置见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 🤝 如何贡献
 

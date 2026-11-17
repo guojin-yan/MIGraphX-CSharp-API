@@ -12,6 +12,25 @@ namespace JYPPX.ROCm.MIGraphXSharp.UnitTests;
 public sealed class DynamicShapeCacheTests
 {
     [Fact]
+    public void DynamicSnapshotRejectsSameRankRangesAndOptimalsThatDifferFromNative()
+    {
+        var path = FakePath();
+        using var controls = new FakeControls(path); controls.Reset();
+        var ranges = new[] { new MIGraphXDynamicDimension(1, 8, new long[] { 2, 4 }), new MIGraphXDynamicDimension(4) };
+        using (var native = NativeShapeHandle.CreateDynamic(MIGraphXShape.CreateDynamic(MIGraphXShapeDataType.Float32, ranges)))
+        {
+            Assert.Throws<InvalidOperationException>(() => MIGraphXShape.FromNative(native.DangerousGetHandle(), "wrong maximum",
+                new[] { new MIGraphXDynamicDimension(1, 9, new long[] { 2, 4 }), ranges[1] }));
+            Assert.Throws<InvalidOperationException>(() => MIGraphXShape.FromNative(native.DangerousGetHandle(), "missing optimals",
+                new[] { new MIGraphXDynamicDimension(1, 8), ranges[1] }));
+            controls.SetInvalidBool("migraphx_dynamic_dimension_equal");
+            Assert.Throws<MIGraphXException>(() => MIGraphXShape.FromNative(native.DangerousGetHandle(), "invalid equality boolean", ranges));
+            Assert.Equal(ranges, MIGraphXShape.FromNative(native.DangerousGetHandle(), "matching ranges", ranges).DynamicDimensions);
+        }
+        Assert.Equal(0, controls.M5LiveCount());
+    }
+
+    [Fact]
     public void NativeSizeTArrayDisposeIsIdempotent()
     {
         using var values = NativeSizeTArray.Alloc(new long[] { 1, 2 }, "values");
@@ -376,6 +395,10 @@ public sealed class DynamicShapeCacheTests
         private readonly GetIntDelegate m5LiveCount;
         internal FakeControls(string path)
         {
+            // These tests also call internal P/Invoke helpers directly. Install
+            // the explicit resolver before their first call: dlopen alone does
+            // not bind subsequent logical-name imports to this file on Linux.
+            _ = NativeRuntime.LoadDynamicShapes(path);
             library = System.Runtime.InteropServices.NativeLibrary.Load(path);
             reset = Get<Action>("fake_reset");
             setFailure = Get<SetFailureDelegate>("fake_set_failure");

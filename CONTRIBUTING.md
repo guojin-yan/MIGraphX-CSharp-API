@@ -30,7 +30,7 @@ Install the .NET SDK selected by `global.json`, PowerShell 7 and a C compiler. T
 
 ```powershell
 git clone https://github.com/guojin-yan/HIP-CSharp-API.git ../HipSharpSource
-git -C ../HipSharpSource checkout --detach 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+git -C ../HipSharpSource checkout --detach 7b6f75d0047bb87b72094aa910bcea8be2c5e2bc
 $env:HIPSHARP_REPOSITORY_ROOT = (Resolve-Path ../HipSharpSource).Path
 .\eng\build.ps1 -Configuration Release
 ```
@@ -52,11 +52,13 @@ Native declarations are generated from the frozen header and normalized model; d
 
 Keep substitute-library tests separate from official runtime qualification. Keep session-specific runtime probes, execution records and failures outside the checkout. Describe application-facing support boundaries in [platform support](docs/compatibility/platforms.md).
 
+The managed-build workflow runs on main pushes and pull requests on Windows and Linux, and can also be dispatched manually. It checks managed builds, substitute native libraries, package consumers and documentation without a GPU. CI allows older .NET smoke assemblies to roll forward to the installed runtime; this does not qualify the original older runtime. Release publication and Pages deployment remain manual.
+
 ## Distribution and security
 
 The project ships managed packages only. Install a coherent MIGraphX/ROCm native environment from AMD's official system repository. Do not commit native binaries, model binaries, credentials, host addresses or raw cloud output.
 
-The default version is `0.0.0`. Package publication, release tags and Pages deployment require separate owner authorization. Intentional API changes require review of the compatibility snapshots. See [SECURITY.md](SECURITY.md).
+The default version is `1.0.0`. Package publication, release tags and Pages deployment require separate owner authorization. Intentional API changes require review of the compatibility snapshots. See [SECURITY.md](SECURITY.md).
 
 For managed candidate packaging and portable offline evidence review, see [Release candidates](eng/RELEASING.md). These checks do not require a GPU or change native support declarations.
 

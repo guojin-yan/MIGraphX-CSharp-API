@@ -15,18 +15,20 @@
   <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/releases"><img src="https://img.shields.io/github/v/release/guojin-yan/MIGraphX-CSharp-API" alt="GitHub Release"></a>
   <a href="https://github.com/guojin-yan/MIGraphX-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/MIGraphX-CSharp-API?style=flat&amp;logo=github" alt="GitHub stars"></a>
   <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-4.6_to_10.0-512BD4" alt=".NET 4.6 to 10.0"></a>
-  <a href="docs/guides/runtime-deployment.md"><img src="https://img.shields.io/badge/ROCm-7.2.1-ED1C24" alt="ROCm 7.2.1"></a>
+  <a href="docs/guides/runtime-deployment.md"><img src="https://img.shields.io/badge/ROCm-10.1-ED1C24" alt="ROCm 10.1"></a>
 </p>
 
 <p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
 ## 📖 Introduction
 
+Current source also supports optional MIGraphX 2.18 APIs on the locally validated Windows ROCm 10.1 environment: symbolic dimensions, ONNX dimension parameters, compile/target options, capability checks and execution trace metadata. See [2.18 development and GPU verification](docs/guides/runtime-2.18.md). Published 0.0.2 packages retain their original compatibility scope.
+
 [AMD MIGraphX](https://rocm.docs.amd.com/projects/AMDMIGraphX/en/latest/) is a graph inference engine in the ROCm ecosystem. It compiles deep learning models into GPU programs and optimizes their execution for AMD hardware.
 
 **MIGraphX CSharp API is a .NET wrapper for AMD MIGraphX. It lets C# developers load ONNX models, compile GPU programs, work with tensors and run inference directly from their applications.** The optional HIP adapter connects GPU preprocessing, model execution and postprocessing on the same stream.
 
-The repository includes complete **YOLO26** and **PP-OCRv4/v5/v6** examples. All three OCR generations use one PaddleOcr project. Image processing, inference, result decoding and timing are written in C# and HIP; running the examples requires no Python or OpenCV.
+The repository includes complete **YOLO26** and **PP-OCRv4/v5/v6** examples. All three OCR generations use one PaddleOcr project. Image processing, inference, result decoding and timing are written in C# and HIP; image decoding and CPU resizing use OpenCV CSharp API 5.0.0; running inference requires no Python.
 
 | Core advantage | What it means for your application |
 | --- | --- |
@@ -34,6 +36,10 @@ The repository includes complete **YOLO26** and **PP-OCRv4/v5/v6** examples. All
 | ⚡ GPU image pipelines | Keep numerical preprocessing and postprocessing on the GPU with HIP streams and device buffers |
 | 🧩 .NET integration | 15 target frameworks from .NET Framework 4.6 to .NET 10, with Chinese/English XML API comments |
 | 📚 Complete examples | YOLO26 five tasks and PP-OCRv4/v5/v6 detection/recognition, including OCR batching and multiple recognition instances |
+
+## 1.0.0
+
+Current source upgrades the HIP adapter to stable HipSharp 1.0.0, adds optional MIGraphX 2.18 APIs and replaces the image dependency in all four vision samples with OpenCV. See the [release notes](docs/release-notes/1.0.0.md) and [image migration guide](docs/guides/opencv-imaging.md). Optional Windows x64 and Ubuntu 24.04 x64 runtime packages supply the MIGraphX 2.18 engine; ROCm 10.1 system libraries and GPU drivers are installed separately.
 
 ## 📢 0.0.2 Update Summary
 
@@ -47,12 +53,12 @@ The repository includes complete **YOLO26** and **PP-OCRv4/v5/v6** examples. All
 
 ### 1. Install the NuGet package
 
-Install ROCm 7.2.1 and MIGraphX 2.15.0 on a compatible Linux host first; see the [runtime deployment guide](docs/guides/runtime-deployment.md). Then create your application:
+Install the matching ROCm 10.1 system libraries, and add the 1.0.0 MIGraphX runtime package for your platform; see the [runtime deployment guide](docs/guides/runtime-deployment.md). Then create your application:
 
 ~~~bash
 dotnet new console -n MigraphxDemo
 cd MigraphxDemo
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 1.0.0
 ~~~
 
 ### 2. Write inference code
@@ -114,15 +120,17 @@ See the [API guides](docs/index.md) and [platform support](docs/compatibility/pl
 | --- | --- | --- |
 | <code>JYPPX.ROCm.MIGraphX.CSharp.API</code> | Core model, tensor, compilation and inference API | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API/) |
 | <code>JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop</code> | Optional HIP stream/device-buffer adapter | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.svg)](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/) |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64</code> | Platform MIGraphX 2.18 engine; ROCm 10.1 libraries and driver required | [1.0.0](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64/1.0.0) |
+| <code>JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64</code> | Platform MIGraphX 2.18 engine; ROCm 10.1 libraries and driver required | [1.0.0](https://www.nuget.org/packages/JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64/1.0.0) |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | HipSharp runtime, memory, stream and kernel APIs; adapter dependency | [![NuGet](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) |
 
 Install the adapter only when you need HIP integration:
 
 ~~~bash
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 1.0.0
 ~~~
 
-The adapter requires core <code>0.0.2</code> and HipSharp <code>0.10.0</code>; NuGet restores these dependencies. The core namespace is <code>JYPPX.ROCm.MIGraphXSharp</code>. AMD native libraries are installed separately. [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases) also provide packages, source and offline HTML documentation.
+The adapter requires core <code>1.0.0</code> and HipSharp <code>1.0.0</code>; NuGet restores these dependencies. The core namespace is <code>JYPPX.ROCm.MIGraphXSharp</code>. AMD native libraries are installed separately. [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases) also provide packages, source and offline HTML documentation.
 
 ## 🧪 Examples
 
@@ -179,11 +187,11 @@ Use a compatible native runtime and compilation target when reusing a saved prog
 | Component | Requirements |
 | --- | --- |
 | Managed library | .NET Framework 4.6–4.8.1, .NET Core 3.1, .NET 5–10; 15 target frameworks |
-| Validated native platform | Ubuntu 24.04 x86-64, ROCm 7.2.1, MIGraphX 2.15.0, gfx1100 |
+| Validated native platform | Windows x64 / Ubuntu 24.04 x86-64, ROCm 10.1, MIGraphX 2.18.0, gfx1100 |
 | Native library | <code>/opt/rocm/lib/libmigraphx_c.so.3</code>, or the absolute path in your ROCm installation |
 | Vision examples | .NET 10; HIPRTC with the matching GPU architecture, or a precompiled HIP module |
 
-Managed framework compatibility does not provide a Windows/macOS MIGraphX runtime. Use the [AMD installation instructions](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html) and [deployment guide](docs/guides/runtime-deployment.md) to prepare the target host. Other GPU/runtime combinations are described in [platform support](docs/compatibility/platforms.md).
+Windows x64 and Ubuntu 24.04 x64 engine packages are available separately; macOS has no bundled engine. Use the [AMD installation instructions](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html) and [deployment guide](docs/guides/runtime-deployment.md) to prepare the target host. Other GPU/runtime combinations are described in [platform support](docs/compatibility/platforms.md).
 
 ## 🏗️ Project Structure
 
@@ -212,7 +220,7 @@ Install the SDK selected by <code>global.json</code>, PowerShell 7 and the [HipS
 ./eng/pack.ps1 -Configuration Release -Version 0.0.2 -NoBuild
 ~~~
 
-Builds without an explicit version use <code>0.0.0</code>. Outputs go to the sibling <code>MIGraphXSharp.Workspace/</code> directory. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full build setup.
+Builds without an explicit version use <code>1.0.0</code>. Outputs go to the sibling <code>MIGraphXSharp.Workspace/</code> directory. See [CONTRIBUTING.md](CONTRIBUTING.md) for the full build setup.
 
 ## 🤝 Contributing
 

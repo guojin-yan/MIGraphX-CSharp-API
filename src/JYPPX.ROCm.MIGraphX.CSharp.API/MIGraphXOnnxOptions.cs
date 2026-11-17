@@ -101,6 +101,29 @@ public sealed class MIGraphXOnnxOptions : IDisposable
         }
     }
 
+    /// <summary>控制 ONNX 调试符号；需要 2.18。 Controls ONNX debug symbols; requires 2.18.</summary>
+    /// <param name="enabled">是否启用。 Whether to enable debug symbols.</param>
+    public void SetUseDebugSymbols(bool enabled)
+    {
+        owner.Runtime.RequireFeature(MIGraphXFeature.OnnxDimensionParameters);
+        owner.WithHandle(handle => NativeStatus.ThrowIfFailed(NativeMethods.OnnxOptionsSetUseDebugSymbols(handle, enabled ? (byte)1 : (byte)0), "migraphx_onnx_options_set_use_debug_symbols"));
+    }
+
+    /// <summary>设置 ONNX dim_param 名称对应的维度；支持符号表达式，需要 2.18。 Sets a dimension for an ONNX dim_param name, including symbolic expressions; requires 2.18.</summary>
+    /// <param name="name">ONNX 维度符号名。 ONNX dimension parameter name.</param>
+    /// <param name="dimension">数值范围或符号维度。 Numeric range or symbolic dimension.</param>
+    public void SetDimensionParameter(string name, MIGraphXDynamicDimension dimension)
+    {
+        if (dimension is null) throw new ArgumentNullException(nameof(dimension));
+        owner.Runtime.RequireFeature(MIGraphXFeature.OnnxDimensionParameters);
+        using var text = new StrictUtf8String(name, nameof(name));
+        owner.WithHandle(handle =>
+        {
+            using var native = NativeDynamicDimensionHandle.Create(dimension);
+            NativeStatus.ThrowIfFailed(NativeMethods.OnnxOptionsSetDimParam(handle, text.Pointer, native.DangerousGetHandle()), "migraphx_onnx_options_set_dim_param");
+        });
+    }
+
     /// <summary>设置输入参数的动态 shape override。 Sets a dynamic shape override for an input parameter.</summary>
     /// <param name="name">输入参数名。 The input parameter name.</param>
     /// <param name="dimensions">动态维度范围。 The dynamic dimension ranges.</param>

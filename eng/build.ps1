@@ -3,7 +3,7 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string] $Configuration = 'Release',
     [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')]
-    [string] $Version = '0.0.0',
+    [string] $Version = '1.0.0',
     [string] $RepositoryCommit,
     [string] $HipSharpRepositoryRoot,
     [switch] $NoRestore
@@ -14,6 +14,7 @@ $root = Get-RepositoryRoot
 $RepositoryCommit = if ([string]::IsNullOrWhiteSpace($RepositoryCommit)) { (& git -C $root rev-parse HEAD).Trim() } else { $RepositoryCommit }
 if ($RepositoryCommit -notmatch '^[a-f0-9]{40}$') { throw 'Build requires a lowercase 40-character Git SHA.' }
 $properties = @(
+    "-p:DirectoryBuildPropsPath=$(Join-Path $PSScriptRoot 'Workspace.Build.props')",
     "-p:MIGraphXSharpVersion=$Version",
     "-p:AdapterPackageVersion=$Version",
     "-p:RepositoryCommit=$RepositoryCommit"
@@ -32,10 +33,12 @@ try {
     if (-not $NoRestore) {
         Invoke-DotNet -Arguments (@('restore', '.\MIGraphXSharp.sln') + $properties)
     }
-    Invoke-DotNet -Arguments (@('build', '.\MIGraphXSharp.sln', '-c', $Configuration, '--no-restore') + $properties)
+    # External project references can be evaluated with distinct solution globals
+    # while sharing their output path. Serialize those nodes to avoid file races.
+    Invoke-DotNet -Arguments (@('build', '.\MIGraphXSharp.sln', '-c', $Configuration, '--no-restore', '-m:1') + $properties)
     # The solution graph can reset Configuration for the external multi-target HipSharp reference.
     # Rebuild the direct consumer project so the test binary uses the same configuration as the candidate.
-    Invoke-DotNet -Arguments (@('build', '.\tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\JYPPX.ROCm.MIGraphXSharp.UnitTests.csproj', '-c', $Configuration, '--no-restore') + $properties)
+    Invoke-DotNet -Arguments (@('build', '.\tests\JYPPX.ROCm.MIGraphXSharp.UnitTests\JYPPX.ROCm.MIGraphXSharp.UnitTests.csproj', '-c', $Configuration, '--no-restore', '-m:1') + $properties)
     & (Join-Path $PSScriptRoot 'verify-public-api.ps1') -Configuration $Configuration -Version $Version -RepositoryCommit $RepositoryCommit -SkipToolBuild
     & (Join-Path $PSScriptRoot 'verify-repository-layout.ps1') | Out-Host
 }

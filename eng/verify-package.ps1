@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory)]
     [ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })]
     [string] $PackagePath,
-    [string] $Version = '0.0.0',
+    [string] $Version = '1.0.0',
     [ValidatePattern('^[a-f0-9]{40}$')]
     [string] $RepositoryCommit,
     [switch] $SkipConsumers

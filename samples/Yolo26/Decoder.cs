@@ -1,5 +1,3 @@
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace MIGraphXSharp.Samples.Yolo26;
 
@@ -95,7 +93,7 @@ public static class Decoder
         return result.ToArray();
     }
 
-    private static Image<L8> BuildMask(float[] detections, int offset, Tensor prototype, Letterbox transform, int width, int height, out int pixels)
+    private static GrayImage BuildMask(float[] detections, int offset, Tensor prototype, Letterbox transform, int width, int height, out int pixels)
     {
         var ph = (int)prototype.Shape[2]; var pw = (int)prototype.Shape[3];
         var plane = ph * pw; var logits = new float[plane];
@@ -106,7 +104,7 @@ public static class Decoder
         var top = detections[offset + 1] * ph / transform.Height; var bottom = detections[offset + 3] * ph / transform.Height;
         for (var y = 0; y < ph; ++y) for (var x = 0; x < pw; ++x)
             if (x < left || x >= right || y < top || y >= bottom) logits[y * pw + x] = 0;
-        var mask = new Image<L8>(width, height); pixels = 0;
+        var mask = new GrayImage(width, height); pixels = 0;
         for (var y = 0; y < height; ++y) for (var x = 0; x < width; ++x)
         {
             var mx = Math.Clamp(((x + .5) * transform.Scale + transform.Left) * pw / transform.Width - .5, 0, pw - 1);
@@ -115,7 +113,7 @@ public static class Decoder
             var fx = mx - x0; var fy = my - y0;
             var value = (logits[y0 * pw + x0] * (1 - fx) + logits[y0 * pw + x1] * fx) * (1 - fy)
                 + (logits[y1 * pw + x0] * (1 - fx) + logits[y1 * pw + x1] * fx) * fy;
-            if (value > 0) { mask[x, y] = new L8(255); ++pixels; }
+            if (value > 0) { mask[x, y] = (byte)255; ++pixels; }
         }
         return mask;
     }

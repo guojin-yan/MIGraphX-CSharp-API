@@ -1,6 +1,6 @@
 # MIGraphX HIP interop adapter
 
-`JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` is an optional managed adapter. It depends on the matching MIGraphX core version and exact HipSharp `[0.10.0]`; neither core package depends on the other. It contains managed DLL/XML assets for 15 frameworks and no native runtime.
+`JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop` is an optional managed adapter. It depends on the matching MIGraphX core version and exact HipSharp `[1.0.0]`; neither core package depends on the other. It contains managed DLL/XML assets for 15 frameworks and no native runtime.
 
 `MIGraphXHipExecution` provides `RunHostAsync` for programs compiled with `offloadCopy=true` and `RunDeviceAsync` for validated `HipDeviceMemory` input with `offloadCopy=false`. Both return a `MIGraphXHipAsyncRun`.
 

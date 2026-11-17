@@ -14,7 +14,7 @@ $fakePath = Join-Path (Get-ArtifactsRoot) "fake-native/$Configuration/$fakeName"
 if (-not (Test-Path -LiteralPath $fakePath -PathType Leaf)) { throw 'Build the substitute library with eng/build-fake-native.ps1 first.' }
 if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio/Installer/vswhere.exe'
-    $installation = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1)
+    $installation = (& $vswhere -all -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1)
     if (-not $installation) { throw 'Visual Studio C++ tools were not found.' }
     $toolsVersion = Get-ChildItem -LiteralPath (Join-Path $installation 'VC/Tools/MSVC') -Directory | Sort-Object Name -Descending | Select-Object -First 1
     $dumpbin = Join-Path $toolsVersion.FullName 'bin/Hostx64/x64/dumpbin.exe'

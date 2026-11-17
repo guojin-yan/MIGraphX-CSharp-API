@@ -2,9 +2,6 @@ using System.Diagnostics;
 using System.Net;
 using System.Text.Json;
 using MIGraphXSharp.Samples.Clip;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 try
 {
@@ -14,13 +11,13 @@ try
     var job = JsonSerializer.Deserialize<ClipJob>(File.ReadAllText(manifest), new JsonSerializerOptions { PropertyNameCaseInsensitive = true, UnmappedMemberHandling = System.Text.Json.Serialization.JsonUnmappedMemberHandling.Disallow }) ?? throw new InvalidDataException("Empty manifest.");
     if (job.Prompts is not { Length: > 0 and <= 64 } || job.Images is not { Length: > 0 and <= 1000 } || job.Prompts.Any(p => p is null || string.IsNullOrWhiteSpace(p.Key)) || job.Prompts.Select(p => p.Key).Distinct().Count() != job.Prompts.Length || job.Images.Any(p => p is null || string.IsNullOrWhiteSpace(p.Id) || string.IsNullOrWhiteSpace(p.Path)) || job.Images.Select(p => p.Id).Distinct().Count() != job.Images.Length)
         throw new InvalidDataException("Provide unique prompt keys, unique image IDs, 1..64 prompts and 1..1000 images.");
-    var images = new List<Image<Rgb24>>();
+    var images = new List<RgbImage>();
     try
     {
         foreach (var image in job.Images)
         {
-            var decoded = Image.Load<Rgb24>(Path.GetFullPath(image.Path, Path.GetDirectoryName(manifest)!));
-            images.Add(decoded); decoded.Mutate(c => c.AutoOrient());
+            var decoded = RgbImage.Load(Path.GetFullPath(image.Path, Path.GetDirectoryName(manifest)!));
+            images.Add(decoded);
         }
         var batch = argsMap.Integer("batch", 4, maximum: 16); var warmup = argsMap.Integer("warmup", 1, minimum: 0, maximum: 1000); var iterations = argsMap.Integer("iterations", 10, maximum: 10000);
         var tokens = new ClipTokenizer(models).Encode(job.Prompts.Select(p => p.Text).ToArray());
@@ -81,7 +78,7 @@ try
 }
 catch (Exception e) { Console.Error.WriteLine(e); Console.Error.WriteLine("Usage: --native /opt/rocm/lib/libmigraphx_c.so.3 --models /models/clip --manifest inputs.json --output /results/clip [--batch 4 --warmup 5 --iterations 30 --dump-tensors true]"); return 1; }
 
-static string Preview(Image<Rgb24> image) { using var stream = new MemoryStream(); image.SaveAsPng(stream); return Convert.ToBase64String(stream.ToArray()); }
+static string Preview(RgbImage image) => Convert.ToBase64String(image.EncodePng());
 public sealed record ClipImage(string Id, string Path);
 public sealed record ClipJob(Prompt[] Prompts, ClipImage[] Images);
 public sealed record ClipImageResult(string Id, Match[] Matches, float[] Embedding);

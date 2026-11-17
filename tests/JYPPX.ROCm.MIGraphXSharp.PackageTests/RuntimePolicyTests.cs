@@ -6,7 +6,7 @@ namespace JYPPX.ROCm.MIGraphXSharp.PackageTests;
 public sealed class RuntimePolicyTests
 {
     [Fact]
-    public void NativeDistributionRequiresOfficialSystemInstallation()
+    public void NativeEnginePackagesKeepRocmAndDriversAsSystemDependencies()
     {
         var root = FindRepositoryRoot();
         using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(
@@ -14,12 +14,12 @@ public sealed class RuntimePolicyTests
             "eng", "contracts",
             "package-distribution.json")));
 
-        Assert.Equal("3.0.0", document.RootElement.GetProperty("schemaVersion").GetString());
-        Assert.Equal("system-native", document.RootElement.GetProperty("nativeDistributionMode").GetString());
-        Assert.False(document.RootElement.GetProperty("runtimeNuGetSupported").GetBoolean());
-        Assert.False(document.RootElement.GetProperty("runtimePackagingEnabled").GetBoolean());
+        Assert.Equal("4.0.0", document.RootElement.GetProperty("schemaVersion").GetString());
+        Assert.Equal("engine-packages-with-system-rocm", document.RootElement.GetProperty("nativeDistributionMode").GetString());
+        Assert.True(document.RootElement.GetProperty("runtimeNuGetSupported").GetBoolean());
+        Assert.True(document.RootElement.GetProperty("runtimePackagingEnabled").GetBoolean());
         Assert.True(document.RootElement.GetProperty("failClosed").GetBoolean());
-        Assert.Equal("system-native-only", document.RootElement.GetProperty("technicalStatus").GetString());
+        Assert.Equal("pinned-engine-runtime-packages", document.RootElement.GetProperty("technicalStatus").GetString());
         Assert.True(document.RootElement.GetProperty("officialInstallationRequired").GetBoolean());
         Assert.False(document.RootElement.GetProperty("managedPackagesContainNativeAssets").GetBoolean());
     }
@@ -51,17 +51,27 @@ public sealed class RuntimePolicyTests
     }
 
     [Fact]
-    public void RuntimeNuGetSurfaceDoesNotExist()
+    public void RuntimePayloadsHavePinnedSourcesLicensesAndPortableRids()
     {
         var root = FindRepositoryRoot();
-        Assert.False(File.Exists(Path.Combine(root, "pack", "JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.linux-x64.csproj")));
-        Assert.False(File.Exists(Path.Combine(root, "eng", "pack-runtime.ps1")));
-        Assert.False(File.Exists(Path.Combine(root, "eng", "verify-runtime-package.ps1")));
-        Assert.False(File.Exists(Path.Combine(root, "src", "JYPPX.ROCm.MIGraphX.CSharp.API", "Loading", "RuntimeClosureGuard.cs")));
-
-        var script = File.ReadAllText(Path.Combine(root, "eng", "pack.ps1"));
-        Assert.Contains("Runtime NuGet packaging is not supported", script, StringComparison.Ordinal);
-        Assert.Contains("AMD official system repository", script, StringComparison.Ordinal);
+        using var document = JsonDocument.Parse(File.ReadAllText(Path.Combine(root, "eng", "contracts", "native-runtime-sources.json")));
+        var platforms = document.RootElement.GetProperty("platforms");
+        Assert.Equal(2, platforms.EnumerateObject().Count());
+        foreach (var platform in platforms.EnumerateObject())
+        {
+            var value = platform.Value;
+            Assert.Equal(platform.Name == "win-x64" ? "win-x64" : "linux-x64", value.GetProperty("rid").GetString());
+            Assert.Equal("2.18.0", value.GetProperty("nativeVersion").GetString());
+            Assert.Equal("10.1.0", value.GetProperty("rocmVersion").GetString());
+            Assert.Matches("^[0-9a-f]{64}$", value.GetProperty("archiveSha256").GetString()!);
+            Assert.True(value.GetProperty("systemDependencies").GetArrayLength() > 0);
+            var files = value.GetProperty("files").EnumerateArray().ToArray();
+            Assert.Equal(files.Length, files.Select(file => file.GetProperty("path").GetString()).Distinct().Count());
+            Assert.Contains(files, file => file.GetProperty("path").GetString() == "licenses/MIGraphX-LICENSE.txt");
+            Assert.Contains(files, file => file.GetProperty("path").GetString()!.StartsWith("native/", StringComparison.Ordinal));
+            Assert.All(files, file => Assert.Matches("^[0-9a-f]{64}$", file.GetProperty("sha256").GetString()!));
+            Assert.DoesNotContain(files, file => file.GetProperty("path").GetString()!.Contains("amdhip64", StringComparison.Ordinal));
+        }
     }
 
     private static string FindRepositoryRoot() => RepositoryPaths.Root;

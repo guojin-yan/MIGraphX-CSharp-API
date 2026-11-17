@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $AdapterPackagePath,
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $HipSharpPackagePath,
     [Parameter(Mandatory)][ValidateScript({ Test-Path -LiteralPath $_ -PathType Leaf })][string] $VulnerabilityScanPath,
-    [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')][string] $Version = '0.0.0',
+    [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')][string] $Version = '1.0.0',
     [Parameter(Mandatory)][ValidatePattern('^[a-f0-9]{40}$')][string] $RepositoryCommit,
     [string] $OutputDirectory
 )
@@ -71,7 +71,7 @@ $manifest = [ordered]@{
     dependencyPolicy = [ordered]@{
         core = 'no runtime NuGet dependencies'
         adapter = "exact [${Version}] core and exact [$($dependency.version)] HipSharp dependencies in every TFM group"
-        native = 'system-native; no native package is distributed'
+        native = 'managed evidence covers core/adapter only; separately audited engine runtime packages require ROCm system libraries'
     }
     symbolSourcePolicy = 'RC nupkgs omit PDB, source, and snupkg; repository commit and deterministic PathMap identify source.'
 }
@@ -109,7 +109,7 @@ $sbom = [ordered]@{
         component = [ordered]@{ type = 'application'; name = 'MIGraphXSharp managed release candidate'; version = $Version }
         properties = @(
             [ordered]@{ name = 'jyppx:evidence-level'; value = 'release-candidate-local' },
-            [ordered]@{ name = 'jyppx:native-distribution'; value = 'system-native/not-applicable' }
+            [ordered]@{ name = 'jyppx:native-distribution'; value = 'engine-packages-audited-separately' }
         )
     }
     components = $components

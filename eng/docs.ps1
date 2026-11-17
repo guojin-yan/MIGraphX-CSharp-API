@@ -3,7 +3,7 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string] $Configuration = 'Release',
     [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')]
-    [string] $Version = '0.0.0',
+    [string] $Version = '1.0.0',
     [string] $RepositoryCommit,
     [string] $HipSharpRepositoryRoot,
     [switch] $NoBuild
@@ -19,6 +19,8 @@ if ([string]::IsNullOrWhiteSpace($resolvedHipSharpRepositoryRoot) -and -not [str
     $resolvedHipSharpRepositoryRoot = $env:HIPSHARP_REPOSITORY_ROOT
 }
 $previousHipSharpEnvironment = [Environment]::GetEnvironmentVariable('HipSharpRepositoryRoot', 'Process')
+$previousBuildPropsEnvironment = [Environment]::GetEnvironmentVariable('DirectoryBuildPropsPath', 'Process')
+[Environment]::SetEnvironmentVariable('DirectoryBuildPropsPath', (Join-Path $PSScriptRoot 'Workspace.Build.props'), 'Process')
 if (-not [string]::IsNullOrWhiteSpace($resolvedHipSharpRepositoryRoot)) {
     [Environment]::SetEnvironmentVariable('HipSharpRepositoryRoot', $resolvedHipSharpRepositoryRoot, 'Process')
 }
@@ -60,6 +62,7 @@ try {
     }
 }
 finally {
+    [Environment]::SetEnvironmentVariable('DirectoryBuildPropsPath', $previousBuildPropsEnvironment, 'Process')
     [Environment]::SetEnvironmentVariable('HipSharpRepositoryRoot', $previousHipSharpEnvironment, 'Process')
     Pop-Location
 }

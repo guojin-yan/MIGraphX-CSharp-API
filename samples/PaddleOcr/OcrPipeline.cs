@@ -1,6 +1,3 @@
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace MIGraphXSharp.Samples.PaddleOcr;
 
@@ -10,7 +7,7 @@ public sealed record OcrResult(TextLine[] Lines, string[] AcceptedText, double D
 /// <summary>Reusable compiled models; Run excludes visualization but includes preprocessing, crops and decode.</summary>
 public sealed class OcrPipeline : IDisposable
 {
-    private readonly Image<Rgb24> image;
+    private readonly RgbImage image;
     private readonly InferenceSession recognizer;
     private readonly InferenceSession? detector;
     private readonly string[] dictionary;
@@ -23,7 +20,7 @@ public sealed class OcrPipeline : IDisposable
     public object RecognizerInfo => new { recognizer.ModelSha256, recognizer.AssemblyIdentity, recognizer.ParseMilliseconds, recognizer.CompileMilliseconds, inputWidth = recWidth, classes = dictionary.Length };
     public object? DetectorInfo => detector is null ? null : new { detector.ModelSha256, detector.ParseMilliseconds, detector.CompileMilliseconds, inputWidth = detWidth, inputHeight = detHeight };
 
-    public OcrPipeline(Image<Rgb24> image, Arguments options, OcrModels models)
+    public OcrPipeline(RgbImage image, Arguments options, OcrModels models)
     {
         this.image = image;
         recWidth = options.Integer("rec-width", 320);
@@ -52,7 +49,7 @@ public sealed class OcrPipeline : IDisposable
         var recognitionSamples = new List<double>();
         if (detector is not null)
         {
-            using var resized = image.Clone(context => context.Resize(detWidth, detHeight, KnownResamplers.Triangle));
+            using var resized = image.Resize(detWidth, detHeight, Sampling.Linear);
             var input = Images.ToTensor(resized, rgb: false, mean: [.485f,.456f,.406f], std: [.229f,.224f,.225f]);
             var (tensors, milliseconds) = detector.Run(input, artifacts is not null && dumpTensors ? Path.Combine(artifacts, "det-tensors") : null);
             detectionMilliseconds = milliseconds;
@@ -66,7 +63,7 @@ public sealed class OcrPipeline : IDisposable
             var box = boxes[index];
             using var crop = Images.Rectify(image, box.Polygon);
             var cropName = $"crop-{index:D3}.png";
-            if (artifacts is not null) crop.SaveAsPng(Path.Combine(artifacts, cropName));
+            if (artifacts is not null) crop.SavePng(Path.Combine(artifacts, cropName));
             var (tensors, milliseconds) = recognizer.Run(Recognition.Prepare(crop, recWidth),
                 artifacts is not null && dumpTensors ? Path.Combine(artifacts, $"rec-tensors-{index:D3}") : null);
             var decoded = Recognition.Decode(tensors.Single(), dictionary);

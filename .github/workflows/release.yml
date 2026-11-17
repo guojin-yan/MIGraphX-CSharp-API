@@ -7,7 +7,7 @@ on:
         description: Version to publish (without v)
         required: true
         type: string
-        default: '0.0.2'
+        default: '1.0.0'
       prepared_run_id:
         description: Optional completed run whose prepared packages should be reused
         required: false
@@ -44,23 +44,27 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: guojin-yan/HIP-CSharp-API
-          ref: 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+          ref: 7b6f75d0047bb87b72094aa910bcea8be2c5e2bc
           path: hip-source
       - uses: actions/setup-dotnet@v6
         with:
           global-json-file: MIGraphXSharp/global.json
       - name: Check release identity and obtain reviewed dependency
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           if ($env:RELEASE_VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected a three-part version.' }
           if ((git rev-parse HEAD).Trim() -ne $env:GITHUB_SHA) { throw 'main moved after dispatch; start a new run.' }
           $dependency = Join-Path $env:MIGRAPHX_WORKSPACE_ROOT 'release-dependency'
           New-Item -ItemType Directory -Path $dependency -Force | Out-Null
-          Invoke-WebRequest 'https://api.nuget.org/v3-flatcontainer/jyppx.rocm.hip.csharp.api/0.10.0/jyppx.rocm.hip.csharp.api.0.10.0.nupkg' -OutFile (Join-Path $dependency 'JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg')
+          Invoke-WebRequest 'https://api.nuget.org/v3-flatcontainer/jyppx.rocm.hip.csharp.api/1.0.0/jyppx.rocm.hip.csharp.api.1.0.0.nupkg' -OutFile (Join-Path $dependency 'JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg')
+          gh release download "v$env:RELEASE_VERSION" --repo $env:GITHUB_REPOSITORY --pattern 'MIGraphX-native-*.zip' --dir $dependency --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'Pinned native input archives are missing from the draft release.' }
       - name: Build, inspect packages and prepare distribution
         run: |
-          $hipPackage = Join-Path $env:MIGRAPHX_WORKSPACE_ROOT 'release-dependency/JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg'
+          $hipPackage = Join-Path $env:MIGRAPHX_WORKSPACE_ROOT 'release-dependency/JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg'
           $hipSource = Join-Path $env:GITHUB_WORKSPACE 'hip-source'
-          ./eng/prepare-release.ps1 -Version $env:RELEASE_VERSION -HipSharpPackagePath $hipPackage -HipSharpRepositoryRoot $hipSource
+          ./eng/prepare-release.ps1 -Version $env:RELEASE_VERSION -HipSharpPackagePath $hipPackage -HipSharpRepositoryRoot $hipSource -NativeSourceDirectory "$env:MIGRAPHX_WORKSPACE_ROOT/release-dependency"
       - uses: actions/upload-artifact@v7
         with:
           name: release-${{ inputs.version }}
@@ -129,6 +133,15 @@ jobs:
           Set-Location distribution
           $evidence = Get-Content release-evidence.json -Raw | ConvertFrom-Json
           if ($evidence.version -ne $env:RELEASE_VERSION -or $evidence.repositoryCommit -ne $env:PREPARED_COMMIT) { throw 'Prepared version or source commit mismatch.' }
+          $native = @(Get-Content native-package-manifest.json -Raw | ConvertFrom-Json)
+          $runtimeIds = @('JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64', 'JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64')
+          if ($native.Count -ne 2) { throw 'Both runtime package audits are required.' }
+          foreach ($id in $runtimeIds) {
+            $item = @($native | Where-Object id -eq $id)
+            if ($item.Count -ne 1 -or $item[0].version -ne $env:RELEASE_VERSION -or $item[0].repositoryCommit -ne $env:PREPARED_COMMIT -or
+                $item[0].package -ne "$id.$env:RELEASE_VERSION.nupkg" -or
+                (Get-FileHash -LiteralPath $item[0].package -Algorithm SHA256).Hash.ToLowerInvariant() -ne $item[0].sha256) { throw 'Runtime package provenance mismatch.' }
+          }
           foreach ($line in Get-Content SHA256SUMS.txt) {
             if ($line -notmatch '^([a-f0-9]{64})  ([A-Za-z0-9_.-]+)$') { throw 'Invalid checksum entry.' }
             if ((Get-FileHash -LiteralPath $Matches[2] -Algorithm SHA256).Hash.ToLowerInvariant() -ne $Matches[1]) { throw 'Release asset checksum mismatch.' }
@@ -150,7 +163,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NuGet OIDC login returned no temporary API key.' }
           Set-Location distribution
-          foreach ($id in @('JYPPX.ROCm.MIGraphX.CSharp.API', 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop')) {
+          foreach ($id in @('JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64', 'JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64', 'JYPPX.ROCm.MIGraphX.CSharp.API', 'JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop')) {
             dotnet nuget push "$id.$env:RELEASE_VERSION.nupkg" --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --timeout 300
             if ($LASTEXITCODE -ne 0) { throw "NuGet publication failed for $id." }
           }

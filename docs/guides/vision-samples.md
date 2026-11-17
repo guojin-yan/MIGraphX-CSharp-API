@@ -2,7 +2,7 @@
 
 `samples/Yolo26` 提供检测、分类、实例分割、人体姿态和旋转框五个任务。`samples/PaddleOcr` 在同一个项目中提供 PP-OCRv4/v5 的 mobile、server 与 PP-OCRv6 的 tiny、small、medium 图片文字检测与识别，也支持只识别已经裁剪的文本行。默认使用 HIP 完成前后处理，并用本库的 `RunDeviceIntoAsync` 保持模型输出在显存；`--backend cpu` 保留 C# 前后处理作为对照。
 
-两个示例各自包含完整实现，仅直接引用本库和 ImageSharp，没有独立的公共示例项目。
+两个示例各自包含完整推理实现，引用本库和 OpenCV CSharp API 5.0.0。图像边界代码通过源码链接复用，没有跨示例程序集引用。见 [OpenCV 图像迁移与部署](opencv-imaging.md)。
 
 先按[部署指南](runtime-deployment.md)安装匹配的 ROCm/MIGraphX，准备本地 ONNX 模型、原图和配套标签/字典。示例需要 .NET 10，库本身仍保持原有 15 TFM；这些模型不随库包分发。
 
@@ -37,7 +37,7 @@ OCR 整图 HIP 路径默认以 4 行为一个识别 batch、使用 2 个独立�
 
 ## CLIP 与 PP-Structure
 
-main 另提供两个独立 .NET 10 项目：[CLIP](../../samples/Clip/README.md) 和 [PP-Structure](../../samples/PPStructure/README.md)。它们都自带完整代码、下载脚本、输入清单及计时输出。
+main 另提供两个独立 .NET 10 项目：[CLIP](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/samples/Clip/README.md) 和 [PP-Structure](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/samples/PPStructure/README.md)。它们都自带完整代码、下载脚本、输入清单及计时输出。
 
 CLIP 使用 ViT-B/32 GPU 图像/文本编码器，提供英文 BPE、图片 batch、图到文匹配和文到图检索；图像处理与特征排序在 CPU。PP-Structure 使用 GPU 方向/版面/表格模型及 HIP OCR，SLANeXt 由原始图拆成 encoder/step 后在 C# 调度。公式必须显式选择 `--formula-backend ort-cpu`，否则区域保留并标为待复核；FormulaNet 原始动态循环当前无法由 MIGraphX 2.15 执行。
 

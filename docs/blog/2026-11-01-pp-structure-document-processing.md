@@ -1,5 +1,7 @@
 # MIGraphX CSharp API 实战：用 PP-Structure 组织多输入模型与循环解码
 
+> 历史文章：本文图像代码及性能结果对应当时源码；当前 0.0.3 候选源码已迁移至 OpenCV，使用方式见[迁移指南](../guides/opencv-imaging.md)。
+
 ![MIGraphX CSharp API PP-Structure 技术实战：命名输入、混合类型输出与循环状态传递](assets/pp-structure/cover.png)
 
 ## 一、MIGraphX CSharp API 项目简介

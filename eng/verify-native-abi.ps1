@@ -68,7 +68,7 @@ $probePath = if ($IsWindows -or $env:OS -eq 'Windows_NT') { Join-Path $probeDire
 
 if ($IsWindows -or $env:OS -eq 'Windows_NT') {
     $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
-    $installation = (& $vswhere -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1)
+    $installation = (& $vswhere -all -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath | Select-Object -First 1)
     if (-not $installation) { throw 'Visual Studio C++ tools were not found for the ABI probe.' }
     $vcvars = Join-Path $installation 'VC\Auxiliary\Build\vcvars64.bat'
     $originalEnvironment = @{}

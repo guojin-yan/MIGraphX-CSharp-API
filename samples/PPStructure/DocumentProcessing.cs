@@ -1,10 +1,8 @@
+using MIGraphXSharp.Samples.PPStructure.Ocr;
 using System.Collections;
 using System.Net;
 using System.Text;
 using Microsoft.ML.Tokenizers;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using YamlDotNet.Serialization;
 using PointD = MIGraphXSharp.Samples.PPStructure.Ocr.PointD;
 
@@ -14,36 +12,37 @@ public sealed record Box(double X, double Y, double Width, double Height)
 {
     public bool Contains(double x, double y) => x >= X && x <= X + Width && y >= Y && y <= Y + Height;
     public PointD[] Polygon => [new(X, Y), new(X + Width, Y), new(X + Width, Y + Height), new(X, Y + Height)];
-    public Rectangle Rectangle(int width, int height)
+    public ImageRect Rectangle(int width, int height)
     {
         var left = Math.Clamp((int)Math.Floor(X), 0, width - 1); var top = Math.Clamp((int)Math.Floor(Y), 0, height - 1);
-        return new Rectangle(left, top, Math.Clamp((int)Math.Ceiling(X + Width) - left, 1, width - left), Math.Clamp((int)Math.Ceiling(Y + Height) - top, 1, height - top));
+        return new ImageRect(left, top, Math.Clamp((int)Math.Ceiling(X + Width) - left, 1, width - left), Math.Clamp((int)Math.Ceiling(Y + Height) - top, 1, height - top));
     }
 }
 public sealed record Region(string Category, float Score, Box Bounds);
 public static class DocumentProcessing
 {
     public static readonly string[] Labels = "paragraph_title,image,text,number,abstract,content,figure_title,formula,table,table_title,reference,doc_title,footnote,header,algorithm,footer,seal,chart_title,chart,formula_number,header_image,footer_image,aside_text".Split(',');
-    public static float[] Tensor(Image<Rgb24> image, int width, int height, bool imagenet = false, bool bgr = false, bool pad = false, bool classification = false)
+    public static float[] Tensor(RgbImage image, int width, int height, bool imagenet = false, bool bgr = false, bool pad = false, bool classification = false)
     {
-        Image<Rgb24> prepared;
+        RgbImage prepared;
         if (classification)
         {
             var ratio = 256d / Math.Min(image.Width, image.Height); var w = Math.Max(224, (int)(image.Width * ratio)); var h = Math.Max(224, (int)(image.Height * ratio));
-            prepared = image.Clone(c => c.Resize(w, h, KnownResamplers.Triangle).Crop(new Rectangle((w - 224) / 2, (h - 224) / 2, 224, 224)));
+            using var scaled = image.Resize(w, h, Sampling.Linear);
+            prepared = scaled.Crop(new ImageRect((w - width) / 2, (h - height) / 2, width, height));
         }
         else if (pad)
         {
             var ratio = Math.Min((double)width / image.Width, (double)height / image.Height);
             var w = Math.Clamp((int)(image.Width * ratio), 1, width); var h = Math.Clamp((int)(image.Height * ratio), 1, height);
-            using var resized = image.Clone(c => c.Resize(w, h, KnownResamplers.Triangle));
-            prepared = new Image<Rgb24>(width, height); prepared.Mutate(c => c.DrawImage(resized, new Point(0, 0), 1));
+            using var resized = image.Resize(w, h, Sampling.Linear);
+            prepared = new RgbImage(width, height); prepared.Paste(resized, 0, 0);
             var values = Ocr.Images.ToTensor(prepared, !bgr, imagenet ? [.485f, .456f, .406f] : null, imagenet ? [.229f, .224f, .225f] : null);
             // Paddle pads after normalization, so the padded tensor is zero.
             for (var y = 0; y < height; y++) for (var x = 0; x < width; x++) if (y >= h || x >= w) for (var ch = 0; ch < 3; ch++) values[ch * width * height + y * width + x] = 0;
             prepared.Dispose(); return values;
         }
-        else prepared = image.Clone(c => c.Resize(width, height, KnownResamplers.Bicubic));
+        else prepared = image.Resize(width, height, Sampling.Cubic);
         using (prepared) return Ocr.Images.ToTensor(prepared, !bgr, imagenet ? [.485f, .456f, .406f] : null, imagenet ? [.229f, .224f, .225f] : null);
     }
     public static Region[] DecodeRegions(ModelTensor[] tensors, string[] labels, int width, int height, float threshold)
@@ -117,23 +116,24 @@ public sealed class FormulaTokenizer
         foreach (var id in values) { if (id == 2) { complete = true; break; } if (id is 0 or 1) continue; if (id < 0 || id > int.MaxValue) throw new InvalidDataException("Invalid formula token."); ids.Add((int)id); }
         return (tokenizer.Decode(ids), complete);
     }
-    public static float[] Prepare(Image<Rgb24> source)
+    public static float[] Prepare(RgbImage source)
     {
-        int min = 255, max = 0; int Gray(Rgb24 p) => (19595 * p.R + 38470 * p.G + 7471 * p.B + 32768) >> 16;
-        source.ProcessPixelRows(rows => { for (var y = 0; y < source.Height; y++) foreach (var p in rows.GetRowSpan(y)) { var gray = Gray(p); min = Math.Min(min, gray); max = Math.Max(max, gray); } });
+        int min = 255, max = 0; int Gray(RgbPixel p) => (19595 * p.R + 38470 * p.G + 7471 * p.B + 32768) >> 16;
+        for (var y = 0; y < source.Height; y++) foreach (var p in source.GetRowSpan(y)) { var gray = Gray(p); min = Math.Min(min, gray); max = Math.Max(max, gray); }
         int left = 0, top = 0, right = source.Width, bottom = source.Height;
         if (min != max)
         {
             left = source.Width; top = source.Height; right = bottom = 0;
-            source.ProcessPixelRows(rows => { for (var y = 0; y < source.Height; y++) { var row = rows.GetRowSpan(y); for (var x = 0; x < source.Width; x++) if ((Gray(row[x]) - min) * 255 < 200 * (max - min)) { left = Math.Min(left, x); top = Math.Min(top, y); right = Math.Max(right, x + 1); bottom = Math.Max(bottom, y + 1); } } });
+            for (var y = 0; y < source.Height; y++) { var row = source.GetRowSpan(y); for (var x = 0; x < source.Width; x++) if ((Gray(row[x]) - min) * 255 < 200 * (max - min)) { left = Math.Min(left, x); top = Math.Min(top, y); right = Math.Max(right, x + 1); bottom = Math.Max(bottom, y + 1); } }
         }
         var width = right - left; var height = bottom - top; var scale = 384d / Math.Min(width, height);
         var firstW = (int)(width * scale); var firstH = (int)(height * scale);
         if ((long)firstW * firstH > 80_000_000) throw new InvalidDataException("Formula resize is too large.");
-        using var crop = source.Clone(c => c.Crop(new Rectangle(left, top, width, height)).Resize(firstW, firstH, KnownResamplers.Triangle));
+        using var content = source.Crop(new ImageRect(left, top, width, height));
+        using var crop = content.Resize(firstW, firstH, Sampling.Linear);
         var shrink = Math.Min(1d, 384d / Math.Max(firstW, firstH)); var w = Math.Max(1, (int)Math.Round(firstW * shrink)); var h = Math.Max(1, (int)Math.Round(firstH * shrink));
-        using var final = crop.Clone(c => c.Resize(w, h, KnownResamplers.Bicubic)); var values = Enumerable.Repeat(-.7931f / .1738f, 384 * 384).ToArray();
-        final.ProcessPixelRows(rows => { for (var y = 0; y < h; y++) { var row = rows.GetRowSpan(y); for (var x = 0; x < w; x++) { var p = row[x]; values[(y + (384 - h) / 2) * 384 + x + (384 - w) / 2] = ((.114f * p.R + .587f * p.G + .299f * p.B) / 255f - .7931f) / .1738f; } } });
+        using var final = crop.Resize(w, h, Sampling.Cubic); var values = Enumerable.Repeat(-.7931f / .1738f, 384 * 384).ToArray();
+        for (var y = 0; y < h; y++) { var row = final.GetRowSpan(y); for (var x = 0; x < w; x++) { var p = row[x]; values[(y + (384 - h) / 2) * 384 + x + (384 - w) / 2] = ((.114f * p.R + .587f * p.G + .299f * p.B) / 255f - .7931f) / .1738f; } }
         return values;
     }
 }

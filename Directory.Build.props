@@ -7,7 +7,7 @@
     <MIGraphXArtifactsRoot>$(MIGraphXWorkspaceRoot)artifacts\</MIGraphXArtifactsRoot>
     <JYPPXManagedTargetFrameworks>net46;net461;net462;net47;net471;net472;net48;net481;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0;net10.0</JYPPXManagedTargetFrameworks>
     <MIGraphXSharpPackageId>JYPPX.ROCm.MIGraphX.CSharp.API</MIGraphXSharpPackageId>
-    <MIGraphXSharpVersion Condition="'$(MIGraphXSharpVersion)' == ''">0.0.0</MIGraphXSharpVersion>
+    <MIGraphXSharpVersion Condition="'$(MIGraphXSharpVersion)' == ''">1.0.0</MIGraphXSharpVersion>
     <MIGraphXSharpNumericVersion>$([System.Text.RegularExpressions.Regex]::Match('$(MIGraphXSharpVersion)', '^\d+\.\d+\.\d+').Value)</MIGraphXSharpNumericVersion>
     <MIGraphXSharpRepositoryUrl>https://github.com/guojin-yan/MIGraphX-CSharp-API</MIGraphXSharpRepositoryUrl>
     <Authors>Guojin Yan</Authors>
@@ -40,13 +40,10 @@
     <VSTestResultsDirectory>$(MIGraphXWorkspaceRoot)test-results\$(MSBuildProjectName)</VSTestResultsDirectory>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
     <HipSharpRepositoryRoot Condition="'$(HipSharpRepositoryRoot)' == '' and '$(HIPSHARP_REPOSITORY_ROOT)' != ''">$(HIPSHARP_REPOSITORY_ROOT)</HipSharpRepositoryRoot>
+    <HipSharpRepositoryRoot Condition="'$(HipSharpRepositoryRoot)' == '' and Exists('$(MIGraphXWorkspaceRoot)dependencies/HipSharp-7b6f75d0/src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj')">$(MIGraphXWorkspaceRoot)dependencies/HipSharp-7b6f75d0</HipSharpRepositoryRoot>
     <HipSharpRepositoryRoot Condition="'$(HipSharpRepositoryRoot)' == ''">$(MSBuildThisFileDirectory)..\..\HIP-CSharp-API\HIP-CSharp-API\</HipSharpRepositoryRoot>
-    <HipSharpPackageVersion Condition="'$(HipSharpPackageVersion)' == ''">0.10.0</HipSharpPackageVersion>
+    <HipSharpBuildProperties>DirectoryBuildPropsPath=$(RepositoryRoot)eng/HipSharp.Build.props;MIGraphXExternalArtifactsRoot=$(MIGraphXArtifactsRoot)</HipSharpBuildProperties>
+    <HipSharpPackageVersion Condition="'$(HipSharpPackageVersion)' == ''">1.0.0</HipSharpPackageVersion>
     <TreatWarningsAsErrors Condition="'$(Configuration)' == 'Release'">true</TreatWarningsAsErrors>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Yolo26' or '$(MSBuildProjectName)' == 'PaddleOcr' or '$(MSBuildProjectName)' == 'Clip' or '$(MSBuildProjectName)' == 'PPStructure' or '$(MSBuildProjectName)' == 'Vision.SampleTests'">
-    <!-- ImageSharp 3.1 advisories remain visible for these local-image examples.
-         The published core/adapter packages do not depend on ImageSharp and are audited separately. -->
-    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1902;NU1903</WarningsNotAsErrors>
   </PropertyGroup>
 </Project>

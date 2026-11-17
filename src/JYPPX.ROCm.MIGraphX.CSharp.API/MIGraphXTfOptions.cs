@@ -17,7 +17,7 @@ public sealed class MIGraphXTfOptions : IDisposable
     /// <summary>使用显式 native library 创建 TensorFlow 选项。 Creates TensorFlow options from an explicit native library.</summary>
     /// <param name="nativeLibraryPath">MIGraphX C 原生库绝对路径。 Absolute MIGraphX C native-library path.</param>
     public MIGraphXTfOptions(string nativeLibraryPath)
-        : this(NativeRuntime.Load(nativeLibraryPath), NativeTfOptionsHandle.Create())
+        : this(NativeRuntime.LoadTensorFlow(nativeLibraryPath), NativeTfOptionsHandle.Create())
     {
     }
 

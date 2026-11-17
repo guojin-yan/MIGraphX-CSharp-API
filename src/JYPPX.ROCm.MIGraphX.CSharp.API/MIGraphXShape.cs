@@ -255,6 +255,9 @@ public sealed class MIGraphXShape
                 throw new InvalidOperationException("The managed dynamic override rank does not match the native shape.");
             }
             var dimensions = dynamicFallback.ToArray();
+            using var nativeDimensions = NativeDynamicDimensionsHandle.FromShape(shape);
+            if (!nativeDimensions.Matches(dimensions))
+                throw new InvalidOperationException("The managed dynamic override does not match the native dimension ranges.");
             return CreateDynamic(ShapeDataTypeMap.FromNative(snapshot.Type), dimensions);
         }
 

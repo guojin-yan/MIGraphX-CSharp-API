@@ -3,7 +3,7 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string] $Configuration = 'Release',
     [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')]
-    [string] $Version = '0.0.0',
+    [string] $Version = '1.0.0',
     [string] $RepositoryCommit,
     [string] $HipSharpRepositoryRoot,
     [switch] $NoBuild

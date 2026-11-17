@@ -1,18 +1,20 @@
 # Getting started
 
-The core package is `JYPPX.ROCm.MIGraphX.CSharp.API`; its C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Version `0.0.2` is distributed through NuGet.org and [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2).
+The core package is `JYPPX.ROCm.MIGraphX.CSharp.API`; its C# namespace is `JYPPX.ROCm.MIGraphXSharp`. Version `1.0.0` is distributed through NuGet.org and [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v1.0.0).
+
+For the native engine choose the matching [runtime package and ROCm system prerequisites](runtime-deployment.md).
 
 ## Install and build
 
 Install from NuGet.org:
 
 ```bash
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 0.0.2
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 1.0.0
 # Optional HIP stream/device-input adapter:
-dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 0.0.2
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop --version 1.0.0
 ```
 
-The optional adapter resolves exact core `0.0.2` and HipSharp `0.10.0` dependencies. The HipSharp dependency does not install ROCm or HIP native libraries. Prebuilt packages do not require a HipSharp source checkout.
+The published 0.0.2 adapter resolves exact core `0.0.2` and HipSharp `0.10.0` dependencies. Release 1.0.0 requires core `1.0.0` and stable HipSharp `1.0.0`; upgrade any explicit HIP package reference together. See the [release notes](../release-notes/1.0.0.md). The HipSharp dependency does not install ROCm or HIP native libraries. Prebuilt packages do not require a HipSharp source checkout.
 
 For offline installation, download the `.nupkg` assets from GitHub Releases into an absolute directory outside the checkout. Include all three packages when using the adapter, add that directory with `dotnet nuget add source /absolute/path/to/packages --name migraphx-release`, and use it for both `JYPPX.ROCm.MIGraphX.*` and `JYPPX.ROCm.HIP.CSharp.API` if your application uses package-source mapping. Verify downloaded files against the release's `SHA256SUMS.txt`.
 
@@ -21,12 +23,12 @@ To build from source instead:
 Install the .NET SDK selected by `global.json` and PowerShell 7, and configure the HipSharp source dependency described in [CONTRIBUTING.md](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/CONTRIBUTING.md):
 
 ```powershell
-.\eng\pack.ps1 -Configuration Release -Version 0.0.0
+.\eng\pack.ps1 -Configuration Release -Version 1.0.0
 ```
 
 Add `../MIGraphXSharp.Workspace/artifacts/packages/` as a local NuGet source in your consuming application, then reference the exact package version. Full solution builds also need the HipSharp source dependency described in [CONTRIBUTING.md](https://github.com/guojin-yan/MIGraphX-CSharp-API/blob/main/CONTRIBUTING.md).
 
-For inference, install ROCm 7.2.1 and MIGraphX `2.15.0.70201-81~24.04` on compatible Linux x86-64 hardware using the [deployment guide](runtime-deployment.md). Building managed code does not install a native runtime.
+For inference, install the platform runtime package and matching ROCm 10.1 system prerequisites using the [deployment guide](runtime-deployment.md). An existing compatible system MIGraphX installation can also be selected by absolute path. Building managed code does not install a native runtime.
 
 ## Probe the library
 

@@ -13,13 +13,13 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IsPackable>true</IsPackable>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageReleaseNotes>Managed HIP stream and device-input adapter with exact MIGraphX core and HipSharp dependencies. Review the documented async and device-input runtime limitations before use.</PackageReleaseNotes>
+    <PackageReleaseNotes>HIP 1.0.0 integration with leased asynchronous host/device inputs and same-stream device outputs; exact matching MIGraphX core dependency. Review the documented async and device-input runtime limitations before use.</PackageReleaseNotes>
     <UseAdapterPackageReferences Condition="'$(UseAdapterPackageReferences)' == ''">false</UseAdapterPackageReferences>
     <ShouldUnsetParentConfigurationAndPlatform>false</ShouldUnsetParentConfigurationAndPlatform>
   </PropertyGroup>
   <ItemGroup Condition="'$(UseAdapterPackageReferences)' != 'true'">
     <ProjectReference Include="..\JYPPX.ROCm.MIGraphX.CSharp.API\JYPPX.ROCm.MIGraphX.CSharp.API.csproj" />
-    <ProjectReference Include="$(HipSharpRepositoryRoot)/src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj" />
+    <ProjectReference Include="$(HipSharpRepositoryRoot)/src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj" AdditionalProperties="$(HipSharpBuildProperties)" />
   </ItemGroup>
   <ItemGroup Condition="'$(UseAdapterPackageReferences)' == 'true'">
     <PackageReference Include="JYPPX.ROCm.MIGraphX.CSharp.API" VersionOverride="[$(MIGraphXSharpVersion)]" />

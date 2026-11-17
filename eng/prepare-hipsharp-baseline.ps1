@@ -2,7 +2,7 @@
 param(
     [string] $SourceRepository,
     [ValidatePattern('^[a-f0-9]{40}$')]
-    [string] $Commit = '81d124d6a1598680c83c0b398db4d38d181929de'
+    [string] $Commit = '7b6f75d0047bb87b72094aa910bcea8be2c5e2bc'
 )
 
 Set-StrictMode -Version Latest
@@ -35,7 +35,7 @@ Expand-Archive -LiteralPath $archive -DestinationPath $destination
 [IO.File]::WriteAllText($marker, $Commit + "`n", [Text.UTF8Encoding]::new($false))
 
 $versionText = Get-Content -Raw -LiteralPath (Join-Path $destination 'eng\Versions.props')
-if (-not $versionText.Contains('<HipSharpCoreVersion>0.9.1</HipSharpCoreVersion>', [StringComparison]::Ordinal)) {
-    throw 'The archived HipSharp baseline is not package version 0.9.1.'
+if (-not $versionText.Contains('<HipSharpCoreVersion>1.0.0</HipSharpCoreVersion>', [StringComparison]::Ordinal)) {
+    throw 'The archived HipSharp baseline is not package version 1.0.0.'
 }
 Write-Output $destination

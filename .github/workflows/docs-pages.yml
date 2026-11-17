@@ -32,7 +32,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: guojin-yan/HIP-CSharp-API
-          ref: 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+          ref: 7b6f75d0047bb87b72094aa910bcea8be2c5e2bc
           path: hip-source
           fetch-depth: 1
       - uses: actions/setup-dotnet@v6
@@ -41,8 +41,7 @@ jobs:
       - shell: pwsh
         run: |
           $hipRoot = Join-Path $env:GITHUB_WORKSPACE 'hip-source'
-          dotnet restore ./MIGraphXSharp.sln "-p:HipSharpRepositoryRoot=$hipRoot"
-          ./eng/build.ps1 -Configuration Release -NoRestore -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
+          ./eng/build.ps1 -Configuration Release -HipSharpRepositoryRoot $hipRoot
           ./eng/docs.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - uses: actions/upload-pages-artifact@v5
         with:

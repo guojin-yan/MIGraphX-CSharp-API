@@ -2,7 +2,8 @@
   <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><IsPackable>false</IsPackable><GenerateDocumentationFile>false</GenerateDocumentationFile></PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/JYPPX.ROCm.MIGraphX.CSharp.API/JYPPX.ROCm.MIGraphX.CSharp.API.csproj" />
-    <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="Microsoft.ML.Tokenizers" />
   </ItemGroup>
+  <PropertyGroup><DefineConstants>$(DefineConstants);IMAGING_CLIP</DefineConstants></PropertyGroup>
+  <ItemGroup><Compile Include="../Imaging/OpenCvImage.cs" Link="Imaging/OpenCvImage.cs" /></ItemGroup>
 </Project>

@@ -7,8 +7,6 @@ using JYPPX.ROCm.HipSharp.Rtc;
 using JYPPX.ROCm.HipSharp.Streams;
 using JYPPX.ROCm.MIGraphXSharp;
 using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 namespace MIGraphXSharp.Samples.Yolo26;
 
@@ -91,10 +89,10 @@ public sealed class HipRuntimeContext : IDisposable
     public void Write<T>(HipDeviceMemory memory, T[] data) where T : unmanaged
         => memory.CopyFromAsync(MemoryMarshal.AsBytes(data.AsSpan()).ToArray(), Stream);
 
-    public (HipDeviceMemory Memory, byte[] Pixels) Image(Image<Rgb24> image)
+    public (HipDeviceMemory Memory, byte[] Pixels) Image(RgbImage image)
     {
         var bytes = new byte[checked(image.Width * image.Height * 3)];
-        image.CopyPixelDataTo(bytes);
+        image.CopyPixelsTo(bytes);
         return (Allocate(bytes.Length), bytes);
     }
 

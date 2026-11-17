@@ -1,5 +1,7 @@
 # MIGraphX CSharp API 实战：CLIP 双编码器、Int64 输入与特征复用
 
+> 历史文章：本文图像代码及性能结果对应当时源码；当前 0.0.3 候选源码已迁移至 OpenCV，使用方式见[迁移指南](../guides/opencv-imaging.md)。
+
 ![MIGraphX CSharp API CLIP 技术实战：Int64 与 Float32 张量、双编码器和特征复用](assets/clip/cover.png)
 
 ## 一、MIGraphX CSharp API 项目简介

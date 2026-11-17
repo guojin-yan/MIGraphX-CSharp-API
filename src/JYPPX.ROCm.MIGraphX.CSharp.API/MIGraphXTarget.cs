@@ -30,6 +30,19 @@ public sealed class MIGraphXTarget : IDisposable
         Name = name;
     }
 
+    /// <summary>从物化 JSON 创建 2.18 目标选项，由原生验证配置。 Creates a 2.18 target from materialized JSON, validated natively.</summary>
+    /// <param name="nativeLibraryPath">原生库路径。 Native library path.</param>
+    /// <param name="name">目标名称。 Target name.</param>
+    /// <param name="optionsJson">完整 JSON，不接受格式参数。 Complete JSON without format arguments.</param>
+    public MIGraphXTarget(string nativeLibraryPath, string name, string optionsJson)
+    {
+        if (optionsJson is null) throw new ArgumentNullException(nameof(optionsJson));
+        var runtime = NativeRuntime.Load(nativeLibraryPath);
+        runtime.RequireFeature(MIGraphXFeature.TargetOptions);
+        owner = new NativeResourceOwner<NativeTargetHandle>(runtime, NativeTargetHandle.CreateWithOptions(name, optionsJson));
+        Name = name;
+    }
+
     /// <summary>获取创建时使用的目标名称。 Gets the target name used at creation.</summary>
     public string Name { get; }
 

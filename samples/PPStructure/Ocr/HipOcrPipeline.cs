@@ -2,8 +2,6 @@ using System.Text;
 using JYPPX.ROCm.HipSharp.Memory;
 using JYPPX.ROCm.HipSharp.Streams;
 using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using static MIGraphXSharp.Samples.PPStructure.Ocr.HipRuntimeContext;
 
 namespace MIGraphXSharp.Samples.PPStructure.Ocr;
@@ -46,7 +44,7 @@ public sealed class HipOcrPipeline : IDisposable
         dbCandidateLimit = MaximumLines
     };
 
-    public HipOcrPipeline(Image<Rgb24> source, Arguments options, OcrModels models)
+    public HipOcrPipeline(RgbImage source, Arguments options, OcrModels models)
     {
         sw = source.Width; sh = source.Height;
         recWidth = options.Integer("rec-width", 320);
@@ -90,10 +88,10 @@ public sealed class HipOcrPipeline : IDisposable
         catch { detector?.Dispose(); foreach (var worker in workers) worker.Dispose(); gpu.Dispose(); throw; }
     }
 
-    public void SetImage(Image<Rgb24> source)
+    public void SetImage(RgbImage source)
     {
         if (source.Width != sw || source.Height != sh) throw new ArgumentException("OCR session image dimensions changed.");
-        source.CopyPixelDataTo(pixels);
+        source.CopyPixelsTo(pixels);
     }
 
     public TimedValue<OcrResult> Run(string? artifacts = null, bool dumpTensors = false)
@@ -182,8 +180,8 @@ public sealed class HipOcrPipeline : IDisposable
                     {
                         int line = first + slot, width = dimensions[line * 6 + 2], height = dimensions[line * 6 + 3];
                         Crop(worker, line, dimensions);
-                        using var cropImage = Image.LoadPixelData<Rgb24>(worker.Gpu.Read<byte>(worker.Crop, checked(width * height * 3)), width, height);
-                        cropImage.SaveAsPng(Path.Combine(artifacts, $"crop-{line:D3}.png"));
+                        using var cropImage = RgbImage.FromPixels(worker.Gpu.Read<byte>(worker.Crop, checked(width * height * 3)), width, height);
+                        cropImage.SavePng(Path.Combine(artifacts, $"crop-{line:D3}.png"));
                         if (dumpTensors) worker.Session.Dump(Path.Combine(artifacts, $"rec-tensors-{line:D3}"), recWidth, 48, slot);
                     }
                 }

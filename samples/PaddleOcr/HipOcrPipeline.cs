@@ -2,8 +2,6 @@ using System.Text;
 using JYPPX.ROCm.HipSharp.Memory;
 using JYPPX.ROCm.HipSharp.Streams;
 using JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using static MIGraphXSharp.Samples.PaddleOcr.HipRuntimeContext;
 
 namespace MIGraphXSharp.Samples.PaddleOcr;
@@ -31,7 +29,7 @@ public sealed class HipOcrPipeline : IDisposable
     public object? DetectorInfo => detector is null ? null : new { detector.ModelSha256, detector.ParseMilliseconds, detector.CompileMilliseconds,
         inputWidth = dw, inputHeight = dh, dbCandidateLimit = MaximumLines };
 
-    public HipOcrPipeline(Image<Rgb24> source, Arguments options, OcrModels models)
+    public HipOcrPipeline(RgbImage source, Arguments options, OcrModels models)
     {
         sw = source.Width; sh = source.Height;
         recWidth = options.Integer("rec-width", 320);
@@ -159,8 +157,8 @@ public sealed class HipOcrPipeline : IDisposable
                     {
                         int line = first + slot, width = dimensions[line * 6 + 2], height = dimensions[line * 6 + 3];
                         Crop(worker, line, dimensions);
-                        using var cropImage = Image.LoadPixelData<Rgb24>(worker.Gpu.Read<byte>(worker.Crop, checked(width * height * 3)), width, height);
-                        cropImage.SaveAsPng(Path.Combine(artifacts, $"crop-{line:D3}.png"));
+                        using var cropImage = RgbImage.FromPixels(worker.Gpu.Read<byte>(worker.Crop, checked(width * height * 3)), width, height);
+                        cropImage.SavePng(Path.Combine(artifacts, $"crop-{line:D3}.png"));
                         if (dumpTensors) worker.Session.Dump(Path.Combine(artifacts, $"rec-tensors-{line:D3}"), recWidth, 48, slot);
                     }
                 }

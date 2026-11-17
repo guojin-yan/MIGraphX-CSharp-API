@@ -6,5 +6,6 @@ Complete release notes live in [docs/release-notes](docs/release-notes/README.md
 
 | 版本 / Version | 日期 / Date | 摘要 / Summary | 详细说明 / Notes |
 | --- | --- | --- | --- |
+| 1.0.0 | 2026-11-17 | 正式版、平台 runtime 包、HipSharp 1.0.0、MIGraphX 2.18 可选接口、动态缓存修复、OpenCV 图像迁移与自动回归 / Optional 2.18 APIs, dynamic cache fixes, OpenCV imaging and CI | [1.0.0](docs/release-notes/1.0.0.md) |
 | 0.0.2 | 2026-11-01 | 显存输出、HIP 视觉前后处理、OCR 多 batch 与多实例 / Device output, HIP vision pipelines and batched OCR | [0.0.2](docs/release-notes/0.0.2.md) |
 | 0.0.1 | 2026-10-31 | 核心库、HIP 适配器与两个完整视觉案例首次发布 / Initial core, HIP adapter and vision samples | [0.0.1](docs/release-notes/0.0.1.md) |

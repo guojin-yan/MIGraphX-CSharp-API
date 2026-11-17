@@ -365,15 +365,46 @@ public sealed class MIGraphXProgram : IDisposable
     /// <param name="path">绝对输入路径。 The absolute input path.</param>
     /// <param name="options">文件格式选项。 The file-format options.</param>
     public static MIGraphXProgram Load(string path, MIGraphXFileOptions options)
+        => Load(path, options, Array.Empty<MIGraphXCacheOverride>());
+
+    /// <summary>载入并校验动态输入范围；范围必须与文件中的原生维度完全相等。 Loads and validates dynamic input ranges against the native dimensions stored in the file.</summary>
+    /// <param name="path">绝对输入路径。 Absolute input path.</param>
+    /// <param name="options">文件格式选项。 File-format options.</param>
+    /// <param name="dynamicInputOverrides">仅包含动态输入的范围快照。 Range snapshots for dynamic inputs only.</param>
+    /// <returns>持有已校验范围的 program；使用前需要编译。 A program retaining the validated ranges; compile before execution.</returns>
+    public static MIGraphXProgram Load(string path, MIGraphXFileOptions options, IReadOnlyList<MIGraphXCacheOverride> dynamicInputOverrides)
     {
         if (options is null) { throw new ArgumentNullException(nameof(options)); }
+        if (dynamicInputOverrides is null) { throw new ArgumentNullException(nameof(dynamicInputOverrides)); }
+        var overrides = new Dictionary<string, MIGraphXDynamicDimension[]>(StringComparer.Ordinal);
+        foreach (var value in dynamicInputOverrides)
+        {
+            if (value is null || !value.IsDynamic || overrides.ContainsKey(value.InputName))
+                throw new ArgumentException("Dynamic input overrides must be non-null, dynamic and uniquely named.", nameof(dynamicInputOverrides));
+            overrides.Add(value.InputName, value.DynamicDimensions.ToArray());
+        }
         var fullPath = ValidateInputPath(path, nameof(path));
         var runtime = options.Owner.Runtime;
         using (var utf8 = new StrictUtf8String(fullPath, nameof(path)))
         {
             return NativeResourceLock.With(
                 new[] { NativeResourceLock.Target(options.Owner.Id, options.Owner.Sync) },
-                () => new MIGraphXProgram(runtime, NativeProgramHandle.Load(utf8.Pointer, options.Owner.HandleUnderLock)));
+                  () =>
+                  {
+                      var result = new MIGraphXProgram(runtime, NativeProgramHandle.Load(utf8.Pointer, options.Owner.HandleUnderLock), overrides);
+                      try
+                      {
+                          if (overrides.Count != 0)
+                          {
+                              var shapes = result.GetParameterShapes();
+                              foreach (var pair in overrides)
+                                  if (!shapes.TryGetValue(pair.Key, out var shape) || !shape.IsDynamic)
+                                      throw new ArgumentException("A dynamic input override does not name a dynamic parameter in the loaded program.", nameof(dynamicInputOverrides));
+                          }
+                          return result;
+                      }
+                      catch { result.Dispose(); throw; }
+                  });
         }
     }
 
@@ -401,6 +432,26 @@ public sealed class MIGraphXProgram : IDisposable
     /// <param name="parameters">同一原生库创建且名称、类型和 shape 匹配的主机参数映射。 Host parameter map from the same native library with matching names, types and shapes.</param>
     /// <returns>拥有独立 host buffer 的只读输出集合。 Read-only output collection owning independent host buffers.</returns>
     public MIGraphXArgumentCollection Run(MIGraphXParameterMap parameters)
+        => RunCore(parameters, null);
+
+    /// <summary>同步运行并收集 2.18 执行元数据。原生运行完成后按顺序通知观察器，其异常不会穿越原生栈。 Runs synchronously and collects 2.18 execution metadata. Observers are notified in order after native execution, so their exceptions never cross native frames.</summary>
+    /// <param name="parameters">主机输入映射。 Host input map.</param>
+    /// <param name="observer">接收独立元数据快照的观察器；不暴露 GPU 指针或中间数据。 Observer receiving independent metadata snapshots without GPU pointers or intermediate data.</param>
+    public MIGraphXArgumentCollection RunTrace(MIGraphXParameterMap parameters, Action<MIGraphXTraceInfo> observer)
+    {
+        if (observer is null) throw new ArgumentNullException(nameof(observer));
+        owner.Runtime.RequireFeature(MIGraphXFeature.ExecutionTrace);
+        var snapshots = new List<MIGraphXTraceInfo>();
+        var result = RunCore(parameters, snapshots);
+        try
+        {
+            foreach (var snapshot in snapshots) observer(snapshot);
+            return result;
+        }
+        catch { result.Dispose(); throw; }
+    }
+
+    private MIGraphXArgumentCollection RunCore(MIGraphXParameterMap parameters, List<MIGraphXTraceInfo>? trace)
     {
         if (parameters is null) { throw new ArgumentNullException(nameof(parameters)); }
         owner.Runtime.RequireSame(parameters.Owner.Runtime, nameof(parameters));
@@ -420,7 +471,7 @@ public sealed class MIGraphXProgram : IDisposable
                 state.RequireIdle();
                 parameters.ValidateInputsUnderLock(GetParameterShapesUnderLock(program), requireHostBacked: true);
 
-                using (var outputs = NativeArgumentsHandle.Run(program, map))
+                using (var outputs = trace is null ? NativeArgumentsHandle.Run(program, map) : NativeTrace.Run(program, map, trace))
                 {
                     var count = ReadStableSize(
                         () => GetArgumentsSize(outputs.DangerousGetHandle()),

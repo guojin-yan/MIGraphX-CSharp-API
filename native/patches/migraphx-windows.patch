@@ -1,0 +1,42 @@
+--- a/cmake/PythonModules.cmake
++++ b/cmake/PythonModules.cmake
+@@ -122,6 +122,16 @@
+ set(_PYTHON_VERSIONS)
+ 
+ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Windows")
++  # Local installation: allow an explicitly selected Conda interpreter.
++  # The upstream py.exe inventory deliberately excludes virtual environments.
++  if(MIGRAPHX_PYTHON_EXECUTABLE)
++    py_exec(COMMAND "${MIGRAPHX_PYTHON_EXECUTABLE}" -c
++      "print('.'.join(map(str,__import__('sys').version_info[:2])))"
++      OUTPUT_VARIABLE _selected_python_version)
++    string(STRIP "${_selected_python_version}" _selected_python_version)
++    find_python(${_selected_python_version} "${MIGRAPHX_PYTHON_EXECUTABLE}")
++    list(APPEND _PYTHON_VERSIONS ${_selected_python_version})
++  else()
+     find_program(PY_EXECUTABLE py.exe PATHS ENV windir REQUIRED)
+     py_exec(COMMAND "${PY_EXECUTABLE}" -0p OUTPUT_VARIABLE _found_pythons)
+     string(REPLACE "\n" ";" _found_pythons ${_found_pythons})
+@@ -140,6 +150,7 @@
+             endif()
+         endif()
+     endforeach()
++  endif()
+ else()
+     set(PYTHON_SEARCH_VERSIONS 3.6 3.7 3.8 3.9 3.10 3.11 3.12 3.13 3.14)
+     foreach(PYTHON_DISABLE_VERSION ${PYTHON_DISABLE_VERSIONS})
+--- a/src/CMakeLists.txt
++++ b/src/CMakeLists.txt
+@@ -340,6 +340,12 @@
+     ${CMAKE_CURRENT_SOURCE_DIR}/op/builder/include
+ )
+ target_link_libraries(migraphx PUBLIC migraphx_version)
++if(WIN32)
++    # Match upstream Windows CPU CI and avoid pathological template optimization.
++    # PUBLIC keeps the implementation consistent in all linked engine targets
++    # and in consumers of the installed internal C++ headers.
++    target_compile_definitions(migraphx PUBLIC MIGRAPHX_USE_TYPE_ERASED_MATCHERS=1)
++endif()
+ 
+ if(NOT WIN32)
+     check_cxx_linker_flag(-lstdc++fs HAS_LIB_STD_FILESYSTEM)

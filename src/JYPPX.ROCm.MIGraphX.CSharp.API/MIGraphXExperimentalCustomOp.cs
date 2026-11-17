@@ -153,7 +153,8 @@ public sealed class MIGraphXExperimentalCustomOp : IDisposable
     }
 
     /// <summary>将 custom-op 注册到 MIGraphX 全局 registry。 Registers the custom-op in the MIGraphX global registry.</summary>
-    public void Register() => owner.WithHandle(handle => NativeStatus.ThrowIfFailed(NativeMethods.ExperimentalCustomOpRegister(handle), "migraphx_experimental_custom_op_register"));
+    /// <remarks>注册副本独立于此 wrapper 存活；进程退出时替换为无状态条目，避免原生静态析构在 CLR 关闭后回调。 The registered copy outlives this wrapper. At process exit, managed registrations are replaced with stateless entries to prevent native static destructors from calling back after CLR shutdown.</remarks>
+    public void Register() => owner.WithHandle(handle => NativeCustomOpState.Register(handle, Name));
 
     /// <summary>重新创建 native 对象并重放当前回调，生成独立 custom-op 副本。 Recreates the native object and replays current callbacks into an independent custom-op.</summary>
     public MIGraphXExperimentalCustomOp Clone()

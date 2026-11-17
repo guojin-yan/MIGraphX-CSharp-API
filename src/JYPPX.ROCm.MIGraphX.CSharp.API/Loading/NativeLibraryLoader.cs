@@ -31,13 +31,16 @@ internal static class NativeLibraryLoader
     private static readonly object Sync = new object();
     private static IntPtr loadedHandle;
     private static string? loadedPath;
+    // The C API and its target registries live for the process lifetime. Keep
+    // matching plugin handles alive for the same period, without changing PATH.
+    private static readonly Dictionary<string, IntPtr> targetPlugins = new Dictionary<string, IntPtr>(StringComparer.OrdinalIgnoreCase);
 #if MIGRAPHX_NATIVE_LIBRARY_PATH
     private static int resolverConfigured;
 #endif
 
 #if !MIGRAPHX_NATIVE_LIBRARY_PATH
     [DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]
-    private static extern IntPtr LoadLibraryW(string fileName);
+    private static extern IntPtr LoadLibraryExW(string fileName, IntPtr file, uint flags);
 
     [DllImport("kernel32", SetLastError = true)]
     private static extern IntPtr GetProcAddress(IntPtr module, string procedureName);
@@ -45,6 +48,27 @@ internal static class NativeLibraryLoader
     [DllImport("kernel32", SetLastError = true)]
     private static extern bool FreeLibrary(IntPtr module);
 #endif
+
+    internal static void LoadTargetPlugin(string targetName)
+    {
+        if (!IsWindows()) return;
+        var fileName = targetName == "ref" ? "migraphx_ref.dll"
+            : targetName == "gpu" ? "migraphx_gpu.dll"
+            : targetName == "cpu" ? "migraphx_cpu.dll" : null;
+        if (fileName is null) return;
+        lock (Sync)
+        {
+            if (loadedHandle == IntPtr.Zero || loadedPath is null || !Path.IsPathRooted(loadedPath)) return;
+            var plugin = Path.Combine(Path.GetDirectoryName(loadedPath)!, fileName);
+            // Older/system runtimes can provide plugins through their own loader.
+            if (targetPlugins.ContainsKey(plugin) || !File.Exists(plugin)) return;
+            if (!TryLoad(plugin, out var handle, out var failure))
+                throw new MIGraphXNativeLoadException(new[] {
+                    new MIGraphXNativeDiagnostic(plugin, "selected-runtime-target-plugin", true,
+                        MIGraphXNativeDiagnosticKind.LoadFailure, failure ?? "Target plugin loading failed.") });
+            targetPlugins.Add(plugin, handle);
+        }
+    }
 
     internal static NativeLoadResult LoadExplicit(
         string path,
@@ -352,6 +376,15 @@ internal static class NativeLibraryLoader
         .Where(exportName => !TryGetExport(handle, exportName))
         .ToArray();
 
+    internal static string[] MissingActiveExports(IEnumerable<string> exports)
+    {
+        lock (Sync)
+        {
+            if (loadedHandle == IntPtr.Zero) throw new InvalidOperationException("Load a MIGraphX runtime before querying capabilities.");
+            return MissingExports(loadedHandle, exports);
+        }
+    }
+
     private static MIGraphXNativeDiagnostic CreateMissingExportDiagnostic(
         string candidate,
         string source,
@@ -423,14 +456,14 @@ internal static class NativeLibraryLoader
     {
         if (IsWindows())
         {
-            handle = LoadLibraryW(candidate);
+            handle = LoadLibraryExW(candidate, IntPtr.Zero, Path.IsPathRooted(candidate) ? 0x00000008u : 0u);
             if (handle != IntPtr.Zero)
             {
                 failure = null;
                 return true;
             }
 
-            failure = $"LoadLibraryW failed with Win32 error {Marshal.GetLastWin32Error()}.";
+            failure = $"LoadLibraryExW failed with Win32 error {Marshal.GetLastWin32Error()}.";
             return false;
         }
 

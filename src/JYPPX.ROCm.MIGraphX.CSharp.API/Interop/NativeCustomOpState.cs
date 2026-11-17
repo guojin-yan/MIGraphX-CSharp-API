@@ -11,6 +11,59 @@ internal static class NativeCustomOpState
 {
     private static readonly object Sync = new object();
     private static readonly Dictionary<IntPtr, Entry> Entries = new Dictionary<IntPtr, Entry>();
+    private static readonly HashSet<string> Registrations = new HashSet<string>(StringComparer.Ordinal);
+    private static readonly NativeExperimentalCopyCallback EmptyCopy = CopyEmpty;
+    private static readonly NativeExperimentalDeleteCallback EmptyDelete = Delete;
+
+    static NativeCustomOpState()
+    {
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => ReleaseRegistrations();
+    }
+
+    internal static void Register(IntPtr handle, string name)
+    {
+        lock (Sync)
+        {
+            NativeStatus.ThrowIfFailed(NativeMethods.ExperimentalCustomOpRegister(handle), "migraphx_experimental_custom_op_register");
+            Registrations.Add(name);
+        }
+    }
+
+    // The C API has no unregister entry point. Replace our registry entries
+    // with inert native values while the CLR is still alive. Their null state
+    // prevents C++ static destructors from calling managed delete thunks after
+    // the CLR has torn down its thread state. Existing program values keep
+    // their own callbacks until their normal SafeHandle cleanup.
+    private static void ReleaseRegistrations()
+    {
+        lock (Sync)
+        {
+            foreach (var name in Registrations)
+            {
+                try
+                {
+                    using var utf8 = new StrictUtf8String(name, nameof(name));
+                    using var inert = NativeExperimentalCustomOpHandle.Create(IntPtr.Zero,
+                        Marshal.GetFunctionPointerForDelegate(EmptyCopy), Marshal.GetFunctionPointerForDelegate(EmptyDelete), IntPtr.Zero, utf8.Pointer);
+                    NativeStatus.ThrowIfFailed(NativeMethods.ExperimentalCustomOpRegister(inert.DangerousGetHandle()), "migraphx_experimental_custom_op_register (shutdown)");
+                }
+                catch { /* ProcessExit must not propagate exceptions into the host. */ }
+            }
+            Registrations.Clear();
+        }
+    }
+
+    private static NativeMIGraphXStatus CopyEmpty(IntPtr output, IntPtr input)
+    {
+        if (output == IntPtr.Zero) return NativeMIGraphXStatus.BadParameter;
+        Marshal.WriteIntPtr(output, IntPtr.Zero);
+        return NativeMIGraphXStatus.Success;
+    }
+
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate NativeMIGraphXStatus NativeExperimentalCopyCallback(IntPtr output, IntPtr input);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate NativeMIGraphXStatus NativeExperimentalDeleteCallback(IntPtr input);
 
     internal static int LiveCount { get { lock (Sync) return Entries.Count; } }
 

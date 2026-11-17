@@ -1,0 +1,14 @@
+<Project>
+  <!-- MSBuildWorkspace (DocFX) does not preserve AdditionalProperties on external
+       ProjectReferences. Apply the same output policy to its entire project graph. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildProjectDirectory)'))" />
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'JYPPX.ROCm.HipSharp'">
+    <MIGraphXExternalArtifactsRoot Condition="'$(MIGRAPHX_WORKSPACE_ROOT)' != ''">$(MIGRAPHX_WORKSPACE_ROOT)/artifacts/</MIGraphXExternalArtifactsRoot>
+    <MIGraphXExternalArtifactsRoot Condition="'$(MIGraphXExternalArtifactsRoot)' == ''">$(MSBuildThisFileDirectory)../../MIGraphXSharp.Workspace/artifacts/</MIGraphXExternalArtifactsRoot>
+    <BaseOutputPath>$(MIGraphXExternalArtifactsRoot)dependencies/hipsharp/bin/$(MSBuildProjectName)/</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MIGraphXExternalArtifactsRoot)dependencies/hipsharp/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <RestorePackagesPath>$(MIGraphXExternalArtifactsRoot)packages/restore</RestorePackagesPath>
+    <NuGetLockFilePath>$(MIGraphXExternalArtifactsRoot)dependencies/hipsharp/packages.lock.json</NuGetLockFilePath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/bin/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

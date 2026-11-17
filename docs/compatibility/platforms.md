@@ -1,16 +1,18 @@
 # Platform support and limitations
 
-Install the coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packages on Ubuntu 24.04 x86-64. MIGraphX CSharp API packages contain managed assemblies only.
+Current source has additional bounded Windows 11 / W7900 / ROCm 10.1 / MIGraphX 2.18 validation. Its optional APIs, unavailable TensorFlow importer and tested paths are described in [2.18 development](../guides/runtime-2.18.md). The original Linux results below remain historical evidence. 当前源码的本机 Windows 验证范围与 2.18 功能限制见该指南。
+
+Release 1.0.0 provides separate MIGraphX 2.18 engine packages for Windows x64 and Ubuntu 24.04 x64, with ROCm 10.1 system prerequisites. Core and adapter packages contain managed assemblies only. The historical Ubuntu baseline below uses coherent ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` system packages.
 
 | Area | Application boundary |
 | --- | --- |
 | Linux native runtime | Official execution on the fixed gfx1100 baseline covers static float32 reference models, all five YOLO26 tasks, PP-OCRv4/v5 mobile/server and PP-OCRv6 tiny/small/medium detection/recognition. The seven OCR profiles also match independent ONNX Runtime CPU tensor/CTC checks on the supplied image. Other models, distributions, versions and devices need application validation. |
-| Windows native runtime | The fixed official MIGraphX baseline targets Linux. Windows managed builds and loader diagnostics do not supply an official Windows MIGraphX runtime. |
+| Windows native runtime | The 1.0.0 Windows runtime package supplies the project-built MIGraphX 2.18 engine for gfx1100; ROCm 10.1 libraries and driver are host prerequisites. This build has no TensorFlow importer and retains the documented small INT8 limitation. |
 | macOS | No official native runtime support claim. |
 | ONNX options | Loop limits/defaults, external-data roots, fast-math and tuning setters are exposed. Historical setter acceptance does not qualify dedicated model semantics, tuning or accuracy. |
 | Registry and comparison | Copied ONNX parser names and exact host argument/native printed-program comparison are available. Parser names do not guarantee model support; comparison does not prove inference equivalence. |
 | Dynamic shapes and cache | Official bounded checks cover static/dynamic overrides, rejected invalid inputs, save/load/recompile, cold/warm cache lookup, identity/options misses, corruption rebuild, same-process writers and cache reuse in a fresh process. Native serialization remains version-bound; arbitrary shapes and concurrent cross-process writes are not qualified. |
-| HIP async/device I/O | Official bounded checks cover host completion, multiple submissions, stream isolation, early disposal, device inputs and capacity rejection. `RunDeviceAsync` snapshots host outputs; `RunDeviceIntoAsync` performs same-stream D2D copies into caller buffers for GPU postprocessing. The device-output path and early-disposal completion have also run with published HipSharp 0.10.0. No zero-copy, overlap or general throughput guarantee. |
+| HIP async/device I/O | Official bounded checks cover host completion, multiple submissions, stream isolation, early disposal, device inputs and capacity rejection. `RunDeviceAsync` snapshots host outputs; `RunDeviceIntoAsync` performs same-stream D2D copies into caller buffers for GPU postprocessing. Release 0.0.2 used published HipSharp 0.10.0. Release 1.0.0 has also passed device I/O, early disposal, stream isolation, HIPRTC callbacks and resource loops with published HipSharp 1.0.0 on Windows ROCm 10.1 / gfx1100. No zero-copy, overlap or general throughput guarantee. |
 | Graph, TensorFlow and quantization | Focused official graph, TensorFlow parsing and quantization checks have executed, including retained INT8/FP8 calibration snapshots. Model accuracy and arbitrary graph/provider semantics still require application validation. |
 | Context and typed operation attributes | Historical focused execution covers context parent lifetime and five materialized attribute forms. This is limited to the tested source/provider configuration. |
 | Custom operations | Experimental callbacks are exposed. Host-reference numerical diagnostics do not qualify GPU/device callback memory or complete provider lifetimes. |

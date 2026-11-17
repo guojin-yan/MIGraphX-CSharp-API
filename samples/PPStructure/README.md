@@ -4,7 +4,7 @@
 
 **方向、版面、OCR、表格模型由 MIGraphX GPU 执行；OCR 前后处理使用 HIP。公式识别需要显式选择 `--formula-backend ort-cpu`，由 ONNX Runtime CPU 执行。** 原始 FormulaNet 的动态循环当前无法由 MIGraphX 2.15 解析；这不是全 GPU 的公式方案。默认关闭公式识别，保留公式区域并标为待复核。
 
-此示例位于 main 源码，未包含在 v0.0.2 发布标签中。ONNX Runtime、ImageSharp、词表解析等依赖仅属于本示例，核心库没有增加这些依赖。
+此示例位于 main 源码，未包含在 v0.0.2 发布标签中。ONNX Runtime、OpenCV、词表解析等依赖仅属于本示例，核心库没有增加这些依赖。
 
 ## 准备模型
 
@@ -66,7 +66,7 @@ dotnet run --project samples/PPStructure -c Release --no-build -- \
 
 SLANeXt 每步执行原解码器，传递 hidden/token，遇到 EOS 停止，最多 501 步。隐状态与 encoder memory 当前通过主机数组传递，因此这条循环尚不是零拷贝。wired/wireless 拆分图与原始模型在 EOS 之前完成 token 和概率对照；原导出图会多执行一次 EOS 后的迭代，展示时忽略。
 
-结构格数、检测格数和行几何全部一致时才填字。`rowspan`、格数不匹配、缺失 EOS 或有歧义的重叠框均保留结构与诊断，不擅自拼出完整表格。公式使用 ImageSharp 进行去白边、灰度和缩放，其采样与官方 Pillow 并非逐像素一致；LaTeX 仍需人工复核。
+结构格数、检测格数和行几何全部一致时才填字。`rowspan`、格数不匹配、缺失 EOS 或有歧义的重叠框均保留结构与诊断，不擅自拼出完整表格。公式使用 OpenCV 进行去白边、灰度和缩放，其采样与官方 Pillow 并非逐像素一致；LaTeX 仍需人工复核。
 
 退出码：`0` 流程完成，`1` 至少一页失败，`3` 有需复核内容。重复运行请使用新输出目录，避免将上次产物误当作本次结果。
 
@@ -88,3 +88,5 @@ SLANeXt 每步执行原解码器，传递 hidden/token，遇到 EOS 停止，最
 6 页共得到 72 个区域、468 条 OCR 行、8 处公式；没有失败页，3 页有复核提示。3 处表格中 2 处生成填字 HTML，另一处因缺失 EOS 保留结构诊断。费用表检测到 13 格；倒置页校正 180° 后识别出 5 行。这里的“完成”表示流程执行完成，不表示人工确认文字或公式正确。
 
 真实张量的 GPU/ORT CPU 对照覆盖方向、版面、表格分类、两类单元格检测、两类表格编码器及实际解码步骤，638 份捕获全部通过；实际表格 token 序列另与原始完整 ONNX 对照到 EOS。OCR 沿用已经验证的 HIP 数值实现。性能只代表上述输入与设备，尤其不能把含 CPU 公式的论文耗时当作 GPU 推理延迟。
+
+图像编解码与 CPU 缩放使用 [OpenCV CSharp API](https://github.com/guojin-yan/OpenCV-CSharp-API) 5.0.0 及匹配的 mini 原生包，详见[图像迁移与部署](../../docs/guides/opencv-imaging.md)。图像依赖、模型与本库分别适用各自许可证。

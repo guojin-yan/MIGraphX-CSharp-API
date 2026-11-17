@@ -1,0 +1,12 @@
+<Project>
+  <!-- Apply only to the external ProjectReference. Preserve its own settings,
+       while keeping restore, lock files and compilation outside its source tree. -->
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildProjectDirectory)'))" />
+  <PropertyGroup>
+    <BaseOutputPath>$(MIGraphXExternalArtifactsRoot)dependencies/hipsharp/bin/$(MSBuildProjectName)/</BaseOutputPath>
+    <BaseIntermediateOutputPath>$(MIGraphXExternalArtifactsRoot)dependencies/hipsharp/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <RestorePackagesPath>$(MIGraphXExternalArtifactsRoot)packages/restore</RestorePackagesPath>
+    <NuGetLockFilePath>$(MIGraphXExternalArtifactsRoot)dependencies/hipsharp/packages.lock.json</NuGetLockFilePath>
+    <DefaultItemExcludes>$(DefaultItemExcludes);$(MSBuildProjectDirectory)/obj/**;$(MSBuildProjectDirectory)/bin/**</DefaultItemExcludes>
+  </PropertyGroup>
+</Project>

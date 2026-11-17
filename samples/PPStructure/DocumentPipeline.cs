@@ -1,9 +1,7 @@
+using MIGraphXSharp.Samples.PPStructure.Ocr;
 using System.Diagnostics;
 using System.Xml;
 using System.Xml.Linq;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using PointD = MIGraphXSharp.Samples.PPStructure.Ocr.PointD;
 
 namespace MIGraphXSharp.Samples.PPStructure;
@@ -52,7 +50,7 @@ public sealed class DocumentPipeline : IDisposable
         return model;
     }
 
-    public DocumentPage Run(DocumentInput page, Image<Rgb24> source, string? dump = null)
+    public DocumentPage Run(DocumentInput page, RgbImage source, string? dump = null)
     {
         var stages = new Dictionary<string, double>(); var warnings = new List<string>();
         T Time<T>(string name, Func<T> action)
@@ -71,7 +69,7 @@ public sealed class DocumentPipeline : IDisposable
             orientationConfidence = value.Confidence;
             if (value.Confidence >= .8f) rotation = value.Index * 90; else warnings.Add("orientation-low-confidence");
         }
-        using var upright = source.Clone(c => c.Rotate(-rotation));
+        using var upright = source.RotateClockwise(-rotation);
         PointD[] Original(PointD[] polygon) => polygon.Select(p => DocumentProcessing.ToSource(p, source.Width, source.Height, rotation)).ToArray();
         Region[] layout;
         if (page.Kind == "auto") layout = DocumentProcessing.DecodeRegions(Execute("pp-doclayout-l", "image", [1, 3, 640, 640], DocumentProcessing.Tensor(upright, 640, 640)), DocumentProcessing.Labels, upright.Width, upright.Height, .35f);
@@ -96,7 +94,7 @@ public sealed class DocumentPipeline : IDisposable
         foreach (var region in layout)
         {
             var rect = region.Bounds.Rectangle(upright.Width, upright.Height);
-            using var crop = upright.Clone(c => c.Crop(rect));
+            using var crop = upright.Crop(rect);
             var text = lines.Where(l => region.Bounds.Contains(l.Polygon.Average(p => p.X), l.Polygon.Average(p => p.Y))).ToArray();
             DocumentTable? table = null; DocumentFormula? formula = null;
             if (region.Category == "table")

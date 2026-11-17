@@ -6,6 +6,7 @@
 | --- | --- |
 | `binding-overrides.json`、`binding-classifications.json`、`unsupported-api.json` | `generate-interop.ps1` 使用的参数投影、回调保留规则与变参排除规则 |
 | `normalized-api.json` | 冻结 C 头文件的声明模型，供绑定契约和导出检查使用；由生成器维护 |
+| `native-extensions-2.18.json` | 2.18 可选导出的固定头文件哈希与 C 声明，由 `generate-extensions.ps1` 独立维护 |
 | `native-abi.json` | `verify-native-abi.ps1` 使用的原生 ABI 和导出基线 |
 | `public-api.txt`、`hip-interop-public-api.txt` | `verify-public-api.ps1` 使用的公共 API 快照 |
 | `system-native-source-lock.json` | `prepare-runtime.ps1` 使用的 AMD 原生依赖来源、版本和哈希 |

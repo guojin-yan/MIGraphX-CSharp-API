@@ -38,6 +38,7 @@
     "resource": [
       {
         "files": ["blog/assets/**"],
+        "exclude": ["blog/assets/**/*.md"],
         "src": "docs"
       }
     ],

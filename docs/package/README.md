@@ -1,10 +1,10 @@
 # JYPPX.ROCm.MIGraphX.CSharp.API
 
-Managed .NET bindings and resource wrappers for AMD MIGraphX. The package contains managed assemblies and Chinese/English XML API documentation for 15 target frameworks, from `net46` through `net10.0`. Version `0.0.2` is distributed through [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v0.0.2).
+Managed .NET bindings and resource wrappers for AMD MIGraphX. The package contains managed assemblies and Chinese/English XML API documentation for 15 target frameworks, from `net46` through `net10.0`. Version `1.0.0` is distributed through [GitHub Releases](https://github.com/guojin-yan/MIGraphX-CSharp-API/releases/tag/v1.0.0).
 
 The C# namespace is `JYPPX.ROCm.MIGraphXSharp`. APIs include explicit native-library diagnostics, synchronous ONNX inference, shapes and host arguments, dynamic input overrides, program persistence/cache, parser introspection, graph construction and advanced experimental features.
 
-Install ROCm 7.2.1 / MIGraphX `2.15.0.70201-81~24.04` through AMD's official Linux system repository. This package contains no native runtime. Managed Windows assets do not supply an official Windows MIGraphX runtime.
+This managed package contains no native files. Add the matching 1.0.0 `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64` or `.Runtime.ubuntu.24.04-x64` package for the MIGraphX 2.18 engine, and install matching ROCm 10.1 system libraries and an AMD driver separately. A coherent existing MIGraphX system installation is also supported.
 
 ```csharp
 using JYPPX.ROCm.MIGraphXSharp;

@@ -1,6 +1,4 @@
 using MIGraphXSharp.Samples.Yolo26;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 
 try
 {

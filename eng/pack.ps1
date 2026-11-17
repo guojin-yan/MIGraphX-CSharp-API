@@ -3,8 +3,11 @@ param(
     [ValidateSet('Debug', 'Release')]
     [string] $Configuration = 'Release',
     [ValidatePattern('^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$')]
-    [string] $Version = '0.0.0',
+    [string] $Version = '1.0.0',
     [switch] $Runtime,
+    [ValidateSet('win-x64', 'ubuntu.24.04-x64')][string] $RuntimePlatform,
+    [string] $NativeSourceArchive,
+    [string] $PythonPath = 'python3',
     [switch] $NoBuild
 )
 
@@ -13,7 +16,10 @@ $root = Get-RepositoryRoot
 $packageDirectory = Join-Path (Get-ArtifactsRoot) 'packages'
 
 if ($Runtime) {
-    throw 'MIGRAPHX1001: Runtime NuGet packaging is not supported. Install MIGraphX and ROCm from the AMD official system repository.'
+    if (-not $RuntimePlatform -or -not $NativeSourceArchive) { throw 'Runtime packaging requires -RuntimePlatform and -NativeSourceArchive.' }
+    & $PythonPath (Join-Path $PSScriptRoot 'pack-runtime.py') --platform $RuntimePlatform --source-archive $NativeSourceArchive --version $Version --output $packageDirectory
+    if ($LASTEXITCODE -ne 0) { throw 'Runtime package build failed.' }
+    return
 }
 
 Push-Location $root

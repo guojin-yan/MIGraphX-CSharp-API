@@ -6,6 +6,8 @@ $root = Get-RepositoryRoot
 if ([string]::IsNullOrWhiteSpace($HipSharpRepositoryRoot)) {
     $HipSharpRepositoryRoot = if (-not [string]::IsNullOrWhiteSpace($env:HIPSHARP_REPOSITORY_ROOT)) {
         $env:HIPSHARP_REPOSITORY_ROOT
+    } elseif (Test-Path -LiteralPath (Join-Path (Get-WorkspaceRoot) 'dependencies/HipSharp-7b6f75d0/src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj')) {
+        Join-Path (Get-WorkspaceRoot) 'dependencies/HipSharp-7b6f75d0'
     } else {
         Join-Path $root '../../HIP-CSharp-API/HIP-CSharp-API'
     }

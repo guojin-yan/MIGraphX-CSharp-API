@@ -11,6 +11,7 @@ C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata(System.String modelSha25
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride(System.String inputName,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> dimensions)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride(System.String inputName,System.Collections.Generic.IReadOnlyList<System.Int64> dimensions)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions(System.String nativeLibraryPath,System.Boolean offloadCopy,System.Boolean fastMath,System.Boolean exhaustiveTune)
+C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions(System.String nativeLibraryPath,System.Boolean offloadCopy,System.Boolean fastMath,System.Boolean exhaustiveTune,JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode? compileMode,System.String? backendOptionsJson)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions(System.String nativeLibraryPath,System.Boolean offloadCopy=true)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension(System.Int64 minimum,System.Int64 maximum,System.Collections.Generic.IReadOnlyList<System.Int64>? optimals=null)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension(System.Int64 value)
@@ -35,6 +36,7 @@ C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXQuantizeOpNames(System.String nativeLi
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape(JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType dataType,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> dimensions)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape(JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType dataType,System.Collections.Generic.IReadOnlyList<System.Int64> lengths)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeCollection(System.Collections.Generic.IEnumerable<JYPPX.ROCm.MIGraphXSharp.MIGraphXShape> shapes)
+C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXTarget(System.String nativeLibraryPath,System.String name,System.String optionsJson)
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXTarget(System.String nativeLibraryPath,System.String name="gpu")
 C|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXTfOptions(System.String nativeLibraryPath)
 F|public const|JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind.BadImage=2
@@ -50,6 +52,15 @@ F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind JYPPX.ROCm.MIGra
 F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind.Hit=0
 F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind.Miss=1
 F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind.Rebuilt=3
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode.Balanced=50
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode.Eager=0
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode.Max=100
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature.AdvancedCompilation=5
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature.ExecutionTrace=2
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature.OnnxDimensionParameters=4
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature.SymbolicDimensions=1
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature.TargetOptions=3
+F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature.TensorFlow=0
 F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType.Float32=4
 F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType.Float64=5
 F|public const|JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType.Int16=9
@@ -77,6 +88,7 @@ M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument JYPPX.ROCm.MIGraphXSha
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument.Load(System.String nativeLibraryPath,System.String path)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.Fixed(System.Int64 value)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.Range(System.Int64 minimum,System.Int64 maximum,System.Collections.Generic.IReadOnlyList<System.Int64>? optimals=null)
+M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.Symbolic(System.String expression,System.Collections.Generic.IReadOnlyDictionary<System.String,JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> symbols)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxExecutionResult JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxWorkflow.RunBuffer(System.String nativeLibraryPath,System.Byte[] model,System.Single[] input,System.String targetName="gpu")
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxExecutionResult JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxWorkflow.RunFile(System.String nativeLibraryPath,System.String modelPath,System.Single[] input,System.String targetName="gpu")
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperation JYPPX.ROCm.MIGraphXSharp.MIGraphXOperation.Create(System.String nativeLibraryPath,System.String name)
@@ -87,6 +99,7 @@ M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes.ForTopK(System.Int32 axis,System.Int32 k,System.Boolean largest)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes JYPPX.ROCm.MIGraphXSharp.MIGraphXOperationAttributes.ForTranspose(System.Int64[] permutation)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.Load(System.String path,JYPPX.ROCm.MIGraphXSharp.MIGraphXFileOptions options)
+M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.Load(System.String path,JYPPX.ROCm.MIGraphXSharp.MIGraphXFileOptions options,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride> dynamicInputOverrides)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.ParseOnnxBuffer(System.Byte[] model,JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions options)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.ParseOnnxFile(System.String modelPath,JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions options)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.ParseTfBuffer(System.Byte[] model,JYPPX.ROCm.MIGraphXSharp.MIGraphXTfOptions options)
@@ -94,8 +107,10 @@ M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXShar
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.CreateDynamic(JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType dataType,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> dimensions)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.CreateScalar(JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType dataType)
 M|public static|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.CreateWithStrides(JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType dataType,System.Collections.Generic.IReadOnlyList<System.Int64> lengths,System.Collections.Generic.IReadOnlyList<System.Int64> strides)
+M|public static|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXCapabilities.IsSupported(System.String nativeLibraryPath,JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature feature)
 M|public static|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.op_Equality(JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension? left,JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension? right)
 M|public static|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.op_Inequality(JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension? left,JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension? right)
+M|public static|System.Collections.Generic.IReadOnlyList<System.String> JYPPX.ROCm.MIGraphXSharp.MIGraphXCapabilities.GetMissingExports(System.String nativeLibraryPath,JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature feature)
 M|public static|System.Collections.Generic.IReadOnlyList<System.String> JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxWorkflow.GetRegisteredOperators(System.String nativeLibraryPath)
 M|public static|System.String JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata.ComputeModelSha256(System.Byte[] model)
 M|public static|System.String JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata.ComputeNativeFingerprint(System.String nativeLibraryPath)
@@ -138,6 +153,7 @@ M|public virtual|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXTfOptions.Dispose(
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument.Clone()
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection.Clone()
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.Run(JYPPX.ROCm.MIGraphXSharp.MIGraphXParameterMap parameters)
+M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.RunTrace(JYPPX.ROCm.MIGraphXSharp.MIGraphXParameterMap parameters,System.Action<JYPPX.ROCm.MIGraphXSharp.MIGraphXTraceInfo> observer)
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheResult JYPPX.ROCm.MIGraphXSharp.MIGraphXModelCache.GetOrBuild(JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata metadata,JYPPX.ROCm.MIGraphXSharp.MIGraphXFileOptions fileOptions,System.Func<JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram> builder)
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheResult JYPPX.ROCm.MIGraphXSharp.MIGraphXProgramCache.GetOrBuild(JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata metadata,JYPPX.ROCm.MIGraphXSharp.MIGraphXFileOptions fileOptions,System.Func<JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram> builder)
 M|public|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions.Clone()
@@ -211,11 +227,13 @@ M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDefaultDime
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDefaultDynDimValue(JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension value)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDefaultDynamicDimensionValue(JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension value)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDefaultLoopIterations(System.Int64 value)
+M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDimensionParameter(System.String name,JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension dimension)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDynInputParameterShape(System.String name,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> dimensions)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetDynamicInputParameterShape(System.String name,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> dimensions)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetExternalDataPath(System.String path)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetInputParameterShape(System.String name,System.Collections.Generic.IReadOnlyList<System.Int64> dimensions)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetLimitLoopIterations(System.Int64 value)
+M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxOptions.SetUseDebugSymbols(System.Boolean enabled)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXParameterMap.Add(System.String name,JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument argument)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.Compile(JYPPX.ROCm.MIGraphXSharp.MIGraphXTarget target,JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions options)
 M|public|System.Void JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.Print()
@@ -238,12 +256,14 @@ P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnos
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument JYPPX.ROCm.MIGraphXSharp.MIGraphXArgumentCollection.Item[System.Int32 index]
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheResult.Kind
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind? JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheResult.PreviousLookup
+P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode? JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions.CompileMode
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.Unknown
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimensionCollection.Item[System.Int32 index]
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXInstruction JYPPX.ROCm.MIGraphXSharp.MIGraphXInstructions.Item[System.Int32 index]
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheResult.Program
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument.Shape
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeCollection.Item[System.Int32 index]
+P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape? JYPPX.ROCm.MIGraphXSharp.MIGraphXTraceInfo.ResultShape
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.DataType
 P|get:public,set:none|JYPPX.ROCm.MIGraphXSharp.MIGraphXStatus? JYPPX.ROCm.MIGraphXSharp.MIGraphXException.KnownStatus
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXEnvironmentReport.ExportsComplete
@@ -253,12 +273,14 @@ P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOpt
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions.FastMath
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions.OffloadCopy
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.IsFixed
+P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.IsSymbolic
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXProgram.IsCompiled
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.IsDynamic
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.IsPacked
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.IsStandard
 P|get:public,set:none|System.Boolean JYPPX.ROCm.MIGraphXSharp.MIGraphXTfOptions.IsNhwc
 P|get:public,set:none|System.Boolean? JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnostic.FileExists
+P|get:public,set:none|System.Collections.Generic.IReadOnlyDictionary<System.String,JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension> JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.Symbols
 P|get:public,set:none|System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnostic> JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXEnvironmentReport.Diagnostics
 P|get:public,set:none|System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnostic> JYPPX.ROCm.MIGraphXSharp.MIGraphXNativeLoadException.Diagnostics
 P|get:public,set:none|System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheOverride> JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheMetadata.InputOverrides
@@ -289,6 +311,7 @@ P|get:public,set:none|System.Int64 JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimen
 P|get:public,set:none|System.Int64 JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.Minimum
 P|get:public,set:none|System.Int64 JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.ByteCount
 P|get:public,set:none|System.Int64 JYPPX.ROCm.MIGraphXSharp.MIGraphXShape.ElementCount
+P|get:public,set:none|System.Int64 JYPPX.ROCm.MIGraphXSharp.MIGraphXTraceInfo.Index
 P|get:public,set:none|System.Int64? JYPPX.ROCm.MIGraphXSharp.MIGraphXTfOptions.DefaultDimValue
 P|get:public,set:none|System.IntPtr JYPPX.ROCm.MIGraphXSharp.MIGraphXContext.Queue
 P|get:public,set:none|System.Object? JYPPX.ROCm.MIGraphXSharp.MIGraphXExperimentalCustomOp.State
@@ -315,7 +338,10 @@ P|get:public,set:none|System.String JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxExecuti
 P|get:public,set:none|System.String JYPPX.ROCm.MIGraphXSharp.MIGraphXOperation.Name
 P|get:public,set:none|System.String JYPPX.ROCm.MIGraphXSharp.MIGraphXProgramCache.RootDirectory
 P|get:public,set:none|System.String JYPPX.ROCm.MIGraphXSharp.MIGraphXTarget.Name
+P|get:public,set:none|System.String JYPPX.ROCm.MIGraphXSharp.MIGraphXTraceInfo.Name
 P|get:public,set:none|System.String? JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXEnvironmentReport.LoadedPath
+P|get:public,set:none|System.String? JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileOptions.BackendOptionsJson
+P|get:public,set:none|System.String? JYPPX.ROCm.MIGraphXSharp.MIGraphXDynamicDimension.Expression
 T|public sealed class|JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXEnvironmentReport;interfaces=
 T|public sealed class|JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnostic;interfaces=
 T|public sealed class|JYPPX.ROCm.MIGraphXSharp.MIGraphXArgument;interfaces=System.IDisposable
@@ -354,10 +380,14 @@ T|public sealed class|JYPPX.ROCm.MIGraphXSharp.MIGraphXShape;interfaces=
 T|public sealed class|JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeCollection;interfaces=System.Collections.Generic.IEnumerable<JYPPX.ROCm.MIGraphXSharp.MIGraphXShape>,System.Collections.Generic.IReadOnlyCollection<JYPPX.ROCm.MIGraphXSharp.MIGraphXShape>,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.MIGraphXSharp.MIGraphXShape>,System.Collections.IEnumerable
 T|public sealed class|JYPPX.ROCm.MIGraphXSharp.MIGraphXTarget;interfaces=System.IDisposable
 T|public sealed class|JYPPX.ROCm.MIGraphXSharp.MIGraphXTfOptions;interfaces=System.IDisposable
+T|public sealed class|JYPPX.ROCm.MIGraphXSharp.MIGraphXTraceInfo;interfaces=
 T|public sealed enum|JYPPX.ROCm.MIGraphXSharp.Diagnostics.MIGraphXNativeDiagnosticKind;interfaces=
 T|public sealed enum|JYPPX.ROCm.MIGraphXSharp.MIGraphXCacheLookupKind;interfaces=
+T|public sealed enum|JYPPX.ROCm.MIGraphXSharp.MIGraphXCompileMode;interfaces=
+T|public sealed enum|JYPPX.ROCm.MIGraphXSharp.MIGraphXFeature;interfaces=
 T|public sealed enum|JYPPX.ROCm.MIGraphXSharp.MIGraphXShapeDataType;interfaces=
 T|public sealed enum|JYPPX.ROCm.MIGraphXSharp.MIGraphXStatus;interfaces=
 T|public static class|JYPPX.ROCm.MIGraphXSharp.MIGraphXBuildInfo;interfaces=
+T|public static class|JYPPX.ROCm.MIGraphXSharp.MIGraphXCapabilities;interfaces=
 T|public static class|JYPPX.ROCm.MIGraphXSharp.MIGraphXEnvironment;interfaces=
 T|public static class|JYPPX.ROCm.MIGraphXSharp.MIGraphXOnnxWorkflow;interfaces=

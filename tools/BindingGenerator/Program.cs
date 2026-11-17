@@ -11,6 +11,11 @@ internal static class Program
     {
         try
         {
+            if (args.Length == 6 && args[0] == "--extensions-header" && args[2] == "--preprocessed" && args[4] == "--output")
+            {
+                ExtensionGenerator.Generate(args[1], args[3], args[5]);
+                return 0;
+            }
             var options = Arguments.Parse(args);
             BindingGenerator.Generate(options);
             return 0;

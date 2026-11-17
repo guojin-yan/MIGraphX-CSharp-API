@@ -4,8 +4,6 @@ using System.Text;
 using System.Text.Json;
 using MIGraphXSharp.Samples.PPStructure;
 using MIGraphXSharp.Samples.PPStructure.Ocr;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 using Arguments = MIGraphXSharp.Samples.PPStructure.Arguments;
 using JsonOutput = MIGraphXSharp.Samples.PPStructure.JsonOutput;
 
@@ -43,8 +41,8 @@ try
                 timingScope = "Decoded page through orientation, CPU document preprocessing, MIGraphX GPU models, HIP OCR, CPU structure/text association and decoding, plus optional explicitly selected ORT CPU formula. Excludes compilation/warmup, decode, drawing, tensor export and file I/O. StageMilliseconds measures model Run with host copies and OCR wall time; preprocessing is included only in overall page latency."
             });
             var markdown = new StringBuilder("# " + page.Id + "\n\n");
-            source.SaveAsPng(Path.Combine(directory, "source.png"));
-            using var upright = source.Clone(c => c.Rotate(-value.CorrectionCounterClockwise));
+            source.SavePng(Path.Combine(directory, "source.png"));
+            using var upright = source.RotateClockwise(-value.CorrectionCounterClockwise);
             using var preview = new Visualization(upright);
             foreach (var region in value.Regions) preview.Polygon(region.Layout.Bounds.Polygon, region.Layout.Category, "#ff9b35");
             foreach (var line in value.Lines) preview.Polygon(line.Polygon, line.Text, "#35e5aa");

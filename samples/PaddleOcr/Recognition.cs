@@ -1,7 +1,4 @@
 using System.Text;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace MIGraphXSharp.Samples.PaddleOcr;
 
@@ -34,10 +31,10 @@ public static class Recognition
         }
         return new RecognizedText(text.ToString(), count == 0 ? 0 : (float)(confidence / count));
     }
-    public static float[] Prepare(Image<Rgb24> crop, int width, int height = 48)
+    public static float[] Prepare(RgbImage crop, int width, int height = 48)
     {
         var resizedWidth = Math.Clamp((int)Math.Ceiling((double)height * crop.Width / crop.Height), 1, width);
-        using var resized = crop.Clone(context => context.Resize(resizedWidth, height, KnownResamplers.Triangle));
+        using var resized = crop.Resize(resizedWidth, height, Sampling.Linear);
         var normalized = Images.ToTensor(resized, rgb: false, mean: [.5f,.5f,.5f], std: [.5f,.5f,.5f]);
         // Padding is zero AFTER normalization (not a normalized black border).
         var padded = new float[checked(3 * height * width)];

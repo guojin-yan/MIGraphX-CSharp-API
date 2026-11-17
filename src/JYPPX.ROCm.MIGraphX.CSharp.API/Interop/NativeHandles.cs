@@ -13,6 +13,7 @@ internal sealed class NativeTargetHandle : NativeOwnedHandle
     {
         using (var utf8 = new StrictUtf8String(name, nameof(name)))
         {
+            Loading.NativeLibraryLoader.LoadTargetPlugin(name);
             var status = NativeMethods.TargetCreate(out var raw, utf8.Pointer);
             var owned = new NativeTargetHandle();
             owned.SetHandle(raw);
@@ -46,6 +47,20 @@ internal sealed class NativeTargetHandle : NativeOwnedHandle
             owned.Dispose();
             throw;
         }
+    }
+
+    internal static NativeTargetHandle CreateWithOptions(string name, string optionsJson)
+    {
+        using var utf8 = new StrictUtf8String(name, nameof(name));
+        using var json = new StrictUtf8String(optionsJson.Replace("%", "%%"), nameof(optionsJson));
+        Loading.NativeLibraryLoader.LoadTargetPlugin(name);
+        var output = OutHandle<NativeTargetHandle>.Create("migraphx_target_create_with_options");
+        try
+        {
+            output.Complete(NativeMethods.TargetCreateWithOptions(output.OutSlot, utf8.Pointer, json.Pointer));
+            return output.Handle;
+        }
+        catch { output.Dispose(); throw; }
     }
 
     protected override bool ReleaseHandle()

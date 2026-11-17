@@ -1,6 +1,9 @@
-name: managed-build-manual
+name: managed-build
 
 on:
+  push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -8,10 +11,22 @@ permissions:
 
 env:
   MIGRAPHX_WORKSPACE_ROOT: ${{ github.workspace }}/MIGraphXSharp.Workspace
+  # Compile legacy TFMs, then run their smoke assemblies on the installed runtime.
+  # Actual legacy runtime qualification is recorded separately from CI.
+  DOTNET_ROLL_FORWARD: Major
+
+concurrency:
+  group: managed-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-test-pack-docs:
-    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: ${{ github.workspace }}/MIGraphXSharp
@@ -19,26 +34,25 @@ jobs:
       - uses: actions/checkout@v7
         with:
           path: MIGraphXSharp
+          persist-credentials: false
       - uses: actions/checkout@v7
         with:
           repository: guojin-yan/HIP-CSharp-API
-          ref: 0c730005c37bacbd4f143b33d1f56e9ce517ac2f
+          ref: 7b6f75d0047bb87b72094aa910bcea8be2c5e2bc
           path: hip-source
           fetch-depth: 1
+          persist-credentials: false
       - uses: actions/setup-dotnet@v6
         with:
           global-json-file: MIGraphXSharp/global.json
-          cache: true
-          cache-dependency-path: MIGraphXSharp/Directory.Packages.props
-      - name: Restore tools and solution
+      - name: Restore tools
         shell: pwsh
         run: |
           dotnet tool restore
-          $hipRoot = Join-Path $env:GITHUB_WORKSPACE 'hip-source'
-          dotnet restore ./MIGraphXSharp.sln "-p:HipSharpRepositoryRoot=$hipRoot"
-      - name: Build all 15 target frameworks
+          if ($LASTEXITCODE -ne 0) { throw 'Tool restore failed.' }
+      - name: Restore and build all 15 target frameworks
         shell: pwsh
-        run: ./eng/build.ps1 -Configuration Release -NoRestore -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
+        run: ./eng/build.ps1 -Configuration Release -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - name: Verify frozen native ABI
         shell: pwsh
         run: |
@@ -50,15 +64,25 @@ jobs:
       - name: Pack and audit clean consumers
         shell: pwsh
         run: |
-          $package = ./eng/pack.ps1 -Configuration Release -Version 0.0.0 -NoBuild
-          ./eng/verify-package.ps1 -PackagePath $package -Version 0.0.0
+          $package = ./eng/pack.ps1 -Configuration Release -Version 1.0.0 -NoBuild | Select-Object -Last 1
+          ./eng/verify-package.ps1 -PackagePath $package -Version 1.0.0
+          $dependency = Join-Path $env:MIGRAPHX_WORKSPACE_ROOT 'downloads/JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg'
+          New-Item -ItemType Directory -Force -Path (Split-Path $dependency) | Out-Null
+          Invoke-WebRequest 'https://api.nuget.org/v3-flatcontainer/jyppx.rocm.hip.csharp.api/1.0.0/jyppx.rocm.hip.csharp.api.1.0.0.nupkg' -OutFile $dependency
+          $adapter = ./eng/pack-adapter.ps1 -Configuration Release -Version 1.0.0 -NoBuild -HipSharpPackagePath $dependency | Select-Object -Last 1
+          ./eng/verify-adapter-package.ps1 -PackagePath $adapter -Version 1.0.0 -HipSharpPackagePath $dependency
+      - name: Verify child process timeout and captured logs
+        shell: pwsh
+        run: ./eng/test-process-runner.ps1
       - name: Build DocFX site
         shell: pwsh
         run: ./eng/docs.ps1 -Configuration Release -NoBuild -HipSharpRepositoryRoot "$env:GITHUB_WORKSPACE/hip-source"
       - uses: actions/upload-artifact@v7
+        if: always()
         with:
-          name: managed-packages-and-docs
+          name: managed-packages-and-docs-${{ matrix.os }}
           path: |
             ${{ env.MIGRAPHX_WORKSPACE_ROOT }}/artifacts/packages/*.nupkg
             ${{ env.MIGRAPHX_WORKSPACE_ROOT }}/artifacts/docs/**
-          if-no-files-found: error
+            ${{ env.MIGRAPHX_WORKSPACE_ROOT }}/artifacts/process-runner-tests/**
+          if-no-files-found: warn

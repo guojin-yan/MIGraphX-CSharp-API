@@ -10,7 +10,7 @@ using var program = MIGraphXProgram.ParseOnnxFile(modelPath, options);
 
 `SetDynamicInputParameterShape` accepts `MIGraphXDynamicDimension` ranges. Dynamic shapes expose `Rank` and `DynamicDimensions`; `Lengths`, `Strides`, `ElementCount` and `ByteCount` throw because there is no single concrete value. Use a concrete static shape before creating a typed host argument. Dedicated real-runtime dynamic-shape behavior still requires application validation.
 
-Synchronous host, asynchronous host and HIP device-input execution validate concrete input types, rank and inclusive dimension bounds before native submission. Any length inside a range is accepted by this check, even when it is absent from `Optimals`. For example, a first-axis range `[2, 4]` with optimal value `3` accepts lengths `2`, `3` and `4`. This validation uses the explicit managed overrides retained when parsing; it does not reconstruct missing ranges from a loaded native program.
+Synchronous host, asynchronous host and HIP device-input execution validate concrete input types, rank and inclusive dimension bounds before native submission. Any length inside a range is accepted by this check, even when it is absent from `Optimals`. For example, a first-axis range `[2, 4]` with optimal value `3` accepts lengths `2`, `3` and `4`. This validation uses explicit managed overrides retained when parsing or supplied when loading. The C API cannot read numeric bounds back directly; supplied bounds are checked against the native dimensions using native equality.
 
 ## Save and load
 
@@ -22,6 +22,22 @@ using var restored = MIGraphXProgram.Load(
 ```
 
 Only the fixed `msgpack` format is accepted. Paths must be absolute. Serialized programs are bound to the native version and compilation context; do not assume portability across native versions or targets.
+
+For dynamic inputs, supply the same ranges and optimal values used when parsing:
+
+```csharp
+var overrides = new[] {
+    new MIGraphXCacheOverride("input", new[] {
+        new MIGraphXDynamicDimension(1, 8), new MIGraphXDynamicDimension(4)
+    })
+};
+using var restoredDynamic = MIGraphXProgram.Load(
+    "/absolute/path/to/dynamic.msgpack", fileOptions, overrides);
+```
+
+The overload copies the ranges, rejects unknown or static input names, and compares every supplied dimension against the native file. A different range or optimal set is rejected even when the rank matches. Compile the restored program before running it. Without overrides, static programs retain the original loading behavior; reading a dynamic parameter without its ranges fails explicitly. Model caches restore dynamic ranges automatically from `metadata.InputOverrides` and apply the same native validation.
+
+动态模型载入时需要提供解析时使用的输入范围和 optimal 值。载入接口逐维执行原生相等性校验，不会用调用方配置覆盖文件中的实际范围；错误范围会被拒绝。缓存会从 metadata 自动恢复动态输入范围并执行同样的校验。
 
 ## Model cache
 

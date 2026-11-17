@@ -1,59 +1,75 @@
-# System-native deployment and troubleshooting
+# Runtime packages and deployment
 
-MIGraphX CSharp API distributes managed assemblies only. It does not publish a Runtime nupkg, copy AMD binaries into the managed packages, or stage a native closure during build. Install MIGraphX and ROCm through AMD's official system installation path before running the managed API.
+Version 1.0.0 distributes managed APIs and optional platform-specific MIGraphX engine packages separately. The runtime package contains MIGraphX 2.18.0; ROCm 10.1 libraries, GPU device data and the AMD driver are system prerequisites. Package version 1.0.0 is the project release number, rather than the native engine or ROCm version.
 
-## Install the audited baseline
+## Select a platform
 
-The first validated baseline is Ubuntu 24.04 amd64, ROCm 7.2.1, and MIGraphX `2.15.0.70201-81~24.04`. Follow AMD's [official ROCm 7.2.1 Linux quick-start guide](https://rocm.docs.amd.com/projects/install-on-linux/en/docs-7.2.1/install/quick-start.html) to configure the repository and signing key. The exact MIGraphX package recorded by this repository is:
+| Package | Native assets | Tested GPU | Engine source |
+| --- | --- | --- | --- |
+| `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64` | `runtimes/win-x64/native` | Radeon PRO W7900 / gfx1100 | Project build of AMD's rocm-10.1 source; included Windows patch |
+| `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64` | `runtimes/linux-x64/native` | Radeon PRO W7900 / gfx1100 | AMD MIGraphX 2.18.0 binary; ELF search paths relocated to `$ORIGIN` |
+
+The engine includes the C API, ONNX frontend, GPU/reference plugins, device code and HIPRTC helper. Ubuntu also supplies the TensorFlow frontend. Windows device code targets gfx1100. The Ubuntu binary contains additional GPU architectures, whose presence is not workload qualification. There is no macOS runtime package.
 
 ```bash
-sudo apt-get update
-sudo apt-get install migraphx-rpath7.2.1=2.15.0.70201-81~24.04
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API --version 1.0.0
+# Choose one deployment platform:
+dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64 --version 1.0.0
+# dotnet add package JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.ubuntu.24.04-x64 --version 1.0.0
 ```
 
-Let APT resolve the declared ROCm dependencies from the same AMD repository. Do not copy files from `.cache`, `artifacts`, an extracted `.deb`, another machine, or a different ROCm patch into the application.
+Set the application's `RuntimeIdentifier` to `win-x64` or `linux-x64` when publishing for that platform. NuGet copies the matching native assets. The managed core remains usable with an explicitly selected coherent system MIGraphX installation; a runtime package is optional.
 
-The native package is outside the managed NuGet lifecycle. Upgrading MIGraphX/ROCm therefore requires an application compatibility review and a fresh environment probe; a managed package update does not upgrade the native runtime.
+## Configure ROCm before process startup
 
-After a native upgrade, rerun your application's models, check their outputs, and verify the resource lifetime and execution modes you use. A matching SONAME or successful loader probe alone does not establish compatibility.
+Install matching ROCm 10.1 HIP/HIPRTC, COMGR, MIOpen, rocBLAS and hipBLASLt libraries, their transitive libraries, GPU-specific device data and bitcode. Install the compatible AMD GPU driver separately. On Windows also install the Visual C++ x64 Redistributable. Ubuntu requires its usual glibc, libstdc++, libgcc, zlib, libnuma, libelf and libdrm dependencies. WSL uses its host driver bridge and GPU device access.
 
-## Select the native root
+For the independently installed SDK used in this project's Windows verification:
 
-For deterministic selection, pass the absolute installed SONAME path:
+```powershell
+$hipRoot = 'D:/AMD/ROCm/10.1.0/HIP'
+$env:PATH = "$hipRoot/bin;$hipRoot/lib/llvm/bin;" + $env:PATH
+$env:HIP_PATH = $hipRoot
+$env:ROCM_PATH = $hipRoot
+$env:HIP_DEVICE_LIB_PATH = "$hipRoot/lib/llvm/amdgcn/bitcode"
+$env:ROCBLAS_TENSILE_LIBPATH = "$hipRoot/bin/rocblas/library"
+$env:HIPBLASLT_TENSILE_LIBPATH = "$hipRoot/bin/hipblaslt/library/gfx1100"
+```
+
+On Ubuntu, use the corresponding installed ROCm paths:
+
+```bash
+export HIP_PATH=/opt/AMD/ROCm/10.1.0/HIP
+export ROCM_PATH="$HIP_PATH"
+export PATH="$HIP_PATH/bin:$HIP_PATH/lib/llvm/bin:$PATH"
+export LD_LIBRARY_PATH="$HIP_PATH/lib:$HIP_PATH/lib/rocm_sysdeps/lib:$HIP_PATH/lib/host-math/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export HIP_DEVICE_LIB_PATH="$HIP_PATH/lib/llvm/amdgcn/bitcode"
+export ROCBLAS_TENSILE_LIBPATH="$HIP_PATH/lib/rocblas/library"
+export HIPBLASLT_TENSILE_LIBPATH="$HIP_PATH/lib/hipblaslt/library"
+```
+
+Adapt these paths to the actual coherent installation. NuGet does not install the SDK or change the machine's environment. Do not mix this ROCm 10.1 engine with the HIP ROCm 7.2.1 native NuGet package. The managed HipSharp 1.0.0 dependency has its own version and supports explicitly selected native libraries.
+
+## Discover the engine
 
 ```csharp
-var report = MIGraphXEnvironment.Probe(
-    "/opt/rocm-7.2.1/lib/libmigraphx_c.so.3");
+using JYPPX.ROCm.MIGraphXSharp;
+
+var environment = MIGraphXEnvironment.ProbeSystem();
+if (!environment.ObjectsExecuted)
+    throw new InvalidOperationException(string.Join("; ", environment.Diagnostics.Select(d => d.Message)));
+string nativePath = environment.LoadedPath!;
+// Pass nativePath to the model APIs.
 ```
 
-`MIGraphXEnvironment.ProbeSystem` checks the application RID directory, application base, and OS loader in a fixed order. The loader does not mutate `PATH` or `LD_LIBRARY_PATH`, download native files, or install system packages. Windows and macOS candidates remain diagnostic-only; this policy does not claim an official native runtime for those platforms.
+Probing checks the application RID directory, application base and system loader. An explicit absolute installed library path is also supported. Select one native family per process; restart before changing it. Native plugins and ROCm dependencies must resolve from that same family. A successful probe does not certify arbitrary models or precisions.
 
-The optional HipSharp adapter must use the same coherent ROCm installation and device. Do not combine a system MIGraphX installation with private HIP/HSA/COMGR files copied into the application output.
+## Package provenance and limits
 
-## Verify the host
+Each runtime includes `native-manifest.json` with project source commit, source archive identity, native/ROCm versions, payload hashes and host dependencies. Third-party licenses are bundled under `licenses/`. The release attaches the exact engine input archives and SHA-256 checksums; Windows is a project source build, rather than an AMD Windows installer.
 
-Before a real workload, verify the resolved root and its transitive dependencies with platform tools, then run the environment probe:
+The known Windows 2×2 INT8 native crash and missing Windows TensorFlow importer remain. Consult [platform limits](../compatibility/platforms.md) and [2.18 APIs](runtime-2.18.md). Installing a runtime package does not repair upstream native defects.
 
-```bash
-readelf -d /opt/rocm-7.2.1/lib/libmigraphx_c.so.3
-ldd /opt/rocm-7.2.1/lib/libmigraphx_c.so.3
-```
+The original Linux ROCm 7.2.1 / MIGraphX 2.15 system deployment remains an alternative for the base API. Its bounded historical tests and explicit O2 workaround remain documented in the platform guide; it is a different native family from the new 2.18 runtime packages.
 
-The host supplies Ubuntu system libraries, the `amdgpu`/`amdkfd` kernel drivers, firmware, `/dev/kfd`, and `/dev/dri`. Installing a user-mode package cannot replace those host requirements.
-
-## Failure interpretation
-
-| Diagnostic | Meaning | Action |
-| --- | --- | --- |
-| `MIGRAPHX1001` with `pack.ps1 -Runtime` | Runtime NuGet distribution is intentionally unsupported | Install MIGraphX/ROCm from AMD's official repository |
-| explicit file not found | The requested installed SONAME path is absent | Check the selected ROCm version and installed MIGraphX package |
-| dependency missing | The OS loader cannot resolve the coherent official closure | Repair the AMD system installation; do not add arbitrary copied directories |
-| bad image or architecture | The native file does not match the process/host | Install the amd64 package on a supported Linux x86-64 host |
-| required export missing | The installed MIGraphX version does not match the frozen C API | Restore the audited version or re-run the compatibility process for an upgrade |
-| different library already active | The process already loaded a different native root | Restart and select one installation before using the managed API |
-
-Structured diagnostics report candidates, sources, existence, classifications, and the original platform error. They do not turn untested versions, devices, models, async/device buffers, zero-copy, or performance into supported claims.
-
-Diagnostics are returned to the caller and are not logged by the library. Explicit paths and platform-loader messages can still contain host-specific information; redact them before attaching logs to public issues. A different already-loaded root is rejected, and the process must be restarted before selecting another native family.
-
-中文摘要：项目只分发托管程序集。请通过 AMD 官方系统仓库安装同一版本族的 MIGraphX/ROCm，优先传入 `/opt/rocm-7.2.1/lib/libmigraphx_c.so.3` 绝对路径；不要从缓存、Debian 解包目录或不同 ROCm 版本拼装应用私有闭包。
+中文摘要：1.0.0 提供两个平台的 MIGraphX 2.18 引擎包；仍需安装 ROCm 10.1 计算库、设备数据和显卡驱动。Windows 构建针对 gfx1100，Ubuntu 原生资产使用 `linux-x64` RID。通过 `ProbeSystem()` 发现输出目录中的引擎；不要混装不同 ROCm 版本的原生计算库。

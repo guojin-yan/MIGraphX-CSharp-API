@@ -1,6 +1,8 @@
 # HIP asynchronous integration
 
-Reference `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop`, the matching MIGraphX core version and HipSharp `0.10.0`. Use one coherent ROCm installation and device for HIP and MIGraphX.
+Reference `JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop`, the matching MIGraphX core version and HipSharp `1.0.0`. Use one coherent ROCm installation and device for HIP and MIGraphX.
+
+This dependency applies to release 1.0.0. Published MIGraphX 0.0.2 uses HipSharp 0.10.0. When upgrading, update both MIGraphX packages together and change any explicit HIP package reference to 1.0.0. Stream submission, completion and device-buffer lease behavior keep the same public API. The HIP managed package version does not select or install an AMD native runtime.
 
 ## Host input
 

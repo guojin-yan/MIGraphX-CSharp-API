@@ -1,9 +1,6 @@
 using System.Net;
 using System.Text.RegularExpressions;
 using Microsoft.ML.Tokenizers;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 
 namespace MIGraphXSharp.Samples.Clip;
 
@@ -46,22 +43,22 @@ public sealed class ClipTokenizer
 
 public static class ClipProcessing
 {
-    public static float[] Prepare(Image<Rgb24> source)
+    public static float[] Prepare(RgbImage source)
     {
         // Resize the short edge first, then crop. Cropping the source first changes sampling.
         var scale = 224d / Math.Min(source.Width, source.Height);
         var w = Math.Max(224, (int)(source.Width * scale)); var h = Math.Max(224, (int)(source.Height * scale));
-        using var resized = source.Clone(c => c.Resize(w, h, KnownResamplers.Bicubic).Crop(new Rectangle((w - 224) / 2, (h - 224) / 2, 224, 224)));
+        using var scaled = source.Resize(w, h, Sampling.Cubic);
+        using var resized = scaled.Crop(new ImageRect((w - 224) / 2, (h - 224) / 2, 224, 224));
         float[] mean = [.48145466f, .4578275f, .40821073f], std = [.26862954f, .26130258f, .27577711f];
         var tensor = new float[3 * 224 * 224];
-        resized.ProcessPixelRows(rows =>
         {
             for (var y = 0; y < 224; y++)
             {
-                var row = rows.GetRowSpan(y); for (var x = 0; x < 224; x++)
+                var row = resized.GetRowSpan(y); for (var x = 0; x < 224; x++)
                 { var p = row[x]; var k = y * 224 + x; tensor[k] = (p.R / 255f - mean[0]) / std[0]; tensor[224 * 224 + k] = (p.G / 255f - mean[1]) / std[1]; tensor[2 * 224 * 224 + k] = (p.B / 255f - mean[2]) / std[2]; }
             }
-        });
+        }
         return tensor;
     }
     public static float[][] Normalize(float[] values, int rows)

@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="../../src/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop/JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop.csproj" />
     <EmbeddedResource Include="HipKernels.hip" LogicalName="HipKernels.hip" />
-    <PackageReference Include="SixLabors.ImageSharp" />
   </ItemGroup>
+  <PropertyGroup><DefineConstants>$(DefineConstants);IMAGING_PADDLEOCR</DefineConstants></PropertyGroup>
+  <ItemGroup><Compile Include="../Imaging/OpenCvImage.cs" Link="Imaging/OpenCvImage.cs" /></ItemGroup>
 </Project>

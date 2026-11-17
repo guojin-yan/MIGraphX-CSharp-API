@@ -8,6 +8,7 @@ This directory contains the published MIGraphX CSharp API release history. The r
 
 | API 版本 | MIGraphX | ROCm | HipSharp 依赖 | 发布日期 | 类型 | 详细说明 |
 | --- | --- | --- | --- | --- | --- | --- |
+| 1.0.0 | 2.15.0 / 2.18.0 | 7.2.1 / 10.1 | 1.0.0 | 2026-11-17 | 正式版、HIP 1.0.0 与 runtime 包 / Stable | [查看说明](1.0.0.md) |
 | 0.0.2 | 2.15.0 | 7.2.1 | 0.10.0 | 2026-11-01 | HIP 流水线与 OCR 加速 / Feature update | [查看说明](0.0.2.md) |
 | 0.0.1 | 2.15.0 | 7.2.1 | 0.10.0 | 2026-10-31 | 首次发布 / Initial release | [查看说明](0.0.1.md) |
 

@@ -37,6 +37,20 @@ internal sealed class NativeDynamicDimensionHandle : NativeOwnedHandle
     internal static NativeDynamicDimensionHandle Create(MIGraphXDynamicDimension value)
     {
         if (value is null) { throw new ArgumentNullException(nameof(value)); }
+        if (value.IsSymbolic)
+        {
+            var missing = Loading.NativeLibraryLoader.MissingActiveExports(NativeFeatures.Exports(MIGraphXFeature.SymbolicDimensions));
+            if (missing.Length != 0) throw new NotSupportedException("Symbolic dimensions require MIGraphX 2.18 exports: " + string.Join(", ", missing));
+            using var symbols = NativeSymbolBoundsHandle.Create(value.Symbols);
+            using var expression = new StrictUtf8String(value.Expression!, nameof(value));
+            var symbolic = OutHandle<NativeDynamicDimensionHandle>.Create("migraphx_dynamic_dimension_create_symbolic");
+            try
+            {
+                symbolic.Complete(NativeMethods.DynamicDimensionCreateSymbolic(symbolic.OutSlot, expression.Pointer, symbols.DangerousGetHandle()));
+                return symbolic.Handle;
+            }
+            catch { symbolic.Dispose(); throw; }
+        }
         var owned = OutHandle<NativeDynamicDimensionHandle>.Create("migraphx_dynamic_dimension_create_min_max");
         try
         {
@@ -167,6 +181,33 @@ internal sealed class NativeDynamicDimensionsHandle : NativeOwnedHandle
         var stableCount = ReadCount();
         if (stableCount != count) { throw new InvalidOperationException($"Native dynamic dimension collection changed from {count} to {stableCount} while creating a snapshot."); }
         return flags;
+    }
+
+    internal bool Matches(IReadOnlyList<MIGraphXDynamicDimension> values)
+    {
+        if (ReadCount() != values.Count) return false;
+        for (var index = 0; index < values.Count; index++)
+        {
+            IntPtr borrowed;
+            var slot = Marshal.AllocHGlobal(IntPtr.Size);
+            try
+            {
+                Marshal.WriteIntPtr(slot, IntPtr.Zero);
+                NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionsGet(slot, DangerousGetHandle(), NativeSizeTArray.Count(index)), "migraphx_dynamic_dimensions_get");
+                borrowed = NativeBorrowedOutput.RequireHandle(Marshal.ReadIntPtr(slot), "migraphx_dynamic_dimensions_get");
+            }
+            finally { Marshal.FreeHGlobal(slot); }
+            using var expected = NativeDynamicDimensionHandle.Create(values[index]);
+            var result = Marshal.AllocHGlobal(1);
+            try
+            {
+                Marshal.WriteByte(result, byte.MaxValue);
+                NativeStatus.ThrowIfFailed(NativeMethods.DynamicDimensionEqual(result, borrowed, expected.DangerousGetHandle()), "migraphx_dynamic_dimension_equal");
+                if (!NativeBoolean.Read(result, "migraphx_dynamic_dimension_equal")) return false;
+            }
+            finally { Marshal.FreeHGlobal(result); }
+        }
+        return true;
     }
 
     private int ReadCount()

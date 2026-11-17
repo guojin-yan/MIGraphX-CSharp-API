@@ -1,6 +1,6 @@
 # CLIP 图文匹配与检索
 
-独立 .NET 10 示例，使用 MIGraphX GPU 执行 OpenAI CLIP ViT-B/32 的图像、文本编码器。输入若干英文描述和图片，同时输出图到文分类、文到图检索、512 维特征和可浏览 HTML。所有代码包含在本项目内。
+独立 .NET 10 示例，使用 MIGraphX GPU 执行 OpenAI CLIP ViT-B/32 的图像、文本编码器。输入若干英文描述和图片，同时输出图到文分类、文到图检索、512 维特征和可浏览 HTML。推理代码包含在本项目内，OpenCV 图像边界源码从 `samples/Imaging` 链接编译。
 
 此示例位于 main 源码，未包含在 v0.0.2 发布标签中。核心库使用现有 API，无需更换 NuGet 版本。
 
@@ -63,3 +63,5 @@ dotnet run --project samples/Clip -c Release --no-build -- \
 整批 P50 为 **20.30 ms**，P95 为 **21.16 ms**；原始样本保存在运行结果 JSON 中。
 
 同一份输入张量与 ONNX Runtime CPU 对照，图像/文本特征最大绝对误差分别约 `6.64e-7/3.58e-7`；六条描述的 BPE ID 和 mask 与独立分词实现逐项一致。该结果说明本次样例的数值对应关系，不是分类准确率评测。
+
+图像编解码与缩放使用 OpenCV CSharp API 5.0.0 及匹配的 mini 原生包，详见[图像迁移与部署](../../docs/guides/opencv-imaging.md)。

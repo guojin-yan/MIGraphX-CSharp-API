@@ -11,8 +11,8 @@ namespace JYPPX.ROCm.MIGraphXSharp;
 public static class MIGraphXBuildInfo
 {
     /// <summary>
-    /// 获取当前本地工程候选包版本。
-    /// Gets the current local engineering candidate package version.
+    /// 获取当前托管包版本。
+    /// Gets the current managed package version.
     /// </summary>
     public const string PackageVersion = MIGraphXGeneratedVersion.PackageVersion;
 

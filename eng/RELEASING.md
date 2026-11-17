@@ -6,9 +6,9 @@
 
 发布前在 `docs/release-notes/<version>.md` 维护本版本说明，可复制 [模板](../docs/release-notes/TEMPLATE.md)。同时更新[版本索引](../docs/release-notes/README.md)、根目录 `CHANGELOG.md` 与中英文 README 的简短摘要。`prepare-release.ps1` 将对应单版本文件作为分发包的 `RELEASE-NOTES.md` 来源，不混入其他版本的记录。
 
-所有者授权发布后，在干净且已推送的 `main` 上选择版本，例如 `0.0.2`。创建目标为精确 HEAD 的 GitHub draft release，再手动运行 `publish-release` 工作流。工作流从 NuGet.org 下载并核对下文固定哈希的 HipSharp 0.10.0。`eng/prepare-release.ps1` 负责构建、API/包检查、干净消费、漏洞查询、文档及离线分发材料，产物全部位于仓库外。
+所有者授权发布后，在干净且已推送的 `main` 上选择版本，例如 `1.0.0`。创建目标为精确 HEAD 的 GitHub draft release，再手动运行 `publish-release` 工作流。工作流从 NuGet.org 下载并核对下文固定哈希的 HipSharp 1.0.0。`eng/prepare-release.ps1` 负责构建、API/包检查、干净消费、漏洞查询、文档及离线分发材料，产物全部位于仓库外。
 
-发布 job 使用 NuGet Trusted Publishing：`NuGet/login@v1` 将 GitHub OIDC 身份换取有效期一小时的临时 API Key，不再读取仓库 secret `NUGET_API_KEY`。包检查通过后发布本项目的 core/adapter 同版本包，再将 draft release 公开。HipSharp 是已有依赖，不重复推送。若发布中途失败，先检查 NuGet 是否已经接受部分包，禁止替换同版本内容后重试。
+发布 job 使用 NuGet Trusted Publishing：`NuGet/login@v1` 将 GitHub OIDC 身份换取有效期一小时的临时 API Key，不再读取仓库 secret `NUGET_API_KEY`。包检查通过后发布两个 runtime、core 和 adapter 同版本包，再将 draft release 公开。HipSharp 是已有依赖，不重复推送。若发布中途失败，先检查 NuGet 是否已经接受部分包，禁止替换同版本内容后重试。
 
 ### 首次配置 Trusted Publishing
 
@@ -20,8 +20,8 @@
 | Repository | `MIGraphX-CSharp-API` |
 | Workflow File | `release.yml`，只填文件名 |
 | Environment | 留空，当前 job 未使用 GitHub Environment |
-| Package Owner | 拥有这两个包的 `GuojinYan` 账户 |
-| Scope | 允许推送现有包的新版本 |
+| Package Owner | 拥有这四个包的 `GuojinYan` 账户 |
+| Scope | 允许创建匹配模式的新包及推送现有包的新版本 |
 | Package pattern | `JYPPX.ROCm.MIGraphX.CSharp.API*` |
 
 账户名称是 NuGet 用户名，不是邮箱。发布 job 已配置 `id-token: write`，无需设置新的 GitHub secret。具体机制见 [NuGet 官方文档](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing)。
@@ -38,16 +38,16 @@ gh workflow run release.yml --ref main -f version=0.0.2 -f prepared_run_id=41267
 
 ## 准备候选包
 
-按 [Contributing](../CONTRIBUTING.md) 配置 SDK、PowerShell 和 HipSharp 源码依赖。选择候选版本后，先将源码提交并推送到 `main`；最终检查要求工作区干净，且 `HEAD == origin/main == RepositoryCommit`。未指定版本时，项目仍使用未发布的 `0.0.0`。
+按 [Contributing](../CONTRIBUTING.md) 配置 SDK、PowerShell 和 HipSharp 源码依赖。选择候选版本后，先将源码提交并推送到 `main`；最终检查要求工作区干净，且 `HEAD == origin/main == RepositoryCommit`。未指定版本时，项目使用 `1.0.0`。
 
-准备 NuGet.org 上的 `JYPPX.ROCm.HIP.CSharp.API` 0.10.0 包，将路径填入以下变量。脚本核对其 SHA-256 为 `096f82ae8d8ecb1cd3ad0e1f5e213e811656cde10767a0ddf88563747e9a1558`，包内源码提交为 `53ae5a75c354d27e4df3420356351942267cc666`。适配器通过包引用重新构建，不能仅使用解决方案的源码引用输出。
+准备 NuGet.org 上的 `JYPPX.ROCm.HIP.CSharp.API` 1.0.0 包，将路径填入以下变量。脚本核对其 SHA-256 为 `c05e0e09cab60a5bdab0473b8ce9185548ac5c3289f3fa2eab2c448c00e8faf0`，包内源码提交为 `7b6f75d0047bb87b72094aa910bcea8be2c5e2bc`。适配器通过包引用重新构建，不能仅使用解决方案的源码引用输出。
 
-公开的 HipSharp 0.9.1 缺少适配器需要的内部 stream lease 接口，不能互换。当前适配器精确依赖公开 0.10.0；0.0.2 的设备输出、同流后处理和提前释放已在该依赖上执行真实 GPU 检查。历史检查材料保留各自的依赖身份，不混用源码候选与公开包结果。
+公开的 HipSharp 0.9.1 缺少适配器需要的内部 stream lease 接口，不能互换。1.0.0 适配器精确依赖公开 1.0.0；0.0.2 的设备输出、同流后处理和提前释放历史检查使用公开 0.10.0。历史检查材料保留各自的依赖身份，不混用源码候选与公开包结果。
 
 ```powershell
-$version = '0.0.2-rc.1' # Example; choose the intended candidate version.
+$version = '1.0.0-rc.1' # Example; choose the intended candidate version.
 $commit = (git rev-parse HEAD).Trim()
-$hipPackage = '/absolute/path/JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg'
+$hipPackage = '/absolute/path/JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg'
 $core = ./eng/pack.ps1 -Configuration Release -Version $version
 $adapter = ./eng/pack-adapter.ps1 -Configuration Release -Version $version -HipSharpPackagePath $hipPackage -NoBuild | Select-Object -Last 1
 $candidate = @{
@@ -80,3 +80,11 @@ $index = ./eng/verify-release-candidate.ps1 @candidate -HipSharpPackagePath $hip
 本地材料未签名，哈希和离线复核证明文件间的一致性，不能认证发布者身份或保证漏洞信息始终最新。它们也不提升原生平台支持等级。真实 runtime 支持范围以 [平台限制](../docs/compatibility/platforms.md) 为准；包发布、标签及站点部署需要单独的所有者授权。
 
 These commands prepare and review managed package candidates without a GPU. Offline review checks source/package identities and evidence consistency; it does not refresh advisory data, authenticate unsigned records, qualify native runtime support, or publish anything.
+
+## Native engine packages
+
+Release 1.0.0 also publishes `JYPPX.ROCm.MIGraphX.CSharp.API.Runtime.win-x64` and `.Runtime.ubuntu.24.04-x64`. `eng/contracts/native-runtime-sources.json` pins both engine input ZIPs, every asset hash, source provenance and host dependencies. These packages contain the MIGraphX 2.18 engine; ROCm 10.1 libraries and drivers remain system requirements. Managed-package SBOM/provenance covers core/adapter; `native-package-manifest.json` and each runtime's `native-manifest.json` cover engine packages separately.
+
+Create a draft `v1.0.0` release at the clean source commit and attach the two locked `MIGraphX-native-*-2.18.0.zip` input archives. The release workflow downloads them with its read-only repository token, verifies all hashes, and packs/audits both platforms before publication. Local `prepare-release.ps1` also requires `-NativeSourceDirectory <external-input-directory>` and Python 3. Windows Python users can pack a runtime with `./eng/pack.ps1 -Runtime -RuntimePlatform win-x64 -NativeSourceArchive <zip> -Version 1.0.0 -PythonPath <python.exe>`.
+
+Native outputs and downloaded inputs stay outside source. Never replace a published version's input ZIP or nupkg; prepare a new release version when payloads change. NuGet Trusted Publishing must permit all four package IDs, including creation of the runtime IDs.

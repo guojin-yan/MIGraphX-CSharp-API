@@ -1,0 +1,12 @@
+<Project>
+  <Import Project="../Directory.Build.props" />
+  <PropertyGroup>
+    <!-- Override with another reviewed 5.0.0 runtime on a different Linux distribution. -->
+    <OpenCvSampleRuntimePackage Condition="'$(OpenCvSampleRuntimePackage)' == '' and $([MSBuild]::IsOSPlatform('Windows'))">JYPPX.OpenCV.runtime.win-x64.mini</OpenCvSampleRuntimePackage>
+    <OpenCvSampleRuntimePackage Condition="'$(OpenCvSampleRuntimePackage)' == '' and $([MSBuild]::IsOSPlatform('Linux'))">JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini</OpenCvSampleRuntimePackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="JYPPX.OpenCV.CSharp.API" />
+    <PackageReference Include="$(OpenCvSampleRuntimePackage)" Condition="'$(OpenCvSampleRuntimePackage)' != ''" />
+  </ItemGroup>
+</Project>

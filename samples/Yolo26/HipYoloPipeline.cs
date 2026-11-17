@@ -1,7 +1,5 @@
 using JYPPX.ROCm.HipSharp.Memory;
 using JYPPX.ROCm.HipSharp.Streams;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using static MIGraphXSharp.Samples.Yolo26.HipRuntimeContext;
 
 namespace MIGraphXSharp.Samples.Yolo26;
@@ -24,7 +22,7 @@ public sealed class HipYoloPipeline : IDisposable
     public object ModelInfo => new { session.ModelSha256, session.ParseMilliseconds, session.CompileMilliseconds,
         outputShapes = session.OutputShapes.Select(s => s.Lengths), backend = "hip", deviceOutput = "D2D into reusable buffers" };
 
-    public HipYoloPipeline(Image<Rgb24> source, Arguments options)
+    public HipYoloPipeline(RgbImage source, Arguments options)
     {
         task = options.Required("task");
         taskCode = task switch { "detect" => 0, "segment" => 1, "pose" => 2, "obb" => 3, "classify" => 4, _ => throw new ArgumentException("Unknown YOLO task.") };
@@ -132,7 +130,7 @@ public sealed class HipYoloPipeline : IDisposable
         return id < labels.Length ? labels[id] : $"class-{id}";
     }
 
-    public void Save(Image<Rgb24> source, HipYoloResult result, string directory, bool dump)
+    public void Save(RgbImage source, HipYoloResult result, string directory, bool dump)
     {
         using var visualization = new Visualization(source);
         if (task == "classify") foreach (var (c, i) in result.Classes.Select((c, i) => (c, i))) visualization.Label(new PointD(10, 30 + i * 24), $"{c.Label} {c.Score:F3}");
@@ -143,7 +141,7 @@ public sealed class HipYoloPipeline : IDisposable
             if (d.Keypoints is not null) Decoder.DrawPose(d.Keypoints, visualization);
             if (maskData is not null)
             {
-                using var mask = Image.LoadPixelData<L8>(maskData.AsSpan(i * sw * sh, sw * sh), sw, sh);
+                using var mask = GrayImage.FromPixels(maskData.AsSpan(i * sw * sh, sw * sh), sw, sh);
                 visualization.Mask(mask, d.Mask!, directory);
             }
         }

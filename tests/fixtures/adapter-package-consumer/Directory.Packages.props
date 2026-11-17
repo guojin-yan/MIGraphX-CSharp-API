@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <MIGraphXConsumerVersion Condition="'$(MIGraphXConsumerVersion)' == ''">0.0.0</MIGraphXConsumerVersion>
+    <MIGraphXConsumerVersion Condition="'$(MIGraphXConsumerVersion)' == ''">1.0.0</MIGraphXConsumerVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="JYPPX.ROCm.MIGraphX.CSharp.API.HIP.Interop" Version="$(MIGraphXConsumerVersion)" />
