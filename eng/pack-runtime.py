@@ -72,6 +72,8 @@ def package_entries(lock, source, version, commit):
                         "releaseNotes": "MIGraphX engine distribution for API 1.0.0. Native engine and ROCm versions are recorded separately in native-manifest.json."}.items():
         ET.SubElement(metadata, name).text = value
     ET.SubElement(metadata, "license", type="file").text = "licenses/MIGraphX-LICENSE.txt"
+    # Required by NuGet.org for older clients when a packaged license is used.
+    ET.SubElement(metadata, "licenseUrl").text = "https://aka.ms/deprecateLicenseUrl"
     ET.SubElement(metadata, "repository", type="git", url="https://github.com/guojin-yan/MIGraphX-CSharp-API", commit=commit)
     entries[package_id + ".nuspec"] = ET.tostring(package, encoding="utf-8", xml_declaration=True)
     # Restore copies native assets to the application's RID directory. On Unix
